@@ -15,8 +15,10 @@ import {
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import SidebarLayout from "./SidebarLayout";
+import { useSafeAreaInsets } from "react-native-safe-area-context"; // <-- added
 
 export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
+  const insets = useSafeAreaInsets(); // <-- added
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState("EN");
   const router = useRouter();
@@ -71,7 +73,7 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
 
   return (
     <SidebarLayout sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar}>
-      {({ toggleSidebar }) => (
+      {({ toggleSidebar: innerToggle }) => (
         <ScrollView className="flex-1 bg-white">
           {/* Banner */}
           <ImageBackground
@@ -80,11 +82,22 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
             className="w-full"
             style={{ height: 240, justifyContent: "center", paddingHorizontal: 20 }}
           >
-            <View className="flex-row items-center justify-between py-3">
-              <TouchableOpacity onPress={toggleSidebar}>
-                <Ionicons name="menu" size={28} color="white" />
-              </TouchableOpacity>
-            </View>
+            {/* Hamburger: positioned relative to safe-area, with high z/elevation so it's clickable */}
+            <TouchableOpacity
+  onPress={() => {
+    const fn = innerToggle ?? toggleSidebar;
+    fn?.();
+  }}
+  style={{
+    position: "absolute",
+    top: insets.top ? insets.top + 5 : 20, // ⬆ moves icon upward
+    left: 32,
+    zIndex: 20,
+  }}
+>
+  <Ionicons name="menu" size={28} color="white" />
+</TouchableOpacity>
+
 
             <Text className="text-3xl font-bold text-white ml-5 ">
               Find Your Dream Property
@@ -153,13 +166,9 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
                     paddingVertical: 30,
                     aspectRatio: 0.85,
                     borderRadius: 10,
-                    // Shadow styles for iOS
-                    shadowColor: "#22C55E",
-                    shadowOffset: { width: 0, height: 5 },
-                    shadowOpacity: 0.2,
-                    shadowRadius: 6,
+
                     // Elevation for Android
-                    elevation: 8,
+                    elevation: 3,
                   }}
                   className="bg-white rounded-2xl border-l-8 border-[#22C55E] items-center justify-center p-4"
                   activeOpacity={0.8}
@@ -226,7 +235,8 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitle}>Select Your Language</Text>
                   <TouchableOpacity onPress={() => setLanguageModalVisible(false)}>
-                    <Ionicons name="close" size={22} color="black" />
+                    <Ionicons name="close" size={20} color="#777" />
+
                   </TouchableOpacity>
                 </View>
 

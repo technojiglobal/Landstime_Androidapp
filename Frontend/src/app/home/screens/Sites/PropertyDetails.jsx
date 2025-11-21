@@ -392,7 +392,7 @@ export default function PropertyListScreen() {
             style={{
               width: 6,
               borderRadius: 3,
-              backgroundColor: "#16A34A",
+              backgroundColor: "#cbddd2ff",
               height: scrollbarHeight,
               transform: [{ translateY: scrollIndicator }],
             }}
