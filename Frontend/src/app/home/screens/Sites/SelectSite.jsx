@@ -240,10 +240,7 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
     borderLeftWidth: 8,
     backgroundColor: '#fff',
-    shadowColor: '#22C55E',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    
     elevation: 6,
   },
 });

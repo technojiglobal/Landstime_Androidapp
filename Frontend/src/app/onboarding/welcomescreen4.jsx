@@ -15,43 +15,49 @@ export default function WelcomeScreen() {
 
   return (
     <View className="flex-1 bg-white">
-       <View style={{ position: "absolute", top: scaleHeight(62), left: scaleWidth(5) }}>
-          <TouchableOpacity
-            onPress={() => {
-              
-                router.push("/onboarding/welcomescreen3"); // fallback screen
-              }
-            }
-          >
-            <Image
-              source={require("../../../assets/arrow.png")}
-              style={{ width: scaleWidth(28), height: scaleHeight(28) }}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-     </View>
-      {/* Title */}
-      <Text
+
+      {/* ✅ Arrow + Discover Text in Same Row */}
+      <View
         style={{
+          flexDirection: "row",
+          alignItems: "center",
           position: "absolute",
-          top: scaleHeight(100),
-          left: scaleWidth(35),
-          width: scaleWidth(360),
-          height: scaleHeight(68),
-          fontSize: scaleWidth(24),
-          fontWeight: "500",
-          lineHeight: scaleHeight(28),
-          color: "black",
+          top: scaleHeight(62),
+          left: scaleWidth(20),
+          width: SCREEN_WIDTH - scaleWidth(40),
         }}
       >
-        Discover a place you{"\n"}will love to live
-      </Text>
+        {/* Back Arrow */}
+        <TouchableOpacity
+          onPress={() => router.push("/onboarding/welcomescreen3")}
+          style={{ marginRight: scaleWidth(12) }}
+        >
+          <Image
+            source={require("../../../assets/arrow.png")}
+            style={{ width: scaleWidth(28), height: scaleHeight(28) }}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+
+        {/* Discover Title */}
+        <Text
+          style={{
+            fontSize: scaleWidth(24),
+            fontWeight: "500",
+            lineHeight: scaleHeight(28),
+            color: "black",
+            flexShrink: 1, // allows wrapping
+          }}
+        >
+          Discover a place you{"\n"}will love to live
+        </Text>
+      </View>
 
       {/* Description */}
       <Text
         style={{
           position: "absolute",
-          top: scaleHeight(182),
+          top: scaleHeight(130),
           left: scaleWidth(35),
           width: scaleWidth(360),
           fontSize: scaleWidth(14),
@@ -60,7 +66,8 @@ export default function WelcomeScreen() {
           color: "#000000A6",
         }}
       >
-        Browse homes for sale, original neighborhood photos, resident reviews, local insights to find what is right for you
+        Browse homes for sale, original neighborhood photos, resident reviews,
+        local insights to find what is right for you
       </Text>
 
       {/* Explore Button */}
@@ -68,8 +75,8 @@ export default function WelcomeScreen() {
         activeOpacity={0.8}
         style={{
           position: "absolute",
-          top: scaleHeight(291),
-          left: SCREEN_WIDTH / 2 - scaleWidth(161), // center horizontally
+          top: scaleHeight(261),
+          left: SCREEN_WIDTH / 2 - scaleWidth(161),
           width: scaleWidth(322),
           height: scaleHeight(51),
           borderRadius: scaleWidth(27),

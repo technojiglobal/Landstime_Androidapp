@@ -15,11 +15,12 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import "../../../global.css";
 import { useRouter } from "expo-router";
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft } from "lucide-react-native";
+
 export default function App() {
-  const [name, setName] = useState("jahnavi");
-  const [phone, setPhone] = useState("7661873924");
-  const [email, setEmail] = useState("abc@gmail.com");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [countryCode, setCountryCode] = useState("+91");
   const [showDropdown, setShowDropdown] = useState(false);
   const [role, setRole] = useState("");
@@ -27,12 +28,11 @@ export default function App() {
 
   const router = useRouter();
 
-  // ✅ Validation
   const isNameValid = name.trim().length >= 2;
   const isPhoneValid = /^[0-9]{10}$/.test(phone);
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const canRegister = isNameValid && isPhoneValid && isEmailValid && role && agree;
-
+  const canRegister =
+    isNameValid && isPhoneValid && isEmailValid && role && agree;
 
   const countryCodes = ["+91", "+1", "+44", "+61", "+81"];
 
@@ -48,18 +48,25 @@ export default function App() {
         }}
         keyboardShouldPersistTaps="handled"
       >
-         <TouchableOpacity className="mb-6" onPress={() => router.push("/onboarding/welcomescreen4")}>
-               <ChevronLeft color="gray" size={25} />
-                </TouchableOpacity>
-        {/* Title */}
-        <Text className="text-3xl font-bold text-center mt-10">
-          Create Account
-        </Text>
-        <Text className="text-gray-500 text-center mt-2 mb-6">
+        {/* Header */}
+        <View className="flex-row items-center justify-center mb-6 relative">
+          <TouchableOpacity
+            className="absolute left-0"
+            onPress={() => router.push("/onboarding/welcomescreen4")}
+          >
+            <ChevronLeft color="gray" size={25} />
+          </TouchableOpacity>
+
+          <Text className="text-3xl font-bold text-center">
+            Create Account
+          </Text>
+        </View>
+
+        <Text className="text-gray-500 text-center mb-6">
           Join thousands finding their perfect home
         </Text>
 
-        {/* ✅ Name Input */}
+        {/* Name Input */}
         <View
           className={`flex-row items-center border rounded-xl mb-4 px-3 ${
             name
@@ -68,7 +75,11 @@ export default function App() {
                 : "border-gray-500"
               : "border-gray-300"
           }`}
-           style={{ borderWidth: 1, borderColor: "#0000001A" ,backgroundColor:"#D9D9D91C"}}
+          style={{
+            borderWidth: 1,
+            borderColor: "#0000001A",
+            backgroundColor: "#D9D9D91C",
+          }}
         >
           <Ionicons
             name="person-outline"
@@ -76,7 +87,7 @@ export default function App() {
             color={name ? (isNameValid ? "#16a34a" : "#ef4444") : "#9ca3af"}
           />
           <TextInput
-            className="flex-1 ml-3 h-12 text-base text-green-600 "
+            className="flex-1 ml-3 h-12 text-base text-green-600"
             placeholder="Your Name"
             value={name}
             onChangeText={setName}
@@ -84,7 +95,7 @@ export default function App() {
           />
         </View>
 
-        {/* ✅ Phone Input with dropdown */}
+        {/* Phone Input */}
         <View
           className={`flex-row items-center border rounded-xl mb-4 px-3 ${
             phone
@@ -93,7 +104,11 @@ export default function App() {
                 : "border-gray-500"
               : "border-gray-300"
           }`}
-          style={{ borderWidth: 1, borderColor: "#0000001A" ,backgroundColor:"#D9D9D91C"}}
+          style={{
+            borderWidth: 1,
+            borderColor: "#0000001A",
+            backgroundColor: "#D9D9D91C",
+          }}
         >
           <Ionicons
             name="call-outline"
@@ -120,12 +135,17 @@ export default function App() {
             />
           </TouchableOpacity>
 
+          {/* ✅ LIMIT PHONE INPUT TO 10 DIGITS */}
           <TextInput
             className="flex-1 ml-2 h-12 text-base text-green-600"
             placeholder="Phone number"
             keyboardType="phone-pad"
             value={phone}
-            onChangeText={setPhone}
+            onChangeText={(text) => {
+              if (/^\d{0,10}$/.test(text)) {
+                setPhone(text);
+              }
+            }}
             placeholderTextColor="#9ca3af"
           />
 
@@ -143,7 +163,7 @@ export default function App() {
           </TouchableOpacity>
         </View>
 
-        {/* Country code modal */}
+        {/* Country Code Modal */}
         <Modal
           visible={showDropdown}
           transparent
@@ -178,7 +198,7 @@ export default function App() {
           </TouchableWithoutFeedback>
         </Modal>
 
-        {/* ✅ Email Input */}
+        {/* Email Input */}
         <View
           className={`flex-row items-center border rounded-xl mb-4 px-3 ${
             email
@@ -187,7 +207,11 @@ export default function App() {
                 : "border-gray-300"
               : "border-gray-300"
           }`}
-          style={{ borderWidth: 1, borderColor: "#0000001A" ,backgroundColor:"#D9D9D91C"}}
+          style={{
+            borderWidth: 1,
+            borderColor: "#0000001A",
+            backgroundColor: "#D9D9D91C",
+          }}
         >
           <Ionicons
             name="mail-outline"
@@ -217,7 +241,7 @@ export default function App() {
           </TouchableOpacity>
         </View>
 
-        {/* Role */}
+        {/* Role Selection */}
         <Text className="text-gray-700 mb-2">What is your role?</Text>
         <View className="flex-row mb-6">
           <TouchableOpacity
@@ -231,9 +255,8 @@ export default function App() {
             <Text
               className={`${
                 role === "Buyer"
-                  ? "text-green-700 font-semibold "
+                  ? "text-green-700 font-semibold"
                   : "text-gray-500"
-                  
               }`}
             >
               Buyer
@@ -281,7 +304,7 @@ export default function App() {
           </Text>
         </View>
 
-        {/* ✅ Register Button */}
+        {/* Register Button */}
         <TouchableOpacity
           disabled={!canRegister}
           onPress={() => router.push("/auth/LoginScreen")}
@@ -298,7 +321,7 @@ export default function App() {
           </Text>
         </TouchableOpacity>
 
-        {/* ✅ Sign In Link directly below */}
+        {/* Sign In */}
         <View className="flex-row justify-center mt-6 mb-10">
           <Text className="text-gray-600">Already have an account? </Text>
           <TouchableOpacity onPress={() => router.push("/auth/LoginScreen")}>

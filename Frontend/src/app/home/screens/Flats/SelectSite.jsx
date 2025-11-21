@@ -202,7 +202,7 @@ const SelectSiteScreen = () => {
           <Animated.View
             {...panResponder.panHandlers}
             style={{
-              backgroundColor: '#22C55E',
+              backgroundColor: '#cbddd2ff',
               width: '100%',
               height: scrollIndicatorHeight,
               borderRadius: 4,
