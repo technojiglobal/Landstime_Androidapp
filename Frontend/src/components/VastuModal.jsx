@@ -74,8 +74,8 @@ export default function VastuModal({ visible, onClose }) {
 
   return (
     <Modal transparent visible={visible} animationType="fade">
-      <View className="flex-1 justify-center items-center">
-        <View className="bg-white w-[330px] h-[600px] rounded-[20px] overflow-hidden">
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.4)" }}>
+        <View className="bg-white w-[330px] h-[600px] rounded-[20px] overflow-hidden" style={{ zIndex: 30 }}>
           {/* Header */}
           <View className="flex-row items-center justify-between px-4 py-3 border-b border-black/10">
             <View className="flex-row items-center">
@@ -163,7 +163,7 @@ export default function VastuModal({ visible, onClose }) {
                     width: "100%",
                     height: 49,
                     borderRadius: 10,
-                    backgroundColor: "#F5F5F5",
+                    backgroundColor: "#F9FAFB",
                     borderWidth: 1,
                     borderColor: "#E0E0E0",
                     shadowColor: "#000",
@@ -245,7 +245,7 @@ export default function VastuModal({ visible, onClose }) {
             <TouchableOpacity
               onPress={onClose}
               style={{
-                backgroundColor: "#007AFF",
+                backgroundColor: "#22C55E",
                 width: 179,
                 height: 33,
                 borderRadius: 8,
