@@ -193,7 +193,7 @@ const SelectDistrictScreen = () => {
           <Animated.View
             {...panResponder.panHandlers}
             style={{
-              backgroundColor: '#22C55E',
+              backgroundColor: '#cbddd2ff',
               width: '100%',
               height: scrollIndicatorHeight,
               borderRadius: 4,
@@ -231,12 +231,8 @@ const styles = StyleSheet.create({
     borderLeftWidth: 8,
     backgroundColor: '#fff',
 
-    // ✅ Only bottom green shadow
-    shadowColor: '#22C55E',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-
+    
+    
     elevation: 6,
   },
 });

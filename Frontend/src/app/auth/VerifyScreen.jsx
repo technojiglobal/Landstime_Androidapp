@@ -1,7 +1,14 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text,Image, TouchableOpacity,Dimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
+// Reference device: iPhone 14 Pro Max
+const REF_WIDTH = 430;
+const REF_HEIGHT = 932;
+
+const scaleWidth = (size) => (SCREEN_WIDTH / REF_WIDTH) * size;
+const scaleHeight = (size) => (SCREEN_HEIGHT / REF_HEIGHT) * size;
 export default function VerificationScreen() {
   const router = useRouter();
 
@@ -14,7 +21,11 @@ export default function VerificationScreen() {
         className="mb-6"
         onPress={() => router.back()}
       >
-        <Ionicons name="arrow-back" size={28} color="black" />
+        <Image
+                    source={require("../../../assets/arrow.png")}
+                    style={{ width: scaleWidth(28), height: scaleHeight(28) }}
+                    resizeMode="contain"
+                  />
       </TouchableOpacity>
 
       {/* Title */}

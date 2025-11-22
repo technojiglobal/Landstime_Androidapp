@@ -93,14 +93,9 @@ export default function OverviewScreen() {
                 </Text>
               </View>
 
-              <TouchableOpacity
-                className="bg-[#22C55E]/10 px-2 py-1 rounded-md"
-                onPress={() => router.push("/home/screens/Flats/Vrview")}
-              >
-                <Text className="text-[#22C55E] text-[10px]" style={{ fontFamily: "Poppins" }}>
-                  VR View
-                </Text>
-              </TouchableOpacity>
+             
+                
+              
             </View>
           </View>
 

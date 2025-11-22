@@ -37,7 +37,7 @@ export default function WelcomeScreen() {
       {/* Skip Text */}
       <View style={{ position: "absolute", top: scaleHeight(62), right: scaleWidth(20) }}>
         <TouchableOpacity onPress={() => router.push("/onboarding/welcomescreen4")}>
-          <Text className="text-gray-500 text-base font-semibold">Skip</Text>
+          <Text className="underline text-gray-500 text-base font-semibold">Skip</Text>
         </TouchableOpacity>
       </View>
 
