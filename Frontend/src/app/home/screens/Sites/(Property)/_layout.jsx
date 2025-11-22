@@ -8,9 +8,9 @@ export default function PropertyLayout() {
   const pathname = usePathname() ?? "";
 
   const tabs = [
-    { label: "Overview", route: "/home/screens/Flats/(Property)" },
-    { label: "Reviews(27)", route: "/home/screens/Flats/(Property)/Review" },
-    { label: "Write Review", route: "/home/screens/Flats/(Property)/WriteReview" },
+    { label: "Overview", route: "/home/screens/Sites/(Property)" },
+    { label: "Reviews(27)", route: "/home/screens/Sites/(Property)/Review" },
+    { label: "Write Review", route: "/home/screens/Sites/(Property)/WriteReview" },
   ];
 
   // ✅ Tab detection logic

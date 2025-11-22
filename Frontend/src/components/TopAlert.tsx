@@ -61,7 +61,7 @@ export default function TopAlert({ visible, onHide }: TopAlertProps) {
         }}
       >
         <Image
-          source={require("../../assets/tick-icon.png")}
+          source={require("../../assets/tick.png")}
           
           style={{ width: 25, height: 25, tintColor: "#22C55E" }}
         />
