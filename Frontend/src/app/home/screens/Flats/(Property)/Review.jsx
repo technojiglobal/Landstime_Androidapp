@@ -7,7 +7,7 @@ import { useRouter } from "expo-router";
 // Import assets
 import starImg from "../../../../../../assets/star-3d.png";        // ⭐ single star image
 import likeImg from "../../../../../../assets/like.png";        // 👍 like image
-//import dislikeImg from "../../assets/dislike.png";  // 👎 dislike image
+import dislikeImg from "../../../../../../assets/dislike.png";  // 👎 dislike image
 import replyImg from "../../../../../../assets/reply.png";      // 💬 reply image
 
 const reviews = [
@@ -164,7 +164,7 @@ const Review = () => {
 
               <TouchableOpacity className="flex-row items-center ml-3 space-x-1">
                 <Image
-                  source={likeImg}
+                  source={dislikeImg}
                   style={{ width: 18, height: 18 }}
                   resizeMode="contain"
                 />
