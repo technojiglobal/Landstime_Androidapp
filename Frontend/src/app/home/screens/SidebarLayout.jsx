@@ -10,11 +10,13 @@ import {
   Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
 export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) {
   const slideAnim = useRef(new Animated.Value(-SCREEN_WIDTH * 0.75)).current;
+  const router = useRouter();
 
   useEffect(() => {
     Animated.timing(slideAnim, {
@@ -116,28 +118,66 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
 
         {/* Menu */}
         <ScrollView style={{ flex: 1, marginBottom: 20,paddingTop: 40 }}>
-          {menuItems.map((item, idx) => (
-            <TouchableOpacity
-              key={idx}
-              style={{ flexDirection: "row", alignItems: "center", paddingVertical: 16 }}
-            >
-              <Ionicons name={item.icon} size={22} color="white" style={{ marginRight: 16 }} />
-              <Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>{item.name}</Text>
-              {item.name === "Notifications" && (
-                <View
-                  style={{
-                    marginLeft: "auto",
-                    backgroundColor: "white",
-                    paddingHorizontal: 6,
-                    paddingVertical: 2,
-                    borderRadius: 12,
-                  }}
-                >
-                  <Text style={{ color: "#22C55E", fontSize: 12 }}>5</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
+            {menuItems.map((item, idx) => (
+              <TouchableOpacity
+                key={idx}
+                onPress={() => {
+                  // close sidebar first
+                  toggleSidebar?.();
+
+                  // navigate based on menu item
+                  switch (item.name) {
+                    case "Home":
+                      router.push("/home");
+                      break;
+                    case "Nearby":
+                      // As requested: open Billing when Nearby is clicked
+                      router.push("/home/screens/Nearby");
+                      break;
+                    case "Billing Details":
+                      router.push("/home/screens/Sidebar/Billing");
+                      break;
+                    case "Interior Design":
+                      router.push("/home/screens/Commercial");
+                      break;
+                    case "Vaastu Guidelines":
+                      router.push("/home/screens/Sites");
+                      break;
+                    case "Saved":
+                      router.push("/home/screens/Flats");
+                      break;
+                    case "Chat":
+                      router.push("/home/screens/Commercial");
+                      break;
+                    case "Notifications":
+                      router.push("/home");
+                      break;
+                    case "Settings":
+                      router.push("/home");
+                      break;
+                    default:
+                      break;
+                  }
+                }}
+                style={{ flexDirection: "row", alignItems: "center", paddingVertical: 16 }}
+              >
+                <Ionicons name={item.icon} size={22} color="white" style={{ marginRight: 16 }} />
+                <Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>{item.name}</Text>
+                {item.name === "Notifications" && (
+                  <View
+                    style={{
+                      marginLeft: "auto",
+                      backgroundColor: "white",
+                      paddingHorizontal: 6,
+                      paddingVertical: 2,
+                      borderRadius: 12,
+                    }}
+                  >
+                    <Text style={{ color: "#22C55E", fontSize: 12 }}>5</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
         </ScrollView>
 
         {/* Logout */}
