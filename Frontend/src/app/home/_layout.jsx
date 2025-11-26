@@ -38,6 +38,13 @@ export default function RootLayout() {
           animation: 'slide_from_right',
         }}
       />
+      <Stack.Screen 
+        name="screens/Vaastu" 
+        options={{
+          presentation: 'card',
+          animation: 'slide_from_right',
+        }}
+      />
     </Stack>
   );
 }
