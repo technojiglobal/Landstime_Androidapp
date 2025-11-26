@@ -83,7 +83,7 @@ export default function VRTourScreen() {
             </View>
 
             <Text style={{ color: "#fff", fontSize: 20, fontWeight: "bold" }}>
-              Explore in VR
+              Explore in AR
             </Text>
 
             <Text

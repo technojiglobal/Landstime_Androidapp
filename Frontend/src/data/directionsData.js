@@ -1,0 +1,68 @@
+const directionsData = {
+  North: {
+    name: "North (Uttara)",
+    element: "Water",
+    deity: "Lord Kubera",
+    benefits: ["Wealth & Prosperity", "Career Growth", "Financial Stability", "Mental Peace"],
+    idealPlacements: ["Main Entrance", "Cash Counter", "Safe/Locker", "Water Bodies"],
+    avoid: ["Toilets", "Heavy Items", "Staircase", "Kitchen"],
+  },
+  South: {
+    name: "South (Dakshina)",
+    element: "Fire",
+    deity: "Yama",
+    benefits: ["Fame and Recognition", "Leadership", "Energy", "Strength"],
+    idealPlacements: ["Bedroom", "Heavy Furniture","Boundary Wall","Energy"],
+    avoid: ["Mirrors","Water Storage","MainEntrance","Heavy Doors"],
+  },
+  East: {
+    name: "East (Purva)",
+    element: "Air",
+    deity: "Indra",
+    benefits: ["Health", "Fresh Beginnings", "Knowledge", "Growth"],
+    idealPlacements: ["Pooja Room","Study Room","Living Room","Windows"],
+    avoid: ["Toilets", "Heavy Items", "Obstacles", "Clutter"],
+  },
+  West: {
+    name: "West (Paschima)",
+    element: "Earth",
+    deity: "Varuna",
+    benefits: ["Stability", "Support", "Relationships", "Gains"],
+    idealPlacements: ["Dining Room", "Children’s Room", "Storage", "Guest Room"],
+    avoid: ["Waste","Water Bodies","Septic tank","Cuts"],
+  },
+  Northeast: {
+    name: "Northeast (Ishanya)",
+    element: "Water",
+    deity: "Lord Shiva",
+    benefits: ["Spiritual Growth", "Mental Peace", "Wisdom", "Clarity"],
+    idealPlacements: ["Pooja room","Meditation","Water Storage","Study"],
+    avoid: ["Toilets", "Heavy Items","OverHead Tank","Kitchen"],
+  },
+  Northwest: {
+    name: "Northwest (Vayavya)",
+    element: " Water +Air",
+    deity: "Lord Shiva",
+    benefits: ["Support", "Movement", "Helpful People", "New Opportunities"],
+    idealPlacements: ["Guest Room", "Granary", "Bathrooms", "Vehicles"],
+    avoid: ["Master Bedroom", "Fire Source", "Staircase", "Toilets"],
+  },
+  Southeast: {
+    name: "Southeast (Agneya)",
+    element: "Fire",
+    deity: "Agni",
+    benefits: ["Energy", "Digestive Fire","Immunity","Health"],
+    idealPlacements: ["Kitchen", "Electrical Equipment", "Fire Source", "Generator"],
+    avoid: ["Bedroom", "Cash Counter", "Water Storage", "Entrance"],
+  },
+  Southwest: {
+    name: "Southwest (Nairutya)",
+    element: "Air",
+    deity: "Lord Indra",
+    benefits: ["Stability","Grounding","Longevity","Strength"],
+    idealPlacements: ["Store Room","Heavy Furniture","Master BedRoom","Safe"],
+    avoid: ["Water Bodies","Open Sources","Entrance","Cuts"],
+  },
+};
+
+export default directionsData;
