@@ -139,7 +139,7 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
                       router.push("/home/screens/Sidebar/Billing");
                       break;
                     case "Interior Design":
-                      router.push("/home/screens/Commercial");
+                      router.push("/home/screens/Sidebar/InteriorDesign");
                       break;
                     case "Vaastu Guidelines":
                       router.push("/home/screens/Vaastu");
