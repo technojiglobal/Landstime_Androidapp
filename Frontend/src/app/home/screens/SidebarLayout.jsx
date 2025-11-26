@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -141,7 +142,7 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
                       router.push("/home/screens/Commercial");
                       break;
                     case "Vaastu Guidelines":
-                      router.push("/home/screens/Sites");
+                      router.push("/home/screens/Vaastu");
                       break;
                     case "Saved":
                       router.push("/home/screens/Flats");
