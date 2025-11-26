@@ -18,7 +18,7 @@ export default function WelcomeScreen() {
   return (
     <View className="flex-1 bg-white">
       {/* Back Arrow */}
-      <View style={{ position: "absolute", top: scaleHeight(62), left: scaleWidth(5) }}>
+      <View style={{ position: "absolute", top: scaleHeight(62), left: scaleWidth(25) }}>
                 <TouchableOpacity
                   onPress={() => {
                    
@@ -35,7 +35,7 @@ export default function WelcomeScreen() {
            </View>
 
       {/* Skip Text */}
-      <View style={{ position: "absolute", top: scaleHeight(62), right: scaleWidth(20) }}>
+      <View style={{ position: "absolute", top: scaleHeight(62), right: scaleWidth(32) }}>
         <TouchableOpacity onPress={() => router.push("/onboarding/welcomescreen4")}>
           <Text className="underline text-gray-500 text-base font-semibold">Skip</Text>
         </TouchableOpacity>

@@ -15,7 +15,20 @@ export default function OverviewScreen() {
 
   return (
     <View className="flex-1 bg-white relative">
-      {(showAlert || showVastuModal) && <View className="absolute inset-0 bg-black/20" />}
+      {(showAlert) && (
+        <View
+          className="absolute inset-0 bg-black/40"
+          style={{ zIndex: 10 }}
+          pointerEvents={"auto"}
+        />
+      )}
+      {( showVastuModal) && (
+        <View
+          className="absolute inset-0 bg-black/40"
+          //style={{ zIndex: 10 }}
+          pointerEvents={"auto"}
+        />
+      )}
       <ScrollView
         className="flex-1 bg-white"
         scrollEnabled={!showAlert && !showVastuModal}
