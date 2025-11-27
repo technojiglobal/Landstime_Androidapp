@@ -151,10 +151,10 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
                       router.push("/home/screens/Commercial");
                       break;
                     case "Notifications":
-                      router.push("/home");
+                      router.push("/home/screens/Notifications");
                       break;
                     case "Settings":
-                      router.push("/home");
+                      router.push("/home/screens/Settings");
                       break;
                     default:
                       break;
