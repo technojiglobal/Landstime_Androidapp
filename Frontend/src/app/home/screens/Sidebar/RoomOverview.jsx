@@ -94,7 +94,7 @@ export default function RoomOverviewScreen() {
           </View>
 
           {/* Button */}
-          <TouchableOpacity className="bg-[#22C55E] px-4 py-2 rounded-full flex-row items-center">
+          <TouchableOpacity className="bg-[#22C55E] px-4 py-2  rounded-full flex-row items-center">
             <Ionicons name="location-outline" size={18} color="white" />
             <Text className="ml-2 text-white font-semibold">See on Map</Text>
           </TouchableOpacity>

@@ -145,10 +145,10 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
                       router.push("/home/screens/Vaastu");
                       break;
                     case "Saved":
-                      router.push("/home/screens/Flats");
+                      router.push("/home/screens/Sidebar/SavedPropertiesScreen");
                       break;
                     case "Chat":
-                      router.push("/home/screens/Commercial");
+                      router.push("/home/screens/Sidebar/MessagesScreen");
                       break;
                     case "Notifications":
                       router.push("/home/screens/Notifications");

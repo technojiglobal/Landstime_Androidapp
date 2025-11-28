@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, Image, ScrollView, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-
+import arrow from "../../../../../assets/arrow.png";
 export default function PaymentHistory() {
   const router = useRouter();
 
@@ -35,8 +35,8 @@ export default function PaymentHistory() {
     <View className="flex-1 bg-white mt-12">
       {/* Header */}
       <View className="bg-[#22C55E] flex-row items-center justify-between px-4 py-4">
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="white" />
+       <TouchableOpacity onPress={() => router.push("/home/screens/HomeScreen")}>
+          <Image  source={arrow}  className="w-6 h-6"/>
         </TouchableOpacity>
         <Text className="text-white text-xl font-bold">Payment History</Text>
         <View style={{ width: 20 }} />
