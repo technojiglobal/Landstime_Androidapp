@@ -133,7 +133,7 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
                       break;
                     case "Nearby":
                       // As requested: open Billing when Nearby is clicked
-                      router.push("/home/screens/Nearby");
+                      router.push("/home/screens/Sidebar/NearbyProperty");
                       break;
                     case "Billing Details":
                       router.push("/home/screens/Sidebar/Billing");
