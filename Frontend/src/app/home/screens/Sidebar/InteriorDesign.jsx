@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import RoomTabs from "../../../../components/interior/RoomTabs";
 import FeaturedDesigns from "../../../../components/interior/FeaturedDesigns";
 import { useRouter } from "expo-router";
-
+import arrow from "../../../../../assets/arrow.png";
 export default function InteriorDesignScreen() {
   const router = useRouter();
   const [selectedRoom, setSelectedRoom] = useState("All Rooms");
@@ -22,7 +22,7 @@ export default function InteriorDesignScreen() {
 
         {/* Back icon */}
         <TouchableOpacity onPress={() => router.push("/home/screens/HomeScreen")}>
-          <Ionicons name="arrow-back" size={26} color="black" />
+            <Image  source={arrow}  className="w-6 h-6"/>
         </TouchableOpacity>
 
         {/* Title (RIGHT aligned) */}
