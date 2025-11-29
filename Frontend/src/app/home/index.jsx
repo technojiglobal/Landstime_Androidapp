@@ -3,18 +3,23 @@ import { View, Text } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import HomeScreen from "./screens/HomeScreen";
 import AddScreen from "./screens/UploadScreens/AddScreen";
 import AddFurnishingsScreen from "./screens/UploadScreens/AddFurnishingsScreen";
-import ProfileScreen from "./screens/ProfileScreen";
+import PlanScreen from "./screens/PlanScreen";
+
 import ShortsScreen from "./screens/ShortsScreen";
 import SettingsScreen from "./screens/SettingsScreen";
 
 const Tab = createBottomTabNavigator();
 const AddStack = createNativeStackNavigator();
 
-function CustomTabIcon({ name, label, focused, isCenter }) {
+function CustomTabIcon({ name, label, focused, isCenter, iconSet = "ion" }) {
+  const IconComponent =
+    iconSet === "material" ? MaterialCommunityIcons : Ionicons;
+
   if (isCenter) {
     return (
       <View
@@ -33,7 +38,7 @@ function CustomTabIcon({ name, label, focused, isCenter }) {
           elevation: 6,
         }}
       >
-        <Ionicons name={name} size={30} color="white" />
+        <IconComponent name={name} size={30} color="white" />
       </View>
     );
   }
@@ -51,7 +56,11 @@ function CustomTabIcon({ name, label, focused, isCenter }) {
         backgroundColor: focused ? "#22C55E" : "transparent",
       }}
     >
-      <Ionicons name={name} size={24} color={focused ? "white" : "#22C55E"} />
+      <IconComponent
+        name={name}
+        size={24}
+        color={focused ? "white" : "#22C55E"}
+      />
       {focused && (
         <Text style={{ color: "white", fontWeight: "600", marginLeft: 6 }}>
           {label}
@@ -124,14 +133,16 @@ export default function App() {
                   focused={focused}
                 />
               );
-            case "Profile":
+            case "Pro":
               return (
                 <CustomTabIcon
-                  name={focused ? "person" : "person-outline"}
-                  label="Profile"
+                  name={focused ? "diamond" : "diamond-outline"}
+                  label="Pro"
                   focused={focused}
+                  iconSet="material"   // 👈 use MaterialCommunityIcons here
                 />
               );
+
             case "Settings":
               return (
                 <CustomTabIcon
@@ -169,14 +180,12 @@ export default function App() {
         )}
       </Tab.Screen>
 
-      <Tab.Screen name="Profile">
-        {() => (
-          <ProfileScreen
-            toggleSidebar={toggleSidebar}
-            sidebarOpen={sidebarOpen}
-          />
-        )}
-      </Tab.Screen>
+     <Tab.Screen name="Pro">
+          {() => (
+            <PlanScreen toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
+          )}
+     </Tab.Screen>
+
 
       <Tab.Screen name="Settings">
         {() => (
