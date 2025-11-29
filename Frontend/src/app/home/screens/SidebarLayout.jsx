@@ -1,5 +1,5 @@
-//SidebarLayout.jsx
-import React, { useRef, useEffect } from "react";
+// SidebarLayout.jsx
+import React, { useRef, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,13 +11,17 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-
+import LogoutModal from "@/components/LogoutModal";
+import CustomAlert from "@/components/CustomAlert";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
 export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) {
   const slideAnim = useRef(new Animated.Value(-SCREEN_WIDTH * 0.75)).current;
   const router = useRouter();
+
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showLogoutSuccess, setShowLogoutSuccess] = useState(false);
 
   useEffect(() => {
     Animated.timing(slideAnim, {
@@ -39,6 +43,18 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
     { name: "Settings", icon: "settings-outline" },
   ];
 
+  // When YES pressed on LogoutModal
+  const handleLogoutConfirm = () => {
+    setShowLogoutModal(false);
+    setShowLogoutSuccess(true);
+  };
+
+  // When alert auto closes — move to login screen
+  const handleAlertClose = () => {
+    setShowLogoutSuccess(false);
+    router.replace("/auth/LoginScreen");
+  };
+
   return (
     <View style={{ flex: 1 }}>
       {/* Overlay */}
@@ -58,7 +74,7 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar Drawer */}
       <Animated.View
         style={{
           position: "absolute",
@@ -72,7 +88,7 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
           paddingVertical: 25,
         }}
       >
-        {/* Profile */}
+        {/* Profile Top */}
         <View
           style={{
             flexDirection: "row",
@@ -85,11 +101,20 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Image
               source={require("../../../../assets/profile.png")}
-              style={{ width: 55, height: 55, borderRadius: 27.5, marginRight: 12 }}
+              style={{
+                width: 55,
+                height: 55,
+                borderRadius: 27.5,
+                marginRight: 12,
+              }}
             />
             <View>
-              <Text style={{ color: "white", fontSize: 20, fontWeight: "bold" }}>John Doe</Text>
-              <Text style={{ color: "white", fontSize: 14 }}>9876543210</Text>
+              <Text style={{ color: "white", fontSize: 20, fontWeight: "bold" }}>
+                John Doe
+              </Text>
+              <Text style={{ color: "white", fontSize: 14 }}>
+                9876543210
+              </Text>
             </View>
           </View>
 
@@ -118,79 +143,107 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
         </View>
 
         {/* Menu */}
-        <ScrollView style={{ flex: 1, marginBottom: 20,paddingTop: 40 }}>
-            {menuItems.map((item, idx) => (
-              <TouchableOpacity
-                key={idx}
-                onPress={() => {
-                  // close sidebar first
-                  toggleSidebar?.();
-
-                  // navigate based on menu item
-                  switch (item.name) {
-                    case "Home":
-                      router.push("/home");
-                      break;
-                    case "Nearby":
-                      // As requested: open Billing when Nearby is clicked
-                      router.push("/home/screens/Sidebar/NearbyProperty");
-                      break;
-                    case "Billing Details":
-                      router.push("/home/screens/Sidebar/Billing");
-                      break;
-                    case "Interior Design":
-                      router.push("/home/screens/Sidebar/InteriorDesign");
-                      break;
-                    case "Vaastu Guidelines":
-                      router.push("/home/screens/Vaastu");
-                      break;
-                    case "Saved":
-                      router.push("/home/screens/Sidebar/SavedPropertiesScreen");
-                      break;
-                    case "Chat":
-                      router.push("/home/screens/Sidebar/MessagesScreen");
-                      break;
-                    case "Notifications":
-                      router.push("/home/screens/Notifications");
-                      break;
-                    case "Settings":
-                      router.push("/home/screens/Settings");
-                      break;
-                    default:
-                      break;
-                  }
+        <ScrollView style={{ flex: 1, marginBottom: 20, paddingTop: 40 }}>
+          {menuItems.map((item, idx) => (
+            <TouchableOpacity
+              key={idx}
+              onPress={() => {
+                toggleSidebar?.();
+                switch (item.name) {
+                  case "Home":
+                    router.push("/home");
+                    break;
+                  case "Nearby":
+                    router.push("/home/screens/Sidebar/NearbyProperty");
+                    break;
+                  case "Billing Details":
+                    router.push("/home/screens/Sidebar/Billing");
+                    break;
+                  case "Interior Design":
+                    router.push("/home/screens/Sidebar/InteriorDesign");
+                    break;
+                  case "Vaastu Guidelines":
+                    router.push("/home/screens/Vaastu");
+                    break;
+                  case "Saved":
+                    router.push("/home/screens/Sidebar/SavedPropertiesScreen");
+                    break;
+                  case "Chat":
+                    router.push("/home/screens/Sidebar/MessagesScreen");
+                    break;
+                  case "Notifications":
+                    router.push("/home/screens/Notifications");
+                    break;
+                  case "Settings":
+                    router.push("/home/screens/Settings");
+                    break;
+                }
+              }}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingVertical: 16,
+              }}
+            >
+              <Ionicons
+                name={item.icon}
+                size={22}
+                color="white"
+                style={{ marginRight: 16 }}
+              />
+              <Text
+                style={{
+                  color: "white",
+                  fontSize: 18,
+                  fontWeight: "600",
                 }}
-                style={{ flexDirection: "row", alignItems: "center", paddingVertical: 16 }}
               >
-                <Ionicons name={item.icon} size={22} color="white" style={{ marginRight: 16 }} />
-                <Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>{item.name}</Text>
-                {item.name === "Notifications" && (
-                  <View
-                    style={{
-                      marginLeft: "auto",
-                      backgroundColor: "white",
-                      paddingHorizontal: 6,
-                      paddingVertical: 2,
-                      borderRadius: 12,
-                    }}
-                  >
-                    <Text style={{ color: "#22C55E", fontSize: 12 }}>5</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            ))}
+                {item.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </ScrollView>
 
-        {/* Logout */}
-       {/* Logout */}
-      <TouchableOpacity style={{ flexDirection: "row", alignItems: "center", marginTop: 10, marginBottom: 80 }}>
-         <Ionicons name="log-out-outline" color="white" size={22} style={{ marginRight: 10 }} />
-         <Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>Logout</Text>
-      </TouchableOpacity>
+        {/* Logout Button */}
+        <TouchableOpacity
+          onPress={() => setShowLogoutModal(true)}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginTop: 10,
+            marginBottom: 80,
+          }}
+        >
+          <Ionicons
+            name="log-out-outline"
+            color="white"
+            size={22}
+            style={{ marginRight: 10 }}
+          />
+          <Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>
+            Logout
+          </Text>
+        </TouchableOpacity>
       </Animated.View>
 
-      {/* Main Content */}
+      {/* App Screen Content */}
       <View style={{ flex: 1 }}>{children({ toggleSidebar })}</View>
+
+      {/* Logout Confirmation Popup */}
+      <LogoutModal
+        visible={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleLogoutConfirm}
+      />
+
+      {/* Logout Success Alert */}
+      <CustomAlert
+        visible={showLogoutSuccess}
+        title="Logged Out!"
+        message="You are successfully logged out."
+        onClose={handleAlertClose}
+        duration={2000}
+      />
     </View>
   );
 }

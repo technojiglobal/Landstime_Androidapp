@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
 import React from "react";
 import { View, Text, Dimensions, TouchableOpacity, Image } from "react-native";
-import Slidearrow from "../../../../../assets/Slide-arrow.png";
+
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 // Reference device: iPhone 14 Pro Max
