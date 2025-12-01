@@ -26,6 +26,19 @@ export default function ChatScreen() {
     setMessages(msgs);
   };
 
+  const handleSend = () => {
+    if (input.trim() === "") return;
+
+    const newMessage = {
+      id: Date.now().toString(),
+      text: input,
+      sender: "me",
+    };
+
+    setMessages([...messages, newMessage]);
+    setInput("");
+  };
+
   return (
     <View className="flex-1 bg-white pt-16 ">
 
@@ -79,6 +92,7 @@ export default function ChatScreen() {
         />
 
         <TouchableOpacity
+          onPress={handleSend}
           className="bg-[#22C55E] w-12 h-12 rounded-full items-center justify-center ml-3"
         >
           <Ionicons name="send" size={20} color="white" />

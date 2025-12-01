@@ -1,10 +1,12 @@
 // src/data/plansData.js
-
+import diamond from "../../assets/diamond.png";
+import gold from "../../assets/gold.png";
+import platinum from "../../assets/platinum.png";
 export const subscriptionPlans = [
   {
     id: "gold",
     title: "Gold",
-    icon: "ios-medal-outline",
+    image: gold,
     color: "#FFCC00",
     price: 999,
     period: "month",
@@ -22,7 +24,7 @@ export const subscriptionPlans = [
   {
     id: "platinum",
     title: "Platinum",
-    icon: "ios-medal-outline",
+    image: platinum,
     color: "#9EB6FF",
     price: 1999,
     period: "month",
@@ -42,7 +44,7 @@ export const subscriptionPlans = [
   {
     id: "diamond",
     title: "Diamond",
-    icon: "ios-diamond-outline",
+   image: diamond,
     color: "#00C4C4",
     price: 3999,
     period: "month",
