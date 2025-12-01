@@ -1,15 +1,34 @@
 import React from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView,Image, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { subscriptionPlans } from "../../../data/plansData";
-
+import arrow from "../../../../assets/arrow.png"
 export default function SubscriptionPlansScreen() {
   const router = useRouter();
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 mt-12 bg-white">
+
       <ScrollView showsVerticalScrollIndicator={false}>
+        <View  className="flex-row ml-5 mt-5 border-b border-gray-200 mb-5 pb-2">
+           <TouchableOpacity onPress={() => router.push("/home")}>
+              <Image  source={arrow}  className="w-6 h-6"/>
+            </TouchableOpacity>
+          
+                  {/* Title (RIGHT aligned) */}
+            <Text className="text-xl font-bold text-gray-500 mr-auto ml-3 ">
+             Subscription plans
+            </Text>
+        </View>
+        <View className="items-center">
+          <Text className="font-semibold text-xl text-center">
+            Choose the perfect plan for you
+          </Text>
+          <Text className="text-center">
+            Unlock powerful features to grow your real {"\n"} estate business.Select the plan that best fits {"\n"} your needs.
+          </Text>
+        </View>
 
         <View className="mt-6 px-4 pb-10 mx-5">
           {subscriptionPlans.map((plan) => (
@@ -17,8 +36,8 @@ export default function SubscriptionPlansScreen() {
               key={plan.id}
               className="bg-white border border-gray-300 p-6 mb-6 rounded-3xl"
             >
-              <View className="flex-row items-center justify-center mb-3">
-                <Ionicons name={plan.icon} size={24} color={plan.color} />
+              <View className="flex-row items-center justify-center mb-3  border-b border-gray-200 pb-3">
+                <Image source={plan.image} className="w-8 h-8"/>
                 <Text className="text-xl font-semibold ml-2">
                   {plan.title}
                 </Text>

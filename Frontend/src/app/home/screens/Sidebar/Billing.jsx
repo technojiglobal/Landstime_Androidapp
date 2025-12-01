@@ -35,7 +35,7 @@ export default function PaymentHistory() {
     <View className="flex-1 bg-white mt-12">
       {/* Header */}
       <View className="bg-[#22C55E] flex-row items-center justify-between px-4 py-4">
-       <TouchableOpacity onPress={() => router.push("/home/screens/HomeScreen")}>
+       <TouchableOpacity onPress={() => router.push("/home")}>
           <Image  source={arrow}  className="w-6 h-6"/>
         </TouchableOpacity>
         <Text className="text-white text-xl font-bold">Payment History</Text>

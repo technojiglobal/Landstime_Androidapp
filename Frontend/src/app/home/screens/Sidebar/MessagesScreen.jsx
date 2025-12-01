@@ -24,7 +24,7 @@ export default function MessagesScreen() {
 
       {/* Header */}
       <View className="flex-row items-center px-4 mb-3 mt-5">
-         <TouchableOpacity onPress={() => router.push("/home/screens/HomeScreen")}>
+         <TouchableOpacity onPress={() => router.push("/home")}>
               <Image  source={arrow}  className="w-6 h-6"/>
           </TouchableOpacity>
         <Text className="text-xl font-bold ml-4">Messages</Text>
