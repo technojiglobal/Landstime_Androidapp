@@ -10,7 +10,7 @@ import {
   Animated,
   PanResponder,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView} from 'react-native-safe-area-context';
 import {
   ChevronLeft,
   Search,
@@ -39,7 +39,7 @@ const districtsData = [
 const itemWidth = 339;
 
 const SelectDistrictScreen = () => {
-  const insets = useSafeAreaInsets();
+  
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [contentHeight, setContentHeight] = useState(1);
@@ -92,7 +92,7 @@ const SelectDistrictScreen = () => {
     })
   ).current;
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'white', paddingTop: insets.top }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white',paddingTop:7 }}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
       {/* Header */}

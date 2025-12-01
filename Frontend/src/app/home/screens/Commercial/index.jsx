@@ -101,7 +101,7 @@ export default function SelectDistrictScreen() {
       style={{
         flex: 1,
         backgroundColor: "white",
-        paddingTop: 0, // remove safe area padding
+        paddingTop:27, // remove safe area padding
       }}
     >
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
