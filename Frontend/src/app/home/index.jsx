@@ -1,5 +1,5 @@
 import * as React from "react";
-import { View, Text } from "react-native";
+import { View, Text, Image } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
@@ -9,17 +9,20 @@ import HomeScreen from "./screens/HomeScreen";
 import AddScreen from "./screens/UploadScreens/AddScreen";
 import AddFurnishingsScreen from "./screens/UploadScreens/AddFurnishingsScreen";
 import PlanScreen from "./screens/PlanScreen";
-
 import ShortsScreen from "./screens/ShortsScreen";
-import SettingsScreen from "./screens/SettingsScreen";
+import SettingsScreen from "./screens/BiddingsScreen";
 
 const Tab = createBottomTabNavigator();
 const AddStack = createNativeStackNavigator();
 
-function CustomTabIcon({ name, label, focused, isCenter, iconSet = "ion" }) {
+/* -----------------------------------------------------
+   UNIVERSAL TAB ICON (handles both vector and images)
+------------------------------------------------------ */
+function TabItem({ focused, label, icon, activeIcon, isCenter, iconSet }) {
   const IconComponent =
     iconSet === "material" ? MaterialCommunityIcons : Ionicons;
 
+  // Center Add button
   if (isCenter) {
     return (
       <View
@@ -31,14 +34,11 @@ function CustomTabIcon({ name, label, focused, isCenter, iconSet = "ion" }) {
           justifyContent: "center",
           alignItems: "center",
           marginBottom: 35,
-          shadowColor: "#22C55E",
-          shadowOffset: { width: 0, height: 5 },
-          shadowOpacity: 0.3,
-          shadowRadius: 6,
           elevation: 6,
+          
         }}
       >
-        <IconComponent name={name} size={30} color="white" />
+        <Ionicons name="add" size={30} color="white" />
       </View>
     );
   }
@@ -46,23 +46,25 @@ function CustomTabIcon({ name, label, focused, isCenter, iconSet = "ion" }) {
   return (
     <View
       style={{
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
         width: 80,
         height: 40,
         borderRadius: 9999,
-        paddingHorizontal: focused ? 10 : 0,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
         backgroundColor: focused ? "#22C55E" : "transparent",
+        paddingHorizontal: focused ? 10 : 0,
+        
       }}
     >
       <IconComponent
-        name={name}
+        name={focused ? activeIcon : icon}
         size={24}
         color={focused ? "white" : "#22C55E"}
       />
+
       {focused && (
-        <Text style={{ color: "white", fontWeight: "600", marginLeft: 6 }}>
+        <Text style={{ color: "white", marginLeft: 6, fontWeight: "600" }}>
           {label}
         </Text>
       )}
@@ -70,11 +72,12 @@ function CustomTabIcon({ name, label, focused, isCenter, iconSet = "ion" }) {
   );
 }
 
-// 🧩 Stack used only inside the Add tab
+/* -----------------------------------------------------
+   ADD TAB WRAPPER
+------------------------------------------------------ */
 function AddTabWrapper({ toggleSidebar, sidebarOpen }) {
   return (
     <AddStack.Navigator screenOptions={{ headerShown: false }}>
-      {/* Main Add Screen */}
       <AddStack.Screen name="AddScreen">
         {(props) => (
           <AddScreen
@@ -85,21 +88,21 @@ function AddTabWrapper({ toggleSidebar, sidebarOpen }) {
         )}
       </AddStack.Screen>
 
-      {/* Modal-style popup screen for Add Furnishings */}
       <AddStack.Screen
         name="AddFurnishingsScreen"
         component={AddFurnishingsScreen}
         options={{
-          presentation: "modal", // 👈 makes it show like a popup
+          presentation: "modal",
           headerShown: false,
-          title: "Add Furnishings",
-          headerLeft: () => null, // hide default back arrow
         }}
       />
     </AddStack.Navigator>
   );
 }
 
+/* -----------------------------------------------------
+                  MAIN APP
+------------------------------------------------------ */
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
@@ -109,91 +112,78 @@ export default function App() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: { display: sidebarOpen ? "none" : "flex" },
+        tabBarStyle: { display: sidebarOpen ? "none" : "flex",
+          borderTopWidth: 0,
+  borderTopColor: "#e5e5e5",
+
+  paddingBottom: 7,     // ⭐ Adds space between border & icons
+       // ⭐ Increase tab bar height to avoid shrinking
+  backgroundColor: "white",
+         },
 
         tabBarIcon: ({ focused }) => {
-          switch (route.name) {
-            case "Home":
-              return (
-                <CustomTabIcon
-                  name={focused ? "home" : "home-outline"}
-                  label="Home"
-                  focused={focused}
-                />
-              );
-            case "Add":
-              return (
-                <CustomTabIcon name="add" focused={focused} isCenter={true} />
-              );
-            case "Shorts":
-              return (
-                <CustomTabIcon
-                  name={focused ? "play-circle" : "play-circle-outline"}
-                  label="Shorts"
-                  focused={focused}
-                />
-              );
-            case "Pro":
-              return (
-                <CustomTabIcon
-                  name={focused ? "diamond" : "diamond-outline"}
-                  label="Pro"
-                  focused={focused}
-                  iconSet="material"   // 👈 use MaterialCommunityIcons here
-                />
-              );
+          const config = {
+            Home: {
+              label: "Home",
+              icon: "home-outline",
+              activeIcon: "home",
+            },
 
-            case "Settings":
-              return (
-                <CustomTabIcon
-                  name={focused ? "settings" : "settings-outline"}
-                  label="Settings"
-                  focused={focused}
-                />
-              );
-          }
+            Shorts: {
+              label: "Shorts",
+              icon: "play-circle-outline",
+              activeIcon: "play-circle",
+            },
+
+            Add: {
+              isCenter: true,
+            },
+
+            Pro: {
+              label: "Pro",
+              icon: "diamond-outline",   // Ionicon
+              activeIcon: "diamond",
+            },
+
+            Settings: {
+              label: "Bidding",
+              icon: "hammer-outline",   // Ionicon
+              activeIcon: "hammer",
+            },
+          };
+
+          const item = config[route.name];
+
+          return (
+            <TabItem
+              focused={focused}
+              label={item?.label}
+              icon={item?.icon}
+              activeIcon={item?.activeIcon}
+              isCenter={item?.isCenter}
+            />
+          );
         },
       })}
     >
       <Tab.Screen name="Home">
-        {() => (
-          <HomeScreen toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
-        )}
+        {() => <HomeScreen toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />}
       </Tab.Screen>
 
       <Tab.Screen name="Shorts">
-        {() => (
-          <ShortsScreen
-            toggleSidebar={toggleSidebar}
-            sidebarOpen={sidebarOpen}
-          />
-        )}
+        {() => <ShortsScreen toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />}
       </Tab.Screen>
 
-      {/* 🧩 Wrapped Add tab */}
       <Tab.Screen name="Add">
-        {() => (
-          <AddTabWrapper
-            toggleSidebar={toggleSidebar}
-            sidebarOpen={sidebarOpen}
-          />
-        )}
+        {() => <AddTabWrapper toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />}
       </Tab.Screen>
 
-     <Tab.Screen name="Pro">
-          {() => (
-            <PlanScreen toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
-          )}
-     </Tab.Screen>
-
+      <Tab.Screen name="Pro">
+        {() => <PlanScreen toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />}
+      </Tab.Screen>
 
       <Tab.Screen name="Settings">
-        {() => (
-          <SettingsScreen
-            toggleSidebar={toggleSidebar}
-            sidebarOpen={sidebarOpen}
-          />
-        )}
+        {() => <SettingsScreen toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />}
       </Tab.Screen>
     </Tab.Navigator>
   );
