@@ -16,7 +16,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import SidebarLayout from "./SidebarLayout";
 import { useSafeAreaInsets } from "react-native-safe-area-context"; // <-- added
-
+import bell from '../../../../assets/Bell-icon.png'
 export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
   const insets = useSafeAreaInsets(); // <-- added
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
@@ -96,6 +96,8 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
   }}
 >
   <Ionicons name="menu" size={28} color="white" />
+
+
 </TouchableOpacity>
 
 
@@ -105,6 +107,15 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
             <Text className="text-base font-bold text-white mt-1 ml-5">
               Explore premium real estate options in Visakhapatnam
             </Text>
+         <TouchableOpacity
+  onPress={() => router.push("/home/screens/Notifications")}
+  className="absolute right-6 top-14 w-8 h-8 bg-white rounded-full border border-gray-300 justify-center items-center"
+  activeOpacity={0.7}
+>
+  <Image source={bell} className="w-5 h-5" resizeMode="contain" />
+</TouchableOpacity>
+
+
           </ImageBackground>
 
           {/* Search Bar */}
@@ -126,7 +137,8 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
               flexDirection: "row",
               justifyContent: "flex-end",
               marginRight: 40,
-              marginBottom: 10,
+              marginBottom: 5,
+              marginTop: 10,
             }}
           >
             <TouchableOpacity
@@ -155,8 +167,8 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
           </View>
 
           {/* Categories */}
-          <View style={{ paddingHorizontal: 36, marginTop:5 }}>
-            <View className="flex-row flex-wrap justify-between">
+          <View style={{ paddingHorizontal: 36, marginTop:35 }}>
+            <View className="flex-row  flex-wrap justify-between">
               {categories.map((item, idx) => (
                 <TouchableOpacity
                   key={idx}
@@ -188,7 +200,7 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
                       }}
                     >
                       <Text style={{ color: "#22C55E", fontSize: 8, fontWeight: "bold" }}>
-                        VR
+                        AR
                       </Text>
                     </View>
                   )}
@@ -319,7 +331,8 @@ const styles = StyleSheet.create({
   },
   languageButton: {
     flex: 1,
-    borderWidth: 1,
+    
+    Width: 1,
     borderColor: "#ccc",
     borderRadius: 12,
     paddingVertical: 10,
