@@ -1,7 +1,8 @@
 // src/components/ContactForm.jsx
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView } from "react-native";
-import {useRouter} from "expo-router"
+import {useRouter} from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 export default function ContactForm() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -23,13 +24,19 @@ export default function ContactForm() {
   };
 
   return (
-    <SafeAreaView className="flex-1 items-center bg-white">
+    <SafeAreaView className="flex-1 mt-12 items-center bg-white">
       {/* 🟩 Top Box */}
-      <View className="w-[412px] h-[215px] rounded-b-[30px] bg-[#22C55E33] mt-10 items-start justify-center px-5">
+      <View className="  w-[412px] h-[215px] rounded-b-[30px] bg-[#22C55E33]    items-start justify-center px-5">
+        <View className="flex flex-row">
+         <TouchableOpacity onPress={() => router.push("/home/screens/Commercial/PropertyDetails")}>
+          <Ionicons name="chevron-back-outline" size={22} color="black" />
+        </TouchableOpacity>
+
         <Text className="ml-8 text-[19px] text-[#4E4E4E] font-medium">
           Please share your details to contact {"\n"}
           the Owner
         </Text>
+        </View>
       </View>
 
       {/* 👤 Owner Card */}
