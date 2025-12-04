@@ -98,7 +98,7 @@ const handleUpload = () => {
       {/* Header */}
      <View className="flex-row items-center mt-7 mb-4">
               <TouchableOpacity
-                onPress={() => router.push("/home/screens/HomeScreen")}
+                onPress={() => router.push("/home")}
                 className="p-2"
                 accessibilityRole="button"
               >
