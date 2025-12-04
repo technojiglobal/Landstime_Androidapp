@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import SavedPropertyCard from "../../../../components/SavedPropertyCard";
 import { fetchSavedProperties } from "../../../../data/SavedProperties";
@@ -22,7 +23,7 @@ export default function SavedPropertiesScreen() {
     const data = await fetchSavedProperties();
     setSaved(data);
   };
-
+const router = useRouter();
   return (
     <ScrollView className="flex-1 bg-white px-4 pt-12">
 

@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView } from "react-native";
 import {useRouter} from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import {useRouter} from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 export default function ContactForm() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -25,10 +27,11 @@ export default function ContactForm() {
 
   return (
     <SafeAreaView className="flex-1 mt-12 items-center bg-white">
+    <SafeAreaView className="flex-1 mt-12 items-center bg-white">
       {/* 🟩 Top Box */}
       <View className="  w-[412px] h-[215px] rounded-b-[30px] bg-[#22C55E33]    items-start justify-center px-5">
-        <View className="flex flex-row">
-         <TouchableOpacity onPress={() => router.push("/home/screens/Commercial/PropertyDetails")}>
+        <View className="-mt-32 flex flex-row">
+         <TouchableOpacity onPress={() => router.push("/home/screens/Commercial/(Property)")}>
           <Ionicons name="chevron-back-outline" size={22} color="black" />
         </TouchableOpacity>
 
@@ -40,7 +43,7 @@ export default function ContactForm() {
       </View>
 
       {/* 👤 Owner Card */}
-      <View className="absolute top-[200px] w-[371px] h-[100px] bg-white border border-[#0000001A] rounded-[10px] flex-row items-center px-4">
+      <View className="absolute top-[185px] w-[371px] h-[100px] bg-white border border-[#0000001A] rounded-[10px] flex-row items-center px-4">
         <View className="w-12 h-12 rounded-full bg-[#E6F8EF] items-center justify-center">
           <Text className="text-green-600 font-semibold">US</Text>
         </View>
@@ -137,7 +140,7 @@ export default function ContactForm() {
           className={`h-12 rounded-[8px] items-center justify-center mt-6 border border-[#0000001A] ${
             viewEnabled ? "bg-[#22C55E]" : "bg-white"
           }`}
-          onPress={() => router.push("/home/screens/Commercial/ViewContact")}
+          onPress={() => router.push("/home/screens/ViewContact")}
         >
           <Text
             className={`text-[20px] font-semibold ${
