@@ -34,7 +34,7 @@ function TabItem({ focused, label, icon, activeIcon, isCenter, iconSet }) {
           justifyContent: "center",
           alignItems: "center",
           marginBottom: 35,
-          elevation: 6,
+ 
           
         }}
       >
@@ -61,11 +61,13 @@ function TabItem({ focused, label, icon, activeIcon, isCenter, iconSet }) {
         name={focused ? activeIcon : icon}
         size={24}
         color={focused ? "white" : "#22C55E"}
+        
       />
 
       {focused && (
-        <Text style={{ color: "white", marginLeft: 6, fontWeight: "600" }}>
+        <Text style={{ color: "white", marginLeft: 2, marginRight: 6, fontWeight: "600" }}>
           {label}
+          
         </Text>
       )}
     </View>
@@ -112,13 +114,14 @@ export default function App() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: { display: sidebarOpen ? "none" : "flex",
+        tabBarStyle: {
+          display: sidebarOpen ? "none" : "flex",
+          height: 80, // ⭐ Increased from 60 to 80
           borderTopWidth: 0,
-  borderTopColor: "#e5e5e5",
-
-  paddingBottom: 7,     // ⭐ Adds space between border & icons
-       // ⭐ Increase tab bar height to avoid shrinking
-  backgroundColor: "white",
+          borderTopColor: "#e5e5e5",
+          paddingBottom: 15, // ⭐ Increased padding
+          paddingTop: 10, // ⭐ Added top padding
+          backgroundColor: "white",
          },
 
         tabBarIcon: ({ focused }) => {
