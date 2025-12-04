@@ -16,6 +16,8 @@ import * as ImagePicker from "expo-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import TopAlert from "./TopAlert";
+import CustomPickerAlert from "../../../../components/CustomPickerAlert";
+
 export default function AddScreen() {
   const [constructionStatus, setConstructionStatus] = useState("Ready");
   const [possessionBy, setPossessionBy] = useState(""); // New state for Possession By
@@ -25,11 +27,12 @@ const [propertyType, setPropertyType] = useState("House");
 const [propertyTitle, setPropertyTitle] = useState("");
   const [selectedOwnership, setSelectedOwnership] = useState("Freehold");
   const [selectedAge, setSelectedAge] = useState("0-1 years");
-  const [image, setImage] = useState(null);
+  const [images, setImages] = useState([]);
   const [furnishing, setFurnishing] = useState("Furnished");
   const [covered, setCovered] = useState(0);
   const [open, setOpen] = useState(0);
  const [visible, setVisible] = useState(null);
+ const [pickerAlertVisible, setPickerAlertVisible] = useState(false);
 
   const [houseFacing, setHouseFacing] = useState("North-East");
   const [masterBedroom, setMasterBedroom] = useState("North-East");
@@ -67,7 +70,8 @@ const handleUpload = () => {
   setAlertVisible(true);
 };
 
-  const openCamera = async () => {
+  const takePhoto = async () => {
+    setPickerAlertVisible(false);
     let permission = await ImagePicker.getCameraPermissionsAsync();
 
     if (permission.status !== "granted") {
@@ -86,13 +90,52 @@ const handleUpload = () => {
       quality: 1,
     });
     if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      setImages([...images, result.assets[0].uri]);
     }
+  };
+
+  const pickFromGallery = async () => {
+    setPickerAlertVisible(false);
+    let permission = await ImagePicker.getMediaLibraryPermissionsAsync();
+
+    if (permission.status !== "granted") {
+      permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (permission.status !== "granted") {
+        Alert.alert(
+          "Permission Required",
+          "You need to grant access to your photo library to use this feature. Please go to your device settings and enable them for this app."
+        );
+        return;
+      }
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+      allowsMultipleSelection: true,
+    });
+    if (!result.canceled) {
+        setImages([...images, ...result.assets.map(asset => asset.uri)]);
+    }
+  };
+
+  const pickImage = () => {
+    setPickerAlertVisible(true);
+  };
+
+  const removeImage = (index) => {
+    setImages(images.filter((_, i) => i !== index));
   };
 
   return ( 
      <ScrollView>
     <SafeAreaView className="flex-1 bg-white">
+        <CustomPickerAlert
+            visible={pickerAlertVisible}
+            onClose={() => setPickerAlertVisible(false)}
+            onCameraPress={takePhoto}
+            onGalleryPress={pickFromGallery}
+        />
        
        <TopAlert visible={alertVisible} onHide={() => setAlertVisible(false)} />
       {/* Header */}
@@ -127,17 +170,39 @@ const handleUpload = () => {
           {/* Camera */}
           <View className="bg-[#D9D9D91C] p-4">
             <TouchableOpacity
-              onPress={openCamera}
+              onPress={pickImage}
               className="border-2 border-dashed border-gray-300 mx-8 rounded-xl mt-4 p-6 items-center mb-5"
             >
               <Ionicons name="camera-outline" size={40} color="#888" />
               <Text className="text-gray-500 mt-2 text-left">Add Photos or Videos</Text>
             </TouchableOpacity>
-            {image && (
-              <Image
-                source={{ uri: image }}
-                className="w-full h-48 mt-2 rounded-lg"
-              />
+            {images.length > 0 && (
+                <FlatList
+                    data={images}
+                    horizontal
+                    renderItem={({ item, index }) => (
+                        <View style={{ position: 'relative', marginRight: 10 }}>
+                            <Image
+                                source={{ uri: item }}
+                                className="w-48 h-48 mt-2 rounded-lg"
+                            />
+                            <TouchableOpacity
+                                onPress={() => removeImage(index)}
+                                style={{
+                                    position: 'absolute',
+                                    top: 10,
+                                    right: 10,
+                                    backgroundColor: 'rgba(0,0,0,0.5)',
+                                    borderRadius: 15,
+                                    padding: 5,
+                                }}
+                            >
+                                <Ionicons name="close" size={20} color="white" />
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                    keyExtractor={(item, index) => index.toString()}
+                />
             )}
           </View>
         </View>
@@ -192,7 +257,7 @@ const handleUpload = () => {
             router.push({
               pathname: "/home/screens/UploadScreens/SiteUpload",
               params: { 
-                image: image,
+                images: JSON.stringify(images),
                 propertyTitle: propertyTitle 
               },
             });
@@ -200,7 +265,7 @@ const handleUpload = () => {
             router.push({
               pathname: "/home/screens/UploadScreens/CommercialUpload",
               params: { 
-                image: image,
+                images: JSON.stringify(images),
                 propertyTitle: propertyTitle 
               },
             });
@@ -208,7 +273,7 @@ const handleUpload = () => {
             router.push({
               pathname: "/home/screens/UploadScreens/ResortUpload",
               params: { 
-                image: image,
+                images: JSON.stringify(images),
                 propertyTitle: propertyTitle 
               },
             });
