@@ -200,7 +200,7 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
                       }}
                     >
                       <Text style={{ color: "#22C55E", fontSize: 8, fontWeight: "bold" }}>
-                        AR
+                        VR
                       </Text>
                     </View>
                   )}

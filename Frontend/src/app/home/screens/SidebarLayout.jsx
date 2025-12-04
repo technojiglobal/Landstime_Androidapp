@@ -39,7 +39,7 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
     { name: "Vaastu Guidelines", icon: "business-outline" },
     { name: "Saved", icon: "bookmark-outline" },
     { name: "Chat", icon: "chatbubble-outline" },
-   
+    { name: "Notifications", icon: "notifications-outline" },
     { name: "Settings", icon: "settings-outline" },
   ];
 
@@ -171,7 +171,8 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
                   case "Chat":
                     router.push("/home/screens/Sidebar/MessagesScreen");
                     break;
-                  
+                  case "Notifications":
+                    router.push("/home/screens/Notifications");
                     break;
                   case "Settings":
                     router.push("/home/screens/Settings");
