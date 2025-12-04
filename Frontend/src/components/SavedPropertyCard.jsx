@@ -8,7 +8,7 @@ import locationIcon from "../../assets/location-icon.png";
 
 export default function SavedPropertyCard({ data }) {
   return (
-    <View className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-4">
+    <View className="bg-white rounded-2xl shadow-md  border border-gray-100 mb-4">
 
       {/* Image */}
       <View className="relative">
@@ -70,18 +70,19 @@ export default function SavedPropertyCard({ data }) {
         </View>
 
         {/* Location */}
-        <View className="flex-row items-center mt-2">
-          <Image source={locationIcon} className="w-4 h-4 mx-1" />
-        <Text className="text-gray-500 text-md ">{data.location}</Text>
-        </View>
-        {/* Price Button Right */}
-        <View className="flex-row justify-end mt-3">
+        <View className="flex-row items-center mt-2 justify-between">
+          <View className="flex-row items-center">
+            <Image source={locationIcon} className="w-4 h-4 mx-1" />
+            <Text className="text-gray-500 text-md ">{data.location}</Text>
+          </View>
           <View className="bg-[#22C55E] px-5 py-1 rounded-full">
             <Text className="text-white text-xs font-semibold">
               ₹ {data.price}
             </Text>
           </View>
         </View>
+        {/* Price Button Right */}
+        
 
       </View>
     </View>

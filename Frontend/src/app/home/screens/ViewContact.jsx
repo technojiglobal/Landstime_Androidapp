@@ -15,8 +15,8 @@ import { Ionicons, FontAwesome } from "@expo/vector-icons";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 // replace with your assets
-const propertyImage = require("../../../../../assets/land.jpg");
-const propertyImage2 = require("../../../../../assets/land.jpg");
+const propertyImage = require("../../../../assets/land.jpg");
+const propertyImage2 = require("../../../../assets/land.jpg");
 
 export default function ViewContactScreen() {
   const router = useRouter();
