@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView } from "react-native";
 import {useRouter} from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import {useRouter} from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 export default function ContactForm() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -24,6 +26,7 @@ export default function ContactForm() {
   };
 
   return (
+    <SafeAreaView className="flex-1 mt-12 items-center bg-white">
     <SafeAreaView className="flex-1 mt-12 items-center bg-white">
       {/* 🟩 Top Box */}
       <View className="  w-[412px] h-[215px] rounded-b-[30px] bg-[#22C55E33]    items-start justify-center px-5">
