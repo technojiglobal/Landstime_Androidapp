@@ -9,8 +9,10 @@ import {
   PanResponder,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { useResponsive } from "../utils/responsive";
 
 export default function VastuModal({ visible, onClose }) {
+  const { scaleWidth, scaleHeight } = useResponsive();
   //if (!visible) return null;
 
   const vastuData = [
@@ -82,10 +84,10 @@ export default function VastuModal({ visible, onClose }) {
               <Image
                 source={require("../../assets/vastu.png")}
                 style={{
-                  width: 25,
-                  height: 25,
+                  width: scaleWidth(25),
+                  height: scaleHeight(25),
                   resizeMode: "contain",
-                  marginRight: 8,
+                  marginRight: scaleWidth(8),
                 }}
               />
               <Text className="text-black font-semibold text-lg">
@@ -100,12 +102,12 @@ export default function VastuModal({ visible, onClose }) {
           {/* Center Box */}
           <View
             style={{
-              width: 103,
-              height: 24,
+              width: scaleWidth(103),
+              height: scaleHeight(24),
               backgroundColor: "#FFA5002B",
-              borderRadius: 8,
+              borderRadius: scaleWidth(8),
               alignSelf: "center",
-              marginVertical: 10,
+              marginVertical: scaleHeight(10),
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",
@@ -114,14 +116,14 @@ export default function VastuModal({ visible, onClose }) {
             <Image
               source={require("../../assets/house.png")}
               style={{
-                width: 13,
-                height: 13,
+                width: scaleWidth(13),
+                height: scaleHeight(13),
                 resizeMode: "contain",
-                marginRight: 5,
+                marginRight: scaleWidth(5),
               }}
             />
             <Text
-              style={{ fontSize: 10, color: "#FFA500", fontWeight: "500" }}
+              style={{ fontSize: scaleWidth(10), color: "#FFA500", fontWeight: "500" }}
             >
               House
             </Text>
@@ -130,10 +132,10 @@ export default function VastuModal({ visible, onClose }) {
           {/* Scrollable Area */}
           <View
             style={{
-              width: 286,
-              height: scrollViewHeight,
+              width: scaleWidth(286),
+              height: scaleHeight(scrollViewHeight),
               alignSelf: "center",
-              borderRadius: 10,
+              borderRadius: scaleWidth(10),
               flexDirection: "row",
               justifyContent: "space-between",
               overflow: "hidden",
@@ -161,18 +163,14 @@ export default function VastuModal({ visible, onClose }) {
                     justifyContent: "space-between",
                     alignItems: "center",
                     width: "100%",
-                    height: 49,
-                    borderRadius: 10,
+                    height: scaleHeight(49),
+                    borderRadius: scaleWidth(10),
                     backgroundColor: "#F9FAFB",
-                    borderWidth: 1,
+                    borderWidth: Math.max(1, Math.round(scaleWidth(1))),
                     borderColor: "#E0E0E0",
-                    // shadowColor: "#000",
-                    // shadowOffset: { width: 0, height: 2 },
-                    // shadowOpacity: 0.1,
-                    // shadowRadius: 3,
                     elevation: 2,
-                    paddingHorizontal: 10,
-                    marginBottom: 15,
+                    paddingHorizontal: scaleWidth(10),
+                    marginBottom: scaleHeight(15),
                   }}
                 >
                   {/* Left: Icon + Text */}
@@ -180,15 +178,15 @@ export default function VastuModal({ visible, onClose }) {
                     <Image
                       source={item.icon}
                       style={{
-                        width: 18,
-                        height: 18,
+                        width: scaleWidth(18),
+                        height: scaleHeight(18),
                         resizeMode: "contain",
-                        marginRight: 8,
+                        marginRight: scaleWidth(8),
                       }}
                     />
                     <Text
                       style={{
-                        fontSize: 10,
+                        fontSize: scaleWidth(10),
                         color: "#000000CC",
                         fontWeight: "500",
                       }}
@@ -201,14 +199,14 @@ export default function VastuModal({ visible, onClose }) {
                   <View style={{ alignItems: "flex-end" }}>
                     <Text
                       style={{
-                        fontSize: 10,
+                        fontSize: scaleWidth(10),
                         color: "#000000CC",
-                        marginBottom: 2,
+                        marginBottom: scaleHeight(2),
                       }}
                     >
                       {item.direction}
                     </Text>
-                    <Text style={{ fontSize: 8, color: "#00000066" }}>
+                    <Text style={{ fontSize: scaleWidth(8), color: "#00000066" }}>
                       Direction
                     </Text>
                   </View>
@@ -219,10 +217,10 @@ export default function VastuModal({ visible, onClose }) {
             {/* Custom Scrollbar Track + Thumb */}
             <View
               style={{
-                width: 7,
-                height: scrollViewHeight,
+                width: scaleWidth(7),
+                height: scaleHeight(scrollViewHeight),
                 backgroundColor: "#D9D9D980",
-                borderRadius: 10,
+                borderRadius: scaleWidth(10),
                 alignItems: "center",
                 justifyContent: "flex-start",
               }}
@@ -230,9 +228,9 @@ export default function VastuModal({ visible, onClose }) {
               <Animated.View
                 {...panResponder.panHandlers}
                 style={{
-                  width: 7,
-                  height: thumbHeight,
-                  borderRadius: 10,
+                  width: scaleWidth(7),
+                  height: scaleHeight(thumbHeight),
+                  borderRadius: scaleWidth(10),
                   backgroundColor: "#00000029",
                   transform: [{ translateY: pan }],
                 }}
@@ -246,15 +244,15 @@ export default function VastuModal({ visible, onClose }) {
               onPress={onClose}
               style={{
                 backgroundColor: "#22C55E",
-                width: 179,
-                height: 33,
-                borderRadius: 8,
+                width: scaleWidth(179),
+                height: scaleHeight(33),
+                borderRadius: scaleWidth(8),
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
               <Text
-                style={{ color: "white", fontSize: 14, fontWeight: "600" }}
+                style={{ color: "white", fontSize: scaleWidth(14), fontWeight: "600" }}
               >
                 Close
               </Text>

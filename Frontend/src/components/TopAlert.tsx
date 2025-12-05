@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { View, Text, Image, Animated, Easing } from "react-native";
+import { useResponsive } from "../utils/responsive";
 
 interface TopAlertProps {
   visible: boolean;
@@ -7,7 +8,8 @@ interface TopAlertProps {
 }
 
 export default function TopAlert({ visible, onHide }: TopAlertProps) {
-  const slideAnim = useRef(new Animated.Value(-200)).current;
+  const { scaleHeight, scaleWidth, clampWidth } = useResponsive();
+  const slideAnim = useRef(new Animated.Value(-scaleHeight(220))).current;
 
   useEffect(() => {
     if (visible) {
@@ -19,7 +21,7 @@ export default function TopAlert({ visible, onHide }: TopAlertProps) {
       }).start(() => {
         setTimeout(() => {
           Animated.timing(slideAnim, {
-            toValue: -200,
+            toValue: -scaleHeight(220),
             duration: 300,
             easing: Easing.in(Easing.ease),
             useNativeDriver: true,
@@ -35,12 +37,12 @@ export default function TopAlert({ visible, onHide }: TopAlertProps) {
     <Animated.View
       style={{
         position: "absolute",
-        top:5,
+        top: scaleHeight(8),
         alignSelf: "center",
-        width: 334,
-        height: 172,
-        borderBottomLeftRadius: 30,
-        borderBottomRightRadius: 30,
+        width: clampWidth(334, 24),
+        height: scaleHeight(172),
+        borderBottomLeftRadius: scaleWidth(30),
+        borderBottomRightRadius: scaleWidth(30),
         backgroundColor: "#fff",
         justifyContent: "center",
         alignItems: "center",
@@ -50,27 +52,31 @@ export default function TopAlert({ visible, onHide }: TopAlertProps) {
     >
       <View
         style={{
-          width: 60,
-          height: 60,
-          borderRadius: 30,
-          borderWidth: 3,
+          width: scaleWidth(60),
+          height: scaleWidth(60),
+          borderRadius: scaleWidth(30),
+          borderWidth: Math.max(1, Math.round(scaleWidth(3))),
           borderColor: "#22C55E",
           justifyContent: "center",
           alignItems: "center",
-          marginBottom: 10,
+          marginBottom: scaleHeight(10),
         }}
       >
         <Image
           source={require("../../assets/tick.png")}
           
-          style={{ width: 25, height: 25, tintColor: "#22C55E" }}
+          style={{ width: scaleWidth(25), height: scaleWidth(25), tintColor: "#22C55E" }}
+          resizeMode="contain"
         />
       </View>
       <Text
         style={{
           textAlign: "center",
           fontWeight: "600",
-          fontFamily: "Poppins", color: "#22C55E"
+          fontFamily: "Poppins",
+          color: "#22C55E",
+          fontSize: scaleWidth(16),
+          lineHeight: scaleHeight(20),
         }}
       >
         Brochure Downloaded{"\n"}Successfully...

@@ -1,7 +1,9 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useResponsive } from '../utils/responsive';
 
 const CustomPickerAlert = ({ visible, onClose, onCameraPress, onGalleryPress }) => {
+  const { scaleWidth, scaleHeight } = useResponsive();
   if (!visible) {
     return null;
   }
