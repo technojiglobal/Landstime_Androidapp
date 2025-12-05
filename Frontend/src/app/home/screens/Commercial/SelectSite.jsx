@@ -93,7 +93,7 @@ const SelectSiteScreen = () => {
   const districtName = district || 'Vizag'; // fallback if no district is passed
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'white', paddingTop: insets.top }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white', paddingTop: 8 }}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
       {/* Header */}
