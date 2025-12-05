@@ -20,13 +20,13 @@ const Account = () => {
           className="flex flex-row justify-between items-center"
         >
           <Text className="text-gray-500 text-md">Edit Profile</Text>
-          <Text className="text-gray-400 text-2xl">{">"}</Text>
+          <Text className="text-gray-400 text-xl">{">"}</Text>
         </TouchableOpacity>
 
         {/* Change Password */}
         <TouchableOpacity className="flex flex-row justify-between items-center">
           <Text className="text-gray-500 text-md">Change Password</Text>
-          <Text className="text-gray-400 text-2xl">{">"}</Text>
+          <Text className="text-gray-400 text-xl">{">"}</Text>
         </TouchableOpacity>
 
         {/* Verification */}

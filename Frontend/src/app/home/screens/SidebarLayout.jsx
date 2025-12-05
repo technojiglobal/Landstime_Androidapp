@@ -229,6 +229,24 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
       {/* App Screen Content */}
       <View style={{ flex: 1 }}>{children({ toggleSidebar })}</View>
 
+      {/* Dim overlay when logout modal is open */}
+      {showLogoutModal && (
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setShowLogoutModal(false)}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "black",
+            opacity: 0.5,
+            zIndex: 25,
+          }}
+        />
+      )}
+
       {/* Logout Confirmation Popup */}
       <LogoutModal
         visible={showLogoutModal}

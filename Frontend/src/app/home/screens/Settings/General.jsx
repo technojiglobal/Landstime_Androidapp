@@ -13,13 +13,13 @@ const General = () => {
         {/* Language */}
         <TouchableOpacity className="flex flex-row justify-between items-center">
           <Text className="text-gray-500 text-md">Language</Text>
-          <Text className="text-gray-400 text-lg">English {">"}</Text>
+          <Text className="text-gray-400 text-md">English {">"}</Text>
         </TouchableOpacity>
 
         {/* Currency */}
         <TouchableOpacity className="flex flex-row justify-between items-center">
           <Text className="text-gray-500 text-md">Currency</Text>
-          <Text className="text-gray-400 text-lg">USD {">"}</Text>
+          <Text className="text-gray-400 text-md">USD {">"}</Text>
         </TouchableOpacity>
 
         {/* Help & Support */}
