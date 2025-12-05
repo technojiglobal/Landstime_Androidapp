@@ -9,6 +9,7 @@ import clockIcon from "../../../assets/clock-icon.png";
 import scaleIcon from "../../../assets/scale-icon.png";
 import locationIcon from "../../../assets/location-icon2.png";
 import viewIcon from "../../../assets/view-icon.png";
+import eyeIcon from "../../../assets/eye-icon.png";
 import likeIcon from "../../../assets/likes-icon.png";
 import starIcon from "../../../assets/star-icon.png";
 import star from "../../../assets/star-3d.png";
@@ -76,12 +77,12 @@ export default function DesignCard({ data }) {
         {/* Views & Likes */}
         <View className="absolute bottom-2 right-2 flex-row space-x-4">
           <View className=" bg-[#302924CC] mx-2 px-2 p-1 rounded-xl flex-row items-center space-x-1">
-            <Image source={viewIcon} className="w-5 h-5" />
+            <Image source={eyeIcon} className="w-5 h-5 mx-1" />
             <Text className="text-white text-sm font-medium">{data.views}</Text>
           </View>
 
           <View className=" bg-[#302924CC] mx-2 px-2 p-1 rounded-xl flex-row items-center space-x-1">
-            <Image source={likeIcon} className="w-5 h-5" />
+            <Image source={likeIcon} className="w-5 h-5 mx-1" />
             <Text className="text-white text-sm font-medium">{data.likes}</Text>
           </View>
         </View>
@@ -138,14 +139,20 @@ export default function DesignCard({ data }) {
 
         {/* Price + Buttons */}
         <View className="flex-row justify-between items-center mt-auto">
+          <View className=" flex-1 flex-row ">
           <Text className="text-lg font-semibold text-gray-800">
-            {data.price}
+            {data.minprice}
           </Text>
-
-          <View className="flex-row space-x-2">
-            <TouchableOpacity className="border border-gray-300 rounded-md px-4 py-1 mx-2">
+          <Text className="text-md  mt-1 text-gray-500">
+            {data.maxprice}
+          </Text>
+          </View>
+          <View className=" flex-row space-x-2">
+            <TouchableOpacity className=" flex-row items-center border border-gray-300 rounded-md px-2  mx-2">
+               <Image source={viewIcon} className="w-5 h-5 m-1" />
               <Text className="text-sm text-gray-700">View</Text>
             </TouchableOpacity>
+             
 
             <TouchableOpacity
               onPress={() => router.push("home/screens/Sidebar/Contact")}

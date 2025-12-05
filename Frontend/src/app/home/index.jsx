@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 
 import HomeScreen from "./screens/HomeScreen";
 import AddScreen from "./screens/UploadScreens/AddScreen";
@@ -111,63 +112,73 @@ export default function App() {
 
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarShowLabel: false,
-        tabBarStyle: {
-          display: sidebarOpen ? "none" : "flex",
-          height: 80, // ⭐ Increased from 60 to 80
-          borderTopWidth: 0,
-          borderTopColor: "#e5e5e5",
-          paddingBottom: 15, // ⭐ Increased padding
-          paddingTop: 10, // ⭐ Added top padding
-          backgroundColor: "white",
-         },
+      screenOptions={({ route }) => {
+        const routeName = getFocusedRouteNameFromRoute(route);
+        const isAddScreen =
+          route.name === "Add" &&
+          (routeName === "AddScreen" ||
+            routeName === "AddFurnishingsScreen" ||
+            typeof routeName === "undefined");
+        const display = isAddScreen || sidebarOpen ? "none" : "flex";
 
-        tabBarIcon: ({ focused }) => {
-          const config = {
-            Home: {
-              label: "Home",
-              icon: "home-outline",
-              activeIcon: "home",
-            },
+        return {
+          headerShown: false,
+          tabBarShowLabel: false,
+          tabBarStyle: {
+            display,
+            height: 80, // ⭐ Increased from 60 to 80
+            borderTopWidth: 0,
+            borderTopColor: "#e5e5e5",
+            paddingBottom: 15, // ⭐ Increased padding
+            paddingTop: 10, // ⭐ Added top padding
+            backgroundColor: "white",
+          },
 
-            Shorts: {
-              label: "Shorts",
-              icon: "play-circle-outline",
-              activeIcon: "play-circle",
-            },
+          tabBarIcon: ({ focused }) => {
+            const config = {
+              Home: {
+                label: "Home",
+                icon: "home-outline",
+                activeIcon: "home",
+              },
 
-            Add: {
-              isCenter: true,
-            },
+              Shorts: {
+                label: "Shorts",
+                icon: "play-circle-outline",
+                activeIcon: "play-circle",
+              },
 
-            Pro: {
-              label: "Pro",
-              icon: "diamond-outline",   // Ionicon
-              activeIcon: "diamond",
-            },
+              Add: {
+                isCenter: true,
+              },
 
-            Settings: {
-              label: "Bidding",
-              icon: "hammer-outline",   // Ionicon
-              activeIcon: "hammer",
-            },
-          };
+              Pro: {
+                label: "Pro",
+                icon: "diamond-outline", // Ionicon
+                activeIcon: "diamond",
+              },
 
-          const item = config[route.name];
+              Settings: {
+                label: "Bidding",
+                icon: "hammer-outline", // Ionicon
+                activeIcon: "hammer",
+              },
+            };
 
-          return (
-            <TabItem
-              focused={focused}
-              label={item?.label}
-              icon={item?.icon}
-              activeIcon={item?.activeIcon}
-              isCenter={item?.isCenter}
-            />
-          );
-        },
-      })}
+            const item = config[route.name];
+
+            return (
+              <TabItem
+                focused={focused}
+                label={item?.label}
+                icon={item?.icon}
+                activeIcon={item?.activeIcon}
+                isCenter={item?.isCenter}
+              />
+            );
+          },
+        };
+      }}
     >
       <Tab.Screen name="Home">
         {() => <HomeScreen toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />}

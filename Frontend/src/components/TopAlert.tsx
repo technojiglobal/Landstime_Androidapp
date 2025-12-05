@@ -4,9 +4,10 @@ import { View, Text, Image, Animated, Easing } from "react-native";
 interface TopAlertProps {
   visible: boolean;
   onHide: () => void;
+    message: string;
 }
 
-export default function TopAlert({ visible, onHide }: TopAlertProps) {
+export default function TopAlert({ visible, onHide, message }: TopAlertProps) {
   const slideAnim = useRef(new Animated.Value(-200)).current;
 
   useEffect(() => {
@@ -73,7 +74,7 @@ export default function TopAlert({ visible, onHide }: TopAlertProps) {
           fontFamily: "Poppins", color: "#22C55E"
         }}
       >
-        Brochure Downloaded{"\n"}Successfully...
+        {message}
       </Text>
     </Animated.View>
   );

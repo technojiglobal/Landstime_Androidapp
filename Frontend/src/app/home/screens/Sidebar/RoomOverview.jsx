@@ -1,13 +1,15 @@
-import React from "react";
+import {React,useState} from "react";
 import { View, Text, Image, ScrollView, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import starImg from "../../../../../assets/star-3d.png"; 
+import starImg from "../../../../../assets/star-3d.png";
+import saveIcon from "../../../../../assets/save-icon.png" ;
+import saveBlue from "../../../../../assets/save-blue.png"
 export default function RoomOverviewScreen() {
   const router = useRouter();
   const { item } = useLocalSearchParams();
   const data = JSON.parse(item);
-
+const [save,setSave]=useState(false)
   return (
     <ScrollView className="flex-1 bg-white mt-12">
 
@@ -28,8 +30,8 @@ export default function RoomOverviewScreen() {
         </TouchableOpacity>
 
         {/* Bookmark */}
-        <TouchableOpacity className="absolute top-10 right-4 bg-black/30 p-2 rounded-full">
-          <Ionicons name="bookmark-outline" size={22} color="white" />
+        <TouchableOpacity className="absolute top-10 right-4 bg-black/30 p-2 rounded-full" onPress={()=>setSave(!save)}>
+         <Image source={save?saveIcon:saveBlue} className="w-6 h-6" />
         </TouchableOpacity>
 
         {/* Views + Likes */}
@@ -140,7 +142,7 @@ export default function RoomOverviewScreen() {
 
         
         {/* Action Buttons */}
-        <View className="flex-row justify-between mt-8">
+        {/* <View className="flex-row justify-between mt-8">
 
           <TouchableOpacity className="flex-1 mr-2 border-2 border-green-600 py-3 rounded-xl items-center">
             <Text className="text-green-600 font-semibold">Chat</Text>
@@ -152,7 +154,7 @@ export default function RoomOverviewScreen() {
             </Text>
           </TouchableOpacity>
 
-        </View>
+        </View> */}
 
       </View>
     </ScrollView>

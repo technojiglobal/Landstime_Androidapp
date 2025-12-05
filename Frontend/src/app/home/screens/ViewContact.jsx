@@ -125,7 +125,7 @@ export default function ViewContactScreen() {
         {similarProperties.map((item) => (
           <View
             key={item.id}
-            className="bg-white rounded-xl mr-4 shadow-md overflow-hidden"
+            className="bg-white rounded-xl h-72 mr-4 shadow-md overflow-hidden"
             style={{ width: SCREEN_WIDTH * 0.7 }}
           >
             {/* Property Image */}
