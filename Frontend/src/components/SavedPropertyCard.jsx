@@ -2,11 +2,13 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useResponsive } from "../utils/responsive";
 import starImg from "../../assets/star-3d.png";
 import saveIcon from "../../assets/saved-green.png";
 import locationIcon from "../../assets/location-icon.png";
 
 export default function SavedPropertyCard({ data }) {
+  const { scaleWidth, scaleHeight } = useResponsive();
   return (
     <View className="bg-white rounded-2xl shadow-md  border border-gray-100 mb-4">
 
@@ -52,14 +54,14 @@ export default function SavedPropertyCard({ data }) {
               <Image
                 key={i}
                 source={starImg}
-                style={{ width: 22, height: 22, marginHorizontal: 2 }}
+                style={{ width: scaleWidth(22), height: scaleHeight(22), marginHorizontal: scaleWidth(2) }}
                 resizeMode="contain"
               />
             ))}
 
             <Image
               source={starImg}
-              style={{ width: 22, height: 22, marginHorizontal: 2, opacity: 0.3 }}
+              style={{ width: scaleWidth(22), height: scaleHeight(22), marginHorizontal: scaleWidth(2), opacity: 0.3 }}
               resizeMode="contain"
             />
           </View>

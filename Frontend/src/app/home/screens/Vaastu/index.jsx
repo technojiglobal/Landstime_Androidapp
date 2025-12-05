@@ -157,7 +157,7 @@ export default function VastuDirections() {
       )}
 
       {/* ===== Content for Tabs ===== */}
-      <View className="mt-8 mb-20">
+      <View className="mt-4">
         {activeTab === "Directions" && <DirectionDetails data={directionsData[activeDirection]} />}
         {activeTab === "Rooms" && <Rooms />}
         {activeTab === "Do's & Don'ts" && <Dodont />}

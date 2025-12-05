@@ -1,6 +1,8 @@
 import { ScrollView, TouchableOpacity, Text, View, Image } from "react-native";
+import { useResponsive } from "../../utils/responsive";
 
 export default function RoomTabs({ selectedRoom, setSelectedRoom }) {
+  const { scaleWidth } = useResponsive();
 
   // Map each room to its icon
   const roomData = [
@@ -39,9 +41,9 @@ export default function RoomTabs({ selectedRoom, setSelectedRoom }) {
               <Image
                 source={room.icon}
                 style={{
-                  width: 22,
-                  height: 22,
-                  marginRight: 6,
+                  width: scaleWidth(22),
+                  height: scaleWidth(22),
+                  marginRight: scaleWidth(6),
                   tintColor: isActive ? "white" : "gray",
                 }}
               />

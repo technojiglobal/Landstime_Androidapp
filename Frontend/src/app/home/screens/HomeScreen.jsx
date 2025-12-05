@@ -15,10 +15,12 @@ import {
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import SidebarLayout from "./SidebarLayout";
-import { useSafeAreaInsets } from "react-native-safe-area-context"; // <-- added
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useResponsive } from "../../../utils/responsive";
 import bell from '../../../../assets/Bell-icon.png'
 export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
-  const insets = useSafeAreaInsets(); // <-- added
+  const insets = useSafeAreaInsets();
+  const { scaleWidth, scaleHeight } = useResponsive();
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState("EN");
   const router = useRouter();
@@ -80,7 +82,7 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
             source={require("../../../../assets/homescreen_banner.png")}
             resizeMode="cover"
             className="w-full"
-            style={{ height: 240, justifyContent: "center", paddingHorizontal: 20 }}
+            style={{ height: scaleHeight(240), justifyContent: "center", paddingHorizontal: scaleWidth(20) }}
           >
             {/* Hamburger: positioned relative to safe-area, with high z/elevation so it's clickable */}
             <TouchableOpacity
@@ -90,29 +92,42 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
   }}
   style={{
     position: "absolute",
-    top: insets.top ? insets.top + 5 : 20, // ⬆ moves icon upward
-    left: 32,
+    top: insets.top ? insets.top + scaleHeight(8) : scaleHeight(20),
+    left: scaleWidth(16),
     zIndex: 20,
   }}
 >
-  <Ionicons name="menu" size={28} color="white" />
+  <Ionicons name="menu" size={scaleWidth(28)} color="white" />
 
 
 </TouchableOpacity>
 
 
-            <Text className="text-3xl font-bold text-white ml-5 ">
+            <Text className="text-3xl font-bold text-white" style={{ fontSize: scaleWidth(28), lineHeight: scaleHeight(36), marginLeft: scaleWidth(10), marginTop: scaleHeight(12) }}>
               Find Your Dream Property
             </Text>
-            <Text className="text-base font-bold text-white mt-1 ml-5">
+            <Text className="text-base font-bold text-white" style={{ fontSize: scaleWidth(14), lineHeight: scaleHeight(20), marginTop: scaleHeight(8), marginLeft: scaleWidth(16) }}>
               Explore premium real estate options in Visakhapatnam
             </Text>
          <TouchableOpacity
   onPress={() => router.push("/home/screens/Notifications")}
-  className="absolute right-6 top-14 w-8 h-8 bg-white rounded-full border border-gray-300 justify-center items-center"
+  style={{
+    position: "absolute",
+    top: insets.top ? insets.top + scaleHeight(8) : scaleHeight(20),
+    right: scaleWidth(16),
+    width: scaleWidth(36),
+    height: scaleWidth(36),
+    backgroundColor: "white",
+    borderRadius: scaleWidth(18),
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 20,
+  }}
   activeOpacity={0.7}
 >
-  <Image source={bell} className="w-5 h-5" resizeMode="contain" />
+  <Image source={bell} style={{ width: scaleWidth(18), height: scaleWidth(18) }} resizeMode="contain" />
 </TouchableOpacity>
 
 
@@ -120,14 +135,15 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
 
           {/* Search Bar */}
           <View
-            style={{ marginHorizontal: 26 }}
-            className="flex-row items-center bg-white rounded-xl px-3 py-1 mx-10 mb-4 mt-[-20px] shadow-slate-400 shadow-md"
+            style={{ marginHorizontal: scaleWidth(26), marginBottom: scaleHeight(16), marginTop: scaleHeight(-20) }}
+            className="flex-row items-center bg-white rounded-xl px-3 py-1 mx-10 shadow-slate-400 shadow-md"
           >
-            <Ionicons name="search" size={20} color="gray" />
+            <Ionicons name="search" size={scaleWidth(20)} color="gray" />
             <TextInput
               placeholder="Search properties in Vizag..."
               placeholderTextColor="gray"
               className="flex-1 ml-2 text-base text-black"
+              style={{ fontSize: scaleWidth(14), marginLeft: scaleWidth(8) }}
             />
           </View>
 
@@ -136,9 +152,9 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
             style={{
               flexDirection: "row",
               justifyContent: "flex-end",
-              marginRight: 40,
-              marginBottom: 5,
-              marginTop: 10,
+              marginRight: scaleWidth(40),
+              marginBottom: scaleHeight(5),
+              marginTop: Math.max(scaleHeight(5), 5),
             }}
           >
             <TouchableOpacity
@@ -147,18 +163,18 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
                 flexDirection: "row",
                 alignItems: "center",
                 backgroundColor: "#22C55E",
-                paddingHorizontal:6,
-                paddingVertical: 6,
-                borderRadius: 12,
+                paddingHorizontal: scaleWidth(6),
+                paddingVertical: scaleHeight(6),
+                borderRadius: scaleWidth(12),
               }}
             >
-              <MaterialCommunityIcons name="earth" size={20} color="white" />
+              <MaterialCommunityIcons name="earth" size={scaleWidth(20)} color="white" />
               <Text
                 style={{
                   color: "white",
                   fontWeight: "bold",
-                  marginLeft: 4,
-                  fontSize: 14,
+                  marginLeft: scaleWidth(4),
+                  fontSize: scaleWidth(14),
                 }}
               >
                 {selectedLanguage}
@@ -167,17 +183,17 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
           </View>
 
           {/* Categories */}
-          <View style={{ paddingHorizontal: 36, marginTop:35 }}>
+          <View style={{ paddingHorizontal: scaleWidth(36), marginTop: Math.max(scaleHeight(20), 16) }}>
             <View className="flex-row  flex-wrap justify-between">
               {categories.map((item, idx) => (
                 <TouchableOpacity
                   key={idx}
                   style={{
                     width: "45%",
-                    marginBottom: 30,
-                    paddingVertical: 30,
+                    marginBottom: scaleHeight(30),
+                    paddingVertical: scaleHeight(30),
                     aspectRatio: 0.85,
-                    borderRadius: 10,
+                    borderRadius: scaleWidth(10),
 
                     // Elevation for Android
                     elevation: 3,
@@ -190,16 +206,16 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
                     <View
                       style={{
                         position: "absolute",
-                        top: 10,
-                        right: 10,
+                        top: scaleHeight(10),
+                        right: scaleWidth(10),
                         backgroundColor: "rgba(34,197,94,0.2)",
-                        paddingHorizontal: 8,
-                        paddingVertical: 2,
-                        borderRadius: 6,
+                        paddingHorizontal: scaleWidth(8),
+                        paddingVertical: scaleHeight(2),
+                        borderRadius: scaleWidth(6),
                         zIndex: 10,
                       }}
                     >
-                      <Text style={{ color: "#22C55E", fontSize: 8, fontWeight: "bold" }}>
+                      <Text style={{ color: "#22C55E", fontSize: scaleWidth(8), fontWeight: "bold" }}>
                         VR
                       </Text>
                     </View>
@@ -207,26 +223,26 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
 
                   <View
                     style={{
-                      width: 40,
-                      height: 40,
+                      width: scaleWidth(40),
+                      height: scaleWidth(40),
                       backgroundColor: "#22C55E",
-                      borderRadius: 12,
+                      borderRadius: scaleWidth(12),
                       justifyContent: "center",
                       alignItems: "center",
-                      marginBottom: 10,
+                      marginBottom: scaleHeight(10),
                     }}
                   >
                     <Image
                       source={item.img}
-                      style={{ width: 20, height: 20 }}
+                      style={{ width: scaleWidth(20), height: scaleWidth(20) }}
                       resizeMode="contain"
                     />
                   </View>
 
-                  <Text className="text-lg font-semibold text-black text-center">
+                  <Text className="text-lg font-semibold text-black text-center" style={{ fontSize: scaleWidth(14) }}>
                     {item.name}
                   </Text>
-                  <Text className="text-xs text-gray-500 text-center mt-1">
+                  <Text className="text-xs text-gray-500 text-center mt-1" style={{ fontSize: scaleWidth(11), marginTop: scaleHeight(4) }}>
                     {item.desc}
                   </Text>
                 </TouchableOpacity>
