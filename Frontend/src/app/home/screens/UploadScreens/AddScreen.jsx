@@ -128,8 +128,10 @@ const handleUpload = () => {
   };
 
   return ( 
-     <ScrollView>
     <SafeAreaView className="flex-1 bg-white">
+      <TopAlert visible={alertVisible} onHide={() => setAlertVisible(false)} />
+     <ScrollView>
+    
         <CustomPickerAlert
             visible={pickerAlertVisible}
             onClose={() => setPickerAlertVisible(false)}
@@ -137,7 +139,7 @@ const handleUpload = () => {
             onGalleryPress={pickFromGallery}
         />
        
-       <TopAlert visible={alertVisible} onHide={() => setAlertVisible(false)} />
+       
       {/* Header */}
      <View className="flex-row items-center mt-7 mb-4">
               <TouchableOpacity
@@ -809,9 +811,8 @@ const handleUpload = () => {
             </TouchableOpacity>
         </View>
 
-
-     
+        </ScrollView>   
     </SafeAreaView>
-     </ScrollView>
+    
   );
 }

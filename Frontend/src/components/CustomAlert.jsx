@@ -35,7 +35,7 @@ export default function CustomAlert({
           </Text>
 
           {/* Message */}
-          <Text className="text-gray-500 text-center mb-6 leading-5">
+          <Text className="text-green-500 text-center mb-6 leading-5">
             {message}
           </Text>
 

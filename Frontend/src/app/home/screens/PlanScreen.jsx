@@ -8,10 +8,10 @@ export default function SubscriptionPlansScreen() {
   const router = useRouter();
 
   return (
-    <View className="flex-1 mt-12 bg-white">
+    <View className="flex-1  bg-white">
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View  className="flex-row ml-5 mt-5 border-b border-gray-200 mb-5 pb-2">
+        <View  className="flex-row ml-5 mt-9 border-b border-gray-200 mb-5 pb-2">
            <TouchableOpacity onPress={() => router.push("/home")}>
               <Image  source={arrow}  className="w-6 h-6"/>
             </TouchableOpacity>

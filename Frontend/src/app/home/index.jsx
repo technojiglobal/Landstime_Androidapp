@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useResponsive } from "../../utils/responsive";
+import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 
 import HomeScreen from "./screens/HomeScreen";
 import AddScreen from "./screens/UploadScreens/AddScreen";
@@ -19,7 +19,7 @@ const AddStack = createNativeStackNavigator();
 /* -----------------------------------------------------
    UNIVERSAL TAB ICON (handles both vector and images)
 ------------------------------------------------------ */
-function TabItem({ focused, label, icon, activeIcon, isCenter, iconSet, scaleWidth, scaleHeight }) {
+function TabItem({ focused, label, icon, activeIcon, isCenter, iconSet }) {
   const IconComponent =
     iconSet === "material" ? MaterialCommunityIcons : Ionicons;
 
@@ -28,16 +28,18 @@ function TabItem({ focused, label, icon, activeIcon, isCenter, iconSet, scaleWid
     return (
       <View
         style={{
-          width: scaleWidth(50),
-          height: scaleWidth(50),
-          borderRadius: scaleWidth(30),
+          width: 50,
+          height: 50,
+          borderRadius: 30,
           backgroundColor: "#22C55E",
           justifyContent: "center",
           alignItems: "center",
-          marginBottom: scaleHeight(35),
+          marginBottom: 35,
+ 
+          
         }}
       >
-        <Ionicons name="add" size={scaleWidth(30)} color="white" />
+        <Ionicons name="add" size={30} color="white" />
       </View>
     );
   }
@@ -45,26 +47,26 @@ function TabItem({ focused, label, icon, activeIcon, isCenter, iconSet, scaleWid
   return (
     <View
       style={{
-        width: scaleWidth(80),
-        height: scaleHeight(40),
+        width: 80,
+        height: 40,
         borderRadius: 9999,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: focused ? "#22C55E" : "transparent",
-        paddingHorizontal: focused ? scaleWidth(10) : 0,
+        paddingHorizontal: focused ? 10 : 0,
         
       }}
     >
       <IconComponent
         name={focused ? activeIcon : icon}
-        size={scaleWidth(24)}
+        size={24}
         color={focused ? "white" : "#22C55E"}
         
       />
 
       {focused && (
-        <Text style={{ color: "white", marginLeft: scaleWidth(2), marginRight: scaleWidth(6), fontWeight: "600" }}>
+        <Text style={{ color: "white", marginLeft: 2, marginRight: 6, fontWeight: "600" }}>
           {label}
           
         </Text>
@@ -107,88 +109,116 @@ function AddTabWrapper({ toggleSidebar, sidebarOpen }) {
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-  const { scaleWidth, scaleHeight } = useResponsive();
 
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarShowLabel: false,
-        tabBarStyle: {
-          display: sidebarOpen ? "none" : "flex",
-          height: scaleHeight(80),
+      screenOptions={({ route }) => {
+        const routeName = getFocusedRouteNameFromRoute(route);
+
+        const isAddScreenVisible =
+          route.name === "Add" &&
+          (routeName === "AddScreen" ||
+            routeName === "AddFurnishingsScreen" ||
+            routeName === undefined);
+
+        const tabBarStyle = {
+          display: sidebarOpen || isAddScreenVisible ? "none" : "flex",
+          height: 80, // ⭐ Increased from 60 to 80
           borderTopWidth: 0,
           borderTopColor: "#e5e5e5",
-          paddingBottom: scaleHeight(15),
-          paddingTop: scaleHeight(10),
+          paddingBottom: 15, // ⭐ Increased padding
+          paddingTop: 10, // ⭐ Added top padding
           backgroundColor: "white",
-         },
+        };
 
-        tabBarIcon: ({ focused }) => {
-          const config = {
-            Home: {
-              label: "Home",
-              icon: "home-outline",
-              activeIcon: "home",
-            },
+        return {
+          headerShown: false,
+          tabBarShowLabel: false,
+          tabBarStyle: tabBarStyle,
 
-            Shorts: {
-              label: "Shorts",
-              icon: "play-circle-outline",
-              activeIcon: "play-circle",
-            },
+          tabBarIcon: ({ focused }) => {
+            const config = {
+              Home: {
+                label: "Home",
+                icon: "home-outline",
+                activeIcon: "home",
+              },
 
-            Add: {
-              isCenter: true,
-            },
+              Shorts: {
+                label: "Shorts",
+                icon: "play-circle-outline",
+                activeIcon: "play-circle",
+              },
 
-            Pro: {
-              label: "Pro",
-              icon: "diamond-outline",   // Ionicon
-              activeIcon: "diamond",
-            },
+              Add: {
+                isCenter: true,
+              },
 
-            Settings: {
-              label: "Bidding",
-              icon: "hammer-outline",   // Ionicon
-              activeIcon: "hammer",
-            },
-          };
+              Pro: {
+                label: "Pro",
+                icon: "diamond-outline", // Ionicon
+                activeIcon: "diamond",
+              },
 
-          const item = config[route.name];
+              Settings: {
+                label: "Bidding",
+                icon: "hammer-outline", // Ionicon
+                activeIcon: "hammer",
+              },
+            };
 
-          return (
-            <TabItem
-              focused={focused}
-              label={item?.label}
-              icon={item?.icon}
-              activeIcon={item?.activeIcon}
-              isCenter={item?.isCenter}
-              scaleWidth={scaleWidth}
-              scaleHeight={scaleHeight}
-            />
-          );
-        },
-      })}
+            const item = config[route.name];
+
+            return (
+              <TabItem
+                focused={focused}
+                label={item?.label}
+                icon={item?.icon}
+                activeIcon={item?.activeIcon}
+                isCenter={item?.isCenter}
+              />
+            );
+          },
+        };
+      }}
     >
       <Tab.Screen name="Home">
-        {() => <HomeScreen toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />}
+        {() => (
+          <HomeScreen toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
+        )}
       </Tab.Screen>
 
       <Tab.Screen name="Shorts">
-        {() => <ShortsScreen toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />}
+        {() => (
+          <ShortsScreen
+            toggleSidebar={toggleSidebar}
+            sidebarOpen={sidebarOpen}
+          />
+        )}
       </Tab.Screen>
 
       <Tab.Screen name="Add">
-        {() => <AddTabWrapper toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />}
+        {() => (
+          <AddTabWrapper
+            toggleSidebar={toggleSidebar}
+            sidebarOpen={sidebarOpen}
+          />
+        )}
       </Tab.Screen>
 
       <Tab.Screen name="Pro">
-        {() => <PlanScreen toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />}
+        {() => (
+          <PlanScreen toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
+        )}
       </Tab.Screen>
 
       <Tab.Screen name="Settings">
-        {() => <SettingsScreen toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />}
+        {() => (
+          <SettingsScreen
+            toggleSidebar={toggleSidebar}
+            sidebarOpen={sidebarOpen}
+          />
+        )}
       </Tab.Screen>
     </Tab.Navigator>
   );

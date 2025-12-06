@@ -1,31 +1,26 @@
 import React, { useEffect, useRef } from "react";
 import { View, Text, Image, Animated, Easing } from "react-native";
-import { useResponsive } from "../utils/responsive";
 
-interface TopAlertProps {
-  visible: boolean;
-  onHide: () => void;
-}
-
-export default function TopAlert({ visible, onHide }: TopAlertProps) {
-  const { scaleHeight, scaleWidth, clampWidth } = useResponsive();
-  const slideAnim = useRef(new Animated.Value(-scaleHeight(220))).current;
+export default function TopAlert({ visible, onHide }) {
+  const slideAnim = useRef(new Animated.Value(-200)).current;
 
   useEffect(() => {
     if (visible) {
+      // Slide in
       Animated.timing(slideAnim, {
         toValue: 0,
         duration: 300,
         easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }).start(() => {
+        // Auto hide after 2 seconds
         setTimeout(() => {
           Animated.timing(slideAnim, {
-            toValue: -scaleHeight(220),
+            toValue: -200,
             duration: 300,
             easing: Easing.in(Easing.ease),
             useNativeDriver: true,
-          }).start(() => onHide());
+          }).start(() => onHide && onHide());
         }, 2000);
       });
     }
@@ -37,49 +32,51 @@ export default function TopAlert({ visible, onHide }: TopAlertProps) {
     <Animated.View
       style={{
         position: "absolute",
-        top: scaleHeight(8),
+        top: 5,
         alignSelf: "center",
-        width: clampWidth(334, 24),
-        height: scaleHeight(172),
-        borderBottomLeftRadius: scaleWidth(30),
-        borderBottomRightRadius: scaleWidth(30),
+        width: 334,
+        height: 172,
+        borderBottomLeftRadius: 30,
+        borderBottomRightRadius: 30,
         backgroundColor: "#fff",
         justifyContent: "center",
         alignItems: "center",
         transform: [{ translateY: slideAnim }],
         zIndex: 20,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+        elevation: 5,
       }}
     >
       <View
         style={{
-          width: scaleWidth(60),
-          height: scaleWidth(60),
-          borderRadius: scaleWidth(30),
-          borderWidth: Math.max(1, Math.round(scaleWidth(3))),
+          width: 60,
+          height: 60,
+          borderRadius: 30,
+          borderWidth: 3,
           borderColor: "#22C55E",
           justifyContent: "center",
           alignItems: "center",
-          marginBottom: scaleHeight(10),
+          marginBottom: 10,
         }}
       >
         <Image
-          source={require("../../assets/tick.png")}
-          
-          style={{ width: scaleWidth(25), height: scaleWidth(25), tintColor: "#22C55E" }}
-          resizeMode="contain"
+           source={require("../../assets/tick-icon.png")}
+          style={{ width: 25, height: 25, tintColor: "#22C55E" }}
         />
       </View>
+
       <Text
         style={{
           textAlign: "center",
           fontWeight: "600",
-          fontFamily: "Poppins",
           color: "#22C55E",
-          fontSize: scaleWidth(16),
-          lineHeight: scaleHeight(20),
+          fontSize: 16,
         }}
       >
-        Brochure Downloaded{"\n"}Successfully...
+        Property Uploaded{"\n"}Successfully!
       </Text>
     </Animated.View>
   );
