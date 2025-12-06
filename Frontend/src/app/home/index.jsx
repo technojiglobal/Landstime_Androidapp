@@ -114,25 +114,27 @@ export default function App() {
     <Tab.Navigator
       screenOptions={({ route }) => {
         const routeName = getFocusedRouteNameFromRoute(route);
-        const isAddScreen =
+
+        const isAddScreenVisible =
           route.name === "Add" &&
           (routeName === "AddScreen" ||
             routeName === "AddFurnishingsScreen" ||
-            typeof routeName === "undefined");
-        const display = isAddScreen || sidebarOpen ? "none" : "flex";
+            routeName === undefined);
+
+        const tabBarStyle = {
+          display: sidebarOpen || isAddScreenVisible ? "none" : "flex",
+          height: 80, // ⭐ Increased from 60 to 80
+          borderTopWidth: 0,
+          borderTopColor: "#e5e5e5",
+          paddingBottom: 15, // ⭐ Increased padding
+          paddingTop: 10, // ⭐ Added top padding
+          backgroundColor: "white",
+        };
 
         return {
           headerShown: false,
           tabBarShowLabel: false,
-          tabBarStyle: {
-            display,
-            height: 80, // ⭐ Increased from 60 to 80
-            borderTopWidth: 0,
-            borderTopColor: "#e5e5e5",
-            paddingBottom: 15, // ⭐ Increased padding
-            paddingTop: 10, // ⭐ Added top padding
-            backgroundColor: "white",
-          },
+          tabBarStyle: tabBarStyle,
 
           tabBarIcon: ({ focused }) => {
             const config = {
@@ -181,23 +183,42 @@ export default function App() {
       }}
     >
       <Tab.Screen name="Home">
-        {() => <HomeScreen toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />}
+        {() => (
+          <HomeScreen toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
+        )}
       </Tab.Screen>
 
       <Tab.Screen name="Shorts">
-        {() => <ShortsScreen toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />}
+        {() => (
+          <ShortsScreen
+            toggleSidebar={toggleSidebar}
+            sidebarOpen={sidebarOpen}
+          />
+        )}
       </Tab.Screen>
 
       <Tab.Screen name="Add">
-        {() => <AddTabWrapper toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />}
+        {() => (
+          <AddTabWrapper
+            toggleSidebar={toggleSidebar}
+            sidebarOpen={sidebarOpen}
+          />
+        )}
       </Tab.Screen>
 
       <Tab.Screen name="Pro">
-        {() => <PlanScreen toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />}
+        {() => (
+          <PlanScreen toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
+        )}
       </Tab.Screen>
 
       <Tab.Screen name="Settings">
-        {() => <SettingsScreen toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />}
+        {() => (
+          <SettingsScreen
+            toggleSidebar={toggleSidebar}
+            sidebarOpen={sidebarOpen}
+          />
+        )}
       </Tab.Screen>
     </Tab.Navigator>
   );

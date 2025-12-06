@@ -47,7 +47,7 @@ export default function Rooms() {
   ];
 
   return (
-    <ScrollView className="mt-4 mb-10">
+    <ScrollView className="mt-4 ">
       {rooms.map((room, index) => (
         <View
           key={index}

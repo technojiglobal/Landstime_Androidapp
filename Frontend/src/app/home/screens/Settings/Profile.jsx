@@ -1,5 +1,6 @@
 // src/screens/Profile/ProfileScreen.jsx
 import React, { useState } from "react";
+import { useRouter } from "expo-router";
 import {
   View,
   Text,
@@ -7,6 +8,7 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
+  Dimensions
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { profileData } from "../../../../data/ProfileData"; // Update path if needed
@@ -14,17 +16,37 @@ import { profileData } from "../../../../data/ProfileData"; // Update path if ne
 export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState(profileData);
+ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
+// Reference device: iPhone 14 Pro Max
+const REF_WIDTH = 430;
+const REF_HEIGHT = 932;
+
+const scaleWidth = (size) => (SCREEN_WIDTH / REF_WIDTH) * size;
+const scaleHeight = (size) => (SCREEN_HEIGHT / REF_HEIGHT) * size;
   const handleSave = () => {
     console.log("Updated Profile Data:", profile); // ❗ You will replace this with API call
     setIsEditing(false);
   };
-
+   const router = useRouter();
   return (
     <ScrollView className="mt-12 flex-1 bg-white px-4 pt-12">
+    <TouchableOpacity
+              onPress={() => router.back()}
+              style={{ marginRight: scaleWidth(12), marginTop: -scaleHeight(36) }}
+            >
+              <Image
+                source={require("../../../../../assets/arrow.png")}
+                style={{
+                  width: scaleWidth(26),
+                  height: scaleHeight(26),
+                }}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
 
      {/* Profile Header */}
-<View className="flex-row items-center mb-6">
+<View className="flex-row items-center mb-6 mt-2">
   
   {/* Profile Image */}
   <Image

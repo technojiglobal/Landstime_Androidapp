@@ -1,30 +1,26 @@
 import React, { useEffect, useRef } from "react";
 import { View, Text, Image, Animated, Easing } from "react-native";
 
-interface TopAlertProps {
-  visible: boolean;
-  onHide: () => void;
-    message: string;
-}
-
-export default function TopAlert({ visible, onHide, message }: TopAlertProps) {
+export default function TopAlert({ visible, onHide }) {
   const slideAnim = useRef(new Animated.Value(-200)).current;
 
   useEffect(() => {
     if (visible) {
+      // Slide in
       Animated.timing(slideAnim, {
         toValue: 0,
         duration: 300,
         easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }).start(() => {
+        // Auto hide after 2 seconds
         setTimeout(() => {
           Animated.timing(slideAnim, {
             toValue: -200,
             duration: 300,
             easing: Easing.in(Easing.ease),
             useNativeDriver: true,
-          }).start(() => onHide());
+          }).start(() => onHide && onHide());
         }, 2000);
       });
     }
@@ -36,7 +32,7 @@ export default function TopAlert({ visible, onHide, message }: TopAlertProps) {
     <Animated.View
       style={{
         position: "absolute",
-        top:5,
+        top: 5,
         alignSelf: "center",
         width: 334,
         height: 172,
@@ -47,6 +43,11 @@ export default function TopAlert({ visible, onHide, message }: TopAlertProps) {
         alignItems: "center",
         transform: [{ translateY: slideAnim }],
         zIndex: 20,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+        elevation: 5,
       }}
     >
       <View
@@ -62,19 +63,20 @@ export default function TopAlert({ visible, onHide, message }: TopAlertProps) {
         }}
       >
         <Image
-          source={require("../../assets/tick.png")}
-          
+           source={require("../../assets/tick-icon.png")}
           style={{ width: 25, height: 25, tintColor: "#22C55E" }}
         />
       </View>
+
       <Text
         style={{
           textAlign: "center",
           fontWeight: "600",
-          fontFamily: "Poppins", color: "#22C55E"
+          color: "#22C55E",
+          fontSize: 16,
         }}
       >
-        {message}
+        Property Uploaded{"\n"}Successfully!
       </Text>
     </Animated.View>
   );

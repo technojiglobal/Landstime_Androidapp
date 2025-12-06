@@ -70,7 +70,9 @@ export default function DesignCard({ data }) {
           </TouchableOpacity>
           </View>
           <View className="bg-white p-1.5 rounded-full shadow">
+            <TouchableOpacity onPress={()=>router.push("/home/screens/Sidebar/SavedInteriors")}>
             <Image source={shareIcon} className="w-5 h-5" />
+            </TouchableOpacity>
           </View>
         </View>
 

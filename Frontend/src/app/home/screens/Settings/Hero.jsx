@@ -18,7 +18,7 @@ const Hero = () => {
         style={{
           flexDirection: "row",
           alignItems: "center",
-          marginTop: scaleHeight(30),
+          marginTop: scaleHeight(12),
         }}
       >
         <TouchableOpacity
@@ -37,7 +37,7 @@ const Hero = () => {
         <Text className="font-semibold text-md">Settings</Text>
       </View>
       <Text
-  className="text-gray-300 text-sm"
+  className="text-gray-700 text-sm"
   style={{ marginLeft: scaleWidth(38) }}
 >
   Manage your app preferences

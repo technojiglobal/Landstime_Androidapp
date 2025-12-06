@@ -15,7 +15,7 @@ import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import TopAlert from "../../../../components/TopAlert";
+import TopAlert from "./TopAlert";
 import CustomPickerAlert from "../../../../components/CustomPickerAlert";
 
 export default function AddScreen() {
@@ -127,39 +127,20 @@ const handleUpload = () => {
     setImages(images.filter((_, i) => i !== index));
   };
 
-    return (
-
-      <SafeAreaView className="flex-1 bg-white">
-
-        <TopAlert
-
-          visible={alertVisible}
-
-          onHide={() => setAlertVisible(false)}
-
-          message="Your property has been uploaded successfully ..."
-
-        />
-
+  return ( 
+    <SafeAreaView className="flex-1 bg-white">
+      <TopAlert visible={alertVisible} onHide={() => setAlertVisible(false)} />
+     <ScrollView>
     
-
-          <CustomPickerAlert
-
-              visible={pickerAlertVisible}
-
-              onClose={() => setPickerAlertVisible(false)}
-
-              onCameraPress={takePhoto}
-
-              onGalleryPress={pickFromGallery}
-
-          />
-
-         
-
-         
-
-        {/* Header */}
+        <CustomPickerAlert
+            visible={pickerAlertVisible}
+            onClose={() => setPickerAlertVisible(false)}
+            onCameraPress={takePhoto}
+            onGalleryPress={pickFromGallery}
+        />
+       
+       
+      {/* Header */}
      <View className="flex-row items-center mt-7 mb-4">
               <TouchableOpacity
                 onPress={() => router.push("/home")}
@@ -816,23 +797,22 @@ const handleUpload = () => {
           
             {/* Upload Property Button */}
             <TouchableOpacity
-                style={{
-                  backgroundColor: "#22C55E",
-                  paddingVertical: 12,
-                  paddingHorizontal: 20,
-                  borderRadius: 10,
-                }}
-                onPress={() => setAlertVisible(true)}
-              >
-                <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
-                  Upload Property
-                </Text>
-              </TouchableOpacity>
+              style={{
+                backgroundColor: "#22C55E",
+                paddingVertical: 12,
+                paddingHorizontal: 20,
+                borderRadius: 10,
+              }}
+              onPress={() => setAlertVisible(true)}
+            >
+              <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
+                Upload Property
+              </Text>
+            </TouchableOpacity>
         </View>
 
-
-     
+        </ScrollView>   
     </SafeAreaView>
-     
+    
   );
 }

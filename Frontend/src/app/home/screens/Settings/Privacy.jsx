@@ -5,12 +5,12 @@ const Toggle = ({ enabled, onChange }) => {
   return (
     <TouchableOpacity
       onPress={() => onChange(!enabled)}
-      className={`w-11 h-6 flex flex-row items-center rounded-full
+      className={`w-8 h-4 flex flex-row items-center rounded-full
         ${enabled ? "bg-[#22C55E]" : "bg-gray-300"}`}
     >
       <View
-        className={`w-5 h-5 bg-white rounded-full shadow
-          ${enabled ? "translate-x-5" : "translate-x-1"}`}
+        className={`w-3 h-3 bg-white rounded-full shadow
+          ${enabled ? "translate-x-4" : "translate-x-0.5"}`}
       />
     </TouchableOpacity>
   );
