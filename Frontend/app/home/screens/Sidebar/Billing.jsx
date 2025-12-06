@@ -35,7 +35,7 @@ export default function PaymentHistory() {
     <View className="flex-1 bg-white mt-12">
       {/* Header */}
       <View className="bg-[#22C55E] flex-row items-center justify-between px-4 py-4">
-       <TouchableOpacity onPress={() => router.push("/home")}>
+       <TouchableOpacity onPress={() => router.push("/(tabs)/home")}>
                    <Ionicons name="arrow-back" size={24} color="white" />
          
         </TouchableOpacity>

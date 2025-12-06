@@ -39,7 +39,7 @@ export default function SavedPropertiesScreen() {
           style={{ paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }}
         >
           {/* Back icon */}
-          <TouchableOpacity onPress={() => router.push("/home")}>
+          <TouchableOpacity onPress={() => router.push("/(tabs)/home")}>
             <Image source={arrow} className="w-6 h-6" />
           </TouchableOpacity>
 

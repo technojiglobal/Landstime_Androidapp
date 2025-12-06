@@ -151,12 +151,13 @@ export default function SignIn() {
 
         {/* ✅ Sign In Button */}
         <TouchableOpacity
-          disabled={!canSignIn}
-          onPress={() => router.push("../home")}
-          className={`h-14 rounded-xl items-center justify-center ${
-            canSignIn ? "bg-green-600" : "bg-gray-200"
-          }`}
-        >
+  disabled={!canSignIn}
+  onPress={() => router.replace("/(tabs)/home")}
+  className={`h-14 rounded-xl items-center justify-center ${
+    canSignIn ? "bg-green-600" : "bg-gray-200"
+  }`}
+>
+
           <Text
             className={`text-lg font-semibold ${
               canSignIn ? "text-white" : "text-gray-500"

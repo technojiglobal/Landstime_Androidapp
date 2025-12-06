@@ -108,7 +108,7 @@ export default function SelectDistrictScreen() {
 
       {/* HEADER */}
       <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => router.push("/home")}>
+        <TouchableOpacity onPress={() => router.push("/(tabs)/home")}>
           <ChevronLeft color="black" size={25} />
         </TouchableOpacity>
 

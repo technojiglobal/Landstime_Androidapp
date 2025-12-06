@@ -97,7 +97,7 @@ const SelectDistrictScreen = () => {
       {/* Header */}
       <View className="bg-white">
         <View className="flex-row items-center py-3 px-4">
-          <TouchableOpacity className="p-1" onPress={() => router.push('/home')}>
+          <TouchableOpacity className="p-1" onPress={() => router.push('/(tabs)/home')}>
             <ChevronLeft color="black" size={25} />
           </TouchableOpacity>
 

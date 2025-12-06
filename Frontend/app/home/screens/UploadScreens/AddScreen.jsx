@@ -143,7 +143,7 @@ const handleUpload = () => {
       {/* Header */}
      <View className="flex-row items-center mt-7 mb-4">
               <TouchableOpacity
-                onPress={() => router.push("/home")}
+                onPress={() => router.push("/(tabs)/home")}
                 className="p-2"
                 accessibilityRole="button"
               >
@@ -787,7 +787,7 @@ const handleUpload = () => {
                 borderRadius: 10,
               }}
               onPress={() => {
-               router.push("/home")
+               router.push("/(tabs)/home")
               }}
             >
               <Text style={{ color: "black", fontWeight: "600", fontSize: 15 }}>

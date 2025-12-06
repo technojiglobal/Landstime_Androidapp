@@ -12,7 +12,7 @@ export default function SubscriptionPlansScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View  className="flex-row ml-5 mt-9 border-b border-gray-200 mb-5 pb-2">
-           <TouchableOpacity onPress={() => router.push("/home")}>
+           <TouchableOpacity onPress={() => router.push("/(tabs)/home")}>
               <Image  source={arrow}  className="w-6 h-6"/>
             </TouchableOpacity>
           
