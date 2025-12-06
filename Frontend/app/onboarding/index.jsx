@@ -1,17 +1,6 @@
-
-
-import React from "react";
-import { useRouter } from "expo-router";
 import { useEffect } from "react";
-// import AutoSlider from "../home/AutoSlider"; // adjust path
+import { Redirect } from "expo-router";
 
-export default function HomeScreen() {
-
-  const router = useRouter();
-
-
-  useEffect(()=> {
-  router.replace("/onboarding/AutoSlider");
-  })
-  return null;
+export default function OnboardingIndex() {
+  return <Redirect href="/onboarding/AutoSlider" />;
 }
