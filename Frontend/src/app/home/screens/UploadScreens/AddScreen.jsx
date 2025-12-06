@@ -787,7 +787,7 @@ const handleUpload = () => {
                 borderRadius: 10,
               }}
               onPress={() => {
-                // handle cancel action
+               router.push("/home")
               }}
             >
               <Text style={{ color: "black", fontWeight: "600", fontSize: 15 }}>
