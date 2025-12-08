@@ -9,6 +9,7 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
 
+
     "ios": {
       "supportsTablet": true
     },
@@ -20,10 +21,12 @@
       }
     },
 
+
     "web": {
-      "bundler": "metro",
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "output": "single"    
     },
+
 
     "splash": {
       "image": "./assets/splash.png",
@@ -31,13 +34,8 @@
       "backgroundColor": "#00DD60"
     },
 
-   "plugins": [
-      [
-        "expo-router",
-        {
-          "root": "./src/app"
-        }
-      ],
+    "plugins": [
+      "expo-router",
       "expo-font"
     ]
   }
