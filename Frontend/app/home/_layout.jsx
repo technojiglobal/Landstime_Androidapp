@@ -1,50 +1,7 @@
-//home//_layout.jsx
-import { Stack } from "expo-router";
+// app/home/_layout.jsx
+import { Slot } from "expo-router";
 import "../../global.css";
 
-export default function RootLayout() {
-  return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="index" />
-      <Stack.Screen 
-        name="screens/Flats" 
-        options={{
-          presentation: 'card',
-          animation: 'slide_from_right',
-        }}
-      />
-      <Stack.Screen 
-        name="screens/Sites" 
-        options={{
-          presentation: 'card',
-          animation: 'slide_from_right',
-        }}
-      />
-      <Stack.Screen 
-        name="screens/Resorts" 
-        options={{
-          presentation: 'card',
-          animation: 'slide_from_right',
-        }}
-      />
-      <Stack.Screen 
-        name="screens/Commercial" 
-        options={{
-          presentation: 'card',
-          animation: 'slide_from_right',
-        }}
-      />
-      <Stack.Screen 
-        name="screens/Vaastu" 
-        options={{
-          presentation: 'card',
-          animation: 'slide_from_right',
-        }}
-      />
-    </Stack>
-  );
+export default function HomeLayout() {
+  return <Slot />;
 }

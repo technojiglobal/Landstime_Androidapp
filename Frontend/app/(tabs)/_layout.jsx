@@ -93,7 +93,7 @@ export default function TabsLayout() {
             <TabIcon
               focused={focused}
               label="Bidding"
-              icon="hammer-outline"
+              icon="hammer"
               activeIcon="hammer"
               iconSet="material"
             />
