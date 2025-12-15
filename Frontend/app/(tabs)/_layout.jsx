@@ -37,6 +37,8 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="shorts"
         options={{
+          
+    tabBarStyle: { display: "none" },
           tabBarIcon: ({ focused }) => (
             <TabIcon
               focused={focused}
