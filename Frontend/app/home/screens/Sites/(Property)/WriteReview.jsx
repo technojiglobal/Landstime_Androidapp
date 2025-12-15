@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
-  StyleSheet,
+  StyleSheet,StatusBar
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons"; // ✅ correct icon set
 
@@ -23,6 +23,8 @@ export default function WriteReview() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ alignItems: "center", paddingBottom: 40 }}
       >
+        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+        
         {/* Outer Card */}
         <View style={styles.card}>
           <Text style={styles.mainTitle}>

@@ -1,6 +1,6 @@
 // src/components/ContactForm.jsx
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ScrollView } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ScrollView,StatusBar } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -26,6 +26,8 @@ export default function ContactForm() {
 
   return (
     <SafeAreaView className="flex-1 mt-12 bg-white">
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      
       {/* 🔽 ScrollView added below */}
       <ScrollView
         className="flex-1"

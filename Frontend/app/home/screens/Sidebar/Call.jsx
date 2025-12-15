@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Image, TouchableOpacity } from "react-native";
+import { View, Text, Image, TouchableOpacity,StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
@@ -13,7 +13,7 @@ export default function Call() {
 
   return (
     <View className="flex-1 bg-white items-center justify-center px-6">
-
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       {/* Calling text */}
       <Text className="text-2xl font-bold text-gray-600 mb-2">Calling...</Text>
 

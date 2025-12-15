@@ -1,6 +1,6 @@
 // src/screens/Chat/ChatScreen.jsx
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, Image,TextInput, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, Image,TextInput, TouchableOpacity,StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ChatBubble from "../../../../components/ChatBubble";
 import { fetchChatMessages, fetchChats } from "../../../../data/Chat";
@@ -41,7 +41,7 @@ export default function ChatScreen() {
 
   return (
     <View className="flex-1 bg-white pt-16 ">
-
+   <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       {/* Header */}
       <View className="flex-row items-center px-4 ">
         <TouchableOpacity onPress={() => router.push("/home/screens/Sidebar/MessagesScreen")}>

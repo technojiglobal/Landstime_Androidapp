@@ -1,5 +1,5 @@
 import React from "react";
-import { View, ScrollView } from "react-native";
+import { View, ScrollView,StatusBar } from "react-native";
 
 import Hero from "./Hero";
 import Account from "./Account";
@@ -10,6 +10,7 @@ import Privacy from "./Privacy";
 const Index = () => {
   return (
     <View className="flex-1 bg-gray-100">
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}

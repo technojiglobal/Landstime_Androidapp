@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Pressable,
   Image,
-  Alert,
+  Alert,StatusBar
 } from 'react-native';
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
@@ -175,6 +175,7 @@ const [plotKinds, setPlotKinds] = useState([]);
 const router=useRouter();
   return (
      <View className="flex-1 bg-gray-50">
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
          <TopAlert visible={alertVisible} onHide={() => setAlertVisible(false)} />
          <ScrollView
            contentContainerStyle={{ padding: 16, paddingBottom: 36 }}

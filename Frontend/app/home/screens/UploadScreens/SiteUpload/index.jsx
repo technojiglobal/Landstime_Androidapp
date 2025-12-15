@@ -7,7 +7,7 @@ import {
   Image,
   TextInput,
   Pressable,
-  Alert,
+  Alert,StatusBar
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
@@ -136,6 +136,7 @@ const [selectedOverlooking, setSelectedOverlooking] = useState([]);
         contentContainerStyle={{ padding: 16, paddingBottom: 36 }}
         showsVerticalScrollIndicator={false}
       >
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
         {/* Header */}
         <View className="flex-row items-center mt-7 mb-4">
           <TouchableOpacity

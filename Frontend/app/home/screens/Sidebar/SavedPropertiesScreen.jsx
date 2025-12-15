@@ -32,6 +32,7 @@ export default function SavedPropertiesScreen() {
   return (
     <View className="flex-1 bg-white">
       {/* <StatusBar barStyle="dark-content" /> */}
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <ScrollView className="flex-1 bg-white px-4">
         {/* Header */}
         <View

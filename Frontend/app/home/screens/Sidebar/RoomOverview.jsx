@@ -1,5 +1,5 @@
 import {React,useState} from "react";
-import { View, Text, Image, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, Image, ScrollView, TouchableOpacity,StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import starImg from "../../../../assets/star-3d.png";
@@ -12,7 +12,7 @@ export default function RoomOverviewScreen() {
 const [save,setSave]=useState(false)
   return (
     <ScrollView className="flex-1 bg-white mt-12">
-
+  <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       {/* Top Image Section */}
       <View className="relative">
         <Image 

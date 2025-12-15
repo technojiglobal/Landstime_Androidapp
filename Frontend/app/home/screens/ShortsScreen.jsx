@@ -9,6 +9,7 @@ const ShortsScreen = () => {
 
   return (
     <View className="flex-1">
+      
       {/* Back Arrow - Top Right */}
       <TouchableOpacity
         onPress={() =>router.push("/(tabs)/home")}

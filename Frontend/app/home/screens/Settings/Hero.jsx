@@ -34,7 +34,7 @@ const Hero = () => {
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <Text className="font-semibold text-md">Settings</Text>
+        <Text className="font-bold text-lg">Settings</Text>
       </View>
       <Text
   className="text-gray-700 text-sm"

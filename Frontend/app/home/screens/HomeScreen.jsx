@@ -11,7 +11,7 @@ import {
   Modal,
   FlatList,
   Pressable,
-  StyleSheet,
+  StyleSheet
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -63,7 +63,7 @@ export default function HomeScreen({ toggleSidebar }) {
 
   return (
     <ScrollView className="flex-1 bg-white">
-
+    
       {/* Banner */}
       <ImageBackground
         source={require("../../../assets/homescreen_banner.png")}

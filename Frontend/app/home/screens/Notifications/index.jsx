@@ -4,7 +4,7 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  Dimensions,Image
+  Dimensions,Image,StatusBar
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -62,7 +62,7 @@ export default function Notifications() {
 
   return (
     <ScrollView className="flex-1 bg-white px-4">
-      
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       {/* Header */}
 <View
   style={{
