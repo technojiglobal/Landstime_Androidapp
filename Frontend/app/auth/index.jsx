@@ -19,7 +19,7 @@ import { ChevronLeft } from "lucide-react-native";
 
 export default function App() {
 
-  const [name, setName] = useState("kavya");
+  const [name, setName] = useState("janu");
 
   
   const [phone, setPhone] = useState("9876543210");
