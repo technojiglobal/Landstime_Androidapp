@@ -30,7 +30,7 @@ export default function PropertyLayout() {
           marginBottom: 8,
         }}
       >
-        <TouchableOpacity onPress={() => router.push("/home/screens/Resorts/PropertyDetails")}>
+        <TouchableOpacity onPress={() => router.push("/home/screens/Resorts/SelectSite")}>
           <Ionicons name="chevron-back-outline" size={22} color="black" />
         </TouchableOpacity>
 

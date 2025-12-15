@@ -278,7 +278,7 @@ export default function PropertyListScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1">
       {/* Header */}
       <View className="flex-row items-center px-5 py-3">
         <TouchableOpacity onPress={() => router.push('/home/screens/Commercial/SelectSite')}>

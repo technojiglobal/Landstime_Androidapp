@@ -38,7 +38,7 @@ export default function TabsLayout() {
         name="shorts"
         options={{
           
-    tabBarStyle: { display: "none" },
+    
           tabBarIcon: ({ focused }) => (
             <TabIcon
               focused={focused}
