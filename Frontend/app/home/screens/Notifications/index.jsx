@@ -75,7 +75,7 @@ export default function Notifications() {
 >
   {/* Back Button + Title */}
   <View style={{ flexDirection: "row", alignItems: "center" }}>
-    <TouchableOpacity onPress={() => router.back()}>
+    <TouchableOpacity onPress={() => router.push("/(tabs)/home")}>
       <Ionicons name="chevron-back" size={26} />
     </TouchableOpacity>
 

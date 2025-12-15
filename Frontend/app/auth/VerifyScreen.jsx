@@ -1,4 +1,4 @@
-import { View, Text,Image, TouchableOpacity,Dimensions } from "react-native";
+import { SafeAreaView,View, Text,Image, TouchableOpacity,Dimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -15,7 +15,7 @@ export default function VerificationScreen() {
   const phoneNumber = "987654321"; // <-- you can pass this dynamically via params
 
   return (
-    <View className="flex-1 bg-white px-6 pt-14">
+    <SafeAreaView className="flex-1 bg-white px-6 pt-14">
       {/* Back Arrow */}
       <TouchableOpacity
         className="mb-6"
@@ -60,6 +60,6 @@ export default function VerificationScreen() {
           Send OTP
         </Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
