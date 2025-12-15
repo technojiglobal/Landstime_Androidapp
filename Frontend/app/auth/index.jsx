@@ -18,7 +18,9 @@ import { useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 
 export default function App() {
-  const [name, setName] = useState("Vaishnavi");
+
+  const [name, setName] = useState("janu");
+
   const [phone, setPhone] = useState("9876543210");
   const [email, setEmail] = useState("abc@gmail.com");
   const [countryCode, setCountryCode] = useState("+91");
