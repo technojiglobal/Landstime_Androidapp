@@ -8,7 +8,7 @@ import {
   Image,
   Modal,
   Alert,
-  FlatList,
+  FlatList,StatusBar
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -129,6 +129,7 @@ const handleUpload = () => {
 
   return ( 
     <SafeAreaView className="flex-1 bg-white">
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <TopAlert visible={alertVisible} onHide={() => setAlertVisible(false)} />
      <ScrollView>
     
@@ -141,7 +142,7 @@ const handleUpload = () => {
        
        
       {/* Header */}
-     <View className="flex-row items-center mt-7 mb-4">
+     <View className="flex-row items-center mt-3 mb-4">
               <TouchableOpacity
                 onPress={() => router.push("/(tabs)/home")}
                 className="p-2"

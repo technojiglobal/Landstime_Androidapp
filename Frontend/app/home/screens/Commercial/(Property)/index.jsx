@@ -1,6 +1,6 @@
 //Flats//(Property)//index.jsx
 import React, { useState } from "react";
-import { View, Text, Image, ScrollView, TouchableOpacity,SafeAreaView } from "react-native";
+import { View, Text, Image, ScrollView, TouchableOpacity,SafeAreaView,StatusBar } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import TopAlert from "../../../../../components/TopAlert";
@@ -15,6 +15,8 @@ export default function OverviewScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white relative ">
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      
      {(showAlert) && (
              <View
                className="absolute inset-0 bg-black/40"

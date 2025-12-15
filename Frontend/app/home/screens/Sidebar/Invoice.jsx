@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, ScrollView, Image, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, Image, TouchableOpacity,StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
@@ -8,7 +8,8 @@ export default function InvoiceScreen({ navigation }) {
 
   return (
     <View className="flex-1 bg-white mt-12">
-
+       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+       
       {/* Header */}
       <View className="bg-[#22C55E] flex-row items-center justify-between px-4 py-4">
         <TouchableOpacity onPress={() => router.push("/home/screens/Sidebar/Billing")}>

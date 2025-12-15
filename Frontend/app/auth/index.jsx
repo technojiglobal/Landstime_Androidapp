@@ -10,7 +10,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Modal,
-  FlatList,
+  FlatList,StatusBar
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import "../../global.css";
@@ -48,6 +48,7 @@ export default function App() {
         }}
         keyboardShouldPersistTaps="handled"
       >
+        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
         {/* Header */}
         <View className="flex-row items-center justify-center mb-6 relative">
           <TouchableOpacity

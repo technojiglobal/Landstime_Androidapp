@@ -6,7 +6,7 @@ import {
   TextInput,
   Image,
   ScrollView,
-  TouchableOpacity,
+  TouchableOpacity,StatusBar
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import SavedPropertyCard from "../../../../components/SavedPropertyCard";
@@ -32,7 +32,7 @@ export default function NearbyPropertiesScreen() {
 
   return (
     <View className="flex-1 bg-white pt-12">
-
+   <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       {/* HEADER */}
       <View className="flex-row items-center justify-between px-4 py-4">
 

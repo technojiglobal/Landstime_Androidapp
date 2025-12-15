@@ -1,16 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, } from "react";
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
+  SafeAreaView,StatusBar
 } from "react-native";
 
 import CustomAlertModal from "../../../../components/CustomAlert"; 
 import { useRouter } from "expo-router";
-
+import { Ionicons } from "@expo/vector-icons";
 export default function ContactForm() {
+      const router=useRouter();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [agent, setAgent] = useState(null);
@@ -36,15 +37,22 @@ export default function ContactForm() {
   };
 
   return (
-    <SafeAreaView className="flex-1 items-center bg-white">
+    <SafeAreaView className="flex-1 mt-12 items-center bg-white">
+     <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      {/* 🟩 Top Box */}
+        <View className="w-[412px] h-[215px] rounded-b-[30px] bg-[#22C55E33] items-start justify-center px-5">
+          <View className="-mt-32 flex flex-row">
+            <TouchableOpacity onPress={() => router.push("/home/screens/Commercial/(Property)")}>
+              <Ionicons name="chevron-back-outline" size={22} color="black" />
+            </TouchableOpacity>
 
-      {/* TOP BOX */}
-      <View className="w-[412px] h-[215px] rounded-b-[30px] bg-[#22C55E33] mt-10 items-start justify-center px-5">
-        <Text className="ml-8 text-[19px] text-[#4E4E4E] font-medium">
-          Please share your details to contact {"\n"}
-          the adviser
-        </Text>
-      </View>
+            <Text className="ml-8 text-[19px] text-[#4E4E4E] font-medium">
+              Please share your details to contact {"\n"}
+              the Owner
+            </Text>
+          </View>
+        </View>
+
 
       {/* OWNER CARD */}
       <View className="absolute top-[200px] w-[371px] h-[100px] bg-white border border-[#0000001A] rounded-[10px] flex-row items-center px-4 shadow-sm">

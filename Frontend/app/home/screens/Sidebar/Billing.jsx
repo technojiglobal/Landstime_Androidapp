@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Image, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, Image, ScrollView, TouchableOpacity,StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import arrow from "../../../../assets/arrow.png";
@@ -33,6 +33,8 @@ export default function PaymentHistory() {
 
   return (
     <View className="flex-1 bg-white mt-12">
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      
       {/* Header */}
       <View className="bg-[#22C55E] flex-row items-center justify-between px-4 py-4">
        <TouchableOpacity onPress={() => router.push("/(tabs)/home")}>

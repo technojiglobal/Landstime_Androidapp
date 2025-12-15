@@ -1,6 +1,6 @@
 // src/screens/Messages/MessagesScreen.jsx
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, Image,TextInput, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, Image,TextInput, TouchableOpacity,StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import MessageCard from "../../../../components/MessageCard";
 import { fetchChats } from "../../../../data/Chat";
@@ -21,7 +21,7 @@ export default function MessagesScreen() {
 
   return (
     <ScrollView className="flex-1 bg-white pt-12">
-
+     <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       {/* Header */}
       <View className="flex-row items-center px-4 mb-3 mt-5">
          <TouchableOpacity onPress={() => router.push("/(tabs)/home")}>
