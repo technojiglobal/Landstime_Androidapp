@@ -8,10 +8,14 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "experiments": {
+      "tsconfigPaths": true
+    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
+       "package": "com.landstime.app", 
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"

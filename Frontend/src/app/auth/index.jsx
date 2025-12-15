@@ -11,20 +11,24 @@ import {
   Keyboard,
   Modal,
   FlatList,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import "../../../global.css";
 import { useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
+import AuthService from "../services/authService";
 
-export default function App() {
-  const [name, setName] = useState("Vaishnavi");
-  const [phone, setPhone] = useState("9876543210");
-  const [email, setEmail] = useState("abc@gmail.com");
+export default function RegisterScreen() {
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [countryCode, setCountryCode] = useState("+91");
   const [showDropdown, setShowDropdown] = useState(false);
   const [role, setRole] = useState("");
   const [agree, setAgree] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
@@ -35,6 +39,45 @@ export default function App() {
     isNameValid && isPhoneValid && isEmailValid && role && agree;
 
   const countryCodes = ["+91", "+1", "+44", "+61", "+81"];
+
+  // Handle Verify Phone Button Click
+  const handleVerifyPhone = async () => {
+    if (!isPhoneValid) {
+      Alert.alert("Error", "Please enter a valid 10-digit phone number");
+      return;
+    }
+
+    // Store registration data temporarily
+    const registrationData = {
+      name: name.trim(),
+      phone,
+      email: email.toLowerCase().trim(),
+      countryCode,
+      role,
+    };
+
+    await AuthService.storeTempRegistrationData(registrationData);
+
+    // Navigate to verification screen with phone data
+    router.push({
+      pathname: "/auth/VerifyScreen",
+      params: { 
+        phone: phone,
+        countryCode: countryCode 
+      }
+    });
+  };
+
+  // Handle Register Button Click
+  const handleRegister = () => {
+    if (!canRegister) {
+      Alert.alert("Error", "Please fill all fields and agree to terms");
+      return;
+    }
+
+    // First verify phone number
+    handleVerifyPhone();
+  };
 
   const Content = (
     <KeyboardAvoidingView
@@ -87,7 +130,7 @@ export default function App() {
             color={name ? (isNameValid ? "#16a34a" : "#ef4444") : "#9ca3af"}
           />
           <TextInput
-            className="flex-1 ml-3 h-12 text-base text-green-600"
+            className="flex-1 ml-3 h-12 text-base"
             placeholder="Your Name"
             value={name}
             onChangeText={setName}
@@ -135,9 +178,8 @@ export default function App() {
             />
           </TouchableOpacity>
 
-          {/* ✅ LIMIT PHONE INPUT TO 10 DIGITS */}
           <TextInput
-            className="flex-1 ml-2 h-12 text-base text-green-600"
+            className="flex-1 ml-2 h-12 text-base"
             placeholder="Phone number"
             keyboardType="phone-pad"
             value={phone}
@@ -150,16 +192,20 @@ export default function App() {
           />
 
           <TouchableOpacity
-            disabled={!isPhoneValid}
-            onPress={() => router.push("auth/VerifyScreen")}
+            disabled={!isPhoneValid || loading}
+            onPress={handleVerifyPhone}
           >
-            <Text
-              className={`font-semibold ${
-                isPhoneValid ? "text-green-500" : "text-gray-400"
-              }`}
-            >
-              Verify
-            </Text>
+            {loading ? (
+              <ActivityIndicator size="small" color="#16a34a" />
+            ) : (
+              <Text
+                className={`font-semibold ${
+                  isPhoneValid ? "text-green-500" : "text-gray-400"
+                }`}
+              >
+                Verify
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -219,26 +265,14 @@ export default function App() {
             color={email ? (isEmailValid ? "#16a34a" : "#ef4444") : "#9ca3af"}
           />
           <TextInput
-            className="flex-1 ml-3 h-12 text-base text-green-600"
+            className="flex-1 ml-3 h-12 text-base"
             placeholder="Enter your Email"
             keyboardType="email-address"
             value={email}
             onChangeText={setEmail}
             placeholderTextColor="#9ca3af"
+            autoCapitalize="none"
           />
-
-          <TouchableOpacity
-            disabled={!isEmailValid}
-            onPress={() => alert("Email verification link sent!")}
-          >
-            <Text
-              className={`font-semibold ${
-                isEmailValid ? "text-green-500" : "text-gray-400"
-              }`}
-            >
-              Verify
-            </Text>
-          </TouchableOpacity>
         </View>
 
         {/* Role Selection */}
@@ -306,19 +340,23 @@ export default function App() {
 
         {/* Register Button */}
         <TouchableOpacity
-          disabled={!canRegister}
-          onPress={() => router.push("/auth/LoginScreen")}
+          disabled={!canRegister || loading}
+          onPress={handleRegister}
           className={`h-14 rounded-xl items-center justify-center ${
-            canRegister ? "bg-green-600" : "bg-gray-200"
+            canRegister && !loading ? "bg-green-600" : "bg-gray-200"
           }`}
         >
-          <Text
-            className={`text-lg font-semibold ${
-              canRegister ? "text-white" : "text-gray-500"
-            }`}
-          >
-            Register
-          </Text>
+          {loading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text
+              className={`text-lg font-semibold ${
+                canRegister ? "text-white" : "text-gray-500"
+              }`}
+            >
+              Register
+            </Text>
+          )}
         </TouchableOpacity>
 
         {/* Sign In */}
@@ -328,6 +366,9 @@ export default function App() {
             <Text className="text-green-600 font-bold">Sign In</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Hidden reCAPTCHA container */}
+        <View id="recaptcha-container" />
       </ScrollView>
     </KeyboardAvoidingView>
   );
