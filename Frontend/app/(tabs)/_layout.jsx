@@ -54,6 +54,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="add"
         options={{
+          tabBarStyle: { display: "none" },
           tabBarIcon: () => (
             <View
               style={{
