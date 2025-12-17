@@ -4,20 +4,35 @@ import User from '../UserModels/User.js';
 import { generateOTP, sendOTPviaSMS, isValidPhone, isValidOTP } from '../utils/otpService.js';
 import { generateToken } from '../utils/jwtUtils.js';
 
+
+// Add at the top after imports
+console.log('🔧 Environment Check:');
+console.log('PORT:', process.env.PORT);
+console.log('MONGODB_URI:', process.env.MONGODB_URI ? '✅ Set' : '❌ Missing');
+console.log('FAST2SMS:', process.env.FAST2SMS ? '✅ Set' : '❌ Missing');
+console.log('FAST2SMS length:', process.env.FAST2SMS?.length);
+console.log('---');
+
 const DEVELOPMENT_MODE = true; // Set to false in production
 
 // ==================== SEND OTP ====================
 export const sendOTP = async (req, res) => {
+  console.log('\n📨 ===== SEND OTP REQUEST =====');
+  console.log('Request body:', req.body);
+  
   try {
     const { phone, countryCode = '+91' } = req.body;
+    console.log('📱 Phone:', phone, 'Country Code:', countryCode);
 
     // Validate phone number
     if (!phone || !isValidPhone(phone)) {
+      console.log('❌ Invalid phone number');
       return res.status(400).json({
         success: false,
         message: 'Please provide a valid 10-digit phone number'
       });
     }
+    console.log('✅ Phone number valid');
 
     // Check rate limiting - max 3 OTP requests in 30 minutes
     const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
@@ -73,6 +88,10 @@ export const sendOTP = async (req, res) => {
 
      // Send OTP via SMS (or skip in development)
     let smsResult;
+
+    console.log('📱 Attempting to send OTP to:', phone, 'Country:', countryCode);
+    console.log('🔧 DEVELOPMENT_MODE:', DEVELOPMENT_MODE);
+
     
     if (DEVELOPMENT_MODE) {
       // Development mode - just log OTP, don't send SMS
@@ -80,28 +99,33 @@ export const sendOTP = async (req, res) => {
       smsResult = { success: true };
     } else {
       // Production mode - send real SMS
+      console.log('📤 Calling Fast2SMS API...');
       smsResult = await sendOTPviaSMS(phone, otp, countryCode);
+      console.log('📥 Fast2SMS Result:', smsResult);
     }
 
     if (smsResult.success) {
-      return res.status(200).json({
-        success: true,
-        message: 'OTP sent successfully to your phone number',
-        data: {
-          phone: phone,
-          expiresIn: '10 minutes',
-          ...(DEVELOPMENT_MODE && { devOtp: otp }) // Show OTP in response during dev
-        }
-      });
-    } else {
-      await Otp.deleteOne({ _id: otpDoc._id });
-      
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to send OTP. Please try again',
-        error: smsResult.message
-      });
+  console.log('✅ OTP sent successfully');
+  console.log('===== END SEND OTP =====\n');
+  return res.status(200).json({
+    success: true,
+    message: 'OTP sent successfully to your phone number',
+    data: {
+      phone: phone,
+      expiresIn: '10 minutes',
+      ...(DEVELOPMENT_MODE && { devOtp: otp })
     }
+  });
+} else {
+  console.log('❌ Failed to send OTP:', smsResult);
+  await Otp.deleteOne({ _id: otpDoc._id });
+  
+  return res.status(500).json({
+    success: false,
+    message: 'Failed to send OTP. Please try again',
+    error: smsResult.message
+  });
+}
 
   } catch (error) {
     console.error('Error in sendOTP:', error);
@@ -553,6 +577,34 @@ export const checkPhoneExists = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Internal server error',
+      error: error.message
+    });
+  }
+};
+
+
+
+// Temporary test endpoint - remove after testing
+export const testFast2SMS = async (req, res) => {
+  try {
+    console.log('🧪 Testing Fast2SMS...');
+    console.log('API Key exists:', !!process.env.FAST2SMS);
+    console.log('API Key length:', process.env.FAST2SMS?.length);
+    console.log('API Key first 10 chars:', process.env.FAST2SMS?.substring(0, 10));
+    
+    // Test with a dummy number
+    const testResult = await sendOTPviaSMS('9999999999', '1234', '+91');
+    
+    return res.status(200).json({
+      success: true,
+      keyExists: !!process.env.FAST2SMS,
+      keyLength: process.env.FAST2SMS?.length,
+      testResult: testResult
+    });
+  } catch (error) {
+    console.error('Test error:', error);
+    return res.status(500).json({
+      success: false,
       error: error.message
     });
   }

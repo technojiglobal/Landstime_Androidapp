@@ -3,7 +3,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // API Base URL - Change this to your backend URL
 //const API_BASE_URL = 'http://localhost:8000/api/user';
-const API_BASE_URL = 'http://10.10.3.236:8000/api/user';
+ //const API_BASE_URL = 'http://10.10.3.236:8000/api/user';
+//const API_BASE_URL = 'http://localhost:8000/api/user';
+
+const API_BASE_URL = 'http://192.168.0.108:8000/api/user';
+
 
 // Helper function to get token from AsyncStorage
 const getToken = async () => {
@@ -19,6 +23,13 @@ const getToken = async () => {
 // Helper function to make API requests
 const apiRequest = async (endpoint, method = 'GET', body = null, requiresAuth = false) => {
   try {
+    console.log('🌐 API Request:', {
+      endpoint,
+      method,
+      body,
+      url: `${API_BASE_URL}${endpoint}`
+    });
+
     const headers = {
       'Content-Type': 'application/json',
     };
@@ -28,6 +39,7 @@ const apiRequest = async (endpoint, method = 'GET', body = null, requiresAuth = 
       const token = await getToken();
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
+        console.log('🔑 Token added to request');
       }
     }
 
@@ -40,8 +52,13 @@ const apiRequest = async (endpoint, method = 'GET', body = null, requiresAuth = 
       config.body = JSON.stringify(body);
     }
 
+    console.log('📤 Sending request...');
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    
+    console.log('📥 Response status:', response.status, response.ok ? '✅' : '❌');
+    
     const data = await response.json();
+    console.log('📦 Response data:', data);
 
     return {
       success: response.ok,
@@ -49,7 +66,8 @@ const apiRequest = async (endpoint, method = 'GET', body = null, requiresAuth = 
       data: data,
     };
   } catch (error) {
-    console.error('API Request Error:', error);
+    console.error('💥 API Request Error:', error);
+    console.error('Error details:', error.message);
     return {
       success: false,
       error: error.message,
@@ -61,7 +79,10 @@ const apiRequest = async (endpoint, method = 'GET', body = null, requiresAuth = 
 
 // Send OTP
 export const sendOTP = async (phone, countryCode = '+91') => {
-  return await apiRequest('/send-otp', 'POST', { phone, countryCode });
+  console.log('📞 sendOTP called with:', { phone, countryCode });
+  const result = await apiRequest('/send-otp', 'POST', { phone, countryCode });
+  console.log('📞 sendOTP result:', result);
+  return result;
 };
 
 // Verify OTP
@@ -146,19 +167,26 @@ export const clearUserData = async () => {
 
 
 
+// export const checkPhoneExists = async (phone) => {
+
+//   try {
+//     const response = await fetch(`${API_URL}/check-phone`, {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       body: JSON.stringify({ phone }),
+//     });
+//     const data = await response.json();
+//     return { success: response.ok, data };
+//   } catch (error) {
+//     console.error('Check phone error:', error);
+//     return { success: false, error: error.message };
+//   }
+// };
+
+
 export const checkPhoneExists = async (phone) => {
-  try {
-    const response = await fetch(`${API_URL}/check-phone`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ phone }),
-    });
-    const data = await response.json();
-    return { success: response.ok, data };
-  } catch (error) {
-    console.error('Check phone error:', error);
-    return { success: false, error: error.message };
-  }
+  console.log('🔍 Checking if phone exists:', phone);
+  return await apiRequest('/check-phone', 'POST', { phone });  // ✅ Use apiRequest for consistency
 };

@@ -1,4 +1,4 @@
-// SidebarLayout.jsx
+//Frontend//app//home//screens// SidebarLayout.jsx
 import React, { useRef, useEffect, useState } from "react";
 import {
   View,
@@ -11,12 +11,22 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import LogoutModal from 'components/LogoutModal';
+import { clearUserData } from "utils/api";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
 export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) {
   const slideAnim = useRef(new Animated.Value(-SCREEN_WIDTH * 0.75)).current;
+   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const router = useRouter();
+
+    const handleLogout = async () => {
+    await clearUserData();
+    setShowLogoutModal(false);
+    toggleSidebar();
+    router.replace("/auth/LoginScreen");
+  };
 
   useEffect(() => {
     Animated.timing(slideAnim, {
@@ -109,11 +119,29 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
               <Text className="text-white text-lg">{item.name}</Text>
             </TouchableOpacity>
           ))}
+
+           {/* Logout */}
+          <TouchableOpacity
+            onPress={() => setShowLogoutModal(true)}
+            style={{ flexDirection: "row", alignItems: "center", paddingVertical: 16, marginTop: 10 }}
+          >
+            <Ionicons name="log-out-outline" size={22} color="white" style={{ marginRight: 16 }} />
+            <Text className="text-white text-lg">Logout</Text>
+          </TouchableOpacity>
+
+
         </ScrollView>
       </Animated.View>
 
       {/* Screen Content */}
       <View style={{ flex: 1 }}>{children}</View>
+
+      {/* Logout Modal */}
+      <LogoutModal 
+        visible={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleLogout}
+      />
     </View>
   );
 }

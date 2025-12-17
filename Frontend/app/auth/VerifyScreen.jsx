@@ -75,37 +75,58 @@ export default function VerificationScreen() {
 
   // NEW
 const handleSendOTP = async () => {
+    console.log('🚀 Starting OTP send process...');
+    console.log('📞 Phone:', phoneNumber, 'Country Code:', countryCode);
+    
     setLoading(true);
     try {
+      console.log('📡 Calling sendOTP API...');
       const response = await sendOTP(phoneNumber, countryCode);
+      
+      console.log('✅ Response received:', JSON.stringify(response, null, 2));
 
       if (response.success && response.data.success) {
-        // Navigate immediately without Alert
-        router.push({
-          pathname: "/auth/verifyotp",
-          params: {
-            phone: phoneNumber,
-            countryCode: countryCode,
-            name: params.name,
-            email: params.email,
-            role: params.role,
-          },
-        });
+        console.log('✨ OTP sent successfully!');
+        
+        // Check if OTP is in response (dev mode)
+        if (response.data.devOtp) {
+          console.log('🔐 DEV OTP:', response.data.devOtp);
+          Alert.alert('DEV MODE', `OTP: ${response.data.devOtp}`, [
+            { text: 'OK', onPress: () => navigateToVerify() }
+          ]);
+        } else {
+          navigateToVerify();
+        }
       } 
       else {
+        console.error('❌ OTP send failed:', response.data?.message);
         Alert.alert(
           "Error",
           response.data.message || "Failed to send OTP. Please try again."
         );
       }
     } catch (error) {
-      console.error("Send OTP error:", error);
+      console.error('💥 Network error:', error);
+      console.error('Error details:', error.message);
       Alert.alert("Error", "Failed to send OTP. Please check your connection.");
     } finally {
       setLoading(false);
+      console.log('🏁 OTP send process completed');
     }
   };
 
+  const navigateToVerify = () => {
+    router.push({
+      pathname: "/auth/verifyotp",
+      params: {
+        phone: phoneNumber,
+        countryCode: countryCode,
+        name: params.name,
+        email: params.email,
+        role: params.role,
+      },
+    });
+  };
   return (
     <>
     <View className="flex-1 bg-white px-6 pt-14">

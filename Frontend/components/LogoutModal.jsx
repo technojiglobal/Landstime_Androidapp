@@ -1,3 +1,4 @@
+//Frontend // components // LogoutModal.jsx
 import React from "react";
 import { Modal, View, Text, TouchableOpacity } from "react-native";
 

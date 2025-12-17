@@ -140,10 +140,24 @@ if (response.success && response.data.success) {
         Please enter 4 digit verification code sent to
       </Text>
 
-      <View className="flex-row items-center mb-10">
+    <View className="flex-row items-center mb-10">
         <Ionicons name="call-outline" size={16} />
         <Text className="text-gray-400 text-base ml-1">{maskedPhone}</Text>
-        <TouchableOpacity onPress={() => router.back()}>
+  <TouchableOpacity onPress={() => {
+  router.replace({
+    pathname: "/auth",
+    params: {
+      phone: phoneNumber,
+      countryCode: countryCode,
+      name: params.name || "",
+      email: params.email || "",
+      role: params.role || "",
+      allowEdit: "true",
+      verified: "false",
+      fromEdit: "true"
+    }
+  });
+}}>
           <Text className="text-green-600 text-base ml-3 font-medium underline">
             Edit
           </Text>
