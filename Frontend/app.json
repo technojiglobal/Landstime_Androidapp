@@ -15,6 +15,7 @@
     },
 
     "android": {
+      "package": "com.landstime.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"

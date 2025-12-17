@@ -1,21 +1,56 @@
+// Backend/index.js
 import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
+import cors from 'cors';
+import userRoutes from './UserRoutes/UserRoute.js';
+
 
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+// Middleware
+app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB Connected'))
   .catch((err) => console.error('❌ MongoDB Connection Error:', err));
 
+// Root Route
 app.get('/', (req, res) => {
-  res.json({ message: 'Server is running' });
+  res.json({ 
+    success: true,
+    message: 'LandsTime API Server is running',
+    version: '1.0.0'
+  });
 });
 
+// User Routes
+app.use('/api/user', userRoutes);
+
+// 404 Handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found'
+  });
+});
+
+// Error Handler
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({
+    success: false,
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
+});
+
+// Start Server
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`📱 Environment: ${process.env.NODE_ENV}`);
 });
