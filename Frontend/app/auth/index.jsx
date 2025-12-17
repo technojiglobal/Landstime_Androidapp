@@ -1,4 +1,6 @@
-import { useState } from "react";
+//frontend//app//auth//index.jsx
+import { useState, useEffect } from "react";
+import Toast from 'react-native-toast-message';
 import {
   View,
   Text,
@@ -11,32 +13,197 @@ import {
   Keyboard,
   Modal,
   FlatList,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import "../../global.css";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
+import { registerUser, saveToken, saveUserData,checkPhoneExists } from "../../utils/api";
 
-export default function App() {
-
-  const [name, setName] = useState("janu");
-
-  const [phone, setPhone] = useState("9876543210");
-  const [email, setEmail] = useState("abc@gmail.com");
+export default function RegisterScreen() {
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [countryCode, setCountryCode] = useState("+91");
   const [showDropdown, setShowDropdown] = useState(false);
   const [role, setRole] = useState("");
   const [agree, setAgree] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [phoneVerified, setPhoneVerified] = useState(false);
 
   const router = useRouter();
+  const params = useLocalSearchParams()
+
+  // Get verified phone from params
+useEffect(() => {
+  if (params.verified === "true" && params.phone) {
+    setPhone(params.phone);
+    setCountryCode(params.countryCode || "+91");
+    setPhoneVerified(true);
+
+    if(params.name) setName(params.name);
+    if(params.email) setEmail (params.email);
+    if(params.role) setRole (params.role);
+  }
+}, [params]);
 
   const isNameValid = name.trim().length >= 2;
   const isPhoneValid = /^[0-9]{10}$/.test(phone);
-  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+ const isEmailValid = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
   const canRegister =
-    isNameValid && isPhoneValid && isEmailValid && role && agree;
+    isNameValid && isPhoneValid && isEmailValid && role && agree && phoneVerified;
 
   const countryCodes = ["+91", "+1", "+44", "+61", "+81"];
+
+const handleRegister = async () => {
+  if (!canRegister) return;
+
+  // Additional validations before submitting
+  if (!phoneVerified) {
+    Toast.show({
+      type: 'error',
+      text1: 'Phone Not Verified',
+      text2: 'Please verify your phone number first',
+      position: 'top',
+      visibilityTime: 3000,
+    });
+    return;
+  }
+
+  if (!agree) {
+    Toast.show({
+      type: 'error',
+      text1: 'Terms Required',
+      text2: 'Please agree to Terms of Service',
+      position: 'top',
+      visibilityTime: 3000,
+    });
+    return;
+  }
+
+  setLoading(true);
+  try {
+    const response = await registerUser({
+      name: name.trim(),
+      phone: phone,
+      countryCode: countryCode,
+      email: email.toLowerCase().trim(),
+      role: role,
+    });
+
+    if (response.success && response.data.success) {
+      // Show success toast
+      Toast.show({
+        type: 'success',
+        text1: 'Registration Successful! 🎉',
+        text2: 'Please login to continue',
+        position: 'top',
+        visibilityTime: 2500,
+      });
+
+      // Navigate to login after 2.5 seconds
+      setTimeout(() => {
+        router.replace("/auth/LoginScreen");
+      }, 2500);
+    } else {
+      // Handle specific errors
+      const errorMessage = response.data?.message || "Something went wrong";
+      
+      if (errorMessage.includes("phone number already exists")) {
+        Toast.show({
+          type: 'error',
+          text1: 'Phone Already Registered',
+          text2: 'This number is already registered. Please login.',
+          position: 'top',
+          visibilityTime: 4000,
+        });
+      } else if (errorMessage.includes("email already exists")) {
+        Toast.show({
+          type: 'error',
+          text1: 'Email Already Registered',
+          text2: 'This email is already in use.',
+          position: 'top',
+          visibilityTime: 4000,
+        });
+      } else if (errorMessage.includes("Phone verification expired")) {
+        Toast.show({
+          type: 'error',
+          text1: 'Verification Expired',
+          text2: 'Please verify your phone number again',
+          position: 'top',
+          visibilityTime: 4000,
+        });
+        setPhoneVerified(false);
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Registration Failed',
+          text2: errorMessage,
+          position: 'top',
+          visibilityTime: 4000,
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Registration error:", error);
+    Toast.show({
+      type: 'error',
+      text1: 'Network Error',
+      text2: 'Failed to register. Please check your connection.',
+      position: 'top',
+      visibilityTime: 4000,
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
+const handleVerifyPhone = async () => {
+  if (!isPhoneValid) return;
+
+  setLoading(true);
+  try {
+    // Check if phone already exists
+    const response = await checkPhoneExists(phone);
+
+    if (response.success && response.data.exists) {
+      Toast.show({
+        type: 'error',
+        text1: 'Phone Already Registered',
+        text2: 'This number is already registered. Please login instead.',
+        position: 'top',
+        visibilityTime: 4000,
+      });
+      return;
+    }
+
+    // Phone is available, proceed to verification
+    router.push({
+      pathname: "/auth/VerifyScreen",
+      params: { 
+        phone: phone, 
+        countryCode: countryCode,
+        name : name,
+        email: email,
+        role: role
+      },
+    });
+
+  } catch (error) {
+    console.error('Check phone error:', error);
+    Toast.show({
+      type: 'error',
+      text1: 'Error',
+      text2: 'Failed to verify phone availability',
+      position: 'top',
+      visibilityTime: 3000,
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   const Content = (
     <KeyboardAvoidingView
@@ -73,13 +240,12 @@ export default function App() {
           className={`flex-row items-center border rounded-xl mb-4 px-3 ${
             name
               ? isNameValid
-                ? "text-green-500"
-                : "border-gray-500"
+                ? "border-green-500"
+                : "border-red-500"
               : "border-gray-300"
           }`}
           style={{
             borderWidth: 1,
-            borderColor: "#0000001A",
             backgroundColor: "#D9D9D91C",
           }}
         >
@@ -89,7 +255,7 @@ export default function App() {
             color={name ? (isNameValid ? "#16a34a" : "#ef4444") : "#9ca3af"}
           />
           <TextInput
-            className="flex-1 ml-3 h-12 text-base text-green-600"
+            className="flex-1 ml-3 h-12 text-base"
             placeholder="Your Name"
             value={name}
             onChangeText={setName}
@@ -102,67 +268,78 @@ export default function App() {
           className={`flex-row items-center border rounded-xl mb-4 px-3 ${
             phone
               ? isPhoneValid
-                ? "text-green-500"
-                : "border-gray-500"
+                ? phoneVerified
+                  ? "border-green-500"
+                  : "border-orange-500"
+                : "border-red-500"
               : "border-gray-300"
           }`}
           style={{
             borderWidth: 1,
-            borderColor: "#0000001A",
             backgroundColor: "#D9D9D91C",
           }}
         >
           <Ionicons
             name="call-outline"
             size={20}
-            color={phone ? (isPhoneValid ? "#16a34a" : "#ef4444") : "#9ca3af"}
+            color={
+              phone
+                ? isPhoneValid
+                  ? phoneVerified
+                    ? "#16a34a"
+                    : "#f97316"
+                  : "#ef4444"
+                : "#9ca3af"
+            }
           />
 
           <TouchableOpacity
             onPress={() => setShowDropdown(true)}
             className="flex-row items-center ml-2 border-r border-gray-200 pr-2"
           >
-            <Text
-              className={`text-base ${
-                isPhoneValid ? "text-green-600" : "text-gray-700"
-              }`}
-            >
-              {countryCode}
-            </Text>
+            <Text className="text-base text-gray-700">{countryCode}</Text>
             <Ionicons
               name="chevron-down-outline"
               size={16}
-              color={isPhoneValid ? "#16a34a" : "#9ca3af"}
+              color="#9ca3af"
               style={{ marginLeft: 4 }}
             />
           </TouchableOpacity>
 
-          {/* ✅ LIMIT PHONE INPUT TO 10 DIGITS */}
           <TextInput
-            className="flex-1 ml-2 h-12 text-base text-green-600"
+            className="flex-1 ml-2 h-12 text-base"
             placeholder="Phone number"
             keyboardType="phone-pad"
             value={phone}
             onChangeText={(text) => {
               if (/^\d{0,10}$/.test(text)) {
                 setPhone(text);
+                setPhoneVerified(false); // Reset verification when phone changes
               }
             }}
             placeholderTextColor="#9ca3af"
           />
 
-          <TouchableOpacity
-            disabled={!isPhoneValid}
-            onPress={() => router.push("auth/VerifyScreen")}
-          >
-            <Text
-              className={`font-semibold ${
-                isPhoneValid ? "text-green-500" : "text-gray-400"
-              }`}
-            >
-              Verify
-            </Text>
-          </TouchableOpacity>
+        
+
+            
+<TouchableOpacity
+  disabled={!isPhoneValid || phoneVerified}
+  onPress={handleVerifyPhone}
+>
+  {phoneVerified ? (
+    <Ionicons name="checkmark-circle" size={24} color="#16a34a" />
+  ) : (
+    <Text
+      className={`font-semibold ${
+        isPhoneValid ? "text-green-500" : "text-gray-400"
+      }`}
+    >
+      Verify
+    </Text>
+  )}
+</TouchableOpacity>
+
         </View>
 
         {/* Country Code Modal */}
@@ -205,13 +382,12 @@ export default function App() {
           className={`flex-row items-center border rounded-xl mb-4 px-3 ${
             email
               ? isEmailValid
-                ? "text-green-500"
-                : "border-gray-300"
+                ? "border-green-500"
+                : "border-red-500"
               : "border-gray-300"
           }`}
           style={{
             borderWidth: 1,
-            borderColor: "#0000001A",
             backgroundColor: "#D9D9D91C",
           }}
         >
@@ -221,26 +397,14 @@ export default function App() {
             color={email ? (isEmailValid ? "#16a34a" : "#ef4444") : "#9ca3af"}
           />
           <TextInput
-            className="flex-1 ml-3 h-12 text-base text-green-600"
+            className="flex-1 ml-3 h-12 text-base"
             placeholder="Enter your Email"
             keyboardType="email-address"
             value={email}
             onChangeText={setEmail}
             placeholderTextColor="#9ca3af"
+            autoCapitalize="none"
           />
-
-          <TouchableOpacity
-            disabled={!isEmailValid}
-            onPress={() => alert("Email verification link sent!")}
-          >
-            <Text
-              className={`font-semibold ${
-                isEmailValid ? "text-green-500" : "text-gray-400"
-              }`}
-            >
-              Verify
-            </Text>
-          </TouchableOpacity>
         </View>
 
         {/* Role Selection */}
@@ -249,7 +413,7 @@ export default function App() {
           <TouchableOpacity
             className={`px-6 py-2 rounded-full mr-3 border ${
               role === "Buyer"
-                ? "text-green-600 bg-green-50 border-green-500"
+                ? "bg-green-50 border-green-500"
                 : "border-gray-300"
             }`}
             onPress={() => setRole("Buyer")}
@@ -267,7 +431,7 @@ export default function App() {
           <TouchableOpacity
             className={`px-6 py-2 rounded-full border ${
               role === "Owner"
-                ? "text-green-600 bg-green-50 border-green-500"
+                ? "bg-green-50 border-green-500"
                 : "border-gray-300"
             }`}
             onPress={() => setRole("Owner")}
@@ -308,19 +472,23 @@ export default function App() {
 
         {/* Register Button */}
         <TouchableOpacity
-          disabled={!canRegister}
-          onPress={() => router.push("/auth/LoginScreen")}
+          disabled={!canRegister || loading}
+          onPress={handleRegister}
           className={`h-14 rounded-xl items-center justify-center ${
-            canRegister ? "bg-green-600" : "bg-gray-200"
+            canRegister && !loading ? "bg-green-600" : "bg-gray-200"
           }`}
         >
-          <Text
-            className={`text-lg font-semibold ${
-              canRegister ? "text-white" : "text-gray-500"
-            }`}
-          >
-            Register
-          </Text>
+          {loading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text
+              className={`text-lg font-semibold ${
+                canRegister ? "text-white" : "text-gray-500"
+              }`}
+            >
+              Register
+            </Text>
+          )}
         </TouchableOpacity>
 
         {/* Sign In */}
@@ -334,11 +502,17 @@ export default function App() {
     </KeyboardAvoidingView>
   );
 
-  return Platform.OS === "web" ? (
-    Content
-  ) : (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      {Content}
-    </TouchableWithoutFeedback>
-  );
+
+  return (
+    <>
+    {Platform.OS === "web" ? (
+      Content
+    ) : (
+      <TouchableWithoutFeedback onPress = {keyboard.dismiss}>
+        {Content}
+      </TouchableWithoutFeedback>
+    )}
+    <Toast />
+    </>
+  )
 }

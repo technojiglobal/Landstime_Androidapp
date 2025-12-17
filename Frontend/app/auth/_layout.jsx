@@ -1,3 +1,4 @@
+//Frontend//app//auth//_layout.jsx
 import { Stack } from "expo-router";
 import "../../global.css";
 
