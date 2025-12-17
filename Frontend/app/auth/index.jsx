@@ -32,22 +32,53 @@ export default function RegisterScreen() {
   const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(false);
   const [phoneVerified, setPhoneVerified] = useState(false);
+  const [allowEdit, setAllowEdit] = useState(false);
 
   const router = useRouter();
   const params = useLocalSearchParams()
-
-  // Get verified phone from params
 useEffect(() => {
-  if (params.verified === "true" && params.phone) {
+  // Only process if params has data
+  if (!params || Object.keys(params).length === 0) return;
+  
+  console.log('📥 Received params:', JSON.stringify(params, null, 2));
+  console.log('allowEdit value:', params.allowEdit);
+  console.log('verified value:', params.verified);
+  
+  // Load data from params
+  if (params.phone) {
     setPhone(params.phone);
-    setCountryCode(params.countryCode || "+91");
+  }
+  
+  if (params.countryCode) {
+    setCountryCode(params.countryCode);
+  }
+  
+  if (params.name) {
+    setName(params.name);
+  }
+  
+  if (params.email) {
+    setEmail(params.email);
+  }
+  
+  if (params.role) {
+    setRole(params.role);
+  }
+  
+  // Set verification status
+  if (params.allowEdit === "true") {
+    setPhoneVerified(false);
+    setAllowEdit(true);
+  } else if (params.verified === "true") {
     setPhoneVerified(true);
-
-    if(params.name) setName(params.name);
-    if(params.email) setEmail (params.email);
-    if(params.role) setRole (params.role);
+    setAllowEdit(false);
   }
 }, [params]);
+
+  console.log('🔐 phoneVerified:', phoneVerified);
+console.log('✏️ allowEdit:', allowEdit);
+console.log('📝 editable:', !phoneVerified || allowEdit);
+
 
   const isNameValid = name.trim().length >= 2;
   const isPhoneValid = /^[0-9]{10}$/.test(phone);
@@ -227,7 +258,7 @@ const handleVerifyPhone = async () => {
           </TouchableOpacity>
 
           <Text className="text-3xl font-bold text-center">
-            Create Account
+            Create Accounts
           </Text>
         </View>
 
@@ -263,84 +294,119 @@ const handleVerifyPhone = async () => {
           />
         </View>
 
-        {/* Phone Input */}
-        <View
-          className={`flex-row items-center border rounded-xl mb-4 px-3 ${
-            phone
-              ? isPhoneValid
-                ? phoneVerified
-                  ? "border-green-500"
-                  : "border-orange-500"
-                : "border-red-500"
-              : "border-gray-300"
-          }`}
-          style={{
-            borderWidth: 1,
-            backgroundColor: "#D9D9D91C",
-          }}
-        >
-          <Ionicons
-            name="call-outline"
-            size={20}
-            color={
-              phone
-                ? isPhoneValid
-                  ? phoneVerified
-                    ? "#16a34a"
-                    : "#f97316"
-                  : "#ef4444"
-                : "#9ca3af"
-            }
-          />
-
-          <TouchableOpacity
-            onPress={() => setShowDropdown(true)}
-            className="flex-row items-center ml-2 border-r border-gray-200 pr-2"
-          >
-            <Text className="text-base text-gray-700">{countryCode}</Text>
-            <Ionicons
-              name="chevron-down-outline"
-              size={16}
-              color="#9ca3af"
-              style={{ marginLeft: 4 }}
-            />
-          </TouchableOpacity>
-
-          <TextInput
-            className="flex-1 ml-2 h-12 text-base"
-            placeholder="Phone number"
-            keyboardType="phone-pad"
-            value={phone}
-            onChangeText={(text) => {
-              if (/^\d{0,10}$/.test(text)) {
-                setPhone(text);
-                setPhoneVerified(false); // Reset verification when phone changes
-              }
-            }}
-            placeholderTextColor="#9ca3af"
-          />
-
-        
-
-            
-<TouchableOpacity
-  disabled={!isPhoneValid || phoneVerified}
-  onPress={handleVerifyPhone}
+      {/* Phone Input */}
+<View
+  className={`flex-row items-center border rounded-xl mb-4 px-3 ${
+    phone
+      ? isPhoneValid
+        ? phoneVerified
+          ? "border-green-500"
+          : "border-orange-500"
+        : "border-red-500"
+      : "border-gray-300"
+  }`}
+  style={{
+    borderWidth: 1,
+    backgroundColor: "#D9D9D91C",
+  }}
 >
-  {phoneVerified ? (
-    <Ionicons name="checkmark-circle" size={24} color="#16a34a" />
-  ) : (
-    <Text
-      className={`font-semibold ${
-        isPhoneValid ? "text-green-500" : "text-gray-400"
-      }`}
-    >
-      Verify
-    </Text>
-  )}
-</TouchableOpacity>
+  <Ionicons
+    name="call-outline"
+    size={20}
+    color={
+      phone
+        ? isPhoneValid
+          ? phoneVerified
+            ? "#16a34a"
+            : "#f97316"
+          : "#ef4444"
+        : "#9ca3af"
+    }
+  />
 
-        </View>
+  <TouchableOpacity
+    onPress={() => setShowDropdown(true)}
+    className="flex-row items-center ml-2 border-r border-gray-200 pr-2"
+  >
+    <Text className="text-base text-gray-700">{countryCode}</Text>
+    <Ionicons
+      name="chevron-down-outline"
+      size={16}
+      color="#9ca3af"
+      style={{ marginLeft: 4 }}
+    />
+  </TouchableOpacity>
+ {phoneVerified && !allowEdit ? (
+  <View className="flex-1 ml-2 h-12 justify-center">
+    <Text className="text-base text-gray-700">{phone}</Text>
+  </View>
+) : Platform.OS === 'web' ? (
+  <input
+    type="tel"
+    placeholder="Phone number"
+    value={phone}
+    onChange={(e) => {
+      const text = e.target.value;
+      if (/^\d{0,10}$/.test(text)) {
+        setPhone(text);
+        setPhoneVerified(false);
+        setAllowEdit(false);
+      }
+    }}
+    maxLength={10}
+    autoFocus={allowEdit}
+    className="flex-1 ml-2 h-12 text-base"
+    style={{
+      border: 'none',
+      outline: 'none',
+      backgroundColor: 'transparent',
+      fontSize: '16px',
+      color: '#111827'
+    }}
+  />
+) : (
+  <TextInput
+    className="flex-1 ml-2 h-12 text-base"
+    placeholder="Phone number"
+    keyboardType="phone-pad"
+    value={phone}
+    onChangeText={(text) => {
+      if (/^\d{0,10}$/.test(text)) {
+        setPhone(text);
+        setPhoneVerified(false);
+        setAllowEdit(false);
+      }
+    }}
+    placeholderTextColor="#9ca3af"
+    autoFocus={allowEdit}
+  />
+)}
+
+  {phoneVerified ? (
+    <View className="flex-row items-center">
+      <Ionicons name="checkmark-circle" size={24} color="#16a34a" />
+      <TouchableOpacity
+        onPress={() => {
+          setPhoneVerified(false);
+          setAllowEdit(true);
+        }}
+        className="ml-2"
+      >
+        <Text className="text-blue-500 text-sm">Change</Text>
+      </TouchableOpacity>
+    </View>
+  ) : (
+    <TouchableOpacity disabled={!isPhoneValid} onPress={handleVerifyPhone}>
+      <Text
+        className={`font-semibold ${
+          isPhoneValid ? "text-green-500" : "text-gray-400"
+        }`}
+      >
+        Verify
+      </Text>
+    </TouchableOpacity>
+  )}
+</View>
 
         {/* Country Code Modal */}
         <Modal
@@ -508,7 +574,7 @@ const handleVerifyPhone = async () => {
     {Platform.OS === "web" ? (
       Content
     ) : (
-      <TouchableWithoutFeedback onPress = {keyboard.dismiss}>
+      <TouchableWithoutFeedback onPress = {Keyboard.dismiss}>
         {Content}
       </TouchableWithoutFeedback>
     )}
