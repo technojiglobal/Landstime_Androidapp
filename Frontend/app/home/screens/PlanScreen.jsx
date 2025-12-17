@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, ScrollView,Image, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView,Image, TouchableOpacity,StatusBar } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { subscriptionPlans } from "../../../data/plansData";
@@ -8,8 +8,8 @@ export default function SubscriptionPlansScreen() {
   const router = useRouter();
 
   return (
-    <View className="flex-1  bg-white">
-
+    <View className="flex-1 mt-7 bg-white">
+    <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <ScrollView showsVerticalScrollIndicator={false}>
         <View  className="flex-row ml-5 mt-9 border-b border-gray-200 mb-5 pb-2">
            <TouchableOpacity onPress={() => router.push("/(tabs)/home")}>

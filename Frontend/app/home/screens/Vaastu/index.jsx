@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Image, Dimensions, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, Image, Dimensions, ScrollView,StatusBar } from "react-native";
 import DirectionDetails from "./DirectionDetails";
 import Slidearrow from "../../../../assets/Slide-arrow.png";
 import directionsData from "../../../../data/directionsData";
@@ -38,6 +38,7 @@ export default function VastuDirections() {
 
   return (
       <ScrollView className="flex-1 bg-white px-4">
+        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       {/* Back Arrow + Title in row */}
       <View style={{ flexDirection: "row", alignItems: "center", marginTop: scaleHeight(60) }}>
         <TouchableOpacity onPress={() => router.back()} style={{ marginRight: scaleWidth(12) }}>

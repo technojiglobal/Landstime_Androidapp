@@ -7,6 +7,7 @@ import {
   ScrollView,
   Dimensions,
   StyleSheet,
+  SafeAreaView,StatusBar
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons"; // ✅ correct icon set
 
@@ -18,7 +19,9 @@ export default function WriteReview() {
   const [review, setReview] = useState("");
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ alignItems: "center", paddingBottom: 40 }}
@@ -81,7 +84,7 @@ export default function WriteReview() {
           </View>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

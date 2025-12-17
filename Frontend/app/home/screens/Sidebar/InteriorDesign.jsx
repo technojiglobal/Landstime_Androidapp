@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Image, ScrollView, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, Image, ScrollView, TextInput, TouchableOpacity,StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import RoomTabs from "../../../../components/interior/RoomTabs";
 import FeaturedDesigns from "../../../../components/interior/FeaturedDesigns";
@@ -16,7 +16,8 @@ export default function InteriorDesignScreen() {
       className="flex-1 bg-white mt-12 mb-12"
       showsVerticalScrollIndicator={true}
     >
-
+ <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+ 
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 py-4">
 

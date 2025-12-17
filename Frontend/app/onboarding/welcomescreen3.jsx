@@ -1,4 +1,4 @@
-import { View, Text, Image, TouchableOpacity, Dimensions } from "react-native";
+import { View, Text, Image, TouchableOpacity, Dimensions,StatusBar } from "react-native";
 import { useRouter } from "expo-router";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -17,6 +17,7 @@ export default function WelcomeScreen() {
 
   return (
     <View className="flex-1 bg-white">
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       {/* Back Arrow */}
       <View style={{ position: "absolute", top: scaleHeight(62), left: scaleWidth(25) }}>
                 <TouchableOpacity

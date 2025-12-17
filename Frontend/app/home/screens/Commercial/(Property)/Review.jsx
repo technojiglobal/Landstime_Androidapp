@@ -1,6 +1,6 @@
 // Sites // (Property) // Review.jsx
 import React from "react";
-import { View, Text, FlatList, TouchableOpacity, Image } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, Image,SafeAreaView,StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
@@ -56,7 +56,8 @@ const Review = () => {
   const router = useRouter();
 
   return (
-    <View className="flex-1 bg-white px-4 pt-2">
+    <SafeAreaView className="flex-1 bg-white px-4 pt-2">
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       
       {/* Rating Summary */}
       <View className="items-center mb-4">
@@ -182,7 +183,7 @@ const Review = () => {
           </View>
         )}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 

@@ -7,7 +7,7 @@ import {
   Image,
   TouchableOpacity,
   Animated,
-  Dimensions,
+  Dimensions,StatusBar
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -278,7 +278,9 @@ export default function PropertyListScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1">
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      
       {/* Header */}
       <View className="flex-row items-center px-5 py-3">
         <TouchableOpacity onPress={() => router.push('/home/screens/Commercial/SelectSite')}>

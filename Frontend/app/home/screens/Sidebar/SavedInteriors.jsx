@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Image, TextInput, TouchableOpacity, FlatList } from "react-native";
+import { View, Text, Image, TextInput, TouchableOpacity, FlatList,StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import SavedCard from "../../../../components/interior/SavedCard";
 import { useRouter } from "expo-router";
@@ -41,7 +41,7 @@ export default function SavedPropertiesScreen() {
   const router = useRouter();
   return (
     <View className="flex-1 bg-white mt-2 px-4 pt-12">
-
+    <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       {/* Header */}
       <View className="flex-row items-center mb-4">
        <TouchableOpacity onPress={() => router.push("/home/screens/Sidebar/InteriorDesign")}>
