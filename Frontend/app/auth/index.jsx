@@ -336,7 +336,7 @@ const handleVerifyPhone = async () => {
       style={{ marginLeft: 4 }}
     />
   </TouchableOpacity>
- {phoneVerified && !allowEdit ? (
+ {phoneVerified || !allowEdit ? (
   <View className="flex-1 ml-2 h-12 justify-center">
     <Text className="text-base text-gray-700">{phone}</Text>
   </View>
@@ -350,7 +350,7 @@ const handleVerifyPhone = async () => {
       if (/^\d{0,10}$/.test(text)) {
         setPhone(text);
         setPhoneVerified(false);
-        setAllowEdit(false);
+       // setAllowEdit(false);
       }
     }}
     maxLength={10}
@@ -374,7 +374,7 @@ const handleVerifyPhone = async () => {
       if (/^\d{0,10}$/.test(text)) {
         setPhone(text);
         setPhoneVerified(false);
-        setAllowEdit(false);
+       // setAllowEdit(false);
       }
     }}
     placeholderTextColor="#9ca3af"
@@ -388,7 +388,7 @@ const handleVerifyPhone = async () => {
       <TouchableOpacity
         onPress={() => {
           setPhoneVerified(false);
-          setAllowEdit(true);
+         // setAllowEdit(true);
         }}
         className="ml-2"
       >
