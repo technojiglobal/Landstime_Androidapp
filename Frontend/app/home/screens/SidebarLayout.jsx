@@ -1,4 +1,3 @@
-//Frontend//app//home//screens// SidebarLayout.jsx
 import React, { useRef, useEffect, useState } from "react";
 import {
   View,
@@ -90,6 +89,7 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
           backgroundColor: "#22C55E",
           zIndex: 20,
           padding: 20,
+          paddingTop: 50,
         }}
       >
         {/* User Info */}
@@ -104,8 +104,28 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
           </View>
         </View>
 
+        {/* Back Button - Half Circle */}
+        <TouchableOpacity
+          onPress={toggleSidebar}
+          style={{
+            position: "absolute",
+            right: 0,
+            top: 80,
+            backgroundColor: "white",
+            width: 40,
+            height: 60,
+            borderTopLeftRadius: 30,
+            borderBottomLeftRadius: 30,
+            justifyContent: "center",
+            alignItems: "center",
+            paddingRight: 8,
+          }}
+        >
+          <Ionicons name="chevron-back" size={24} color="#22C55E" />
+        </TouchableOpacity>
+
         {/* Menu Items */}
-        <ScrollView>
+        <ScrollView showsVerticalScrollIndicator={false}>
           {menuItems.map((item, index) => (
             <TouchableOpacity
               key={index}
@@ -120,10 +140,13 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
             </TouchableOpacity>
           ))}
 
+           {/* Spacer before Logout */}
+          <View style={{ height: 40 }} />
+
            {/* Logout */}
           <TouchableOpacity
             onPress={() => setShowLogoutModal(true)}
-            style={{ flexDirection: "row", alignItems: "center", paddingVertical: 16, marginTop: 10 }}
+            style={{ flexDirection: "row", alignItems: "center", paddingVertical: 16 }}
           >
             <Ionicons name="log-out-outline" size={22} color="white" style={{ marginRight: 16 }} />
             <Text className="text-white text-lg">Logout</Text>
