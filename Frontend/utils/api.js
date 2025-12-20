@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
  //const API_BASE_URL = 'http://10.10.3.236:8000/api/user';
 //const API_BASE_URL = 'http://localhost:8000/api/user';
 
-const API_BASE_URL = 'http://10.10.3.195:8000/api/user';
+const API_BASE_URL = 'http://10.10.2.17:8000/api/user';
 
 
 // Helper function to get token from AsyncStorage
@@ -189,4 +189,61 @@ export const clearUserData = async () => {
 export const checkPhoneExists = async (phone) => {
   console.log('🔍 Checking if phone exists:', phone);
   return await apiRequest('/check-phone', 'POST', { phone });  // ✅ Use apiRequest for consistency
+};
+
+
+// ===== PROPERTY APIs =====
+
+const PROPERTY_API_BASE_URL = 'http://10.10.3.218:8000/api/properties';
+
+// Create property with images
+export const createProperty = async (propertyData, imageUris) => {
+  try {
+    const token = await getToken();
+    
+    const formData = new FormData();
+    
+    // Append images
+    imageUris.forEach((uri, index) => {
+      const filename = uri.split('/').pop();
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : 'image/jpeg';
+      
+      formData.append('images', {
+        uri,
+        name: filename,
+        type
+      });
+    });
+    
+    // Append all property data fields
+    Object.keys(propertyData).forEach(key => {
+      if (typeof propertyData[key] === 'object') {
+        formData.append(key, JSON.stringify(propertyData[key]));
+      } else {
+        formData.append(key, propertyData[key]);
+      }
+    });
+    
+    const response = await fetch(`${PROPERTY_API_BASE_URL}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        // Don't set Content-Type for FormData - it sets boundary automatically
+      },
+      body: formData
+    });
+    
+    const data = await response.json();
+    
+    return {
+      success: response.ok,
+      status: response.status,
+      data: data
+    };
+    
+  } catch (error) {
+    console.error('Create property error:', error);
+    return { success: false, error: error.message };
+  }
 };

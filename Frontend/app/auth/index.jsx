@@ -124,21 +124,34 @@ const handleRegister = async () => {
       role: role,
     });
 
-    if (response.success && response.data.success) {
-      // Show success toast
-      Toast.show({
-        type: 'success',
-        text1: 'Registration Successful! 🎉',
-        text2: 'Please login to continue',
-        position: 'top',
-        visibilityTime: 2500,
-      });
+   if (response.success && response.data.success) {
+  // ✅ Save token and user data
+  if (response.data.data?.token) {
+    await saveToken(response.data.data.token);
+    console.log('🔐 Token saved:', response.data.data.token);
+  }
+  
+  if (response.data.data?.user) {
+    await saveUserData(response.data.data.user);
+    console.log('👤 User data saved');
+  }
 
-      // Navigate to login after 2.5 seconds
-      setTimeout(() => {
-        router.replace("/auth/LoginScreen");
-      }, 2500);
-    } else {
+  // Show success toast
+  Toast.show({
+    type: 'success',
+    text1: 'Registration Successful! 🎉',
+    text2: 'Welcome to LandsTime!',
+    position: 'top',
+    visibilityTime: 2500,
+  });
+
+  // Navigate to home after 2.5 seconds
+  setTimeout(() => {
+    router.replace("/(tabs)/home");
+  }, 2500);
+}
+
+    else {
       // Handle specific errors
       const errorMessage = response.data?.message || "Something went wrong";
       
@@ -336,34 +349,10 @@ const handleVerifyPhone = async () => {
       style={{ marginLeft: 4 }}
     />
   </TouchableOpacity>
- {phoneVerified || !allowEdit ? (
+  {phoneVerified && !allowEdit ? (
   <View className="flex-1 ml-2 h-12 justify-center">
     <Text className="text-base text-gray-700">{phone}</Text>
   </View>
-) : Platform.OS === 'web' ? (
-  <input
-    type="tel"
-    placeholder="Phone number"
-    value={phone}
-    onChange={(e) => {
-      const text = e.target.value;
-      if (/^\d{0,10}$/.test(text)) {
-        setPhone(text);
-        setPhoneVerified(false);
-       // setAllowEdit(false);
-      }
-    }}
-    maxLength={10}
-    autoFocus={allowEdit}
-    className="flex-1 ml-2 h-12 text-base"
-    style={{
-      border: 'none',
-      outline: 'none',
-      backgroundColor: 'transparent',
-      fontSize: '16px',
-      color: '#111827'
-    }}
-  />
 ) : (
   <TextInput
     className="flex-1 ml-2 h-12 text-base"
@@ -374,13 +363,15 @@ const handleVerifyPhone = async () => {
       if (/^\d{0,10}$/.test(text)) {
         setPhone(text);
         setPhoneVerified(false);
-       // setAllowEdit(false);
       }
     }}
     placeholderTextColor="#9ca3af"
     autoFocus={allowEdit}
+    editable={!phoneVerified || allowEdit}
   />
 )}
+
+
 
   {phoneVerified ? (
     <View className="flex-row items-center">
