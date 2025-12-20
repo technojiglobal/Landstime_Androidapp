@@ -1,5 +1,7 @@
 //Frontend//app//home//screens//UploadScreens//AddScreen.jsx
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
+import { createProperty} from '../../../../utils/propertyApi';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -9,7 +11,8 @@ import {
   Image,
   Modal,
   Alert,
-  FlatList,StatusBar
+  FlatList,
+  StatusBar
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -21,19 +24,34 @@ import CustomPickerAlert from "../../../../components/CustomPickerAlert";
 
 export default function AddScreen() {
   const [constructionStatus, setConstructionStatus] = useState("Ready");
-  const [possessionBy, setPossessionBy] = useState(""); // New state for Possession By
+  const [possessionBy, setPossessionBy] = useState("");
   const router = useRouter();
-  
-const [propertyType, setPropertyType] = useState("House");
-const [propertyTitle, setPropertyTitle] = useState("");
+  const navigation = useNavigation();
+
+  // Form state variables
+  const [propertyType, setPropertyType] = useState("House");
+  const [propertyTitle, setPropertyTitle] = useState("");
+  const [floors, setFloors] = useState("");
+  const [area, setArea] = useState("");
+  const [bedrooms, setBedrooms] = useState("");
+  const [bathrooms, setBathrooms] = useState("");
+  const [balconies, setBalconies] = useState("");
+  const [floorDetails, setFloorDetails] = useState("");
+  const [location, setLocation] = useState("");
+  const [description, setDescription] = useState("");
+  const [expectedPrice, setExpectedPrice] = useState("");
+  const [otherRooms, setOtherRooms] = useState([]);
+  const [furnishingItems, setFurnishingItems] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [selectedOwnership, setSelectedOwnership] = useState("Freehold");
   const [selectedAge, setSelectedAge] = useState("0-1 years");
   const [images, setImages] = useState([]);
   const [furnishing, setFurnishing] = useState("Furnished");
   const [covered, setCovered] = useState(0);
   const [open, setOpen] = useState(0);
- const [visible, setVisible] = useState(null);
- const [pickerAlertVisible, setPickerAlertVisible] = useState(false);
+  const [visible, setVisible] = useState(null);
+  const [pickerAlertVisible, setPickerAlertVisible] = useState(false);
 
   const [houseFacing, setHouseFacing] = useState("North-East");
   const [masterBedroom, setMasterBedroom] = useState("North-East");
@@ -44,7 +62,8 @@ const [propertyTitle, setPropertyTitle] = useState("");
   const [balcony, setBalcony] = useState("North-East");
   const [selectedPrices, setSelectedPrices] = useState([]);
 
-  
+  const [alertVisible, setAlertVisible] = useState(false);
+
   const options = ["0-1 years", "1-5 years", "5-10 years", "10+ years"];
   const directions = ["North-East", "South-West", "East", "West"];
   const ownershipOptions = [
@@ -53,7 +72,6 @@ const [propertyTitle, setPropertyTitle] = useState("");
     "Co-operative society",
     "Power of Attorney",
   ];
-const navigation = useNavigation();
 
   const fields = [
     { key: "houseFacing", label: "House Facing", value: houseFacing, setValue: setHouseFacing },
@@ -65,11 +83,143 @@ const navigation = useNavigation();
     { key: "balcony", label: "Balcony", value: balcony, setValue: setBalcony },
   ];
 
-  const [alertVisible, setAlertVisible] = useState(false);
+ const handleUpload = async () => {
+    try {
+      // ✅ Check authentication FIRST
+      const token = await AsyncStorage.getItem('userToken');
+      console.log('🔐 Current token before upload:', token);
+      
+      if (!token) {
+        Alert.alert(
+          "Login Required",
+          "Please login to upload properties",
+          [
+            {
+              text: "Go to Login",
+              onPress: () => router.push('/(tabs)/profile') // Change to your login screen path
+            },
+            {
+              text: "Cancel",
+              style: "cancel"
+            }
+          ]
+        );
+        return; // ⚠️ STOP execution if no token
+      }
+      
+      console.log('🎬 Starting upload process...');
+      setIsSubmitting(true);
 
-const handleUpload = () => {
-  setAlertVisible(true);
-};
+
+      // Validate required fields
+      console.log('🔍 Validating fields...');
+     // Validate required fields
+if (!propertyTitle?.trim()) {
+  Alert.alert("Error", "Please enter property title");
+  setIsSubmitting(false);
+  return;
+}
+
+if (!location?.trim()) {
+  Alert.alert("Error", "Please enter location");
+  setIsSubmitting(false);
+  return;
+}
+
+const priceValue = parseFloat(expectedPrice);
+console.log('💰 Price validation:', { expectedPrice, priceValue, isValid: !isNaN(priceValue) && priceValue > 0 });
+
+if (!expectedPrice || isNaN(priceValue) || priceValue <= 0) {
+  Alert.alert("Error", "Please enter a valid expected price");
+  setIsSubmitting(false);
+  return;
+}
+
+if (images.length === 0) {
+  console.log('❌ No images selected');
+  Alert.alert("Error", "Please add at least one image");
+  setIsSubmitting(false);
+  return;
+}
+
+console.log('✅ Validation passed');
+       console.log('✅ Validation passed');
+      
+      // Prepare property data based on schema
+      const propertyData = {
+        propertyType: "House",
+        propertyTitle,
+        location,
+        description,
+        expectedPrice: parseFloat(expectedPrice),
+        priceDetails: {
+          allInclusive: selectedPrices.includes("All inclusive price"),
+          negotiable: selectedPrices.includes("Price Negotiable"),
+          taxExcluded: selectedPrices.includes("Tax and Govt.charges excluded")
+        },
+        houseDetails: {
+          floors: parseInt(floors) || 0,
+          area: parseFloat(area) || 0,
+          areaUnit: "sqft",
+          bedrooms: parseInt(bedrooms) || 0,
+          bathrooms: parseInt(bathrooms) || 0,
+          balconies: parseInt(balconies) || 0,
+          floorDetails,
+          availabilityStatus: constructionStatus === "Ready" ? "Ready to Move" : "Under Construction",
+          ageOfProperty: selectedAge,
+          ownership: selectedOwnership,
+          possessionBy: constructionStatus === "Under" ? possessionBy : undefined,
+          otherRooms,
+          furnishing,
+          furnishingItems,
+          parking: {
+            covered,
+            open
+          },
+          vaasthuDetails: {
+            houseFacing,
+            masterBedroom,
+            childrenBedroom,
+            livingRoom,
+            kitchenRoom,
+            poojaRoom,
+            balcony
+          }
+        }
+      };
+      
+    // Call API
+    console.log('📡 Calling createProperty API...');
+    console.log('📋 Final property data:', JSON.stringify(propertyData, null, 2));
+    
+    const result = await createProperty(propertyData, images);
+    
+    console.log('📥 API Result:', result);
+    
+    if (result.success) {
+      console.log('✅ Upload successful!');
+      Alert.alert("Success", "Property uploaded successfully!");
+      setAlertVisible(true);
+      
+      // Reset form after 2 seconds
+      setTimeout(() => {
+        router.push("/(tabs)/home");
+      }, 2000);
+    } else {
+      console.error('❌ Upload failed:', result);
+      Alert.alert(
+        "Error", 
+        result.data?.message || result.error || "Failed to upload property. Please try again."
+      );
+    }
+      
+    } catch (error) {
+      console.error("Upload error:", error);
+      Alert.alert("Error", "Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const takePhoto = async () => {
     setPickerAlertVisible(false);
@@ -86,13 +236,14 @@ const handleUpload = () => {
       }
     }
     const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-    if (!result.canceled) {
-      setImages([...images, result.assets[0].uri]);
-    }
+  allowsEditing: false,
+  quality: 0.8,
+});
+if (!result.canceled && result.assets && result.assets.length > 0) {
+  const newImages = result.assets.map(asset => asset.uri);
+  setImages([...images, ...newImages]);
+  console.log('📸 Camera - Images added:', newImages);
+}
   };
 
   const pickFromGallery = async () => {
@@ -109,15 +260,17 @@ const handleUpload = () => {
         return;
       }
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-      allowsMultipleSelection: true,
-    });
-    if (!result.canceled) {
-        setImages([...images, ...result.assets.map(asset => asset.uri)]);
-    }
+   const result = await ImagePicker.launchImageLibraryAsync({
+  allowsEditing: false,
+  quality: 0.8,
+  allowsMultipleSelection: true,
+  mediaTypes: ImagePicker.MediaTypeOptions.Images,
+});
+if (!result.canceled && result.assets && result.assets.length > 0) {
+  const newImages = result.assets.map(asset => asset.uri);
+  setImages([...images, ...newImages]);
+  console.log('📸 Gallery - Images added:', newImages);
+}
   };
 
   const pickImage = () => {
@@ -132,45 +285,43 @@ const handleUpload = () => {
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <TopAlert visible={alertVisible} onHide={() => setAlertVisible(false)} />
-     <ScrollView>
-    
+      <ScrollView>
         <CustomPickerAlert
-            visible={pickerAlertVisible}
-            onClose={() => setPickerAlertVisible(false)}
-            onCameraPress={takePhoto}
-            onGalleryPress={pickFromGallery}
+          visible={pickerAlertVisible}
+          onClose={() => setPickerAlertVisible(false)}
+          onCameraPress={takePhoto}
+          onGalleryPress={pickFromGallery}
         />
        
-       
-      {/* Header */}
-     <View className="flex-row items-center mt-3 mb-4">
-              <TouchableOpacity
-                onPress={() => router.push("/(tabs)/home")}
-                className="p-2"
-                accessibilityRole="button"
-              >
-                <Image
-                  source={require("../../../../assets/arrow.png")}
-                  style={{ width: 20, height: 20, resizeMode: "contain" }}
-                />
-              </TouchableOpacity>
-              <View className="ml-2">
-                <Text className="text-[16px]  font-semibold">
-                  Upload Your Property
-                </Text>
-                <Text className="text-[12px]  text-[#00000066] ">
-                  Add your property details
-                </Text>
-              </View>
-            </View>
+        {/* Header */}
+        <View className="flex-row items-center mt-3 mb-4">
+          <TouchableOpacity
+            onPress={() => router.push("/(tabs)/home")}
+            className="p-2"
+            accessibilityRole="button"
+          >
+            <Image
+              source={require("../../../../assets/arrow.png")}
+              style={{ width: 20, height: 20, resizeMode: "contain" }}
+            />
+          </TouchableOpacity>
+          <View className="ml-2">
+            <Text className="text-[16px] font-semibold">
+              Upload Your Property
+            </Text>
+            <Text className="text-[12px] text-[#00000066]">
+              Add your property details
+            </Text>
+          </View>
+        </View>
     
-     
         {/* Property Details Card */}
         <View className="border justify-between rounded-xl border-gray-300 shadow-sm bg-white m-5">
           <View className="mt-5 px-3 flex-row justify-between">
             <Text className="font-semibold text-left">Property Details</Text>
             <Text style={{ color: "#22C55E" }}>View Guidelines</Text>
           </View>
+          
           {/* Camera */}
           <View className="bg-[#D9D9D91C] p-4">
             <TouchableOpacity
@@ -181,32 +332,32 @@ const handleUpload = () => {
               <Text className="text-gray-500 mt-2 text-left">Add Photos or Videos</Text>
             </TouchableOpacity>
             {images.length > 0 && (
-                <FlatList
-                    data={images}
-                    horizontal
-                    renderItem={({ item, index }) => (
-                        <View style={{ position: 'relative', marginRight: 10 }}>
-                            <Image
-                                source={{ uri: item }}
-                                className="w-48 h-48 mt-2 rounded-lg"
-                            />
-                            <TouchableOpacity
-                                onPress={() => removeImage(index)}
-                                style={{
-                                    position: 'absolute',
-                                    top: 10,
-                                    right: 10,
-                                    backgroundColor: 'rgba(0,0,0,0.5)',
-                                    borderRadius: 15,
-                                    padding: 5,
-                                }}
-                            >
-                                <Ionicons name="close" size={20} color="white" />
-                            </TouchableOpacity>
-                        </View>
-                    )}
-                    keyExtractor={(item, index) => index.toString()}
-                />
+              <FlatList
+                data={images}
+                horizontal
+                renderItem={({ item, index }) => (
+                  <View style={{ position: 'relative', marginRight: 10 }}>
+                    <Image
+                      source={{ uri: item }}
+                      className="w-48 h-48 mt-2 rounded-lg"
+                    />
+                    <TouchableOpacity
+                      onPress={() => removeImage(index)}
+                      style={{
+                        position: 'absolute',
+                        top: 10,
+                        right: 10,
+                        backgroundColor: 'rgba(0,0,0,0.5)',
+                        borderRadius: 15,
+                        padding: 5,
+                      }}
+                    >
+                      <Ionicons name="close" size={20} color="white" />
+                    </TouchableOpacity>
+                  </View>
+                )}
+                keyExtractor={(item, index) => index.toString()}
+              />
             )}
           </View>
         </View>
@@ -214,85 +365,82 @@ const handleUpload = () => {
         {/* Conditional Content */}
         {constructionStatus === "Ready" ? (
           <View>
-            {/* Basic Details, Ownership, Price, Location, Description */}
-           
-          <View className="border mt-1 overflow-hidden rounded-xl border-gray-300 shadow-sm bg-white m-5 p-5">
+            {/* Basic Details */}
+            <View className="border mt-1 overflow-hidden rounded-xl border-gray-300 shadow-sm bg-white m-5 p-5">
               <Text className="mt-3 mb-4 font-bold">Basic Details</Text>
+              
               {/* Title */}
               <Text className="text-gray-500 font-semibold mb-2 text-left">Property Title</Text>
-            <TextInput
-  placeholder="Surya Teja Apartments"
-  placeholderTextColor="#9CA3AF"
-  className="bg-gray-100 rounded-lg p-3 mb-4 text-gray-800"
-  value={propertyTitle}
-  onChangeText={setPropertyTitle}
-/>
+              <TextInput
+                placeholder="Surya Teja Apartments"
+                placeholderTextColor="#9CA3AF"
+                className="bg-gray-100 rounded-lg p-3 mb-4 text-gray-800"
+                value={propertyTitle}
+                onChangeText={setPropertyTitle}
+              />
 
-                  <View className="px-1">
-      <Text className="text-gray-500 font-semibold mb-2">
-  Property Type
-</Text>
-
-<TouchableOpacity
-  onPress={() => setVisible(visible === "propertyType" ? null : "propertyType")}
-  className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300"
->
-  <Text className="text-gray-800 text-left">
-    {propertyType || "House"}
-  </Text>
-  <Ionicons name="chevron-down" size={24} color="#888" />
-</TouchableOpacity>
-{visible === "propertyType" && (
-  <View
-    className="bg-white rounded-lg shadow-lg -mt-3 mb-4"
-    style={{ borderWidth: 1, borderColor: "#0000001A" }}
-  >
-    {["House", "Site/Plot", "Commercial", "Resort"].map((type) => (
-      <TouchableOpacity
-        key={type}
-        onPress={() => {
-          setPropertyType(type);
-          setVisible(null);
-          
-          // Navigate based on the selected type
-          if (type === "House") {
-            // Already on the correct screen, do nothing.
-          } else if (type === "Site/Plot") {
-            router.push({
-              pathname: "/home/screens/UploadScreens/SiteUpload",
-              params: { 
-                images: JSON.stringify(images),
-                propertyTitle: propertyTitle 
-              },
-            });
-          } else if (type === "Commercial") {
-            router.push({
-              pathname: "/home/screens/UploadScreens/CommercialUpload",
-              params: { 
-                images: JSON.stringify(images),
-                propertyTitle: propertyTitle 
-              },
-            });
-          } else {
-            router.push({
-              pathname: "/home/screens/UploadScreens/ResortUpload",
-              params: { 
-                images: JSON.stringify(images),
-                propertyTitle: propertyTitle 
-              },
-            });
-          }
-        }}
-        className={`p-4 border-b border-gray-200 ${propertyType === type ? "bg-green-500" : "bg-white"}`}
-      >
-        <Text className={`${propertyType === type ? "text-white" : "text-gray-800"}`}>{type}</Text>
-      </TouchableOpacity>
-    ))}
-  </View>
-)}
-
-    </View>
-
+              {/* Property Type */}
+              <View className="px-1">
+                <Text className="text-gray-500 font-semibold mb-2">
+                  Property Type
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setVisible(visible === "propertyType" ? null : "propertyType")}
+                  className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300"
+                >
+                  <Text className="text-gray-800 text-left">
+                    {propertyType || "House"}
+                  </Text>
+                  <Ionicons name="chevron-down" size={24} color="#888" />
+                </TouchableOpacity>
+                {visible === "propertyType" && (
+                  <View
+                    className="bg-white rounded-lg shadow-lg -mt-3 mb-4"
+                    style={{ borderWidth: 1, borderColor: "#0000001A" }}
+                  >
+                    {["House", "Site/Plot", "Commercial", "Resort"].map((type) => (
+                      <TouchableOpacity
+                        key={type}
+                        onPress={() => {
+                          setPropertyType(type);
+                          setVisible(null);
+                          
+                          if (type === "House") {
+                            // Already on the correct screen
+                          } else if (type === "Site/Plot") {
+                            router.push({
+                              pathname: "/home/screens/UploadScreens/SiteUpload",
+                              params: { 
+                                images: JSON.stringify(images),
+                                propertyTitle: propertyTitle 
+                              },
+                            });
+                          } else if (type === "Commercial") {
+                            router.push({
+                              pathname: "/home/screens/UploadScreens/CommercialUpload",
+                              params: { 
+                                images: JSON.stringify(images),
+                                propertyTitle: propertyTitle 
+                              },
+                            });
+                          } else {
+                            router.push({
+                              pathname: "/home/screens/UploadScreens/ResortUpload",
+                              params: { 
+                                images: JSON.stringify(images),
+                                propertyTitle: propertyTitle 
+                              },
+                            });
+                          }
+                        }}
+                        className={`p-4 border-b border-gray-200 ${propertyType === type ? "bg-green-500" : "bg-white"}`}
+                      >
+                        <Text className={`${propertyType === type ? "text-white" : "text-gray-800"}`}>{type}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
 
               {/* Floors & Area */}
               <View className="flex-row gap-2 mb-4">
@@ -300,14 +448,20 @@ const handleUpload = () => {
                   <Text className="text-gray-500 font-semibold mb-2 text-left">No. of Floors</Text>
                   <TextInput
                     placeholder="0"
-                    className=" bg-[#D9D9D91C] rounded-lg p-3 text-gray-800 text-left"
+                    value={floors}
+                    onChangeText={setFloors}
+                    keyboardType="numeric"
+                    className="bg-[#D9D9D91C] rounded-lg p-3 text-gray-800 text-left"
                   />
                 </View>
                 <View className="flex-1">
                   <Text className="text-gray-500 font-semibold mb-2 text-left">Area (sqft)</Text>
                   <TextInput
                     placeholder="0"
-                    className=" bg-[#D9D9D91C] rounded-lg p-3 text-gray-800 text-left"
+                    value={area}
+                    onChangeText={setArea}
+                    keyboardType="numeric"
+                    className="bg-[#D9D9D91C] rounded-lg p-3 text-gray-800 text-left"
                   />
                 </View>
               </View>
@@ -318,33 +472,49 @@ const handleUpload = () => {
                   <Text className="text-gray-500 font-semibold mb-2 text-left">Bedrooms</Text>
                   <TextInput
                     placeholder="0"
-                    className=" bg-[#D9D9D91C] rounded-lg p-3 text-gray-800 text-left"
+                    value={bedrooms}
+                    onChangeText={setBedrooms}
+                    keyboardType="numeric"
+                    className="bg-[#D9D9D91C] rounded-lg p-3 text-gray-800 text-left"
                   />
                 </View>
                 <View className="flex-1">
                   <Text className="text-gray-500 font-semibold mb-2 text-left">Bathrooms</Text>
                   <TextInput
                     placeholder="0"
-                    className=" bg-[#D9D9D91C] rounded-lg p-3 text-gray-800 text-left"
+                    value={bathrooms}
+                    onChangeText={setBathrooms}
+                    keyboardType="numeric"
+                    className="bg-[#D9D9D91C] rounded-lg p-3 text-gray-800 text-left"
                   />
                 </View>
               </View>
-           <View className="flex-1">
-                  <Text className="text-gray-500 font-semibold mb-2 text-left">Balcony</Text>
-                  <TextInput
-                    placeholder="0"
-                    className="bg-[#D9D9D91C] border-gray-400  rounded-xl p-3 text-gray-800 text-left"
-                  />
-            </View>
-            <View className="flex-1">
-                  <Text className="text-gray-500 font-semibold mb-2 text-left">Floor Details</Text>
-                  <TextInput
-                    placeholder=""
-                    className=" bg-[#D9D9D91C]  rounded-lg p-3 text-gray-800 text-left"
-                  />
-            </View>
+
+              {/* Balcony */}
+              <View className="flex-1">
+                <Text className="text-gray-500 font-semibold mb-2 text-left">Balcony</Text>
+                <TextInput
+                  placeholder="0"
+                  value={balconies}
+                  onChangeText={setBalconies}
+                  keyboardType="numeric"
+                  className="bg-[#D9D9D91C] border-gray-400 rounded-xl p-3 text-gray-800 text-left"
+                />
+              </View>
+
+              {/* Floor Details */}
+              <View className="flex-1 mt-4">
+                <Text className="text-gray-500 font-semibold mb-2 text-left">Floor Details</Text>
+                <TextInput
+                  placeholder=""
+                  value={floorDetails}
+                  onChangeText={setFloorDetails}
+                  className="bg-[#D9D9D91C] rounded-lg p-3 text-gray-800 text-left"
+                />
+              </View>
+
               {/* Construction Status Buttons */}
-              <Text className="text-gray-500 font-semibold mb-2 text-left">Availability Status</Text>
+              <Text className="text-gray-500 font-semibold mb-2 mt-4 text-left">Availability Status</Text>
               <View className="flex-row justify-center mt-4 mb-6">
                 <TouchableOpacity
                   onPress={() => setConstructionStatus("Ready")}
@@ -406,42 +576,48 @@ const handleUpload = () => {
                 })}
               </View>
 
-              {/* Price Placeholder */}
+              {/* Price Details */}
               <View className="mt-2">
                 <Text className="text-gray-500 font-semibold mb-2 text-left">Price Details</Text>
                 <TextInput
-                  placeholder="₹ Expected Price"
-                  keyboardType="numeric"
-                  className="border  border-gray-300 rounded-lg bg-[#F9F9F9] p-3 mb-3 text-gray-800 text-left"
-                />
+  placeholder="₹ Expected Price"
+  value={expectedPrice}
+  onChangeText={(text) => {
+    console.log('💰 Price input changed:', text);
+    setExpectedPrice(text);
+  }}
+  keyboardType="numeric"
+  className="border border-gray-300 rounded-lg bg-[#F9F9F9] p-3 mb-3 text-gray-800 text-left"
+/>
               </View>
-              <View className="flex-col gap-2 mb-2">
-               {["All inclusive price", "Price Negotiable", "Tax and Govt.charges excluded"].map((item) => {
-  const isSelected = selectedPrices.includes(item);
-  return (
-    <TouchableOpacity
-      key={item}
-      onPress={() => {
-        if (isSelected) {
-          setSelectedPrices(selectedPrices.filter((i) => i !== item));
-        } else {
-          setSelectedPrices([...selectedPrices, item]);
-        }
-      }}
-      className="flex-row items-center gap-2"
-    >
-      <View
-        className={`w-5 h-5 border rounded-sm items-center justify-center ${
-          isSelected ? "border-green-500 bg-green-500" : "border-gray-300 bg-white"
-        }`}
-      >
-        {isSelected && <Ionicons name="checkmark" size={14} color="white" />}
-      </View>
-      <Text className="text-gray-700 text-left">{item}</Text>
-    </TouchableOpacity>
-  );
-})}
 
+              {/* Price Options */}
+              <View className="flex-col gap-2 mb-2">
+                {["All inclusive price", "Price Negotiable", "Tax and Govt.charges excluded"].map((item) => {
+                  const isSelected = selectedPrices.includes(item);
+                  return (
+                    <TouchableOpacity
+                      key={item}
+                      onPress={() => {
+                        if (isSelected) {
+                          setSelectedPrices(selectedPrices.filter((i) => i !== item));
+                        } else {
+                          setSelectedPrices([...selectedPrices, item]);
+                        }
+                      }}
+                      className="flex-row items-center gap-2"
+                    >
+                      <View
+                        className={`w-5 h-5 border rounded-sm items-center justify-center ${
+                          isSelected ? "border-green-500 bg-green-500" : "border-gray-300 bg-white"
+                        }`}
+                      >
+                        {isSelected && <Ionicons name="checkmark" size={14} color="white" />}
+                      </View>
+                      <Text className="text-gray-700 text-left">{item}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
                 <TouchableOpacity>
                   <Text className="text-[#22C55E] font-semibold text-left">+ Add more pricing details</Text>
                 </TouchableOpacity>
@@ -456,6 +632,8 @@ const handleUpload = () => {
                 <TextInput
                   placeholder="Enter Property Location"
                   placeholderTextColor="#888"
+                  value={location}
+                  onChangeText={setLocation}
                   className="flex-1 ml-2 text-gray-800 text-left"
                 />
               </View>
@@ -468,102 +646,116 @@ const handleUpload = () => {
                 <TextInput
                   placeholder="Describe your property ........"
                   placeholderTextColor="#888"
+                  value={description}
+                  onChangeText={setDescription}
+                  multiline
+                  numberOfLines={4}
                   className="w-full p-3 text-gray-800 text-left"
                 />
               </View>
             </View>
 
-        {/* Other rooms */}
-<View className="bg-white rounded-xl border border-gray-200 p-4 m-3 ml-5 mr-4">
-  {/* Other Rooms */}
-  <Text className="text-lg font-semibold text-gray-800">
-    Other Rooms <Text className="text-gray-400 text-sm">(Optional)</Text>
-  </Text>
-  <View className="flex-row flex-wrap gap-2 mt-2">
-    {["Pooja Room", "Study Room", "Servant Room", "Others"].map((room) => (
-      <TouchableOpacity key={room} className="border border-gray-300 rounded-full px-4 py-2">
-        <Text className="text-gray-600">+ {room}</Text>
-      </TouchableOpacity>
-    ))}
-  </View>
+            {/* Other rooms */}
+            <View className="bg-white rounded-xl border border-gray-200 p-4 m-3 ml-5 mr-4">
+              <Text className="text-lg font-semibold text-gray-800">
+                Other Rooms <Text className="text-gray-400 text-sm">(Optional)</Text>
+              </Text>
+              <View className="flex-row flex-wrap gap-2 mt-2">
+                {["Pooja Room", "Study Room", "Servant Room", "Others"].map((room) => (
+                  <TouchableOpacity 
+                    key={room} 
+                    onPress={() => {
+                      if (otherRooms.includes(room)) {
+                        setOtherRooms(otherRooms.filter(r => r !== room));
+                      } else {
+                        setOtherRooms([...otherRooms, room]);
+                      }
+                    }}
+                    className={`border rounded-full px-4 py-2 ${
+                      otherRooms.includes(room) ? "border-green-500 bg-green-50" : "border-gray-300"
+                    }`}
+                  >
+                    <Text className={`${otherRooms.includes(room) ? "text-green-600" : "text-gray-600"}`}>
+                      {otherRooms.includes(room) ? "✓ " : "+ "}{room}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
-  {/* Furnishing */}
-<Text className="text-lg font-semibold text-gray-800 mt-5">
-  Furnishing <Text className="text-gray-400 text-sm">(Optional)</Text>
-</Text>
+              {/* Furnishing */}
+              <Text className="text-lg font-semibold text-gray-800 mt-5">
+                Furnishing <Text className="text-gray-400 text-sm">(Optional)</Text>
+              </Text>
+              <View className="flex-row gap-2 mt-2">
+                {["Unfurnished", "Semi-furnished", "Furnished"].map((type) => (
+                  <TouchableOpacity
+                    key={type}
+                    onPress={() => {
+                      if (type === "Furnished") {
+                        navigation.navigate("AddFurnishingsScreen", {
+                          selectedFurnishing: type,
+                        });
+                      } else {
+                        setFurnishing(type);
+                      }
+                    }}
+                    className={`rounded-full px-4 py-2 border ${
+                      furnishing === type ? "border-green-500 bg-green-50" : "border-gray-300"
+                    }`}
+                  >
+                    <Text
+                      className={`${
+                        furnishing === type ? "text-green-700" : "text-gray-600"
+                      }`}
+                    >
+                      {type}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
-<View className="flex-row gap-2 mt-2">
- {["Unfurnished", "Semi-furnished", "Furnished"].map((type) => (
-  <TouchableOpacity
-    key={type}
-    onPress={() => {
-      if (type === "Furnished") {
-        navigation.navigate("AddFurnishingsScreen", {
-          selectedFurnishing: type,
-        });
-      } else {
-        setFurnishing(type);
-      }
-    }}
-    className={`rounded-full px-4 py-2 border ${
-      furnishing === type ? "border-green-500 bg-green-50" : "border-gray-300"
-    }`}
-  >
-    <Text
-      className={`${
-        furnishing === type ? "text-green-700" : "text-gray-600"
-      }`}
-    >
-      {type}
-    </Text>
-  </TouchableOpacity>
-))}
+              {/* Reserved Parking */}
+              <Text className="text-lg font-semibold text-gray-800 mt-5">
+                Reserved Parking <Text className="text-gray-400 text-sm">(Optional)</Text>
+              </Text>
+              <View className="mt-2 space-y-3">
+                {[
+                  { label: "Covered Parking", count: covered, setCount: setCovered },
+                  { label: "Open Parking", count: open, setCount: setOpen },
+                ].map((item) => (
+                  <View key={item.label} className="flex-row items-center justify-between">
+                    <Text className="text-gray-700">{item.label}</Text>
+                    <View className="flex-row items-center space-x-3">
+                      <TouchableOpacity
+                        onPress={() => item.setCount(Math.max(0, item.count - 1))}
+                        className="w-8 h-8 border border-gray-300 rounded-full items-center justify-center"
+                      >
+                        <Text className="text-gray-500 text-lg">-</Text>
+                      </TouchableOpacity>
+                      <Text className="text-gray-800 text-base w-4 text-center">{item.count}</Text>
+                      <TouchableOpacity
+                        onPress={() => item.setCount(item.count + 1)}
+                        className="w-8 h-8 border border-gray-300 rounded-full items-center justify-center"
+                      >
+                        <Text className="text-gray-500 text-lg">+</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
 
-</View>
-
-
-
-  {/* Reserved Parking */}
-  <Text className="text-lg font-semibold text-gray-800 mt-5">
-    Reserved Parking <Text className="text-gray-400 text-sm">(Optional)</Text>
-  </Text>
-  <View className="mt-2 space-y-3">
-    {[
-      { label: "Covered Parking", count: covered, setCount: setCovered },
-      { label: "Open Parking", count: open, setCount: setOpen },
-    ].map((item) => (
-      <View key={item.label} className="flex-row items-center justify-between">
-        <Text className="text-gray-700">{item.label}</Text>
-        <View className="flex-row items-center space-x-3">
-          <TouchableOpacity
-            onPress={() => item.setCount(Math.max(0, item.count - 1))}
-            className="w-8 h-8 border border-gray-300 rounded-full items-center justify-center"
-          >
-            <Text className="text-gray-500 text-lg">-</Text>
-          </TouchableOpacity>
-          <Text className="text-gray-800 text-base w-4 text-center">{item.count}</Text>
-          <TouchableOpacity
-            onPress={() => item.setCount(item.count + 1)}
-            className="w-8 h-8 border border-gray-300 rounded-full items-center justify-center"
-          >
-            <Text className="text-gray-500 text-lg">+</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    ))}
-  </View>
-</View>
-            <View className="bg-white rounded-xl border  border-gray-300 p-4 m-3 ml-5 mr-4">
+            {/* Vaasthu Details */}
+            <View className="bg-white rounded-xl border border-gray-300 p-4 m-3 ml-5 mr-4">
               <View className="flex-row items-center mb-3 justify-between">
                 <Text
-  className="text-lg font-semibold text-gray-800 text-left"
-  numberOfLines={1}
-  ellipsizeMode="tail"
->
-  Vaasthu Details
-</Text>
-
-                <Image source={require("../../../../assets/vastu.png")}style={{ width: 30, height: 30 }} />
+                  className="text-lg font-semibold text-gray-800 text-left"
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  Vaasthu Details
+                </Text>
+                <Image source={require("../../../../assets/vastu.png")} style={{ width: 30, height: 30 }} />
               </View>
               {fields.map((item) => (
                 <View key={item.key} className="mb-4">
@@ -610,20 +802,24 @@ const handleUpload = () => {
             {/* Basic Details for Under Construction */}
             <View className="border mt-1 overflow-hidden rounded-xl border-gray-300 shadow-sm bg-white m-5 p-5">
               <Text className="mt-3 mb-4 font-bold">Basic Details</Text>
+              
               {/* Title */}
               <Text className="text-gray-500 font-semibold mb-2 text-left">Property Title</Text>
               <TextInput
-  placeholder="Surya Teja Apartments"
-  placeholderTextColor="#9CA3AF" // softer gray text
-  className="bg-gray-100 rounded-lg p-3 mb-4 text-gray-800"
-/>
-
+                placeholder="Surya Teja Apartments"
+                placeholderTextColor="#9CA3AF"
+                className="bg-gray-100 rounded-lg p-3 mb-4 text-gray-800"
+                value={propertyTitle}
+                onChangeText={setPropertyTitle}
+              />
 
               {/* Type */}
               <Text className="text-gray-500 font-semibold mb-2 text-left">Property Type</Text>
               <View className="relative mb-4">
                 <TextInput
                   placeholder="House"
+                  value={propertyType}
+                  editable={false}
                   className="bg-[#D9D9D91C] rounded-lg p-3 pr-12 text-gray-800 text-left"
                 />
                 <Ionicons
@@ -640,14 +836,20 @@ const handleUpload = () => {
                   <Text className="text-gray-500 font-semibold mb-2 text-left">No. of Floors</Text>
                   <TextInput
                     placeholder="0"
-                    className=" border-gray-300 rounded-lg p-3 text-gray-800 text-left"
+                    value={floors}
+                    onChangeText={setFloors}
+                    keyboardType="numeric"
+                    className="border-gray-300 rounded-lg p-3 text-gray-800 text-left"
                   />
                 </View>
                 <View className="flex-1">
                   <Text className="text-gray-500 font-semibold mb-2 text-left">Area (sqft)</Text>
                   <TextInput
                     placeholder="0"
-                    className="  rounded-lg p-3 text-gray-800 text-left"
+                    value={area}
+                    onChangeText={setArea}
+                    keyboardType="numeric"
+                    className="rounded-lg p-3 text-gray-800 text-left"
                   />
                 </View>
               </View>
@@ -658,14 +860,20 @@ const handleUpload = () => {
                   <Text className="text-gray-500 font-semibold mb-2 text-left">Bedrooms</Text>
                   <TextInput
                     placeholder="0"
-                    className=" bg-[#D9D9D91C] rounded-lg p-3 text-gray-800 text-left"
+                    value={bedrooms}
+                    onChangeText={setBedrooms}
+                    keyboardType="numeric"
+                    className="bg-[#D9D9D91C] rounded-lg p-3 text-gray-800 text-left"
                   />
                 </View>
                 <View className="flex-1">
                   <Text className="text-gray-500 font-semibold mb-2 text-left">Bathrooms</Text>
                   <TextInput
                     placeholder="0"
-                    className=" bg-[#D9D9D91C] rounded-lg p-3 text-gray-800 text-left"
+                    value={bathrooms}
+                    onChangeText={setBathrooms}
+                    keyboardType="numeric"
+                    className="bg-[#D9D9D91C] rounded-lg p-3 text-gray-800 text-left"
                   />
                 </View>
               </View>
@@ -698,24 +906,22 @@ const handleUpload = () => {
               {/* Possession */}
               <View>
                 <Text className="font-semibold text-gray-500 mb-2">Possession By</Text>
-               
                 <TouchableOpacity
                   className="flex-row justify-between items-center border border-gray-300 rounded-lg p-3 bg-[#F9FAFB]"
-                  onPress={() => setVisible(true)}
+                  onPress={() => setVisible("possession")}
                 >
                   <Text className="text-base text-gray-700">{possessionBy || "Expected By"}</Text>
                   <Ionicons name="chevron-down" size={20} color="#666" />
                 </TouchableOpacity>
-                <Modal visible={visible} transparent animationType="slide">
+                <Modal visible={visible === "possession"} transparent animationType="slide">
                   <TouchableOpacity
                     activeOpacity={1}
-                    onPressOut={() => setVisible(false)}
+                    onPressOut={() => setVisible(null)}
                     className="flex-1 justify-center items-center bg-black/40"
                   >
                     <View className="w-[90%] max-h-[50%] bg-white rounded-xl p-2 shadow-md">
                       <FlatList
                         data={[
-                          
                           "Immediate",
                           "Within 3 months",
                           "Within 6 months",
@@ -728,16 +934,16 @@ const handleUpload = () => {
                         keyExtractor={(item) => item}
                         renderItem={({ item }) => (
                           <TouchableOpacity
-  className={`p-3 border-b border-gray-200 ${item === "Immediate" ? "bg-[#22C55E]" : ""}`}
-  onPress={() => {
-    setPossessionBy(item);
-    setVisible(false);
-  }}
->
-  <Text className={`text-base ${item === "Immediate" ? "text-white font-medium" : "text-gray-700"}`}>
-    {item}
-  </Text>
-</TouchableOpacity>
+                            className={`p-3 border-b border-gray-200 ${item === "Immediate" ? "bg-[#22C55E]" : ""}`}
+                            onPress={() => {
+                              setPossessionBy(item);
+                              setVisible(null);
+                            }}
+                          >
+                            <Text className={`text-base ${item === "Immediate" ? "text-white font-medium" : "text-gray-700"}`}>
+                              {item}
+                            </Text>
+                          </TouchableOpacity>
                         )}
                       />
                     </View>
@@ -754,6 +960,8 @@ const handleUpload = () => {
                 <TextInput
                   placeholder="Enter Property Location"
                   placeholderTextColor="#888"
+                  value={location}
+                  onChangeText={setLocation}
                   className="flex-1 ml-2 text-gray-800 text-left"
                 />
               </View>
@@ -766,6 +974,10 @@ const handleUpload = () => {
                 <TextInput
                   placeholder="Describe your property ........"
                   placeholderTextColor="#888"
+                  value={description}
+                  onChangeText={setDescription}
+                  multiline
+                  numberOfLines={4}
                   className="w-full p-3 text-gray-800 text-left"
                 />
               </View>
@@ -774,47 +986,45 @@ const handleUpload = () => {
         )}
 
         {/* BUTTON */}
-     <View
-       style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 16,
-         gap:12
-        }}
-       className="space-x-3  mr-4"
-     >
+        <View
+          style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 16, gap: 12 }}
+          className="space-x-3 mr-4"
+        >
           {/* Cancel Button */}
           <TouchableOpacity
-              style={{
-                backgroundColor: "#E5E7EB",
-                paddingVertical: 12,
-                paddingHorizontal: 20,
-                borderRadius: 10,
-              }}
-              onPress={() => {
-               router.push("/(tabs)/home")
-              }}
-            >
-              <Text style={{ color: "black", fontWeight: "600", fontSize: 15 }}>
-                Cancel
-              </Text>
-            </TouchableOpacity>
+            style={{
+              backgroundColor: "#E5E7EB",
+              paddingVertical: 12,
+              paddingHorizontal: 20,
+              borderRadius: 10,
+            }}
+            onPress={() => {
+              router.push("/(tabs)/home")
+            }}
+          >
+            <Text style={{ color: "black", fontWeight: "600", fontSize: 15 }}>
+              Cancel
+            </Text>
+          </TouchableOpacity>
           
-            {/* Upload Property Button */}
-            <TouchableOpacity
-              style={{
-                backgroundColor: "#22C55E",
-                paddingVertical: 12,
-                paddingHorizontal: 20,
-                borderRadius: 10,
-              }}
-              onPress={() => setAlertVisible(true)}
-            >
-              <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
-                Upload Property
-              </Text>
-            </TouchableOpacity>
+          {/* Upload Property Button */}
+          <TouchableOpacity
+            style={{
+              backgroundColor: "#22C55E",
+              paddingVertical: 12,
+              paddingHorizontal: 20,
+              borderRadius: 10,
+            }}
+            onPress={handleUpload}
+            disabled={isSubmitting}
+          >
+            <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
+              {isSubmitting ? "Uploading..." : "Upload Property"}
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        </ScrollView>   
+      </ScrollView>   
     </SafeAreaView>
-    
   );
 }

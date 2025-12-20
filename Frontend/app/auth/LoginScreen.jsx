@@ -45,21 +45,28 @@ const handleSignIn = async () => {
   try {
     const response = await loginUser(phone);
 
-    if (response.success && response.data.success) {
-      await saveUserData(response.data.data.user);
+   if (response.success && response.data.success) {
+  // ✅ Save token first
+  if (response.data.data?.token) {
+    await saveToken(response.data.data.token);
+    console.log('🔐 Token saved on login:', response.data.data.token);
+  }
+  
+  await saveUserData(response.data.data.user);
 
-      Toast.show({
-        type: 'success',
-        text1: 'Login Successful! 👋',
-        text2: `Welcome back, ${response.data.data.user.name}`,
-        position: 'top',
-        visibilityTime: 2500,
-      });
+  Toast.show({
+    type: 'success',
+    text1: 'Login Successful! 👋',
+    text2: `Welcome back, ${response.data.data.user.name}`,
+    position: 'top',
+    visibilityTime: 2500,
+  });
 
-      setTimeout(() => {
-        router.replace("/(tabs)/home");
-      }, 2500);
-    } 
+  setTimeout(() => {
+    router.replace("/(tabs)/home");
+  }, 2500);
+}
+
     else {
       // Handle specific error messages
       const errorMessage = response.data?.message || "Something went wrong";

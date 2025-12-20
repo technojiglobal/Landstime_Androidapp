@@ -515,21 +515,25 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    return res.status(200).json({
-      success: true,
-      message: 'Login successful',
-      data: {
-        user: {
-          id: user._id,
-          name: user.name,
-          phone: user.phone,
-          email: user.email,
-          role: user.role,
-          isPhoneVerified: user.isPhoneVerified,
-          isEmailVerified: user.isEmailVerified
-        }
-      }
-    });
+   // ✅ Generate JWT token
+const token = generateToken(user._id);
+
+return res.status(200).json({
+  success: true,
+  message: 'Login successful',
+  data: {
+    token: token,
+    user: {
+      id: user._id,
+      name: user.name,
+      phone: user.phone,
+      email: user.email,
+      role: user.role,
+      isPhoneVerified: user.isPhoneVerified,
+      isEmailVerified: user.isEmailVerified
+    }
+  }
+});
 
   } catch (error) {
     console.error('Error in loginUser:', error);
