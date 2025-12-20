@@ -4,6 +4,8 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import userRoutes from './UserRoutes/UserRoute.js';
+//import propertyRoutes from './routes/propertyRoutes.js';
+import propertyRoutes from './UserRoutes/PropertyRoute.js';
 
 
 const app = express();
@@ -35,6 +37,9 @@ app.get('/', (req, res) => {
 
 // User Routes
 app.use('/api/user', userRoutes);
+
+// NEW CODE - Add this line
+app.use('/api/properties', propertyRoutes);
 
 // 404 Handler
 app.use('*', (req, res) => {
