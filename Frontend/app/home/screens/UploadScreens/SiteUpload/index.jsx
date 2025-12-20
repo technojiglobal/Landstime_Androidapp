@@ -777,7 +777,7 @@ const [selectedOverlooking, setSelectedOverlooking] = useState([]);
     onPress={() => setAlertVisible(true)}
   >
     <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
-      Upload Property
+      Upload Properties
     </Text>
   </TouchableOpacity>
 </View>
