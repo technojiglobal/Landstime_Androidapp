@@ -994,7 +994,7 @@ export default function UploadPropertyScreen() {
 
       console.log('✅ Validation passed');
     const propertyData = {
-  propertyType: "Site/Plot",
+  propertyType: "Site/Plot/Land",
   propertyTitle,
   location,
   description,
