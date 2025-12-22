@@ -4,7 +4,6 @@ const router = express.Router();
 //import propertyController from '../controllers/propertyController.js';
 import * as propertyController from '../UserControllers/PropertyController.js';
 import { verifyToken, checkAdmin } from '../UserMiddleware/UserMiddleware.js';
-//import { uploadImages } from '../middleware/uploadMiddleware.js';
 import { uploadImages } from '../UserMiddleware/uploadMiddleware.js';
 
 // Public routes
