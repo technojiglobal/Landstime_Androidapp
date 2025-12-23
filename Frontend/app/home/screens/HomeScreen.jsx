@@ -125,9 +125,7 @@ export default function HomeScreen({ toggleSidebar ,sidebarOpen}) {
       </View>
 
       {/* Language Selector */}
-      <View className=" flex-row justify-end mr-5 mt-2"
-        
-      >
+      <View className=" flex-row justify-end mr-5 mt-2">
         <TouchableOpacity
           onPress={() => setLanguageModalVisible(true)}
           style={{
@@ -154,7 +152,7 @@ export default function HomeScreen({ toggleSidebar ,sidebarOpen}) {
       </View>
 
       {/* Categories */}
-      <View className="px-10 mt-2  flex-1 justify-center">
+      <View className="px-10 mt-2 flex-1 justify-center">
   <View className="flex-row flex-wrap justify-between">
           {categories.map((item, idx) => (
             <TouchableOpacity

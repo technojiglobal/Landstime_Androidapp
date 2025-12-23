@@ -50,7 +50,7 @@ useEffect(() => {
           borderTopWidth: 1,
           borderTopColor: "#e0e0e0",
           backgroundColor: "white",
-          display: sidebarOpen ? "none" : "flex",
+          // display: sidebarOpen ? "none" : "flex",
           elevation: 0,
         },
       }}
