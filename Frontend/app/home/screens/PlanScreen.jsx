@@ -1,3 +1,5 @@
+// Landstime_Androidapp/Frontend/app/home/screens/PlanScreen.jsx
+
 import React from "react";
 import { View, Text, ScrollView,Image, TouchableOpacity,StatusBar } from "react-native";
 import { useRouter } from "expo-router";

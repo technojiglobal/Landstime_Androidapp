@@ -1,4 +1,4 @@
-// app/home/screens/Flats/_layout.tsx
+//app/home/screens/Resorts/_layout.jsx
 import { Stack } from "expo-router";
 
 export default function FlatsLayout() {
