@@ -1,3 +1,5 @@
+// Landstime_Androidapp/Frontend/app/home/screens/SidebarLayout.jsx
+
 import React, { useRef, useEffect, useState } from "react";
 import {
   View,
@@ -72,7 +74,7 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
             position: "absolute",
             top: 0, left: 0, right: 0, bottom: 0,
             backgroundColor: "rgba(0,0,0,0.4)",
-            zIndex: 10,
+            zIndex: 50,
           }}
           onPress={toggleSidebar}
         />
@@ -87,22 +89,22 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
           left: slideAnim,
           top: 0,
           backgroundColor: "#22C55E",
-          zIndex: 20,
+          zIndex: 100,
           padding: 20,
           paddingTop: 50,
         }}
       >
         {/* User Info */}
-        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 30 }}>
-          <Image
-            source={require("../../../assets/profile.png")}
-            style={{ width: 55, height: 55, borderRadius: 28, marginRight: 12 }}
-          />
-          <View>
-            <Text className="text-white font-bold text-lg">John Doe</Text>
-            <Text className="text-white text-sm">9876543210</Text>
-          </View>
-        </View>
+     <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 20 }}>
+  <Image
+    source={require("../../../assets/profile.png")}
+    style={{ width: 50, height: 50, borderRadius: 25, marginRight: 12 }}
+  />
+  <View>
+    <Text className="text-white font-semibold text-base">Ravi Kumar</Text>
+    <Text className="text-white text-xs opacity-90">9876543210</Text>
+  </View>
+</View>
 
         {/* Back Button - Half Circle */}
         <TouchableOpacity

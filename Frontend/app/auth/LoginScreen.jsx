@@ -1,4 +1,3 @@
-//frontend//app//auth//LoginScreen.jsx
 import { useState } from "react";
 import Toast from 'react-native-toast-message';
 import {
@@ -23,93 +22,99 @@ import { loginUser, saveToken, saveUserData } from "../../utils/api";
 export default function SignIn() {
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isFocused, setIsFocused] = useState(false); // Add focus state
 
   const isPhoneValid = /^[0-9]{10}$/.test(phone);
   const canSignIn = isPhoneValid;
 
   const router = useRouter();
 
-const handleSignIn = async () => {
-  if (!canSignIn) {
-    Toast.show({
-      type: 'error',
-      text1: 'Invalid Phone Number',
-      text2: 'Please enter a valid 10-digit phone number',
-      position: 'top',
-      visibilityTime: 3000,
-    });
-    return;
-  }
-
-  setLoading(true);
-  try {
-    const response = await loginUser(phone);
-
-   if (response.success && response.data.success) {
-  // ✅ Save token first
-  if (response.data.data?.token) {
-    await saveToken(response.data.data.token);
-    console.log('🔐 Token saved on login:', response.data.data.token);
-  }
-  
-  await saveUserData(response.data.data.user);
-
-  Toast.show({
-    type: 'success',
-    text1: 'Login Successful! 👋',
-    text2: `Welcome back, ${response.data.data.user.name}`,
-    position: 'top',
-    visibilityTime: 2500,
-  });
-
-  setTimeout(() => {
-    router.replace("/(tabs)/home");
-  }, 2500);
-}
-
-    else {
-      // Handle specific error messages
-      const errorMessage = response.data?.message || "Something went wrong";
-      
-      if (errorMessage.includes("not found") || errorMessage.includes("Please register")) {
-        Toast.show({
-          type: 'error',
-          text1: 'Account Not Found',
-          text2: 'This number is not registered. Please sign up first.',
-          position: 'top',
-          visibilityTime: 4000,
-        });
-      } else if (errorMessage.includes("not verified")) {
-        Toast.show({
-          type: 'error',
-          text1: 'Phone Not Verified',
-          text2: 'Please verify your phone number',
-          position: 'top',
-          visibilityTime: 4000,
-        });
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Login Failed',
-          text2: errorMessage,
-          position: 'top',
-          visibilityTime: 4000,
-        });
-      }
+  const handleSignIn = async () => {
+    if (!canSignIn) {
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid Phone Number',
+        text2: 'Please enter a valid 10-digit phone number',
+        position: 'top',
+        visibilityTime: 3000,
+      });
+      return;
     }
-  } catch (error) {
-    console.error("Login error:", error);
-    Toast.show({
-      type: 'error',
-      text1: 'Network Error',
-      text2: 'Failed to login. Please check your connection.',
-      position: 'top',
-      visibilityTime: 4000,
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+
+    setLoading(true);
+    try {
+      const response = await loginUser(phone);
+
+      if (response.success && response.data.success) {
+        if (response.data.data?.token) {
+          await saveToken(response.data.data.token);
+          console.log('🔐 Token saved on login:', response.data.data.token);
+        }
+        
+        await saveUserData(response.data.data.user);
+
+        Toast.show({
+          type: 'success',
+          text1: 'Login Successful! 👋',
+          text2: `Welcome back, ${response.data.data.user.name}`,
+          position: 'top',
+          visibilityTime: 2500,
+        });
+
+        setTimeout(() => {
+          router.replace("/(tabs)/home");
+        }, 2500);
+      } else {
+        const errorMessage = response.data?.message || "Something went wrong";
+        
+        if (errorMessage.includes("not found") || errorMessage.includes("Please register")) {
+          Toast.show({
+            type: 'error',
+            text1: 'Account Not Found',
+            text2: 'This number is not registered. Please sign up first.',
+            position: 'top',
+            visibilityTime: 4000,
+          });
+        } else if (errorMessage.includes("not verified")) {
+          Toast.show({
+            type: 'error',
+            text1: 'Phone Not Verified',
+            text2: 'Please verify your phone number',
+            position: 'top',
+            visibilityTime: 4000,
+          });
+        } else {
+          Toast.show({
+            type: 'error',
+            text1: 'Login Failed',
+            text2: errorMessage,
+            position: 'top',
+            visibilityTime: 4000,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Network Error',
+        text2: 'Failed to login. Please check your connection.',
+        position: 'top',
+        visibilityTime: 4000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Determine border color based on state
+  const getBorderColor = () => {
+    if (phone) {
+      return isPhoneValid ? "#22c55e" : "#ef4444"; // green-500 : red-500
+    }
+    return isFocused ? "#22c55e" : "#0000001A"; // green-500 when focused : default gray
+  };
+
   const Content = (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -138,16 +143,10 @@ const handleSignIn = async () => {
 
         {/* Phone Input */}
         <View
-          className={`flex-row items-center border rounded-xl mb-4 px-3 ${
-            phone
-              ? isPhoneValid
-                ? "border-green-500"
-                : "border-red-500"
-              : "border-gray-300"
-          }`}
+          className="flex-row items-center border rounded-xl mb-4 px-3"
           style={{
-            borderWidth: 1,
-            borderColor: "#0000001A",
+            borderWidth: 2, // Increased to 2 for better visibility
+            borderColor: getBorderColor(),
             backgroundColor: "#D9D9D91C",
           }}
         >
@@ -167,6 +166,8 @@ const handleSignIn = async () => {
                 setPhone(text);
               }
             }}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
             maxLength={10}
           />
         </View>
@@ -207,16 +208,16 @@ const handleSignIn = async () => {
     </KeyboardAvoidingView>
   );
 
- return (
-  <>
-    {Platform.OS === "web" ? (
-      Content
-    ) : (
-      <TouchableWithoutFeedback onPress = {Keyboard.dismiss}>
-        {Content}
-      </TouchableWithoutFeedback>
-    )}
-    <Toast />
-  </>
- )
+  return (
+    <>
+      {Platform.OS === "web" ? (
+        Content
+      ) : (
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          {Content}
+        </TouchableWithoutFeedback>
+      )}
+      <Toast />
+    </>
+  );
 }

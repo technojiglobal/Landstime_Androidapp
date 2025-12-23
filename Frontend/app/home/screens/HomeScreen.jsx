@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useResponsive } from "../../../utils/responsive";
 import bell from "../../../assets/Bell-icon.png";
 
-export default function HomeScreen({ toggleSidebar }) {
+export default function HomeScreen({ toggleSidebar ,sidebarOpen}) {
   const insets = useSafeAreaInsets();
   const { scaleWidth, scaleHeight } = useResponsive();
 
@@ -78,17 +78,19 @@ export default function HomeScreen({ toggleSidebar }) {
         style={{ height: scaleHeight(300), justifyContent: "center" }}
       >
         {/* Hamburger */}
-        <TouchableOpacity
-          onPress={toggleSidebar}
-          style={{
-            position: "absolute",
-            top: scaleHeight(10),
-            left: 20,
-            zIndex: 20,
-          }}
-        >
-          <Ionicons name="menu" size={scaleWidth(28)} color="white" />
-        </TouchableOpacity>
+        {!sidebarOpen && (
+  <TouchableOpacity
+    onPress={toggleSidebar}
+    style={{
+      position: "absolute",
+      top: scaleHeight(10),
+      left: 20,
+      zIndex: 20,
+    }}
+  >
+    <Ionicons name="menu" size={scaleWidth(28)} color="white" />
+  </TouchableOpacity>
+)}
 
         {/* Notification */}
         <TouchableOpacity
@@ -123,9 +125,7 @@ export default function HomeScreen({ toggleSidebar }) {
       </View>
 
       {/* Language Selector */}
-      <View className=" flex-row justify-end mr-5 mt-2"
-        
-      >
+      <View className=" flex-row justify-end mr-5 mt-2">
         <TouchableOpacity
           onPress={() => setLanguageModalVisible(true)}
           style={{
@@ -152,7 +152,7 @@ export default function HomeScreen({ toggleSidebar }) {
       </View>
 
       {/* Categories */}
-      <View className="px-10 mt-2  flex-1 justify-center">
+      <View className="px-10 mt-2 flex-1 justify-center">
   <View className="flex-row flex-wrap justify-between">
           {categories.map((item, idx) => (
             <TouchableOpacity
