@@ -62,20 +62,27 @@ export default function HomeScreen({ toggleSidebar }) {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white">
+   <View className="flex-1 bg-black">
+     <View 
+       className="flex-1 bg-white" 
+       style={{ 
+         marginTop: insets.top, 
+        marginBottom: insets.bottom
+       }}
+     >
     
       {/* Banner */}
       <ImageBackground
         source={require("../../../assets/homescreen_banner.png")}
         resizeMode="cover"
-        style={{ height: scaleHeight(240), justifyContent: "center" }}
+        style={{ height: scaleHeight(300), justifyContent: "center" }}
       >
         {/* Hamburger */}
         <TouchableOpacity
           onPress={toggleSidebar}
           style={{
             position: "absolute",
-            top: insets.top + scaleHeight(10),
+            top: scaleHeight(10),
             left: 20,
             zIndex: 20,
           }}
@@ -88,7 +95,7 @@ export default function HomeScreen({ toggleSidebar }) {
           onPress={() => router.push("/home/screens/Notifications")}
           style={{
             position: "absolute",
-            top: insets.top + scaleHeight(10),
+            top: scaleHeight(10),
             right: 20,
             backgroundColor: "white",
             width: scaleWidth(36),
@@ -110,13 +117,13 @@ export default function HomeScreen({ toggleSidebar }) {
       </ImageBackground>
 
       {/* Search Bar */}
-      <View className="flex-row items-center bg-white mx-10 mt-[-20] p-2 rounded-xl shadow-md">
+      <View className="flex-row items-center bg-white mx-10 mt-[-20] p-2 rounded-xl shadow-md z-10">
         <Ionicons name="search" size={20} color="gray" />
         <TextInput placeholder="Search properties..." className="ml-2 flex-1" />
       </View>
 
       {/* Language Selector */}
-      <View className=" flex-row justify-end mr-5 mt-6"
+      <View className=" flex-row justify-end mr-5 mt-2"
         
       >
         <TouchableOpacity
@@ -145,15 +152,24 @@ export default function HomeScreen({ toggleSidebar }) {
       </View>
 
       {/* Categories */}
-      <View className="px-10 mt-7 mb-10">
-        <View className="flex-row flex-wrap justify-between">
+      <View className="px-10 mt-2  flex-1 justify-center">
+  <View className="flex-row flex-wrap justify-between">
           {categories.map((item, idx) => (
             <TouchableOpacity
-              key={idx}
-              className="bg-white rounded-2xl border-l-8 border-[#22C55E] p-4 py-8 my-6 items-center justify-center mb-6"
-              style={{ width: "45%", aspectRatio: 0.85 }}
-              onPress={() => handleCategoryPress(item.name)}
-            >
+  key={idx}
+  className="bg-white rounded-2xl border-l-8 border-[#22C55E] p-4 py-5 my-2 items-center justify-center"
+style={{ 
+
+    width: "46%", 
+    aspectRatio: 0.95,
+    shadowColor: "#22C55E",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  }}
+  onPress={() => handleCategoryPress(item.name)}
+>
               {/* VR Badge */}
               {item.vr && (
                 <View
@@ -247,7 +263,8 @@ export default function HomeScreen({ toggleSidebar }) {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+    </View>
+    </View>
   );
 }
 

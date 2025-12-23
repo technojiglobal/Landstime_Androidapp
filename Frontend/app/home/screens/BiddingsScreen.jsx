@@ -1,3 +1,4 @@
+// Landstime_Androidapp/Frontend/app/home/screens/BiddingsScreen.jsx
 import { Text, View,TouchableOpacity,StatusBar } from 'react-native'
 import React from 'react';
 import { Ionicons } from "@expo/vector-icons";

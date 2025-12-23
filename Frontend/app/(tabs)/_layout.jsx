@@ -1,19 +1,56 @@
+//Frontend/app/(tabs)/_layout.jsx
+import * as NavigationBar from "expo-navigation-bar";
+import { useEffect } from "react";
+
 import { Tabs } from "expo-router";
 import { View, Text } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function TabsLayout() {
+ const insets = useSafeAreaInsets();
+
+// useEffect(() => {
+//   const setupNavigationBar = async () => {
+//     await NavigationBar.setPositionAsync("absolute");
+//     await NavigationBar.setBackgroundColorAsync("#00000001");
+//     await NavigationBar.setButtonStyleAsync("light");
+
+   
+//   };
+//   setupNavigationBar();
+// }, []);
+  
+
+// Update the setupNavigationBar function in app/(tabs)/_layout.jsx
+
+useEffect(() => {
+  const setupNavigationBar = async () => {
+    await NavigationBar.setPositionAsync("absolute");
+    await NavigationBar.setBackgroundColorAsync("#00000001");
+    await NavigationBar.setButtonStyleAsync("light");
+  };
+  setupNavigationBar();
+}, []); // This will run once when the tab layout mounts
+
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: {
-          height: 80,
-          paddingBottom: 15,
-          paddingTop: 10,
-          borderTopWidth: 0,
+          position: 'absolute',
+          bottom: insets.bottom,
+          left: 0,
+          right: 0,
+          height: 65,
+          paddingBottom: 8,
+          paddingTop: 8,
+          borderTopWidth: 1,
+          borderTopColor: "#e0e0e0",
           backgroundColor: "white",
+          elevation: 0,
         },
       }}
     >
@@ -37,8 +74,6 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="shorts"
         options={{
-          
-    
           tabBarIcon: ({ focused }) => (
             <TabIcon
               focused={focused}
@@ -58,16 +93,21 @@ export default function TabsLayout() {
           tabBarIcon: () => (
             <View
               style={{
-                width: 50,
-                height: 50,
-                borderRadius: 30,
+                width: 56,
+                height: 56,
+                borderRadius: 28,
                 backgroundColor: "#22C55E",
                 justifyContent: "center",
                 alignItems: "center",
-                marginBottom: 35,
+                marginBottom: 28,
+                shadowColor: "#22C55E",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.4,
+                shadowRadius: 8,
+                elevation: 8,
               }}
             >
-              <Ionicons name="add" size={30} color="white" />
+              <Ionicons name="add" size={32} color="white" />
             </View>
           ),
         }}
@@ -109,7 +149,7 @@ export default function TabsLayout() {
 }
 
 /* ---------------------------------------------
-   CUSTOM ICON COMPONENT — SAME AS YOUR OLD DESIGN
+   CUSTOM ICON COMPONENT
 ---------------------------------------------- */
 function TabIcon({ focused, label, icon, activeIcon, iconSet = "ion" }) {
   const IconComponent =
@@ -118,27 +158,27 @@ function TabIcon({ focused, label, icon, activeIcon, iconSet = "ion" }) {
   return (
     <View
       style={{
-        width: 80,
-        height: 40,
-        borderRadius: 9999,
-        flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: focused ? "#22C55E" : "transparent",
-        paddingHorizontal: focused ? 10 : 0,
+        paddingVertical: 4,
+        minHeight: 50,
       }}
     >
       <IconComponent
         name={focused ? activeIcon : icon}
-        size={24}
-        color={focused ? "white" : "#22C55E"}
+        size={20}
+        color={focused ? "#22C55E" : "#666"}
       />
-
-      {focused && (
-        <Text style={{ color: "white", marginLeft: 4, fontWeight: "600" }}>
-          {label}
-        </Text>
-      )}
+      <Text 
+        style={{ 
+          color: focused ? "#22C55E" : "#666",
+          fontSize: 8,
+          marginTop: 2,
+          fontWeight: focused ? "600" : "400"
+        }}
+      >
+        {label}
+      </Text>
     </View>
   );
 }

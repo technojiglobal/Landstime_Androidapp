@@ -1,3 +1,5 @@
+// Landstime_Androidapp/Frontend/app/home/screens/ShortsScreen.jsx
+
 import { View, Image, TouchableOpacity } from "react-native";
 import React from "react";
 import ShortsImg from "../../../assets/shorts.jpg";
