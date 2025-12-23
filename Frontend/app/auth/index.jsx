@@ -1,4 +1,3 @@
-//frontend//app//auth//index.jsx
 import { useState, useEffect } from "react";
 import Toast from 'react-native-toast-message';
 import {
@@ -20,7 +19,7 @@ import { Ionicons } from "@expo/vector-icons";
 import "../../global.css";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
-import { registerUser, saveToken, saveUserData,checkPhoneExists } from "../../utils/api";
+import { registerUser, saveToken, saveUserData, checkPhoneExists } from "../../utils/api";
 
 export default function RegisterScreen() {
   const [name, setName] = useState("");
@@ -33,221 +32,212 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [allowEdit, setAllowEdit] = useState(false);
+  
+  // Focus states
+  const [isNameFocused, setIsNameFocused] = useState(false);
+  const [isPhoneFocused, setIsPhoneFocused] = useState(false);
+  const [isEmailFocused, setIsEmailFocused] = useState(false);
 
   const router = useRouter();
-  const params = useLocalSearchParams()
-useEffect(() => {
-  // Only process if params has data
-  if (!params || Object.keys(params).length === 0) return;
-  
-  console.log('📥 Received params:', JSON.stringify(params, null, 2));
-  console.log('allowEdit value:', params.allowEdit);
-  console.log('verified value:', params.verified);
-  
-  // Load data from params
-  if (params.phone) {
-    setPhone(params.phone);
-  }
-  
-  if (params.countryCode) {
-    setCountryCode(params.countryCode);
-  }
-  
-  if (params.name) {
-    setName(params.name);
-  }
-  
-  if (params.email) {
-    setEmail(params.email);
-  }
-  
-  if (params.role) {
-    setRole(params.role);
-  }
-  
-  // Set verification status
-  if (params.allowEdit === "true") {
-    setPhoneVerified(false);
-    setAllowEdit(true);
-  } else if (params.verified === "true") {
-    setPhoneVerified(true);
-    setAllowEdit(false);
-  }
-}, [params]);
+  const params = useLocalSearchParams();
 
-  console.log('🔐 phoneVerified:', phoneVerified);
-console.log('✏️ allowEdit:', allowEdit);
-console.log('📝 editable:', !phoneVerified || allowEdit);
-
+  useEffect(() => {
+    if (!params || Object.keys(params).length === 0) return;
+    
+    console.log('📥 Received params:', JSON.stringify(params, null, 2));
+    
+    if (params.phone) setPhone(params.phone);
+    if (params.countryCode) setCountryCode(params.countryCode);
+    if (params.name) setName(params.name);
+    if (params.email) setEmail(params.email);
+    if (params.role) setRole(params.role);
+    
+    if (params.allowEdit === "true") {
+      setPhoneVerified(false);
+      setAllowEdit(true);
+    } else if (params.verified === "true") {
+      setPhoneVerified(true);
+      setAllowEdit(false);
+    }
+  }, [params]);
 
   const isNameValid = name.trim().length >= 2;
   const isPhoneValid = /^[0-9]{10}$/.test(phone);
- const isEmailValid = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
-  const canRegister =
-    isNameValid && isPhoneValid && isEmailValid && role && agree && phoneVerified;
+  const isEmailValid = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
+  const canRegister = isNameValid && isPhoneValid && isEmailValid && role && agree && phoneVerified;
 
   const countryCodes = ["+91", "+1", "+44", "+61", "+81"];
 
-const handleRegister = async () => {
-  if (!canRegister) return;
+  // Border color functions
+  const getNameBorderColor = () => {
+    if (name) return isNameValid ? "#22c55e" : "#ef4444";
+    return isNameFocused ? "#22c55e" : "#0000001A";
+  };
 
-  // Additional validations before submitting
-  if (!phoneVerified) {
-    Toast.show({
-      type: 'error',
-      text1: 'Phone Not Verified',
-      text2: 'Please verify your phone number first',
-      position: 'top',
-      visibilityTime: 3000,
-    });
-    return;
-  }
-
-  if (!agree) {
-    Toast.show({
-      type: 'error',
-      text1: 'Terms Required',
-      text2: 'Please agree to Terms of Service',
-      position: 'top',
-      visibilityTime: 3000,
-    });
-    return;
-  }
-
-  setLoading(true);
-  try {
-    const response = await registerUser({
-      name: name.trim(),
-      phone: phone,
-      countryCode: countryCode,
-      email: email.toLowerCase().trim(),
-      role: role,
-    });
-
-   if (response.success && response.data.success) {
-  // ✅ Save token and user data
-  if (response.data.data?.token) {
-    await saveToken(response.data.data.token);
-    console.log('🔐 Token saved:', response.data.data.token);
-  }
-  
-  if (response.data.data?.user) {
-    await saveUserData(response.data.data.user);
-    console.log('👤 User data saved');
-  }
-
-  // Show success toast
-  Toast.show({
-    type: 'success',
-    text1: 'Registration Successful! 🎉',
-    text2: 'Welcome to LandsTime!',
-    position: 'top',
-    visibilityTime: 2500,
-  });
-
-  // Navigate to home after 2.5 seconds
-  setTimeout(() => {
-    router.replace("/(tabs)/home");
-  }, 2500);
-}
-
-    else {
-      // Handle specific errors
-      const errorMessage = response.data?.message || "Something went wrong";
-      
-      if (errorMessage.includes("phone number already exists")) {
-        Toast.show({
-          type: 'error',
-          text1: 'Phone Already Registered',
-          text2: 'This number is already registered. Please login.',
-          position: 'top',
-          visibilityTime: 4000,
-        });
-      } else if (errorMessage.includes("email already exists")) {
-        Toast.show({
-          type: 'error',
-          text1: 'Email Already Registered',
-          text2: 'This email is already in use.',
-          position: 'top',
-          visibilityTime: 4000,
-        });
-      } else if (errorMessage.includes("Phone verification expired")) {
-        Toast.show({
-          type: 'error',
-          text1: 'Verification Expired',
-          text2: 'Please verify your phone number again',
-          position: 'top',
-          visibilityTime: 4000,
-        });
-        setPhoneVerified(false);
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Registration Failed',
-          text2: errorMessage,
-          position: 'top',
-          visibilityTime: 4000,
-        });
-      }
+  const getPhoneBorderColor = () => {
+    if (phone) {
+      return isPhoneValid 
+        ? phoneVerified ? "#22c55e" : "#f97316"
+        : "#ef4444";
     }
-  } catch (error) {
-    console.error("Registration error:", error);
-    Toast.show({
-      type: 'error',
-      text1: 'Network Error',
-      text2: 'Failed to register. Please check your connection.',
-      position: 'top',
-      visibilityTime: 4000,
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+    return isPhoneFocused ? "#22c55e" : "#0000001A";
+  };
 
-const handleVerifyPhone = async () => {
-  if (!isPhoneValid) return;
+  const getEmailBorderColor = () => {
+    if (email) return isEmailValid ? "#22c55e" : "#ef4444";
+    return isEmailFocused ? "#22c55e" : "#0000001A";
+  };
 
-  setLoading(true);
-  try {
-    // Check if phone already exists
-    const response = await checkPhoneExists(phone);
+  const handleRegister = async () => {
+    if (!canRegister) return;
 
-    if (response.success && response.data.exists) {
+    if (!phoneVerified) {
       Toast.show({
         type: 'error',
-        text1: 'Phone Already Registered',
-        text2: 'This number is already registered. Please login instead.',
+        text1: 'Phone Not Verified',
+        text2: 'Please verify your phone number first',
         position: 'top',
-        visibilityTime: 4000,
+        visibilityTime: 3000,
       });
       return;
     }
 
-    // Phone is available, proceed to verification
-    router.push({
-      pathname: "/auth/VerifyScreen",
-      params: { 
-        phone: phone, 
-        countryCode: countryCode,
-        name : name,
-        email: email,
-        role: role
-      },
-    });
+    if (!agree) {
+      Toast.show({
+        type: 'error',
+        text1: 'Terms Required',
+        text2: 'Please agree to Terms of Service',
+        position: 'top',
+        visibilityTime: 3000,
+      });
+      return;
+    }
 
-  } catch (error) {
-    console.error('Check phone error:', error);
-    Toast.show({
-      type: 'error',
-      text1: 'Error',
-      text2: 'Failed to verify phone availability',
-      position: 'top',
-      visibilityTime: 3000,
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    try {
+      const response = await registerUser({
+        name: name.trim(),
+        phone: phone,
+        countryCode: countryCode,
+        email: email.toLowerCase().trim(),
+        role: role,
+      });
+
+      if (response.success && response.data.success) {
+        if (response.data.data?.token) {
+          await saveToken(response.data.data.token);
+          console.log('🔐 Token saved:', response.data.data.token);
+        }
+        
+        if (response.data.data?.user) {
+          await saveUserData(response.data.data.user);
+          console.log('👤 User data saved');
+        }
+
+        Toast.show({
+          type: 'success',
+          text1: 'Registration Successful! 🎉',
+          text2: 'Welcome to LandsTime!',
+          position: 'top',
+          visibilityTime: 2500,
+        });
+
+        setTimeout(() => {
+          router.replace("/(tabs)/home");
+        }, 2500);
+      } else {
+        const errorMessage = response.data?.message || "Something went wrong";
+        
+        if (errorMessage.includes("phone number already exists")) {
+          Toast.show({
+            type: 'error',
+            text1: 'Phone Already Registered',
+            text2: 'This number is already registered. Please login.',
+            position: 'top',
+            visibilityTime: 4000,
+          });
+        } else if (errorMessage.includes("email already exists")) {
+          Toast.show({
+            type: 'error',
+            text1: 'Email Already Registered',
+            text2: 'This email is already in use.',
+            position: 'top',
+            visibilityTime: 4000,
+          });
+        } else if (errorMessage.includes("Phone verification expired")) {
+          Toast.show({
+            type: 'error',
+            text1: 'Verification Expired',
+            text2: 'Please verify your phone number again',
+            position: 'top',
+            visibilityTime: 4000,
+          });
+          setPhoneVerified(false);
+        } else {
+          Toast.show({
+            type: 'error',
+            text1: 'Registration Failed',
+            text2: errorMessage,
+            position: 'top',
+            visibilityTime: 4000,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Network Error',
+        text2: 'Failed to register. Please check your connection.',
+        position: 'top',
+        visibilityTime: 4000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyPhone = async () => {
+    if (!isPhoneValid) return;
+
+    setLoading(true);
+    try {
+      const response = await checkPhoneExists(phone);
+
+      if (response.success && response.data.exists) {
+        Toast.show({
+          type: 'error',
+          text1: 'Phone Already Registered',
+          text2: 'This number is already registered. Please login instead.',
+          position: 'top',
+          visibilityTime: 4000,
+        });
+        return;
+      }
+
+      router.push({
+        pathname: "/auth/VerifyScreen",
+        params: { 
+          phone: phone, 
+          countryCode: countryCode,
+          name: name,
+          email: email,
+          role: role
+        },
+      });
+    } catch (error) {
+      console.error('Check phone error:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to verify phone availability',
+        position: 'top',
+        visibilityTime: 3000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const Content = (
     <KeyboardAvoidingView
@@ -281,15 +271,10 @@ const handleVerifyPhone = async () => {
 
         {/* Name Input */}
         <View
-          className={`flex-row items-center border rounded-xl mb-4 px-3 ${
-            name
-              ? isNameValid
-                ? "border-green-500"
-                : "border-red-500"
-              : "border-gray-300"
-          }`}
+          className="flex-row items-center border rounded-xl mb-4 px-3"
           style={{
             borderWidth: 1,
+            borderColor: getNameBorderColor(),
             backgroundColor: "#D9D9D91C",
           }}
         >
@@ -304,100 +289,95 @@ const handleVerifyPhone = async () => {
             value={name}
             onChangeText={setName}
             placeholderTextColor="#9ca3af"
+            onFocus={() => setIsNameFocused(true)}
+            onBlur={() => setIsNameFocused(false)}
           />
         </View>
 
-      {/* Phone Input */}
-<View
-  className={`flex-row items-center border rounded-xl mb-4 px-3 ${
-    phone
-      ? isPhoneValid
-        ? phoneVerified
-          ? "border-green-500"
-          : "border-orange-500"
-        : "border-red-500"
-      : "border-gray-300"
-  }`}
-  style={{
-    borderWidth: 1,
-    backgroundColor: "#D9D9D91C",
-  }}
->
-  <Ionicons
-    name="call-outline"
-    size={20}
-    color={
-      phone
-        ? isPhoneValid
-          ? phoneVerified
-            ? "#16a34a"
-            : "#f97316"
-          : "#ef4444"
-        : "#9ca3af"
-    }
-  />
+        {/* Phone Input */}
+        <View
+          className="flex-row items-center border rounded-xl mb-4 px-3"
+          style={{
+            borderWidth: 1,
+            borderColor: getPhoneBorderColor(),
+            backgroundColor: "#D9D9D91C",
+          }}
+        >
+          <Ionicons
+            name="call-outline"
+            size={20}
+            color={
+              phone
+                ? isPhoneValid
+                  ? phoneVerified
+                    ? "#16a34a"
+                    : "#f97316"
+                  : "#ef4444"
+                : "#9ca3af"
+            }
+          />
 
-  <TouchableOpacity
-    onPress={() => setShowDropdown(true)}
-    className="flex-row items-center ml-2 border-r border-gray-200 pr-2"
-  >
-    <Text className="text-base text-gray-700">{countryCode}</Text>
-    <Ionicons
-      name="chevron-down-outline"
-      size={16}
-      color="#9ca3af"
-      style={{ marginLeft: 4 }}
-    />
-  </TouchableOpacity>
-  {phoneVerified && !allowEdit ? (
-  <View className="flex-1 ml-2 h-12 justify-center">
-    <Text className="text-base text-gray-700">{phone}</Text>
-  </View>
-) : (
-  <TextInput
-    className="flex-1 ml-2 h-12 text-base"
-    placeholder="Phone number"
-    keyboardType="phone-pad"
-    value={phone}
-    onChangeText={(text) => {
-      if (/^\d{0,10}$/.test(text)) {
-        setPhone(text);
-        setPhoneVerified(false);
-      }
-    }}
-    placeholderTextColor="#9ca3af"
-    autoFocus={allowEdit}
-    editable={!phoneVerified || allowEdit}
-  />
-)}
+          <TouchableOpacity
+            onPress={() => setShowDropdown(true)}
+            className="flex-row items-center ml-2 border-r border-gray-300 pr-2"
+          >
+            <Text className="text-base text-gray-700">{countryCode}</Text>
+            <Ionicons
+              name="chevron-down-outline"
+              size={16}
+              color="#9ca3af"
+              style={{ marginLeft: 4 }}
+            />
+          </TouchableOpacity>
 
+          {phoneVerified && !allowEdit ? (
+            <View className="flex-1 ml-2 h-12 justify-center">
+              <Text className="text-base text-gray-700">{phone}</Text>
+            </View>
+          ) : (
+            <TextInput
+              className="flex-1 ml-2 h-12 text-base"
+              placeholder="Phone number"
+              keyboardType="phone-pad"
+              value={phone}
+              onChangeText={(text) => {
+                if (/^\d{0,10}$/.test(text)) {
+                  setPhone(text);
+                  setPhoneVerified(false);
+                }
+              }}
+              placeholderTextColor="#9ca3af"
+              autoFocus={allowEdit}
+              editable={!phoneVerified || allowEdit}
+              onFocus={() => setIsPhoneFocused(true)}
+              onBlur={() => setIsPhoneFocused(false)}
+            />
+          )}
 
-
-  {phoneVerified ? (
-    <View className="flex-row items-center">
-      <Ionicons name="checkmark-circle" size={24} color="#16a34a" />
-      <TouchableOpacity
-        onPress={() => {
-          setPhoneVerified(false);
-         // setAllowEdit(true);
-        }}
-        className="ml-2"
-      >
-        <Text className="text-blue-500 text-sm">Change</Text>
-      </TouchableOpacity>
-    </View>
-  ) : (
-    <TouchableOpacity disabled={!isPhoneValid} onPress={handleVerifyPhone}>
-      <Text
-        className={`font-semibold ${
-          isPhoneValid ? "text-green-500" : "text-gray-400"
-        }`}
-      >
-        Verify
-      </Text>
-    </TouchableOpacity>
-  )}
-</View>
+          {phoneVerified ? (
+            <View className="flex-row items-center">
+              <Ionicons name="checkmark-circle" size={24} color="#16a34a" />
+              <TouchableOpacity
+                onPress={() => {
+                  setPhoneVerified(false);
+                }}
+                className="ml-2"
+              >
+                <Text className="text-blue-500 text-sm">Change</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity disabled={!isPhoneValid} onPress={handleVerifyPhone}>
+              <Text
+                className={`font-semibold ${
+                  isPhoneValid ? "text-green-500" : "text-gray-400"
+                }`}
+              >
+                Verify
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
         {/* Country Code Modal */}
         <Modal
@@ -436,15 +416,10 @@ const handleVerifyPhone = async () => {
 
         {/* Email Input */}
         <View
-          className={`flex-row items-center border rounded-xl mb-4 px-3 ${
-            email
-              ? isEmailValid
-                ? "border-green-500"
-                : "border-red-500"
-              : "border-gray-300"
-          }`}
+          className="flex-row items-center border rounded-xl mb-4 px-3"
           style={{
             borderWidth: 1,
+            borderColor: getEmailBorderColor(),
             backgroundColor: "#D9D9D91C",
           }}
         >
@@ -461,6 +436,8 @@ const handleVerifyPhone = async () => {
             onChangeText={setEmail}
             placeholderTextColor="#9ca3af"
             autoCapitalize="none"
+            onFocus={() => setIsEmailFocused(true)}
+            onBlur={() => setIsEmailFocused(false)}
           />
         </View>
 
@@ -559,17 +536,16 @@ const handleVerifyPhone = async () => {
     </KeyboardAvoidingView>
   );
 
-
   return (
     <>
-    {Platform.OS === "web" ? (
-      Content
-    ) : (
-      <TouchableWithoutFeedback onPress = {Keyboard.dismiss}>
-        {Content}
-      </TouchableWithoutFeedback>
-    )}
-    <Toast />
+      {Platform.OS === "web" ? (
+        Content
+      ) : (
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          {Content}
+        </TouchableWithoutFeedback>
+      )}
+      <Toast />
     </>
-  )
+  );
 }

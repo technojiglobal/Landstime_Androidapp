@@ -8,13 +8,15 @@ import {
   Pressable,
   Image,
   Alert,
-  StatusBar,Modal,FlatList,ToastAndroid, Platform 
+  StatusBar,Modal,FlatList 
+  
 } from "react-native";
+import Toast from 'react-native-toast-message';
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import TopAlert from "../TopAlert";
-
+import { SafeAreaView } from "react-native-safe-area-context";
 /* ---------- Reusable Components ---------- */
 const PillButton = ({ label, selected, onPress }) => (
   <TouchableOpacity
@@ -78,16 +80,15 @@ const [resortOpen, setResortOpen] = useState(false);
   const isNumeric = (text) => /^[0-9]+$/.test(text);
 
 const showToast = (message) => {
-  if (Platform.OS === "android") {
-    ToastAndroid.showWithGravity(
-      message,
-      ToastAndroid.SHORT,
-      ToastAndroid.TOP
-    );
-  } else {
-    console.log(message); // iOS fallback for now
-  }
+  Toast.show({
+    type: 'error',
+    text1: 'Error',
+    text2: message,
+    position: 'top',
+    visibilityTime: 3000,
+  });
 };
+
 
 /* ---------- Validation ---------- */
   const handleSubmit = () => {
@@ -251,11 +252,12 @@ const RESORT_TYPES = [
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <>
+    <SafeAreaView className="flex-1 bg-gray-50">
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" translucent={false} />
       <TopAlert visible={alertVisible} onHide={() => setAlertVisible(false)} />
       {/* ---------- Header ---------- */}
-        <View className="flex-row items-center mt-7 mb-4">
+        <View className="flex-row items-center  mb-2">
           <TouchableOpacity
             onPress={() =>
               router.push("/home/screens/UploadScreens/AddScreen")
@@ -307,8 +309,8 @@ const RESORT_TYPES = [
           <Text className="text-[16px] font-bold mb-4">Basic Details</Text>
 
          <Text className="text-[14px] font-bold text-gray-600 mb-2">
-  Resort Title <Text style={{ color: "red" }}>*</Text>
-</Text>
+          Resort Title <Text style={{ color: "red" }}>*</Text>
+         </Text>
           <TextInput
             placeholder="Ocean Breeze Paradise"
             value={title}
@@ -317,7 +319,7 @@ const RESORT_TYPES = [
       setTitle(text);
     }
   }}
-            className="rounded-md p-3 mb-3 bg-[#D9D9D91C]  border border-gray-300 focus:border-green-500 focus:ring-green-500"
+            className="rounded-md p-3 mb-3 bg-[#D9D9D91C]  border border-gray-300 focus:border-green-500 focus:ring-[#22C55E]"
           />
 
            {/* Property Type */}
@@ -437,7 +439,7 @@ const RESORT_TYPES = [
     }
   }}
                             keyboardType="numeric"
-                            className="bg-[#D9D9D91C] rounded-lg p-3 border border-gray-200 text-gray-800 text-left focus:border-green-500 focus:ring-green-500"
+                            className="bg-[#D9D9D91C] rounded-lg p-3 border border-gray-200 text-gray-800 text-left focus:border-green-500 focus:ring-[#22C55E]"
                           />
                         </View>
                         <View className="flex-1">
@@ -451,7 +453,7 @@ const RESORT_TYPES = [
   }
 }}
                             keyboardType="numeric"
-                            className="bg-[#D9D9D91C] rounded-lg p-3 border border-gray-200 text-gray-800 text-left focus:border-green-500 focus:ring-green-500"
+                            className="bg-[#D9D9D91C] rounded-lg p-3 border border-gray-200 text-gray-800 text-left focus:border-green-500 focus:ring-[#22C55E]"
                           />
                         </View>
                       </View>
@@ -468,7 +470,7 @@ const RESORT_TYPES = [
   }
 }}
                             keyboardType="numeric"
-                            className="bg-[#D9D9D91C] rounded-lg p-3 border border-gray-200 text-gray-800 text-left focus:border-green-500 focus:ring-green-500"
+                            className="bg-[#D9D9D91C] rounded-lg p-3 border border-gray-200 text-gray-800 text-left focus:border-green-500 focus:ring-[#22C55E]"
                           />
                         </View>
                         <View className="flex-1">
@@ -483,7 +485,7 @@ const RESORT_TYPES = [
 }}
 
                             keyboardType="numeric"
-                            className="bg-[#D9D9D91C] rounded-lg p-3 border border-gray-200 text-gray-800 text-left focus:border-green-500 focus:ring-green-500"
+                            className="bg-[#D9D9D91C] rounded-lg p-3 border border-gray-200 text-gray-800 text-left focus:border-green-500 focus:ring-[#22C55E]"
                           />
                         </View>
                       </View>
@@ -499,6 +501,7 @@ const RESORT_TYPES = [
     setPrice(text);
   }
 }}
+ keyboardType="numeric"
             className=" bg-[#D9D9D91C] rounded-md p-3 mb-3 bg-gray-100 border border-gray-200 focus:border-green-500 focus:ring-green-500"
           />
         </View>
@@ -528,14 +531,14 @@ const RESORT_TYPES = [
             Location <Text style={{ color: "red" }}>*</Text>
           </Text>
         
-          <View className="flex-row items-center bg-[#D9D9D91C]  border border-gray-200 rounded-md p-3 mb-4">
+          <View className="flex-row items-center bg-[#D9D9D91C]  border border-gray-200 focus:border-green-500 focus:ring-[#22C55E] rounded-md p-3 mb-4">
             <Image
               source={require("../../../../../assets/location.png")}
               style={{ width: 18, height: 18, marginRight: 8 }}
             />
             <TextInput
               placeholder="Enter Property Location"
-              className="flex-1 focus:border-green-500 focus:ring-green-500"
+              className="flex-1"
               value={location}
               onChangeText={setLocation}
               
@@ -544,25 +547,28 @@ const RESORT_TYPES = [
         </View>
          {/* ---------- Description ---------- */}
         <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
-          <Text className="text-[15px] font-bold text-gray-600 mb-3 focus:border-green-500 focus:ring-green-500">
+          <Text className="text-[15px] font-bold text-gray-600 mb-3 ">
             Description <Text style={{ color: "red" }}>*</Text>
           </Text>
         
-          <View className="flex-row items-center bg-[#D9D9D91C]  border border-gray-200 rounded-md p-3 mb-4">
+          <View className="flex-row items-center bg-[#D9D9D91C]  border border-gray-200 focus:border-green-500 focus:ring-[#22C55E] rounded-md p-3 mb-4">
 
             <TextInput
               placeholder="Describe your property ........"
-              className="flex-1"
+              className="flex-1 "
               value={description}
               onChangeText={setDescription}
+               multiline
+  numberOfLines={4}
+  textAlignVertical="top"   // ✅ fixes Android cursor center issue
+  style={{ minHeight: 120 }} // ✅ textarea height
+  
             />
            </View>
         </View>
-
-
-
          {/* Vaasthu Details */}
-                    <View className="bg-white rounded-xl border border-gray-300 p-4 m-3 ml-5 mr-4">
+                    <View className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
+
                       <View className="flex-row items-center mb-3 justify-between">
                         <Text
                           className="text-lg font-semibold text-gray-800 text-left"
@@ -642,7 +648,8 @@ const RESORT_TYPES = [
         }}
       >
         <View className="flex-row justify-end gap-4">
-          <TouchableOpacity className="bg-gray-200 px-5 py-3 rounded-lg">
+          <TouchableOpacity className="bg-gray-200 px-5 py-3 rounded-lg"
+          onPress={router.back()}>
             <Text className="font-semibold">Cancel</Text>
           </TouchableOpacity>
 
@@ -656,8 +663,8 @@ const RESORT_TYPES = [
           </TouchableOpacity>
         </View>
       </View>
-    </View>
-
-    
+    </SafeAreaView>
+<Toast/>
+    </>
   );
 }
