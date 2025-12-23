@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useResponsive } from "../../../utils/responsive";
 import bell from "../../../assets/Bell-icon.png";
 
-export default function HomeScreen({ toggleSidebar }) {
+export default function HomeScreen({ toggleSidebar ,sidebarOpen}) {
   const insets = useSafeAreaInsets();
   const { scaleWidth, scaleHeight } = useResponsive();
 
@@ -78,17 +78,19 @@ export default function HomeScreen({ toggleSidebar }) {
         style={{ height: scaleHeight(300), justifyContent: "center" }}
       >
         {/* Hamburger */}
-        <TouchableOpacity
-          onPress={toggleSidebar}
-          style={{
-            position: "absolute",
-            top: scaleHeight(10),
-            left: 20,
-            zIndex: 20,
-          }}
-        >
-          <Ionicons name="menu" size={scaleWidth(28)} color="white" />
-        </TouchableOpacity>
+        {!sidebarOpen && (
+  <TouchableOpacity
+    onPress={toggleSidebar}
+    style={{
+      position: "absolute",
+      top: scaleHeight(10),
+      left: 20,
+      zIndex: 20,
+    }}
+  >
+    <Ionicons name="menu" size={scaleWidth(28)} color="white" />
+  </TouchableOpacity>
+)}
 
         {/* Notification */}
         <TouchableOpacity
