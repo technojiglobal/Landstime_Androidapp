@@ -21,9 +21,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import TopAlert from "./TopAlert";
 import CustomPickerAlert from "../../../../components/CustomPickerAlert";
+import HowTo360Modal from "./HowTo360Modal";
+import PhotoUploadGuide from "./PhotoUploadGuide";
+import { Linking } from "react-native";
+import MorePricingDetailsModal from "./MorePricingDetailsModal";
+import Toast from 'react-native-toast-message';
 
 export default function AddScreen() {
-  const [constructionStatus, setConstructionStatus] = useState("Ready");
+  const [constructionStatus, setConstructionStatus] = useState("");
   const [possessionBy, setPossessionBy] = useState("");
   const router = useRouter();
   const navigation = useNavigation();
@@ -36,7 +41,7 @@ export default function AddScreen() {
   const [bedrooms, setBedrooms] = useState("");
   const [bathrooms, setBathrooms] = useState("");
   const [balconies, setBalconies] = useState("");
-  const [floorDetails, setFloorDetails] = useState("");
+
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [expectedPrice, setExpectedPrice] = useState("");
@@ -44,10 +49,10 @@ export default function AddScreen() {
   const [furnishingItems, setFurnishingItems] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [selectedOwnership, setSelectedOwnership] = useState("Freehold");
-  const [selectedAge, setSelectedAge] = useState("0-1 years");
+  const [selectedOwnership, setSelectedOwnership] = useState("");
+  const [selectedAge, setSelectedAge] = useState("");
   const [images, setImages] = useState([]);
-  const [furnishing, setFurnishing] = useState("Furnished");
+  const [furnishing, setFurnishing] = useState("");
   const [covered, setCovered] = useState(0);
   const [open, setOpen] = useState(0);
   const [visible, setVisible] = useState(null);
@@ -63,6 +68,13 @@ export default function AddScreen() {
   const [selectedPrices, setSelectedPrices] = useState([]);
 
   const [alertVisible, setAlertVisible] = useState(false);
+  const [focusedField, setFocusedField] = useState(null);
+  const [isHowto360ModalVisible, setIsHowto360ModalVisible] = useState(false);
+  const [isPhotoGuideModalVisible, setIsPhotoGuideModalVisible] = useState(false);
+  const [isMorePricingModalVisible, setIsMorePricingModalVisible] = useState(false);
+  const [ownerName, setOwnerName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
 
   const options = ["0-1 years", "1-5 years", "5-10 years", "10+ years"];
   const directions = ["North-East", "South-West", "East", "West"];
@@ -115,13 +127,13 @@ export default function AddScreen() {
       console.log('🔍 Validating fields...');
      // Validate required fields
 if (!propertyTitle?.trim()) {
-  Alert.alert("Error", "Please enter property title");
+  Toast.show({ type: 'error', text1: 'Error', text2: 'Property Title is required.' });
   setIsSubmitting(false);
   return;
 }
 
 if (!location?.trim()) {
-  Alert.alert("Error", "Please enter location");
+  Toast.show({ type: 'error', text1: 'Error', text2: 'Location is required.' });
   setIsSubmitting(false);
   return;
 }
@@ -130,14 +142,26 @@ const priceValue = parseFloat(expectedPrice);
 console.log('💰 Price validation:', { expectedPrice, priceValue, isValid: !isNaN(priceValue) && priceValue > 0 });
 
 if (!expectedPrice || isNaN(priceValue) || priceValue <= 0) {
-  Alert.alert("Error", "Please enter a valid expected price");
+  Toast.show({ type: 'error', text1: 'Error', text2: 'A valid Expected Price is required.' });
+  setIsSubmitting(false);
+  return;
+}
+
+if (!area?.trim()) {
+  Toast.show({ type: 'error', text1: 'Error', text2: 'Area is required.' });
+  setIsSubmitting(false);
+  return;
+}
+
+if (!description?.trim()) {
+  Toast.show({ type: 'error', text1: 'Error', text2: 'Description is required.' });
   setIsSubmitting(false);
   return;
 }
 
 if (images.length === 0) {
   console.log('❌ No images selected');
-  Alert.alert("Error", "Please add at least one image");
+  Toast.show({ type: 'error', text1: 'Error', text2: 'Please add at least one image' });
   setIsSubmitting(false);
   return;
 }
@@ -281,20 +305,34 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
     setImages(images.filter((_, i) => i !== index));
   };
 
+  const handleOpenPlayStore = () => {
+    // Replace with the actual app link
+    const playStoreLink = 'https://play.google.com/store/apps/details?id=com.google.android.street';
+    Linking.openURL(playStoreLink).catch(err =>
+      console.error("Couldn't load page", err)
+    );
+  };
+
   return ( 
+    <>
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <TopAlert visible={alertVisible} onHide={() => setAlertVisible(false)} />
-      <ScrollView>
-        <CustomPickerAlert
-          visible={pickerAlertVisible}
-          onClose={() => setPickerAlertVisible(false)}
-          onCameraPress={takePhoto}
-          onGalleryPress={pickFromGallery}
-        />
-       
-        {/* Header */}
-        <View className="flex-row items-center mt-3 mb-4">
+      <HowTo360Modal
+        visible={isHowto360ModalVisible}
+        onClose={() => setIsHowto360ModalVisible(false)}
+        onOpenPlayStore={handleOpenPlayStore}
+      />
+      <PhotoUploadGuide
+        visible={isPhotoGuideModalVisible}
+        onClose={() => setIsPhotoGuideModalVisible(false)}
+      />
+      <MorePricingDetailsModal
+        visible={isMorePricingModalVisible}
+        onClose={() => setIsMorePricingModalVisible(false)}
+      />
+
+              <View className="flex-row items-center mt-3 mb-4">
           <TouchableOpacity
             onPress={() => router.push("/(tabs)/home")}
             className="p-2"
@@ -314,69 +352,141 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
             </Text>
           </View>
         </View>
+      <ScrollView>
+        <CustomPickerAlert
+          visible={pickerAlertVisible}
+          onClose={() => setPickerAlertVisible(false)}
+          onCameraPress={takePhoto}
+          onGalleryPress={pickFromGallery}
+        />
+       
+        {/* Header */}
+
     
-        {/* Property Details Card */}
-        <View className="border justify-between rounded-xl border-gray-300 shadow-sm bg-white m-5">
-          <View className="mt-5 px-3 flex-row justify-between">
-            <Text className="font-semibold text-left">Property Details</Text>
-            <Text style={{ color: "#22C55E" }}>View Guidelines</Text>
-          </View>
-          
-          {/* Camera */}
-          <View className="bg-[#D9D9D91C] p-4">
-            <TouchableOpacity
-              onPress={pickImage}
-              className="border-2 border-dashed border-gray-300 mx-8 rounded-xl mt-4 p-6 items-center mb-5"
-            >
-              <Ionicons name="camera-outline" size={40} color="#888" />
-              <Text className="text-gray-500 mt-2 text-left">Add Photos or Videos</Text>
-            </TouchableOpacity>
-            {images.length > 0 && (
-              <FlatList
-                data={images}
-                horizontal
-                renderItem={({ item, index }) => (
-                  <View style={{ position: 'relative', marginRight: 10 }}>
-                    <Image
-                      source={{ uri: item }}
-                      className="w-48 h-48 mt-2 rounded-lg"
-                    />
-                    <TouchableOpacity
-                      onPress={() => removeImage(index)}
-                      style={{
-                        position: 'absolute',
-                        top: 10,
-                        right: 10,
-                        backgroundColor: 'rgba(0,0,0,0.5)',
-                        borderRadius: 15,
-                        padding: 5,
-                      }}
-                    >
-                      <Ionicons name="close" size={20} color="white" />
-                    </TouchableOpacity>
+            {/* Property Details Card */}
+            <View className="border rounded-xl border-gray-300 bg-white m-5">
+
+              {/* Header */}
+              <View className="px-4 py-4 flex-row justify-between items-center">
+                <Text className="font-semibold text-base text-gray-900">
+                  Property Details
+                </Text>
+                <TouchableOpacity onPress={() => setIsPhotoGuideModalVisible(true)}>
+                  <Text className="text-sm font-medium text-green-500">
+                    View Guidelines
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Upload Box */}
+              <View className="px-4">
+                <TouchableOpacity
+                  onPress={pickImage}
+                  className="
+                    border-2 border-dashed border-gray-300
+                    rounded-xl
+                    py-8
+                    items-center
+                    justify-center
+                    bg-white
+                  "
+                >
+                  {/* Camera Icon */}
+                  <Ionicons name="camera-outline" size={36} color="#9CA3AF" />
+
+                  {/* Main Text */}
+                  <Text className="mt-3 text-gray-700 font-medium">
+                    Add Photos or Videos
+                  </Text>
+
+                  {/* Sub Text */}
+                  <Text className="text-xs text-gray-500 mt-1">
+                    Support 360° view photos
+                  </Text>
+
+                  {/* Upload Button */}
+                  <View className="mt-4 px-4 py-2 border border-gray-300 rounded-md">
+                    <Text className="text-gray-700 text-sm">
+                      Upload Photos
+                    </Text>
                   </View>
-                )}
-                keyExtractor={(item, index) => index.toString()}
-              />
-            )}
-          </View>
-        </View>
+
+                  {/* Format Info */}
+                  <Text className="text-xs text-gray-400 mt-3">
+                    Required format: JPEG, PNG (Max 10MB per file)
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Uploaded Images Preview */}
+              {images.length > 0 && (
+                <FlatList
+                  data={images}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  className="px-4 mt-4"
+                  renderItem={({ item, index }) => (
+                    <View className="relative mr-3">
+                      <Image
+                        source={{ uri: item }}
+                        className="w-28 h-28 rounded-lg"
+                      />
+                      <TouchableOpacity
+                        onPress={() => removeImage(index)}
+                        className="absolute top-1 right-1 bg-black/60 rounded-full p-1"
+                      >
+                        <Ionicons name="close" size={14} color="white" />
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                  keyExtractor={(_, index) => index.toString()}
+                />
+              )}
+
+              {/* Tutorial Button */}
+              <TouchableOpacity
+                onPress={() => setIsHowto360ModalVisible(true)}
+                className="
+                  flex-row items-center justify-center
+                  mx-4 my-4
+                  py-3
+                  border border-gray-300
+                  rounded-lg
+                "
+              >
+                <Ionicons name="play-outline" size={18} color="#6B7280" />
+                <Text className="ml-2 text-gray-600 text-sm">
+                  Watch Tutorial: How to Take 360° Photos
+                </Text>
+              </TouchableOpacity>
+            </View>
+
 
         {/* Conditional Content */}
-        {constructionStatus === "Ready" ? (
+        {constructionStatus !== "Under" ? (
           <View>
             {/* Basic Details */}
             <View className="border mt-1 overflow-hidden rounded-xl border-gray-300 shadow-sm bg-white m-5 p-5">
               <Text className="mt-3 mb-4 font-bold">Basic Details</Text>
               
               {/* Title */}
-              <Text className="text-gray-500 font-semibold mb-2 text-left">Property Title</Text>
+              <Text className="text-gray-500 font-semibold mb-2 text-left">Property Title <Text className="text-red-500">*</Text></Text>
               <TextInput
                 placeholder="Surya Teja Apartments"
                 placeholderTextColor="#9CA3AF"
-                className="bg-gray-100 rounded-lg p-3 mb-4 text-gray-800"
                 value={propertyTitle}
-                onChangeText={setPropertyTitle}
+                onChangeText={(text) => setPropertyTitle(text.replace(/[^a-zA-Z0-9\s]/g, ''))}
+                style={{
+                  backgroundColor: '#f3f4f6',
+                  borderRadius: 8,
+                  padding: 12,
+                  marginBottom: 16,
+                  color: '#1f2937',
+                  borderColor: focusedField === 'propertyTitle' ? '#90EE90' : '#d1d5db',
+                  borderWidth: 1,
+                }}
+                onFocus={() => setFocusedField('propertyTitle')}
+                onBlur={() => setFocusedField(null)}
               />
 
               {/* Property Type */}
@@ -449,19 +559,37 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                   <TextInput
                     placeholder="0"
                     value={floors}
-                    onChangeText={setFloors}
+                    onChangeText={(text) => setFloors(text.replace(/[^0-9]/g, ''))}
                     keyboardType="numeric"
-                    className="bg-[#D9D9D91C] rounded-lg p-3 text-gray-800 text-left"
+                    style={{
+                        backgroundColor: '#f3f4f6',
+                        borderRadius: 8,
+                        padding: 12,
+                        color: '#1f2937',
+                        borderColor: focusedField === 'floors' ? '#90EE90' : '#d1d5db',
+                        borderWidth: 1,
+                    }}
+                    onFocus={() => setFocusedField('floors')}
+                    onBlur={() => setFocusedField(null)}
                   />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-gray-500 font-semibold mb-2 text-left">Area (sqft)</Text>
+                  <Text className="text-gray-500 font-semibold mb-2 text-left">Area (sqft) <Text className="text-red-500">*</Text></Text>
                   <TextInput
                     placeholder="0"
                     value={area}
-                    onChangeText={setArea}
+                    onChangeText={(text) => setArea(text.replace(/[^0-9]/g, ''))}
                     keyboardType="numeric"
-                    className="bg-[#D9D9D91C] rounded-lg p-3 text-gray-800 text-left"
+                    style={{
+                        backgroundColor: '#f3f4f6',
+                        borderRadius: 8,
+                        padding: 12,
+                        color: '#1f2937',
+                        borderColor: focusedField === 'area' ? '#90EE90' : '#d1d5db',
+                        borderWidth: 1,
+                    }}
+                    onFocus={() => setFocusedField('area')}
+                    onBlur={() => setFocusedField(null)}
                   />
                 </View>
               </View>
@@ -473,9 +601,18 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                   <TextInput
                     placeholder="0"
                     value={bedrooms}
-                    onChangeText={setBedrooms}
+                    onChangeText={(text) => setBedrooms(text.replace(/[^0-9]/g, ''))}
                     keyboardType="numeric"
-                    className="bg-[#D9D9D91C] rounded-lg p-3 text-gray-800 text-left"
+                    style={{
+                        backgroundColor: '#f3f4f6',
+                        borderRadius: 8,
+                        padding: 12,
+                        color: '#1f2937',
+                        borderColor: focusedField === 'bedrooms' ? '#90EE90' : '#d1d5db',
+                        borderWidth: 1,
+                    }}
+                    onFocus={() => setFocusedField('bedrooms')}
+                    onBlur={() => setFocusedField(null)}
                   />
                 </View>
                 <View className="flex-1">
@@ -483,9 +620,18 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                   <TextInput
                     placeholder="0"
                     value={bathrooms}
-                    onChangeText={setBathrooms}
+                    onChangeText={(text) => setBathrooms(text.replace(/[^0-9]/g, ''))}
                     keyboardType="numeric"
-                    className="bg-[#D9D9D91C] rounded-lg p-3 text-gray-800 text-left"
+                    style={{
+                        backgroundColor: '#f3f4f6',
+                        borderRadius: 8,
+                        padding: 12,
+                        color: '#1f2937',
+                        borderColor: focusedField === 'bathrooms' ? '#90EE90' : '#d1d5db',
+                        borderWidth: 1,
+                    }}
+                    onFocus={() => setFocusedField('bathrooms')}
+                    onBlur={() => setFocusedField(null)}
                   />
                 </View>
               </View>
@@ -496,22 +642,23 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                 <TextInput
                   placeholder="0"
                   value={balconies}
-                  onChangeText={setBalconies}
+                  onChangeText={(text) => setBalconies(text.replace(/[^0-9]/g, ''))}
                   keyboardType="numeric"
-                  className="bg-[#D9D9D91C] border-gray-400 rounded-xl p-3 text-gray-800 text-left"
+                  style={{
+                    backgroundColor: '#f3f4f6',
+                    borderRadius: 8,
+                    padding: 12,
+                    color: '#1f2937',
+                    borderColor: focusedField === 'balconies' ? '#90EE90' : '#d1d5db',
+                    borderWidth: 1,
+                  }}
+                  onFocus={() => setFocusedField('balconies')}
+                  onBlur={() => setFocusedField(null)}
                 />
               </View>
 
-              {/* Floor Details */}
-              <View className="flex-1 mt-4">
-                <Text className="text-gray-500 font-semibold mb-2 text-left">Floor Details</Text>
-                <TextInput
-                  placeholder=""
-                  value={floorDetails}
-                  onChangeText={setFloorDetails}
-                  className="bg-[#D9D9D91C] rounded-lg p-3 text-gray-800 text-left"
-                />
-              </View>
+              
+              
 
               {/* Construction Status Buttons */}
               <Text className="text-gray-500 font-semibold mb-2 mt-4 text-left">Availability Status</Text>
@@ -538,6 +685,7 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                 </TouchableOpacity>
               </View>
 
+              {constructionStatus === 'Ready' && (<>
               {/* Age */}
               <Text className="text-gray-500 font-semibold mb-2 text-left">Age of Property</Text>
               <View className="flex-row flex-wrap gap-3 mb-4">
@@ -556,6 +704,7 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                   );
                 })}
               </View>
+              </>)}
 
               {/* Ownership */}
               <Text className="text-gray-500 text-base font-semibold mb-2 text-left">Ownership</Text>
@@ -578,17 +727,24 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
 
               {/* Price Details */}
               <View className="mt-2">
-                <Text className="text-gray-500 font-semibold mb-2 text-left">Price Details</Text>
+                <Text className="text-gray-500 font-semibold mb-2 text-left">Price Details <Text className="text-red-500">*</Text></Text>
                 <TextInput
-  placeholder="₹ Expected Price"
-  value={expectedPrice}
-  onChangeText={(text) => {
-    console.log('💰 Price input changed:', text);
-    setExpectedPrice(text);
-  }}
-  keyboardType="numeric"
-  className="border border-gray-300 rounded-lg bg-[#F9F9F9] p-3 mb-3 text-gray-800 text-left"
-/>
+                  placeholder="₹ Expected Price"
+                  value={expectedPrice}
+                  onChangeText={(text) => setExpectedPrice(text.replace(/[^0-9]/g, ''))}
+                  keyboardType="numeric"
+                  style={{
+                      backgroundColor: '#f3f4f6',
+                      borderRadius: 8,
+                      padding: 12,
+                      marginBottom: 12,
+                      color: '#1f2937',
+                      borderColor: focusedField === 'expectedPrice' ? '#90EE90' : '#d1d5db',
+                      borderWidth: 1,
+                  }}
+                  onFocus={() => setFocusedField('expectedPrice')}
+                  onBlur={() => setFocusedField(null)}
+                />
               </View>
 
               {/* Price Options */}
@@ -618,7 +774,7 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                     </TouchableOpacity>
                   );
                 })}
-                <TouchableOpacity>
+                <TouchableOpacity  onPress={() => setIsMorePricingModalVisible(true)}>
                   <Text className="text-[#22C55E] font-semibold text-left">+ Add more pricing details</Text>
                 </TouchableOpacity>
               </View>
@@ -626,31 +782,54 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
 
             {/* Location */}
             <View className="border border-gray-300 rounded-lg bg-white ml-5 mt-5 mr-4 p-5">
-              <Text className="text-gray-500 font-semibold mb-2 text-left">Location</Text>
-              <View className="flex-row items-center bg-[#D9D9D91C] rounded-lg p-3 mb-4">
+              <Text className="text-gray-500 font-semibold mb-2 text-left">Location <Text className="text-red-500">*</Text></Text>
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: '#f3f4f6',
+                borderRadius: 8,
+                padding: 12,
+                marginBottom: 16,
+                borderColor: focusedField === 'location' ? '#90EE90' : '#d1d5db',
+                borderWidth: 1,
+                }}>
                 <Ionicons name="location-outline" size={20} color="#22C55E" />
                 <TextInput
                   placeholder="Enter Property Location"
                   placeholderTextColor="#888"
                   value={location}
-                  onChangeText={setLocation}
-                  className="flex-1 ml-2 text-gray-800 text-left"
+                  onChangeText={(text) => setLocation(text.replace(/[^a-zA-Z0-9\s]/g, ''))}
+                  style={{ flex: 1, marginLeft: 8, color: '#1f2937' }}
+                  onFocus={() => setFocusedField('location')}
+                  onBlur={() => setFocusedField(null)}
                 />
               </View>
             </View>
 
             {/* Description */}
             <View className="border border-gray-300 rounded-lg bg-white ml-5 mr-4 mt-5 p-5">
-              <Text className="text-gray-500 font-semibold mb-2 text-left">Description</Text>
-              <View className="border border-gray-300 rounded-xl mb-4">
+              <Text className="text-gray-500 font-semibold mb-2 text-left">Description <Text className="text-red-500">*</Text></Text>
+              <View style={{
+                borderRadius: 8,
+                marginBottom: 16,
+                borderColor: focusedField === 'description' ? '#90EE90' : '#d1d5db',
+                borderWidth: 1,
+                }}>
                 <TextInput
                   placeholder="Describe your property ........"
                   placeholderTextColor="#888"
                   value={description}
-                  onChangeText={setDescription}
+                  onChangeText={(text) => setDescription(text.replace(/[^a-zA-Z0-9\s]/g, ''))}
                   multiline
                   numberOfLines={4}
-                  className="w-full p-3 text-gray-800 text-left"
+                  style={{
+                      backgroundColor: '#f3f4f6',
+                      width: '100%',
+                      padding: 12,
+                      color: '#1f2937',
+                  }}
+                  onFocus={() => setFocusedField('description')}
+                  onBlur={() => setFocusedField(null)}
                 />
               </View>
             </View>
@@ -691,12 +870,14 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                   <TouchableOpacity
                     key={type}
                     onPress={() => {
-                      if (type === "Furnished") {
-                        navigation.navigate("AddFurnishingsScreen", {
-                          selectedFurnishing: type,
+                      setFurnishing(type);
+                      if (type === "Furnished" || type === "Semi-furnished") {
+                        router.push({
+                          pathname: "/home/screens/UploadScreens/AddFurnishingsScreen",
+                          params: { 
+                            selectedFurnishing: type,
+                          },
                         });
-                      } else {
-                        setFurnishing(type);
                       }
                     }}
                     className={`rounded-full px-4 py-2 border ${
@@ -753,7 +934,7 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
-                  Vaasthu Details
+                  Vaasthu Details <Text className="text-red-500">*</Text>
                 </Text>
                 <Image source={require("../../../../assets/vastu.png")} style={{ width: 30, height: 30 }} />
               </View>
@@ -804,13 +985,23 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
               <Text className="mt-3 mb-4 font-bold">Basic Details</Text>
               
               {/* Title */}
-              <Text className="text-gray-500 font-semibold mb-2 text-left">Property Title</Text>
+              <Text className="text-gray-500 font-semibold mb-2 text-left">Property Title <Text className="text-red-500">*</Text></Text>
               <TextInput
                 placeholder="Surya Teja Apartments"
                 placeholderTextColor="#9CA3AF"
-                className="bg-gray-100 rounded-lg p-3 mb-4 text-gray-800"
                 value={propertyTitle}
-                onChangeText={setPropertyTitle}
+                onChangeText={(text) => setPropertyTitle(text.replace(/[^a-zA-Z0-9\s]/g, ''))}
+                style={{
+                  backgroundColor: '#f3f4f6',
+                  borderRadius: 8,
+                  padding: 12,
+                  marginBottom: 16,
+                  color: '#1f2937',
+                  borderColor: focusedField === 'propertyTitle' ? '#90EE90' : '#d1d5db',
+                  borderWidth: 1,
+                }}
+                onFocus={() => setFocusedField('propertyTitle')}
+                onBlur={() => setFocusedField(null)}
               />
 
               {/* Type */}
@@ -837,19 +1028,37 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                   <TextInput
                     placeholder="0"
                     value={floors}
-                    onChangeText={setFloors}
+                    onChangeText={(text) => setFloors(text.replace(/[^0-9]/g, ''))}
                     keyboardType="numeric"
-                    className="border-gray-300 rounded-lg p-3 text-gray-800 text-left"
+                    style={{
+                        backgroundColor: '#f3f4f6',
+                        borderRadius: 8,
+                        padding: 12,
+                        color: '#1f2937',
+                        borderColor: focusedField === 'floors' ? '#90EE90' : '#d1d5db',
+                        borderWidth: 1,
+                    }}
+                    onFocus={() => setFocusedField('floors')}
+                    onBlur={() => setFocusedField(null)}
                   />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-gray-500 font-semibold mb-2 text-left">Area (sqft)</Text>
+                  <Text className="text-gray-500 font-semibold mb-2 text-left">Area (sqft) <Text className="text-red-500">*</Text></Text>
                   <TextInput
                     placeholder="0"
                     value={area}
-                    onChangeText={setArea}
+                    onChangeText={(text) => setArea(text.replace(/[^0-9]/g, ''))}
                     keyboardType="numeric"
-                    className="rounded-lg p-3 text-gray-800 text-left"
+                    style={{
+                        backgroundColor: '#f3f4f6',
+                        borderRadius: 8,
+                        padding: 12,
+                        color: '#1f2937',
+                        borderColor: focusedField === 'area' ? '#90EE90' : '#d1d5db',
+                        borderWidth: 1,
+                    }}
+                    onFocus={() => setFocusedField('area')}
+                    onBlur={() => setFocusedField(null)}
                   />
                 </View>
               </View>
@@ -861,9 +1070,18 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                   <TextInput
                     placeholder="0"
                     value={bedrooms}
-                    onChangeText={setBedrooms}
+                    onChangeText={(text) => setBedrooms(text.replace(/[^0-9]/g, ''))}
                     keyboardType="numeric"
-                    className="bg-[#D9D9D91C] rounded-lg p-3 text-gray-800 text-left"
+                    style={{
+                        backgroundColor: '#f3f4f6',
+                        borderRadius: 8,
+                        padding: 12,
+                        color: '#1f2937',
+                        borderColor: focusedField === 'bedrooms' ? '#90EE90' : '#d1d5db',
+                        borderWidth: 1,
+                    }}
+                    onFocus={() => setFocusedField('bedrooms')}
+                    onBlur={() => setFocusedField(null)}
                   />
                 </View>
                 <View className="flex-1">
@@ -871,9 +1089,18 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                   <TextInput
                     placeholder="0"
                     value={bathrooms}
-                    onChangeText={setBathrooms}
+                    onChangeText={(text) => setBathrooms(text.replace(/[^0-9]/g, ''))}
                     keyboardType="numeric"
-                    className="bg-[#D9D9D91C] rounded-lg p-3 text-gray-800 text-left"
+                    style={{
+                        backgroundColor: '#f3f4f6',
+                        borderRadius: 8,
+                        padding: 12,
+                        color: '#1f2937',
+                        borderColor: focusedField === 'bathrooms' ? '#90EE90' : '#d1d5db',
+                        borderWidth: 1,
+                    }}
+                    onFocus={() => setFocusedField('bathrooms')}
+                    onBlur={() => setFocusedField(null)}
                   />
                 </View>
               </View>
@@ -954,39 +1181,112 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
 
             {/* Location */}
             <View className="border border-gray-300 rounded-lg bg-white ml-2 mt-5 p-5">
-              <Text className="text-gray-500 font-semibold mb-2 text-left">Location</Text>
-              <View className="flex-row items-center bg-[#D9D9D91C] rounded-lg p-3 mb-4">
+              <Text className="text-gray-500 font-semibold mb-2 text-left">Location <Text className="text-red-500">*</Text></Text>
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: '#f3f4f6',
+                borderRadius: 8,
+                padding: 12,
+                marginBottom: 16,
+                borderColor: focusedField === 'location' ? '#90EE90' : '#d1d5db',
+                borderWidth: 1,
+                }}>
                 <Ionicons name="location-outline" size={20} color="#22C55E" />
                 <TextInput
                   placeholder="Enter Property Location"
                   placeholderTextColor="#888"
                   value={location}
-                  onChangeText={setLocation}
-                  className="flex-1 ml-2 text-gray-800 text-left"
+                  onChangeText={(text) => setLocation(text.replace(/[^a-zA-Z0-9\s]/g, ''))}
+                  style={{ flex: 1, marginLeft: 8, color: '#1f2937' }}
+                  onFocus={() => setFocusedField('location')}
+                  onBlur={() => setFocusedField(null)}
                 />
               </View>
             </View>
 
             {/* Description */}
             <View className="border border-gray-300 rounded-lg bg-white ml-2 mt-5 p-5">
-              <Text className="text-gray-500 font-semibold mb-2 text-left">Description</Text>
-              <View className="border border-gray-300 rounded-xl mb-4">
+              <Text className="text-gray-500 font-semibold mb-2 text-left">Description <Text className="text-red-500">*</Text></Text>
+              <View style={{
+                borderRadius: 8,
+                marginBottom: 16,
+                borderColor: focusedField === 'description' ? '#90EE90' : '#d1d5db',
+                borderWidth: 1,
+                }}>
                 <TextInput
                   placeholder="Describe your property ........"
                   placeholderTextColor="#888"
                   value={description}
-                  onChangeText={setDescription}
+                  onChangeText={(text) => setDescription(text.replace(/[^a-zA-Z0-9\s]/g, ''))}
                   multiline
                   numberOfLines={4}
-                  className="w-full p-3 text-gray-800 text-left"
+                  style={{
+                      backgroundColor: '#f3f4f6',
+                      width: '100%',
+                      padding: 12,
+                      color: '#1f2937',
+                  }}
+                  onFocus={() => setFocusedField('description')}
+                  onBlur={() => setFocusedField(null)}
                 />
               </View>
             </View>
           </View>
         )}
 
-        {/* BUTTON */}
-        <View
+        {/* Owner Details */}
+        <View className="bg-white m-5 p-4 rounded-xl border border-gray-200">
+
+      {/* Title */}
+      <Text className="text-base font-semibold text-gray-800 mb-4">
+        Owner Details
+      </Text>
+
+      {/* Name */}
+      <View className="flex-row items-center border border-gray-300 rounded-lg px-3 py-2 mb-3">
+        <Ionicons name="person-outline" size={20} color="#9CA3AF" />
+        <TextInput
+          value={ownerName}
+          onChangeText={setOwnerName}
+          placeholder="Name of the Owner"
+          placeholderTextColor="#9CA3AF"
+          className="flex-1 ml-3 text-gray-900"
+        />
+      </View>
+
+      {/* Phone */}
+      <View className="flex-row items-center border border-gray-300 rounded-lg px-3 py-2 mb-3">
+        <Ionicons name="call-outline" size={20} color="#9CA3AF" />
+        <TextInput
+          value={phone}
+          onChangeText={setPhone}
+          placeholder="Phone Number"
+          placeholderTextColor="#9CA3AF"
+          keyboardType="phone-pad"
+          className="flex-1 ml-3 text-gray-900"
+        />
+      </View>
+
+      {/* Email */}
+      <View className="flex-row items-center border border-gray-300 rounded-lg px-3 py-2">
+        <Ionicons name="mail-outline" size={20} color="#9CA3AF" />
+        <TextInput
+          value={email}
+          onChangeText={setEmail}
+          placeholder="Enter your Email"
+          placeholderTextColor="#9CA3AF"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          className="flex-1 ml-3 text-gray-900"
+        />
+      </View>
+
+    </View>
+
+
+      </ScrollView> 
+              <View
           style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 16, gap: 12 }}
           className="space-x-3 mr-4"
         >
@@ -1022,9 +1322,9 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
               {isSubmitting ? "Uploading..." : "Upload Property"}
             </Text>
           </TouchableOpacity>
-        </View>
-
-      </ScrollView>   
+        </View>  
     </SafeAreaView>
+    <Toast />
+    </>
   );
 }
