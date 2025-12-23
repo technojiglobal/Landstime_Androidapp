@@ -13,7 +13,11 @@ const PORT = process.env.PORT || 8000;
 
 // Middleware
 app.use(cors({
+<<<<<<< HEAD
   origin: ['http://localhost:8081', 'http://10.191.138.77:8081'], // Add your frontend URLs
+=======
+  origin: ['http://localhost:8081', 'http://10.121.22.5:8081'], // Add your frontend URLs
+>>>>>>> db27a66b23d91b2ca690cfabd2b589764a4248b6
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
