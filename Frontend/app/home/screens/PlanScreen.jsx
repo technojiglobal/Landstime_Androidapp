@@ -1,6 +1,7 @@
 // Landstime_Androidapp/Frontend/app/home/screens/PlanScreen.jsx
 
 import React from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { View, Text, ScrollView,Image, TouchableOpacity,StatusBar } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -8,9 +9,17 @@ import { subscriptionPlans } from "../../../data/plansData";
 import arrow from "../../../assets/arrow.png"
 export default function SubscriptionPlansScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets(); // Add this
 
   return (
-    <View className="flex-1 mt-7 bg-white">
+   <View className="flex-1 bg-black"> {/* Add black wrapper */}
+      <View 
+        className="flex-1 bg-white"
+        style={{ 
+          marginTop: insets.top, 
+          marginBottom: insets.bottom 
+        }}
+      >
     <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <ScrollView showsVerticalScrollIndicator={false}>
         <View  className="flex-row ml-5 mt-9 border-b border-gray-200 mb-5 pb-2">
@@ -67,8 +76,10 @@ export default function SubscriptionPlansScreen() {
             </View>
           ))}
         </View>
+       
 
       </ScrollView>
+    </View>
     </View>
   );
 }

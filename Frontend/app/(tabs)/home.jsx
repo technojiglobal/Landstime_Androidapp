@@ -11,7 +11,10 @@ export default function HomeTab() {
       sidebarOpen={sidebarOpen}
       toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
     >
-      <HomeScreen toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+      <HomeScreen 
+        toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        sidebarOpen={sidebarOpen}
+      />
     </SidebarLayout>
   );
 }

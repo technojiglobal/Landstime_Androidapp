@@ -1,4 +1,6 @@
 // Landstime_Androidapp/Frontend/app/home/screens/BiddingsScreen.jsx
+
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text, View,TouchableOpacity,StatusBar } from 'react-native'
 import React from 'react';
 import { Ionicons } from "@expo/vector-icons";
@@ -7,8 +9,16 @@ import { useRouter } from "expo-router";
 
 const SettingsScreen = () => {
   const router = useRouter();
+  const insets = useSafeAreaInsets(); // Add this
   return (
-    <View className="flex-1 justify-center items-center">
+      <View className="flex-1 bg-black"> {/* Add black wrapper */}
+      <View 
+        className="flex-1 bg-white justify-center items-center"
+        style={{ 
+          marginTop: insets.top, 
+          marginBottom: insets.bottom 
+        }}
+      >
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
        <TouchableOpacity
         onPress={() =>router.push("/(tabs)/home")}
@@ -18,6 +28,7 @@ const SettingsScreen = () => {
       </TouchableOpacity>
 
       <Text className='font-bold '>Bidding Screen coming soon...</Text>
+    </View>
     </View>
   )
 }
