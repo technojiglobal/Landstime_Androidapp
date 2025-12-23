@@ -1,5 +1,4 @@
-//Frontend//app//home//screens//UploadScreens///ResortUpload//index.jsx
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,15 +7,15 @@ import {
   TouchableOpacity,
   Pressable,
   Image,
-  Alert,StatusBar
-} from 'react-native';
+  Alert,
+  StatusBar,Modal,FlatList,ToastAndroid, Platform 
+} from "react-native";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
-import { Picker } from "@react-native-picker/picker";
 import TopAlert from "../TopAlert";
 
-// Pill Button Component
+/* ---------- Reusable Components ---------- */
 const PillButton = ({ label, selected, onPress }) => (
   <TouchableOpacity
     onPress={onPress}
@@ -36,131 +35,216 @@ const PillButton = ({ label, selected, onPress }) => (
   </TouchableOpacity>
 );
 
-// Checkbox Component
-const Checkbox = ({ label, selected, onPress }) => (
-  <Pressable onPress={onPress} className="flex-row items-center mb-2">
-    <View
-      className="w-4 h-4 mr-2 mt-3 rounded-sm items-center justify-center"
-      style={{
-        borderWidth: 1,
-        borderColor: selected ? "#22C55E" : "#0000001A",
-        backgroundColor: selected ? "#22C55E" : "white",
-      }}
-    >
-      {selected && <Text style={{ color: "white", fontWeight: 'bold' }}>✓</Text>}
-    </View>
-    <Text className="text-[11px] text-[#00000099]">{label}</Text>
-  </Pressable>
-);
-
-// Round Option Component
-const RoundOption = ({ label, selected, onPress }) => (
-  <TouchableOpacity
-    onPress={onPress}
-    className="w-8 h-8 rounded-full items-center mx-2 justify-center"
-    style={{ borderWidth: 1, borderColor: selected ? '#22C55E' : '#0000001A', backgroundColor: selected ? '#22C55E17' : 'transparent' }}
-  >
-    <Text style={{ fontSize: 12, fontWeight: selected ? '600' : '400', color: selected ? '#22C55E' : 'rgba(0,0,0,0.6)' }}>
-      {label}
-    </Text>
-  </TouchableOpacity>
-);
-
+/* ---------- Screen ---------- */
 export default function PropertyFormScreen() {
   const router = useRouter();
 
-  // State variables
-  const [title, setTitle] = useState('');
-  const [propertyType, setPropertyType] = useState('Commercial');
+  const [title, setTitle] = useState("");
+  const [propertyType, setPropertyType] = useState("Resort");
   const [visible, setVisible] = useState(null);
-
-  const [selectedTypes, setSelectedTypes] = useState(['Office']);
-  const typePills = ['Office', 'Retail', 'Plot/Land', 'Storage', 'Industry', 'Hospitality', 'Other'];
-
-  
-  const officeKindPills = ['Ready to move office space', 'Bare shell office space', 'Co-working office space'];
-const [selectedType, setSelectedType] = useState("Office"); // Only one selected
-const [officeKinds, setOfficeKinds] = useState(['Ready to move office space']);
-const [retailKinds, setRetailKinds] = useState([]);
-const [plotKinds, setPlotKinds] = useState([]);
-  const [location, setLocation] = useState('');
-  const [locatedInside, setLocatedInside] = useState('');
-  const [zoneType, setZoneType] = useState('');
-
-  const [area, setArea] = useState('');
-  const [unit, setUnit] = useState('sqft');
-  const [carpetArea, setCarpetArea] = useState('');
-  const [carpetUnit, setCarpetUnit] = useState('sqft');
-
-  const [cabins, setCabins] = useState('');
-  const [meetingRooms, setMeetingRooms] = useState('');
-  const [seats, setSeats] = useState('');
-
-  const [conferenceSelected, setConferenceSelected] = useState(null);
-  const conferenceOptions = ['1', '2', '3', '4+'];
-
-  const [publicWashroom, setPublicWashroom] = useState(null);
-  const [privateWashroom, setPrivateWashroom] = useState(null);
-  const [receptionArea, setReceptionArea] = useState(false);
-  const [privacy, setPrivacy] = useState(false);
-  const [washroomType, setWashroomType] = useState(null);
-
-  const [additionalFeatures, setAdditionalFeatures] = useState([]);
-  const [fireMeasures, setFireMeasures] = useState([]);
-  const fireOptions = ['Fire Extinguisher', 'Fire Sensors', 'Sprinklers', 'Fire Hose'];
-
-  const [totalFloors, setTotalFloors] = useState('');
-  const [stairCase, setStairCase] = useState(null);
-  const stairOptions = ['1', '2', '3', '4+'];
-  const [lift, setLift] = useState('');
-
-  const [parking, setParking] = useState('');
-  const [availability, setAvailability] = useState('');
-  const ownershipOptions = ['Freehold', 'Leasehold', 'Company Owned', 'Other'];
-  const [ownership, setOwnership] = useState('');
-
-  const [expectedPrice, setExpectedPrice] = useState('');
-  const [allInclusive, setAllInclusive] = useState(false);
-  const [priceNegotiable, setPriceNegotiable] = useState(false);
-  const [taxExcluded, setTaxExcluded] = useState(false);
-  const [preLeased, setPreLeased] = useState(null);
-  const [nocCertified, setNocCertified] = useState(null);
-  const [occupancyCertified, setOccupancyCertified] = useState(null);
-  const [prevUsedFor, setPrevUsedFor] = useState('Commercial');
-  const prevUsedForOptions = ['Commercial', 'Residential', 'Warehouse'];
-
-  const [describeProperty, setDescribeProperty] = useState('');
-  const amenityOptions = ['+Maintenance Staff','+Water Storage','+Water Disposal','+ATM','+Shopping Center','+Wheelchair Accessibility','+Cafeteria/Foodcourt','+DG Availability','+CCTV Surveillance','+Grocery shop','+Visitor Parking','+Power Backup','+Lift(s)'];
-  const [amenities, setAmenities] = useState([]);
-  const locationAdvantages = ['+Close to Metro Station','+Close to School','+Close to Hospital','+Close to Market','+Close to Railway Station','+Close to Airport','+Close to Mall','+Close to Highway'];
+  const [rooms, setRooms] = useState("");
+  const [floors, setFloors] = useState("");
+  const [buildArea, setBuildArea] = useState("");
+  const [area, setArea] = useState("");
+  const [price, setPrice] = useState("");
+  const [location, setLocation] = useState("");
+  const [description, setDescription] = useState("");
   const [locAdvantages, setLocAdvantages] = useState([]);
-
   const [image, setImage] = useState(null);
   const [alertVisible, setAlertVisible] = useState(false);
+const [propertyFacing, setPropertyFacing] = useState("Select");
+const [masterSuitroom, setMasterSuitroom] = useState("Select");
+const [kitchenRoom, setKitchenRoom] = useState("Select");
+const [poojaRoom, setPoojaRoom] = useState("Select");
+const [balcony, setBalcony] = useState("Select");
+const [entranceDirection, setEntranceDirection] = useState("Select");
+const [receptionAreaFacing, setReceptionAreaFacing] = useState("Select");
+const [mainLobbyDirection, setMainLobbyDirection] = useState("Select");
+const [guestRoom, setGuestRoom] = useState("Select");
+const [restaurantDirection, setRestaurantDirection] = useState("Select");
+const [vipSuite, setVipSuite] = useState("Select");
+const [conferenceDirection, setconferenceDirection] = useState("Select");
+const [spaRoom, setSpaRoom] = useState("Select");
+const [swimmingPool, setSwimmingPool] = useState("Select");
+const [yoga, setYoga] = useState("Select");
+const [office, setOffice] = useState("Select");
+const [recreation, setRecreation] = useState("Select");
+const [garden, setGarden] = useState("Select");
+const [resortType, setResortType] = useState("");
+const [resortOpen, setResortOpen] = useState(false);
 
-  const toggleArrayItem = (setter, array, value) => {
-    if (array.includes(value)) setter(array.filter(item => item !== value));
-    else setter([...array, value]);
-  };
+  /* ---------- Helpers ---------- */
+  const isAlphaNumeric = (text) => /^[a-zA-Z0-9\s]+$/.test(text);
+  const isNumeric = (text) => /^[0-9]+$/.test(text);
 
-  const openCamera = async () => {
-    let permission = await ImagePicker.getCameraPermissionsAsync();
+const showToast = (message) => {
+  if (Platform.OS === "android") {
+    ToastAndroid.showWithGravity(
+      message,
+      ToastAndroid.SHORT,
+      ToastAndroid.TOP
+    );
+  } else {
+    console.log(message); // iOS fallback for now
+  }
+};
 
-    if (permission.status !== "granted") {
-      permission = await ImagePicker.requestCameraPermissionsAsync();
-      if (permission.status !== "granted") {
-        Alert.alert(
-          "Permission Required",
-          "You need to grant camera permissions to use this feature. Please go to your device settings and enable them for this app."
-        );
+/* ---------- Validation ---------- */
+  const handleSubmit = () => {
+    const requiredTextFields = [
+      { label: "Resort Title", value: title },
+      { label: "Location", value: location },
+      { label: "Description", value: description },
+    ];
+
+    const requiredNumericFields = [
+      { label: "Rooms", value: rooms },
+      { label: "Floors", value: floors },
+      { label: "Land Area", value: area },
+      { label: "Build Area", value: buildArea },
+      { label: "Price", value: price },
+    ];
+
+    for (let field of requiredTextFields) {
+      if (!field.value.trim()) {
+        showToast(`${field.label} is mandatory`);
+        return;
+      }
+      if (!isAlphaNumeric(field.value)) {
+        showToast(`${field.label} must be alphanumeric`);
         return;
       }
     }
+
+    for (let field of requiredNumericFields) {
+      if (!field.value.trim()) {
+        showToast(`${field.label} is mandatory`);
+        return;
+      }
+      if (!isNumeric(field.value)) {
+        showToast(`${field.label} must be numeric`);
+        return;
+      }
+    }
+
+    if (!resortType) {
+      showToast("Please select Resort Type");
+      return;
+    }
+
+    const vaasthuFields = [
+      propertyFacing,
+      entranceDirection,
+      receptionAreaFacing,
+      mainLobbyDirection,
+      masterSuitroom,
+      guestRoom,
+      restaurantDirection,
+      vipSuite,
+      conferenceDirection,
+      spaRoom,
+      swimmingPool,
+      yoga,
+      kitchenRoom,
+      poojaRoom,
+      office,
+      recreation,
+      balcony,
+      garden,
+    ];
+
+    if (vaasthuFields.includes("Select")) {
+      showToast("Please fill all Vaasthu Details");
+      return;
+    }
+  // ✅ Image mandatory
+if (!image) {
+  showToast("Please upload at least one property image");
+  return;
+}
+    setAlertVisible(true);
+  };
+
+
+
+
+
+
+const RESORT_TYPES = [
+  "Beachfront Resort",
+  "Hill Station / Mountain Resort",
+  "Forest / Jungle Retreat",
+  "Lakefront Resort",
+  "Desert Resort",
+  "Eco-Resort",
+  "Island Resort",
+  "Wellness / Spa Resort",
+  "Luxury Resort",
+  "Boutique Resort",
+  "Family Resort",
+  "Adventure / Activity Resort",
+  "Safari / Wildlife Resort",
+  "Water Park Resort",
+  "Golf Resort",
+  "Riverfront Resort",
+  "Farm / Agri-Resort",
+  "Theme Resort",
+  "Business / Conference Resort",
+  "Eco-Lodge / Nature Retreat",
+];
+
+  const locationAdvantages = [
+    "+Close to Metro Station",
+    "+Close to School",
+    "+Close to Hospital",
+    "+Close to Market",
+    "+Close to Railway Station",
+    "+Close to Airport",
+    "+Close to Mall",
+    "+Close to Highway",
+  ];
+ const directions = ["North-East", "South-West", "East", "West"];
+   const fields = [
+    { key: "propertyFacing", label: "Property Facing", value: propertyFacing, setValue: setPropertyFacing },
+    { key: "entranceDirection", label: "Entrance Direction", value: entranceDirection, setValue: setEntranceDirection },
+    { key: "receptionAreaFacing", label: "Reception Area Facing", value: receptionAreaFacing, setValue: setReceptionAreaFacing },
+    { key: "mainLobbyDirection", label: "Main Lobby Direction", value: mainLobbyDirection, setValue: setMainLobbyDirection },
+
+    { key: "masterSuitroom", label: "Master Suitroom Direction", value: masterSuitroom, setValue: setMasterSuitroom },
+   // { key: "masterBedroom", label: "Master Bedroom", value: masterBedroom, setValue: setMasterBedroom },
+   { key: "guestRoom", label: "Guest Room Direction", value: guestRoom, setValue: setGuestRoom },
+    { key: "restaurantDirection", label: "Restaurant Direction", value: restaurantDirection, setValue: setRestaurantDirection },
+    { key: "vipSuite", label: "VIP Suite Direction(if applicable)", value: vipSuite, setValue: setVipSuite },
+    { key: "conferenceDirection", label: "Conference/Banquet Hall Direction", value: conferenceDirection, setValue: setconferenceDirection},
+    { key: "spaRoom", label: "Spa/Wellness Center Direction", value: spaRoom, setValue: setSpaRoom },
+    { key: "swimmingPool", label: "Swimming Pool Direction", value: swimmingPool, setValue: setSwimmingPool },
+    { key: "yoga", label: "Yoga/Meditation Area Direction", value: yoga, setValue: setYoga },
+    { key: "kitchenRoom", label: "Kitchen Direction", value: kitchenRoom, setValue: setKitchenRoom },
+    { key: "poojaRoom", label: "Prayer/Pooja/Meditation Room Direction", value: poojaRoom, setValue: setPoojaRoom },
+    { key: "office", label: "Office/Administration Room Direction", value: office, setValue: setOffice },
+    { key: "recreation", label: "Recreation/Activity Area Direction", value: recreation, setValue: setRecreation },
+     { key: "balcony", label: "Balcony/Deck/Veranda", value: balcony, setValue: setBalcony },
+     { key: "garden", label: "Garden/Open Space/Lawn", value: garden, setValue: setGarden },
+  ];
+  const toggleArrayItem = (setter, array, value) => {
+    setter(
+      array.includes(value)
+        ? array.filter((i) => i !== value)
+        : [...array, value]
+    );
+  };
+
+  const openCamera = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Permission Required", "Camera permission is needed");
+      return;
+    }
+
     const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [4, 3],
       quality: 1,
     });
+
     if (!result.canceled) {
       setImage(result.assets[0].uri);
     }
@@ -170,594 +254,410 @@ const [plotKinds, setPlotKinds] = useState([]);
     <View className="flex-1 bg-gray-50">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <TopAlert visible={alertVisible} onHide={() => setAlertVisible(false)} />
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 36 }} showsVerticalScrollIndicator={false}>
-        {/* Header */}
+      {/* ---------- Header ---------- */}
         <View className="flex-row items-center mt-7 mb-4">
           <TouchableOpacity
-            onPress={() => router.push("/home/screens/UploadScreens/AddScreen")}
+            onPress={() =>
+              router.push("/home/screens/UploadScreens/AddScreen")
+            }
             className="p-2"
           >
-            <Image source={require("../../../../../assets/arrow.png")} style={{ width: 20, height: 20, resizeMode: "contain" }} />
+            <Image
+              source={require("../../../../../assets/arrow.png")}
+              style={{ width: 20, height: 20 }}
+            />
           </TouchableOpacity>
           <View className="ml-2">
-            <Text className="text-[16px] font-semibold">Upload Your Property</Text>
-            <Text className="text-[12px] text-[#00000066]">Add your property details</Text>
+            <Text className="text-[16px] font-semibold">
+              Upload Your Resort
+            </Text>
+            <Text className="text-[12px] text-[#00000066]">
+              Add your property details
+            </Text>
           </View>
         </View>
+      <ScrollView
+        contentContainerStyle={{ padding: 16, paddingBottom: 140 }}
+        showsVerticalScrollIndicator={false}
+      >
+        
 
-        {/* Property Photos */}
-        <View className="bg-white rounded-lg p-4 mb-4" style={{ borderWidth: 1, borderColor: "#0000001A" }}>
-          <View className="flex-row justify-between items-center mb-2">
-            <Text className="text-[15px] font-bold">Property Details</Text>
-            <TouchableOpacity><Text className="text-[11px] text-[#22C55E]">View Guidelines</Text></TouchableOpacity>
-          </View>
+        {/* ---------- Property Media ---------- */}
+        <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
+          <Text className="text-[15px] font-bold mb-2">Property Details <Text style={{ color: "red" }}>*</Text></Text>
+
           <TouchableOpacity
             onPress={openCamera}
-            className="border-2 border-dashed border-gray-300 rounded-xl mt-4 p-6 items-center mb-5"
+            className="border-2 bg-[#D9D9D91C] border-dashed border-gray-300 rounded-xl p-6 items-center mb-4"
           >
             <Ionicons name="camera-outline" size={40} color="#888" />
-            <Text className="text-gray-500 mt-2 text-left">Add Photos or Videos</Text>
+            <Text className="text-gray-500 mt-2">Add Photos or Videos</Text>
           </TouchableOpacity>
-          {image && <Image source={{ uri: image }} className="w-full h-48 -mt-2 mb-2 rounded-lg" />}
+
+          {image && (
+            <Image
+              source={{ uri: image }}
+              className="w-full h-48 rounded-lg"
+            />
+          )}
         </View>
 
-            <View
-                  className="bg-white rounded-lg p-4 mb-4"
-                  style={{ borderWidth: 1, borderColor: "#0000001A" }}
-                >
-                  <Text className="text-[16px] font-bold mb-5">Basic Details</Text>
-        
-                  <Text className="text-[15px] text-[#00000099]  font-bold mb-2">Property Title</Text>
-                  <TextInput
-                    placeholder="Surya Teja Apartments"
-                    value={title}
-                    onChangeText={setTitle}
-                    className="rounded-md p-3 mb-3"
-                    style={{ borderWidth: 1, borderColor: "#0000001A", height: 50, backgroundColor: "#D9D9D91C" }}
-                  />
-        
-                  <Text className="text-[15px] text-[#00000099] font-bold mb-2">Property Type</Text>
-                  <TouchableOpacity
-                    onPress={() =>
-                      setVisible(visible === "propertyType" ? null : "propertyType")
-                    }
-                    className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300"
-                  >
-                    <Text className="text-gray-800 text-left">
-                      {propertyType || "House"}
-                    </Text>
-                    <Ionicons name="chevron-down" size={24} color="#888" />
-                  </TouchableOpacity>
-                  </View>
-                 {visible === "propertyType" && (
-          <View
-            className="bg-white rounded-lg shadow-lg -mt-1 mb-4"
-            style={{ borderWidth: 1, borderColor: "#0000001A" }}
+        {/* ---------- Basic Details ---------- */}
+        <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
+          <Text className="text-[16px] font-bold mb-4">Basic Details</Text>
+
+         <Text className="text-[14px] font-bold text-gray-600 mb-2">
+  Resort Title <Text style={{ color: "red" }}>*</Text>
+</Text>
+          <TextInput
+            placeholder="Ocean Breeze Paradise"
+            value={title}
+            onChangeText={(text) => {
+    if (text === "" || isAlphaNumeric(text)) {
+      setTitle(text);
+    }
+  }}
+            className="rounded-md p-3 mb-3 bg-[#D9D9D91C]  border border-gray-300 focus:border-green-500 focus:ring-green-500"
+          />
+
+           {/* Property Type */}
+                        <View className="px-1">
+                          <Text className="text-gray-500 font-semibold mb-2">
+                            Property Type
+                          </Text>
+                          <TouchableOpacity
+                            onPress={() => setVisible(visible === "propertyType" ? null : "propertyType")}
+                            className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 "
+                          >
+                            <Text className="text-gray-800 text-left">
+                              {propertyType || "House"}
+                            </Text>
+                            <Ionicons name="chevron-down" size={24} color="#888" />
+                          </TouchableOpacity>
+                          {visible === "propertyType" && (
+                            <View
+                              className="bg-white rounded-lg shadow-lg -mt-3 mb-4"
+                              style={{ borderWidth: 1, borderColor: "#0000001A" }}
+                            >
+                              {["House", "Site/Plot", "Commercial", "Resort"].map((type) => (
+                                <TouchableOpacity
+                                  key={type}
+                                  onPress={() => {
+                                    setPropertyType(type);
+                                    setVisible(null);
+                                    
+                                    if (type === "House") {
+                                      router.push("/home/screens/UploadScreens/AddScreen");
+                                    } else if (type === "Site/Plot") {
+                                      router.push ("/home/screens/UploadScreens/SiteUpload")
+                                    } else if (type === "Commercial") {
+                                      router.push( "/home/screens/UploadScreens/CommercialUpload");                           
+                                    } else {
+                                      router.push("/home/screens/UploadScreens/ResortUpload");
+                                    }
+                                  }}
+                                  className={`p-4 border-b border-gray-200 ${propertyType === type ? "bg-green-500" : "bg-white"}`}
+                                >
+                                  <Text className={`${propertyType === type ? "text-white" : "text-gray-800"}`}>{type}</Text>
+                                </TouchableOpacity>
+                              ))}
+                            </View>
+                          )}
+                        </View>
+         {/* Resort Type */}
+<Text  className="text-[14px] font-bold text-gray-500 mt-1 mb-2">Resort Type <Text style={{ color: "red" }}>*</Text></Text>
+
+{/* Dropdown Trigger */}
+<TouchableOpacity onPress={() => setResortOpen(!resortOpen)}
+  className="bg-[#D9D9D91C]  rounded-lg p-3 flex-row justify-between items-center border border-gray-300">
+  <Text>{resortType || "Select Resort Type"}</Text>
+   <Ionicons name="chevron-down" size={20} color="#888" />
+</TouchableOpacity>
+
+
+{/* Dropdown List (FIXED USING MODAL) */}
+<Modal
+  visible={resortOpen}
+  transparent
+  animationType="fade"
+>
+  <Pressable
+    style={{
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.2)",
+      justifyContent: "center",
+      padding: 20,
+    }}
+    onPress={() => setResortOpen(false)}
+  >
+    <View
+      style={{
+        backgroundColor: "white",
+        borderRadius: 10,
+        maxHeight: "70%",
+      }}
+    >
+      <ScrollView>
+        {RESORT_TYPES.map((type) => (
+          <TouchableOpacity
+            key={type}
+            onPress={() => {
+              setResortType(type);
+              setResortOpen(false);
+            }}
+            style={{
+              paddingVertical: 14,
+              paddingHorizontal: 16,
+              borderBottomWidth: 1,
+              borderBottomColor: "#F1F5F9",
+            }}
           >
+            <Text style={{ color: "#374151" }}>
+              {type}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
+  </Pressable>
+</Modal>
+
+
+           {/* Rooms & Area */}
+                      <View className="flex-row gap-2 mb-4 mt-3">
+                        <View className="flex-1">
+                          <Text className="text-gray-500 font-semibold mb-2 text-left">Rooms</Text>
+                          <TextInput
+                            placeholder="0"
+                            
+                            value={rooms}
+                             onChangeText={(text) => {
+    if (text === "" || isNumeric(text)) {
+      setRooms(text);
+    }
+  }}
+                            keyboardType="numeric"
+                            className="bg-[#D9D9D91C] rounded-lg p-3 border border-gray-200 text-gray-800 text-left focus:border-green-500 focus:ring-green-500"
+                          />
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-gray-500 font-semibold mb-2 text-left">LandArea (sqft)<Text style={{ color: "red" }}>*</Text></Text>
+                          <TextInput
+                            placeholder="0"
+                            value={area}
+                           onChangeText={(text) => {
+  if (text === "" || isNumeric(text)) {
+    setArea(text);
+  }
+}}
+                            keyboardType="numeric"
+                            className="bg-[#D9D9D91C] rounded-lg p-3 border border-gray-200 text-gray-800 text-left focus:border-green-500 focus:ring-green-500"
+                          />
+                        </View>
+                      </View>
+              {/* Floors & BuildArea */}
+                      <View className="flex-row gap-2 mb-4">
+                        <View className="flex-1">
+                          <Text className="text-gray-500 font-semibold mb-2 text-left">Floors</Text>
+                          <TextInput
+                            placeholder="0"
+                            value={floors}
+                           onChangeText={(text) => {
+  if (text === "" || isNumeric(text)) {
+    setFloors(text);
+  }
+}}
+                            keyboardType="numeric"
+                            className="bg-[#D9D9D91C] rounded-lg p-3 border border-gray-200 text-gray-800 text-left focus:border-green-500 focus:ring-green-500"
+                          />
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-gray-500 font-semibold mb-2 text-left">BuildArea (sqft)<Text style={{ color: "red" }}>*</Text></Text>
+                          <TextInput
+                            placeholder="0"
+                            value={buildArea}
+                            onChangeText={(text) => {
+  if (text === "" || isNumeric(text)) {
+    setBuildArea(text);
+  }
+}}
+
+                            keyboardType="numeric"
+                            className="bg-[#D9D9D91C] rounded-lg p-3 border border-gray-200 text-gray-800 text-left focus:border-green-500 focus:ring-green-500"
+                          />
+                        </View>
+                      </View>
+                      <Text className="text-[14px] font-bold text-gray-600 mb-2">
+            Price(₹) <Text style={{ color: "red" }}>*</Text>
+
+          </Text>
+          <TextInput
+            placeholder="0"
+            value={price}
+           onChangeText={(text) => {
+  if (text === "" || isNumeric(text)) {
+    setPrice(text);
+  }
+}}
+            className=" bg-[#D9D9D91C] rounded-md p-3 mb-3 bg-gray-100 border border-gray-200 focus:border-green-500 focus:ring-green-500"
+          />
+        </View>
+
+        {visible === "propertyType" && (
+          <View className="bg-white rounded-lg border border-gray-200 mb-4">
             {["House", "Site/Plot/Land", "Commercial", "Resort"].map((type) => (
               <TouchableOpacity
                 key={type}
                 onPress={() => {
                   setPropertyType(type);
                   setVisible(null);
-                  if (type === "House") {
-                    router.push("/home/screens/UploadScreens/AddScreen");
-                  } else if (type === "Site/Plot/Land") {
-                    router.push("/home/screens/UploadScreens/SiteUpload");
-                  } else if (type === "Commercial") {
-                    // Already on this screen
-                  } else {
-                    router.push("/home/screens/UploadScreens/ResortUpload");
-                  }
                 }}
-                className={`p-4 border-b border-gray-200 ${propertyType === type ? "bg-green-500" : "bg-white"}`}
+                className="p-4 border-b border-gray-100"
               >
-                <Text className={`${propertyType === type ? "text-white" : "text-gray-800"}`}>
-                  {type}
-                </Text>
+                <Text>{type}</Text>
               </TouchableOpacity>
             ))}
           </View>
         )}
- <Text className="text-[15px] text-[#00000099] font-bold mt-4 mb-2">
-  Select Property Type
-</Text>
-<View className="flex-row flex-wrap mb-4">
-  {typePills.map((p) => (
-    <PillButton
-      key={p}
-      label={p}
-      selected={selectedType === p}
-      onPress={() => setSelectedType(p)} // Only one type active
-    />
-  ))}
-</View>
 
-{/* Conditional sub-options */}
-{selectedType === "Office" && (
-  <>
-    <Text className="text-[15px] text-[#00000099] font-bold mb-2">
-      What kind of office is it?
-    </Text>
-    <View className="flex-row flex-wrap mb-4">
-      {officeKindPills.map((p) => (
-        <PillButton
-          key={p}
-          label={p}
-          selected={officeKinds.includes(p)}
-          onPress={() => setOfficeKinds([p])}
-        />
-      ))}
-    </View>
-      {/* Location */}
-            <View
-              className="bg-white rounded-lg p-4 mb-4"
-              style={{ borderWidth: 1, borderColor: "#0000001A" }}
-            >
-              <Text className="text-[15px] text-[#00000060] mb-3">Location</Text>
-              <View
-                className="flex-row items-center rounded-md p-3 mb-5"
-                style={{
-                  backgroundColor: "#D9D9D91C",
-                  borderWidth: 1,
-                  borderColor: "#0000001A",
-                }}
-              >
-                <Image
-                  source={require("../../../../../assets/location.png")}
-                  style={{ width: 18, height: 18, marginRight: 8 }}
-                />
-                <TextInput placeholder="Enter Property Location" className="flex-1" value={location} onChangeText={setLocation} />
-              </View>
-               {/* Possession */}
-                
-                <TouchableOpacity
-                  onPress={() => setVisible(visible === "locatedInside" ? null : "locatedInside")}
-                  className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 mb-3"
-                >
-                  <Text className="text-gray-800 text-left">
-                    {locatedInside || "Located Inside"}
-                  </Text>
-                  <Ionicons name="chevron-down" size={24} color="#888" />
-                </TouchableOpacity>
-                {visible === "locatedInside" && (
-                <View
-      className="bg-white rounded-lg shadow-lg -mt-4 mb-4"
-      style={{ borderWidth: 1, borderColor: "#0000001A" }}
-    >
-      {["IT park", "Business Park", "Other"].map((item) => (
-        <TouchableOpacity
-          key={item}
-          onPress={() => {
-            setLocatedInside(item);
-            setVisible(null);
-          }}
-          className={`p-4 border-b border-gray-200 ${locatedInside === item ? "bg-green-500" : "bg-white"}`}
-        >
-          <Text className={`${locatedInside === item ? "text-white" : "text-gray-800"}`}>
-            {item}
+        
+
+        {/* ---------- Location ---------- */}
+        <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
+          <Text className="text-[15px] font-bold text-gray-600 mb-3">
+            Location <Text style={{ color: "red" }}>*</Text>
           </Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-    
-                )}
-                 {/* Possession */}
-                 
-                  <TouchableOpacity
-                    onPress={() => setVisible(visible === "zoneType" ? null : "zoneType")}
-                    className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 mb-3"
-                  >
-                    <Text className="text-gray-800 text-left">
-                      {zoneType || "zoneType"}
-                    </Text>
-                    <Ionicons name="chevron-down" size={24} color="#888" />
-                  </TouchableOpacity>
-                  {visible === "zoneType" && (
-                    <View
-      className="bg-white rounded-lg shadow-lg -mt-4 mb-4"
-      style={{ borderWidth: 1, borderColor: "#0000001A" }}
-    >
-      {[
-        "Commercial",
-        "Residential",
-        "Transport and Communication",
-        "Public and Semi Public use",
-        "open spaces",
-        "Agricultural zone",
-        "Special Economic zone",
-        "Natural Conservation zone",
-        "Government use",
-        "Other",
-      ].map((item) => (
-        <TouchableOpacity
-          key={item}
-          onPress={() => {
-            setZoneType(item);
-            setVisible(null);
-          }}
-          className={`p-4 border-b border-gray-200 ${zoneType === item ? "bg-green-500" : "bg-white"}`}
-        >
-          <Text className={`${zoneType === item ? "text-white" : "text-gray-800"}`}>
-            {item}
-          </Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-    
-                  )}
-            </View>
-    
-            {/* Area & Features Box */}
-            <View
-              className="bg-white rounded-lg p-4 mb-6"
-              style={{ borderWidth: 1, borderColor: "#0000001A" }}
-            >
-             
-    
-              <Text className="text-[14px] font-medium text-[#00000099] mb-3">
-                Area
-              </Text>
-              <View
-                className="flex-row items-center mb-3 rounded-md"
-                style={{
-                  borderWidth: 1,
-                  borderColor: "#0000001A",
-                  backgroundColor: "#D9D9D91C",
-                  height: 52,
-                }}
-              >
-                <TextInput
-                  placeholder="0"
-                  value={area}
-                  onChangeText={setArea}
-                  className="flex-1 px-3"
-                  style={{ height: 52 }}
-                />
-                <View style={{ width: 1, backgroundColor: "#0000001A", height: "60%" }} />
-                <View style={{ width: 100 }}>
-                  <Picker
-                    selectedValue={unit}
-                    onValueChange={(v) => setUnit(v)}
-                    mode="dropdown"
-                    style={{ height: 52, width: "100%" }}
-                  >
-                    <Picker.Item label="sqft" value="sqft" />
-                    <Picker.Item label="sqm" value="sqm" />
-                    <Picker.Item label="acre" value="acre" />
-                  </Picker>
-                </View>
-              </View>
-    
-              <Text className="text-[15px]  font-bold text-[#00000099] mb-2">Describe your office setup</Text>
-              <TextInput placeholder="No.of Cabins" value={cabins} onChangeText={setCabins} className="mb-3 rounded-md p-3" style={{ borderWidth: 1, borderColor: "#0000001A", height: 50, backgroundColor: "#D9D9D91C" }} />
-              <TextInput placeholder="No.of Meeting Rooms" value={meetingRooms} onChangeText={setMeetingRooms} className="mb-3 rounded-md p-3" style={{ borderWidth: 1, borderColor: "#0000001A", height: 50, backgroundColor: "#D9D9D91C" }} />
-              <TextInput placeholder="No.of Seats(min)" value={seats} onChangeText={setSeats} className="mb-4 rounded-md p-3" style={{ borderWidth: 1, borderColor: "#0000001A", height: 50, backgroundColor: "#D9D9D91C" }} />
-    
-              <Text className="text-[15px] font-bold text-[#00000099] mb-2">Select the available features</Text>
-              <Checkbox
-                label="Conference Room"
-                selected={!!conferenceSelected}
-                onPress={() => setConferenceSelected(conferenceSelected ? null : '1')}
-              />
-    
-              {!!conferenceSelected && <View className="flex-row mb-4">
-                {conferenceOptions.map((o) => (
-                  <RoundOption key={o} label={o} selected={conferenceSelected === o} onPress={() => setConferenceSelected(o)} />
-                ))}
-              </View>}
-              <Checkbox
-                label="WashRoom"
-                selected={!!conferenceSelected}
-                onPress={() => setConferenceSelected(conferenceSelected ? null : '1')}
-              />
-    
-              <Text className="text-[13px] text-[#00000099] mb-2">Public Washroom</Text>
-              <View className="flex-row mb-3">
-                {['1', '2', '3', '4+'].map((o) => (
-                  <RoundOption key={o} label={o} selected={publicWashroom === o} onPress={() => setPublicWashroom(o)} />
-                ))}
-              </View>
-    
-              <Text className="text-[13px] text-[#00000099] mb-2">Private Washroom</Text>
-              <View className="flex-row mb-3">
-                {['1', '2', '3', '4+'].map((o) => (
-                  <RoundOption key={o} label={o} selected={privateWashroom === o} onPress={() => setPrivateWashroom(o)} />
-                ))}
-              </View>
-    
-              <Checkbox
-                label="Reception Area"
-                selected={receptionArea}
-                onPress={() => setReceptionArea(!receptionArea)}
-              />
-              <Checkbox
-                label="Privacy"
-                selected={privacy}
-                onPress={() => setPrivacy(!privacy)}
-              />
-    
-              <View className="flex-row flex-wrap my-4">
-                <PillButton label="Private" selected={washroomType === 'Private'} onPress={() => setWashroomType('Private')} />
-                <PillButton label="Shared" selected={washroomType === 'Shared'} onPress={() => setWashroomType('Shared')} />
-              </View>
+        
+          <View className="flex-row items-center bg-[#D9D9D91C]  border border-gray-200 rounded-md p-3 mb-4">
+            <Image
+              source={require("../../../../../assets/location.png")}
+              style={{ width: 18, height: 18, marginRight: 8 }}
+            />
+            <TextInput
+              placeholder="Enter Property Location"
+              className="flex-1 focus:border-green-500 focus:ring-green-500"
+              value={location}
+              onChangeText={setLocation}
               
-    
-              <Text className="text-[15px]  font-bold text-[#00000099] mb-2">Carpet Area (optional)</Text>
-              <View
-                className="flex-row items-center mb-4 rounded-md"
-                style={{
-                  borderWidth: 1,
-                  borderColor: "#0000001A",
-                  backgroundColor: "#D9D9D91C",
-                  height: 52,
-                }}
-              >
-                <TextInput
-                  placeholder="Carpet Area"
-                  value={carpetArea}
-                  onChangeText={setCarpetArea}
-                  className="flex-1 px-3"
-                  style={{ height: 52 }}
-                />
-                <View style={{ width: 1, backgroundColor: "#0000001A", height: "60%" }} />
-                <View style={{ width: 100 }}>
-                  <Picker selectedValue={carpetUnit} onValueChange={(v) => setCarpetUnit(v)} mode="dropdown" style={{ height: 52, width: "100%" }}>
-                    <Picker.Item label="sqft" value="sqft" />
-                  </Picker>
-                </View>
-              </View>
-    
-              <View className="mb-4">
-                <Text className="text-[15px] font-bold text-[#00000099] mb-2">Additional features</Text>
-                <View>
-                  {["Furnishing", "Central AC", "Oxygen Duct", "UPS"].map(item => (
-                    <Checkbox
-                      key={item}
-                      label={item}
-                      selected={additionalFeatures.includes(item)}
-                      onPress={() => toggleArrayItem(setAdditionalFeatures, additionalFeatures, item)}
-                    />
-                  ))}
-                </View>
-              </View>
-    
-              <Text className="text-[15px] font-bold text-[#00000099] mb-2">Fire safety measures include (optional)</Text>
-              <View className="flex-row flex-wrap mb-4">
-                {fireOptions.map((f) => (
-                  <PillButton
-                    key={f}
-                    label={f}
-                    selected={fireMeasures.includes(f)}
-                    onPress={() => toggleArrayItem(setFireMeasures, fireMeasures, f)}
-                  />
-                ))}
-              </View>
-    
-              <Text className="text-[15px] font-bold text-[#00000099] mb-2">Floor Details</Text>
-              <TextInput placeholder="Total floors" value={totalFloors} onChangeText={setTotalFloors} className="mb-4 rounded-md p-3" style={{ borderWidth: 1, borderColor: "#0000001A", height: 50, backgroundColor: "#D9D9D91C" }} />
-    
-              <Text className="text-[15px] font-bold text-[#00000099] mb-2">No.of stair cases (optional)</Text>
-              <View className="flex-row mb-4">
-                {stairOptions.map((s) => (
-                  <RoundOption key={s} label={s} selected={stairCase === s} onPress={() => setStairCase(s)} />
-                ))}
-              </View>
-    
-              <Text className="text-[15px] font-bold text-[#00000099] mb-2">Lifts</Text>
-              <View className="flex-row mb-4">
-                <PillButton label="Available" selected={lift === 'Available'} onPress={() => setLift('Available')} />
-                <PillButton label="Not-Available" selected={lift === 'Not-Available'} onPress={() => setLift('Not-Available')} />
-              </View>
-    
-              <Text className="text-[15px] text-[#00000099] font-bold mb-2">Parking</Text>
-              <View className="flex-row mb-4">
-                <PillButton label="Available" selected={parking === 'Available'} onPress={() => setParking('Available')} />
-                <PillButton label="Not-Available" selected={parking === 'Not-Available'} onPress={() => setParking('Not-Available')} />
-              </View>
-    
-              <Text className="text-[15px] text-[#00000099] font-bold mb-2">Availability status</Text>
-              <View className="flex-row mb-4">
-                <PillButton label="Immediate" selected={availability === 'Immediate'} onPress={() => setAvailability('Immediate')} />
-                <PillButton label="Later" selected={availability === 'Later'} onPress={() => setAvailability('Later')} />
-              </View>
-    
-              <Text className="text-[15px] text-[#00000099] font-bold mb-2">Ownership</Text>
-              <View className="flex-row flex-wrap mb-4">
-                {ownershipOptions.map((o) => (
-                  <PillButton key={o} label={o} selected={ownership === o} onPress={() => setOwnership(o)} />
-                ))}
-              </View>
-    
-              <Text className="mb-2 text-[15px]  font-bold text-[#00000099]">Price Details</Text>
-              <TextInput
-                placeholder="₹ Expected Price"
-                value={expectedPrice}
-                onChangeText={setExpectedPrice}
-                className="rounded-md p-3 mb-3"
-                style={{ borderWidth: 1, borderColor: "#0000001A", height: 52, backgroundColor: "#D9D9D91C" }}
-              />
-              <View>
-                <Checkbox label="All inclusive price" selected={allInclusive} onPress={() => setAllInclusive(!allInclusive)} />
-                <Checkbox label="Price Negotiable" selected={priceNegotiable} onPress={() => setPriceNegotiable(!priceNegotiable)} />
-                <Checkbox label="Tax and Govt.charges excluded" selected={taxExcluded} onPress={() => setTaxExcluded(!taxExcluded)} />
-              </View>
-    
-              <TouchableOpacity>
-                <Text className="text-[#22C55E] text-sm mt-2">+ Add more pricing details</Text>
-              </TouchableOpacity>
-    
-              <Text className="text-[14px]  font-bold text-[#00000099] mt-4 mb-2">Is it Pre-leased/Pre-Rented?</Text>
-              <View className="flex-row mb-4">
-                <PillButton label="Yes" selected={preLeased === 'Yes'} onPress={() => setPreLeased('Yes')} />
-                <PillButton label="No" selected={preLeased === 'No'} onPress={() => setPreLeased('No')} />
-              </View>
-    
-              <Text className="text-[14px]  font-bold text-[#00000099] mb-2">Is your office fire NOC Certified?</Text>
-              <View className="flex-row mb-4">
-                <PillButton label="Yes" selected={nocCertified === 'Yes'} onPress={() => setNocCertified('Yes')} />
-                <PillButton label="No" selected={nocCertified === 'No'} onPress={() => setNocCertified('No')} />
-              </View>
-    
-              <Text className="text-[14px]  font-bold text-[#00000099] mb-2">Is it Occupancy Certified?</Text>
-              <View className="flex-row mb-4">
-                <PillButton label="Yes" selected={occupancyCertified === 'Yes'} onPress={() => setOccupancyCertified('Yes')} />
-                <PillButton label="No" selected={occupancyCertified === 'No'} onPress={() => setOccupancyCertified('No')} />
-              </View>
-    
-              <Text className="text-[14px] font-bold text-[#00000099] mb-2">Office previously used for (optional)</Text>
-              <TouchableOpacity
-                onPress={() => setVisible(visible === 'prevUsedFor' ? null : 'prevUsedFor')}
-                className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 mb-3"
-              >
-                <Text className="text-gray-800 text-left">
-                  {prevUsedFor || "Select"}
-                </Text>
-                <Ionicons name="chevron-down" size={24} color="#888" />
-              </TouchableOpacity>
-              {visible === 'prevUsedFor' && (
-               <View
-      className="bg-white rounded-lg shadow-lg -mt-4 mb-4"
-      style={{ borderWidth: 1, borderColor: "#0000001A" }}
-    >
-      {prevUsedForOptions.map((item) => (
-        <TouchableOpacity
-          key={item}
-          onPress={() => {
-            setPrevUsedFor(item);
-            setVisible(null);
-          }}
-          className={`p-4 border-b border-gray-200 ${prevUsedFor === item ? "bg-green-500" : "bg-white"}`}
-        >
-          <Text className={`${prevUsedFor === item ? "text-white" : "text-gray-800"}`}>
-            {item}
-          </Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-    
-              )}
-    
-              <Text className="mt-4 mb-2  font-bold text-[15px] text-[#00000099]">Describr your property </Text>
-              <TextInput
-                placeholder="Share some details about your property like spacious rooms, well maintained facilities."
-                value={describeProperty}
-                onChangeText={setDescribeProperty}
-                multiline={true}
-                numberOfLines={3}
-                textAlignVertical="top"
-                className="rounded-md p-3"
-                style={{
-                  borderWidth: 1,
-                  borderColor: "#0000001A",
-                  width: "100%",
-                  height: 108,
-                  paddingTop: 10,
-                }}
-              />
-            </View>
-    
-            <View
-              className="bg-white rounded-lg p-4 mb-4"
-              style={{ borderWidth: 1, borderColor: "#0000001A" }}
-            >
-              <Text className="text-[15px] font-bold text-[#00000099] mb-2">Amenities</Text>
-              <View className="flex-row flex-wrap mb-4">
-                {amenityOptions.map((a) => (
-                  <PillButton key={a} label={a} selected={amenities.includes(a)} onPress={() => toggleArrayItem(setAmenities, amenities, a)} />
-                ))}
-              </View>
-    
-              <Text className="text-[15px] font-bold text-[#00000099] mt-4 mb-3">
-                Location Advantages
-              </Text>
-              <View className="flex-row flex-wrap">
-                {locationAdvantages.map((a) => (
-                  <PillButton key={a} label={a} selected={locAdvantages.includes(a)} onPress={() => toggleArrayItem(setLocAdvantages, locAdvantages, a)} />
-                ))}
-              </View>
-            </View>
-    
-            <View
-              style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 16, gap: 12 }}
-              className="space-x-3 "
-            >
-              {/* Cancel Button */}
-              <TouchableOpacity
-                style={{
-                  backgroundColor: "#E5E7EB",
-                  paddingVertical: 12,
-                  paddingHorizontal: 20,
-                  borderRadius: 10,
-                }}
-                onPress={() => {
-                  // handle cancel action
-                }}
-              >
-                <Text style={{ color: "black", fontWeight: "600", fontSize: 15 }}>
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-    
-              {/* Upload Property Button */}
-              <TouchableOpacity
-                style={{
-                  backgroundColor: "#22C55E",
-                  paddingVertical: 12,
-                  paddingHorizontal: 20,
-                  borderRadius: 10,
-                }}
-                onPress={() => setAlertVisible(true)}
-              >
-                <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
-                  Upload Property
-                </Text>
-              </TouchableOpacity>
-            </View>
-    
-  </>
-)}
-
-{selectedType === "Retail" && (
-  <>
-    <Text className="text-[15px] text-[#00000099] font-bold mb-2">
-    What type of retail space do you have ?
-    </Text>
-    <View className="flex-row flex-wrap mb-4">
-      {["Commercial Shops", "Commercial Showrooms"].map((p) => (
-        <PillButton
-          key={p}
-          label={p}
-          selected={retailKinds.includes(p)}
-          onPress={() => setRetailKinds([p])}
-        />
-      ))}
-    </View>
-
-    
-  </>
-)}
-
-{selectedType === "Plot/Land" && (
-  <>
-    <Text className="text-[15px] text-[#00000099] font-bold mb-2">
-      Plot Details
-    </Text>
-    <View className="flex-row flex-wrap mb-4">
-      {["Residential Plot", "Commercial Plot", "Agricultural Land"].map((p) => (
-        <PillButton
-          key={p}
-          label={p}
-          selected={plotKinds.includes(p)}
-          onPress={() => setPlotKinds([p])}
-        />
-      ))}
-    </View>
-  </>
-)}
-                 
-        </ScrollView>
-
-
+            />
+           </View>
         </View>
-  )};
+         {/* ---------- Description ---------- */}
+        <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
+          <Text className="text-[15px] font-bold text-gray-600 mb-3 focus:border-green-500 focus:ring-green-500">
+            Description <Text style={{ color: "red" }}>*</Text>
+          </Text>
+        
+          <View className="flex-row items-center bg-[#D9D9D91C]  border border-gray-200 rounded-md p-3 mb-4">
+
+            <TextInput
+              placeholder="Describe your property ........"
+              className="flex-1"
+              value={description}
+              onChangeText={setDescription}
+            />
+           </View>
+        </View>
+
+
+
+         {/* Vaasthu Details */}
+                    <View className="bg-white rounded-xl border border-gray-300 p-4 m-3 ml-5 mr-4">
+                      <View className="flex-row items-center mb-3 justify-between">
+                        <Text
+                          className="text-lg font-semibold text-gray-800 text-left"
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          Vaasthu Details <Text style={{ color: "red" }}>*</Text>
+                        </Text>
+                        <Image source={require("../../../../../assets/vastu.png")} style={{ width: 30, height: 30 }} />
+                      </View>
+                      {fields.map((item) => (
+                        <View key={item.key} className="mb-4">
+                          <Text className="text-gray-700 font-semibold mb-1 text-left">{item.label}</Text>
+                          <TouchableOpacity
+                            onPress={() => setVisible(item.key)}
+                            className="flex-row items-center justify-between border border-gray-300 rounded-xl p-3 bg-[#F9FAFB]"
+                          >
+                            <Text className="text-gray-800 text-left">{item.value}</Text>
+                            <Ionicons name="chevron-down" size={20} color="#555" />
+                          </TouchableOpacity>
+                          {/* Dropdown Modal */}
+                          <Modal visible={visible === item.key} transparent animationType="fade">
+                            <TouchableOpacity
+                              activeOpacity={1}
+                              onPressOut={() => setVisible(null)}
+                              className="flex-1 bg-black/30 justify-center items-center"
+                            >
+                              <View className="bg-white w-[85%] rounded-2xl p-3 shadow-lg">
+                                <FlatList
+                                  data={directions}
+                                  keyExtractor={(dir) => dir}
+                                  renderItem={({ item: direction }) => (
+                                    <TouchableOpacity
+                                      onPress={() => {
+                                        item.setValue(direction);
+                                        setVisible(null);
+                                      }}
+                                      className="p-3 border-b border-gray-200"
+                                    >
+                                      <Text className="text-gray-800 text-left">{direction}</Text>
+                                    </TouchableOpacity>
+                                  )}
+                                />
+                              </View>
+                            </TouchableOpacity>
+                          </Modal>
+                        </View>
+                      ))}
+                    </View>
+          <Text className="text-[15px] font-bold text-gray-600 mb-3">
+            Location Advantages
+          </Text>
+
+          <View className="flex-row flex-wrap">
+            {locationAdvantages.map((a) => (
+              <PillButton
+                key={a}
+                label={a}
+                selected={locAdvantages.includes(a)}
+                onPress={() =>
+                  toggleArrayItem(setLocAdvantages, locAdvantages, a)
+                }
+              />
+            ))}
+          </View>
+      </ScrollView>
+     
+     {/* ---------- FIXED ACTION BUTTON ---------- */}
+      <View
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: 16,
+          backgroundColor: "#ffffff",
+        }}
+      >
+        <View className="flex-row justify-end gap-4">
+          <TouchableOpacity className="bg-gray-200 px-5 py-3 rounded-lg">
+            <Text className="font-semibold">Cancel</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className="bg-green-500 px-5 py-3 rounded-lg"
+            onPress={handleSubmit}
+          >
+            <Text className="text-white font-semibold">
+              Upload Property
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+
+    
+  );
+}
