@@ -12,7 +12,11 @@ import {
   Modal,
   Alert,
   FlatList,
-  StatusBar
+  StatusBar,
+ KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -27,7 +31,7 @@ import { Linking } from "react-native";
 import MorePricingDetailsModal from "./MorePricingDetailsModal";
 import PropertyImageUpload from "../../../../components/PropertyImageUpload";
 import Toast from 'react-native-toast-message';
-
+import FurnishingsModal from "./FurnishingsModal";
 export default function AddScreen() {
   const [constructionStatus, setConstructionStatus] = useState("");
   const [possessionBy, setPossessionBy] = useState("");
@@ -35,6 +39,11 @@ export default function AddScreen() {
   const navigation = useNavigation();
 
   // Form state variables
+const [furnishing, setFurnishing] = useState("");
+const [modalOpen, setModalOpen] = useState(false);
+const [furnishings, setFurnishings] = useState([]);
+const [modalSubtitle, setModalSubtitle] = useState("");
+
   const [propertyType, setPropertyType] = useState("House");
   const [propertyTitle, setPropertyTitle] = useState("");
   const [floors, setFloors] = useState("");
@@ -47,13 +56,13 @@ export default function AddScreen() {
   const [description, setDescription] = useState("");
   const [expectedPrice, setExpectedPrice] = useState("");
   const [otherRooms, setOtherRooms] = useState([]);
-  const [furnishingItems, setFurnishingItems] = useState([]);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [selectedOwnership, setSelectedOwnership] = useState("");
   const [selectedAge, setSelectedAge] = useState("");
   const [images, setImages] = useState([]);
-  const [furnishing, setFurnishing] = useState("");
+  
   const [covered, setCovered] = useState(0);
   const [open, setOpen] = useState(0);
   const [visible, setVisible] = useState(null);
@@ -315,7 +324,16 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
   };
 
   return ( 
+    
     <>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={{ flex: 1 }}>
+          
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <TopAlert visible={alertVisible} onHide={() => setAlertVisible(false)} />
@@ -332,6 +350,13 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
         visible={isMorePricingModalVisible}
         onClose={() => setIsMorePricingModalVisible(false)}
       />
+       <FurnishingsModal
+          visible={modalOpen}
+          onClose={() => setModalOpen(false)}
+          subtitle={modalSubtitle}
+          onSubmit={(data) => setFurnishings(data)}
+        />
+
 
               <View className="flex-row items-center mt-3 mb-4">
           <TouchableOpacity
@@ -775,40 +800,45 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                   </TouchableOpacity>
                 ))}
               </View>
+                <Text className="text-lg font-semibold text-gray-800 mt-5">
+  Furnishing <Text className="text-gray-400 text-sm">(Optional)</Text>
+</Text>
 
-              {/* Furnishing */}
-              <Text className="text-lg font-semibold text-gray-800 mt-5">
-                Furnishing <Text className="text-gray-400 text-sm">(Optional)</Text>
-              </Text>
-              <View className="flex-row gap-2 mt-2">
-                {["Unfurnished", "Semi-furnished", "Furnished"].map((type) => (
-                  <TouchableOpacity
-                    key={type}
-                    onPress={() => {
-                      setFurnishing(type);
-                      if (type === "Furnished" || type === "Semi-furnished") {
-                        router.push({
-                          pathname: "/home/screens/UploadScreens/AddFurnishingsScreen",
-                          params: { 
-                            selectedFurnishing: type,
-                          },
-                        });
-                      }
-                    }}
-                    className={`rounded-full px-4 py-2 border ${
-                      furnishing === type ? "border-green-500 bg-green-50" : "border-gray-300"
-                    }`}
-                  >
-                    <Text
-                      className={`${
-                        furnishing === type ? "text-green-700" : "text-gray-600"
-                      }`}
-                    >
-                      {type}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+<View className="flex-row gap-2 mt-2">
+  {["Unfurnished", "Semi-furnished", "Furnished"].map((type) => (
+    <TouchableOpacity
+      key={type}
+      onPress={() => {
+        setFurnishing(type);
+
+        if (type === "Furnished") {
+          setModalSubtitle("At least 3 selections are mandatory");
+          setModalOpen(true);
+        } else if (type === "Semi-furnished") {
+          setModalSubtitle("At least 1 selection is mandatory");
+          setModalOpen(true);
+        } else {
+          // Unfurnished
+          setFurnishings([]);
+        }
+      }}
+      className={`rounded-full px-4 py-2 border ${
+        furnishing === type
+          ? "border-green-500 bg-green-50"
+          : "border-gray-300"
+      }`}
+    >
+      <Text
+        className={`${
+          furnishing === type ? "text-green-700" : "text-gray-600"
+        }`}
+      >
+        {type}
+      </Text>
+    </TouchableOpacity>
+  ))}
+</View>
+
 
               {/* Reserved Parking */}
               <Text className="text-lg font-semibold text-gray-800 mt-5">
@@ -1206,7 +1236,7 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
       </ScrollView> 
               <View
           style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 16, gap: 12 }}
-          className="space-x-3 mr-4"
+          className="space-x-3 mr-4 mb-3"
         >
           {/* Cancel Button */}
           <TouchableOpacity
@@ -1243,6 +1273,9 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
         </View>  
     </SafeAreaView>
     <Toast />
+    </View>
+    </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
     </>
   );
 }

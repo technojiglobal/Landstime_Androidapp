@@ -23,21 +23,31 @@ const MorePricingDetailsModal = ({ visible, onClose }) => {
       <View className="flex-1 bg-black/40 justify-center items-center">
 
         <View className="bg-white w-[92%] rounded-2xl overflow-hidden">
+          
 
           <ScrollView
             className="px-4 pt-4"
             contentContainerStyle={{ paddingBottom: 90 }}
             showsVerticalScrollIndicator={false}
           >
-            {/* Title */}
-            <Text className="text-base font-semibold text-gray-900">
-              More Pricing Details
-            </Text>
+            {/* Header */}
+           <View className="flex-row justify-between items-start mb-4">
+  {/* Title + Subtitle */}
+  <View className="flex-1 pr-3">
+    <Text className="text-base font-semibold text-gray-900">
+      More Pricing Details
+    </Text>
 
-            {/* Subtitle */}
-            <Text className="text-xs text-gray-500 mt-1 mb-4">
-              It is recommended to give more details.
-            </Text>
+    <Text className="text-xs text-gray-500 mt-1">
+      It is recommended to give more details.
+    </Text>
+  </View>
+
+  {/* Close Icon */}
+  <TouchableOpacity onPress={onClose} className="p-1">
+    <Ionicons name="close" size={20} color="#111827" />
+  </TouchableOpacity>
+</View>
 
             {/* Maintenance Dropdown */}
             <TouchableOpacity
