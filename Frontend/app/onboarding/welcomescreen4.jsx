@@ -1,3 +1,5 @@
+// Landstime_Androidapp/Frontend/app/onboarding/welcomescreen4.jsx
+
 import { View, Text, Image, TouchableOpacity, Dimensions,StatusBar } from "react-native";
 import { useRouter } from "expo-router";
 
