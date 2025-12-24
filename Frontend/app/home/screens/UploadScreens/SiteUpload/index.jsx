@@ -820,7 +820,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 //import CustomPickerAlert from "../../../../components/CustomPickerAlert";
 //import CustomPickerAlert from "../../../../components/CustomPickerAlert";
 import CustomPickerAlert from "components/CustomPickerAlert";
-
+import PropertyImageUpload from "components/PropertyImageUpload";
+import Toast from 'react-native-toast-message';
+import MorePricingDetailsModal from "../MorePricingDetailsModal";
 export default function UploadPropertyScreen() {
   const params = useLocalSearchParams();
   const [propertyType, setPropertyType] = useState("Site/Plot/Land");
@@ -828,18 +830,18 @@ export default function UploadPropertyScreen() {
   const [images, setImages] = useState([]);
   
   const [possessionBy, setPossessionBy] = useState("");
-  const [ownership, setOwnership] = useState([]);
+  const [ownership, setOwnership] = useState("");
   const [approvedBy, setApprovedBy] = useState([]);
-  const [constructionDone, setConstructionDone] = useState("yes");
+  const [constructionDone, setConstructionDone] = useState(null);
   const [constructionType, setConstructionType] = useState([]);
   const [amenities, setAmenities] = useState([]);
-  const [propertyFacing, setPropertyFacing] = useState([]);
+  const [propertyFacing, setPropertyFacing] = useState("");
   const [locationAdvantages, setLocationAdvantages] = useState([]);
   const [overlooking, setOverlooking] = useState([]);
   const [boundaryWall, setBoundaryWall] = useState(null);
   const [openSides, setOpenSides] = useState("");
   const [unit, setUnit] = useState("sqft");
-  
+   const [isMorePricingModalVisible, setIsMorePricingModalVisible] = useState(false);
   const router = useRouter();
 
   const [visible, setVisible] = useState(null);
@@ -858,6 +860,7 @@ export default function UploadPropertyScreen() {
   const [roadWidth, setRoadWidth] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pickerAlertVisible, setPickerAlertVisible] = useState(false);
+  const [focusedField, setFocusedField] = useState(null);
   
   const toggleArray = (arr, setArr, item) => {
     if (arr.includes(item)) setArr(arr.filter((i) => i !== item));
@@ -965,13 +968,31 @@ export default function UploadPropertyScreen() {
       setIsSubmitting(true);
 
       if (!propertyTitle?.trim()) {
-        Alert.alert("Error", "Please enter property title");
+        Toast.show({ type: 'error', text1: 'Error', text2: 'Property Title is required.' });
         setIsSubmitting(false);
         return;
       }
 
       if (!location?.trim()) {
-        Alert.alert("Error", "Please enter location");
+        Toast.show({ type: 'error', text1: 'Error', text2: 'Location is required.' });
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!area?.trim()) {
+        Toast.show({ type: 'error', text1: 'Error', text2: 'Area is required.' });
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!length?.trim()) {
+        Toast.show({ type: 'error', text1: 'Error', text2: 'Length is required.' });
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!breadth?.trim()) {
+        Toast.show({ type: 'error', text1: 'Error', text2: 'Breadth is required.' });
         setIsSubmitting(false);
         return;
       }
@@ -980,14 +1001,20 @@ export default function UploadPropertyScreen() {
       console.log('💰 Price validation:', { expectedPrice, priceValue, isValid: !isNaN(priceValue) && priceValue > 0 });
 
       if (!expectedPrice || isNaN(priceValue) || priceValue <= 0) {
-        Alert.alert("Error", "Please enter a valid expected price");
+        Toast.show({ type: 'error', text1: 'Error', text2: 'A valid Expected Price is required.' });
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!description?.trim()) {
+        Toast.show({ type: 'error', text1: 'Error', text2: 'What makes your property unique is required.' });
         setIsSubmitting(false);
         return;
       }
 
       if (images.length === 0) {
         console.log('❌ No images selected');
-        Alert.alert("Error", "Please add at least one image");
+        Toast.show({ type: 'error', text1: 'Error', text2: 'Please add at least one image.' });
         setIsSubmitting(false);
         return;
       }
@@ -1015,10 +1042,10 @@ export default function UploadPropertyScreen() {
     constructionDone: constructionDone === "yes",
     constructionType,
     possessionBy,
-    ownership: ownership[0] || "Freehold",
+    ownership: ownership || "Freehold",
     approvedBy,
     amenities,
-    propertyFacing: propertyFacing[0] || "East",
+    propertyFacing: propertyFacing || "East",
     overlooking,
     inGatedSociety: selectedOverlooking.includes("In a Gated Society"),
     cornerProperty: selectedOverlooking.includes("Corner Property"),
@@ -1062,21 +1089,22 @@ console.log('🔍 First image URI:', images[0]);
   };
     
   return (
+    <>
     <View className="flex-1 bg-gray-50">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <TopAlert visible={alertVisible} onHide={() => setAlertVisible(false)} />
+        <MorePricingDetailsModal
+        visible={isMorePricingModalVisible}
+        onClose={() => setIsMorePricingModalVisible(false)}
+      />
+
       <CustomPickerAlert
         visible={pickerAlertVisible}
         onClose={() => setPickerAlertVisible(false)}
         onCameraPress={takePhoto}
         onGalleryPress={pickFromGallery}
       />
-      <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 36 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <View className="flex-row items-center mt-7 mb-4">
+         <View className="flex-row items-center mt-12 mb-4">
           <TouchableOpacity
             onPress={() => router.push("/home/screens/UploadScreens/AddScreen")}
             className="p-2"
@@ -1096,59 +1124,20 @@ console.log('🔍 First image URI:', images[0]);
             </Text>
           </View>
         </View>
+      <ScrollView
+        contentContainerStyle={{ padding: 16, paddingBottom: 36 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+     
 
-        {/* Property Details Card */}
-        <View
-          className="bg-white rounded-lg p-4 mb-4"
-          style={{ borderWidth: 1, borderColor: "#0000001A" }}
-        >
-          <View className="flex-row justify-between items-center mb-2">
-            <Text className="text-[15px] font-bold">Property Details</Text>
-            <TouchableOpacity>
-              <Text className="text-[11px] text-[#22C55E]">View Guidelines</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View className="bg-[#D9D9D91C] p-4">
-            <TouchableOpacity
-              onPress={pickImage}
-              className="border-2 border-dashed border-gray-300 mx-8 rounded-xl mt-4 p-6 items-center mb-5"
-            >
-              <Ionicons name="camera-outline" size={40} color="#888" />
-              <Text className="text-gray-500 mt-2 text-left">
-                Add Photos or Videos
-              </Text>
-            </TouchableOpacity>
-            {images.length > 0 && (
-              <FlatList
-                data={images}
-                horizontal
-                renderItem={({ item, index }) => (
-                  <View style={{ position: 'relative', marginRight: 10 }}>
-                    <Image
-                      source={{ uri: item }}
-                      className="w-48 h-48 mt-2 rounded-lg"
-                    />
-                    <TouchableOpacity
-                      onPress={() => removeImage(index)}
-                      style={{
-                        position: 'absolute',
-                        top: 10,
-                        right: 10,
-                        backgroundColor: 'rgba(0,0,0,0.5)',
-                        borderRadius: 15,
-                        padding: 5,
-                      }}
-                    >
-                      <Ionicons name="close" size={20} color="white" />
-                    </TouchableOpacity>
-                  </View>
-                )}
-                keyExtractor={(item, index) => index.toString()}
-              />
-            )}
-          </View>
-        </View>
+                <PropertyImageUpload
+                     images={images}
+                     onPickImage={pickImage}
+                     onRemoveImage={removeImage}
+                     onViewGuidelines={() => setIsPhotoGuideModalVisible(true)}
+                     onWatchTutorial={() => setIsHowto360ModalVisible(true)}
+                   />                
 
         {/* Basic Details */}
         <View
@@ -1157,13 +1146,20 @@ console.log('🔍 First image URI:', images[0]);
         >
           <Text className="text-[16px] font-bold mb-5">Basic Details</Text>
 
-          <Text className="text-[15px] text-[#00000099] mb-2">Property Title</Text>
+          <Text className="text-[15px] text-[#00000099] mb-2">Property Title <Text className="text-red-500">*</Text></Text>
           <TextInput
             placeholder="Surya Teja Sites"
             className="rounded-md p-3 mb-3"
-            style={{ borderWidth: 1, borderColor: "#0000001A", height:50, backgroundColor:"#D9D9D91C"}}
+            style={{ 
+              borderWidth: 1, 
+              borderColor: focusedField === 'propertyTitle' ? '#90EE90' : '#0000001A', 
+              height:50, 
+              backgroundColor:"#D9D9D91C"
+            }}
             value={propertyTitle}
-            onChangeText={setPropertyTitle}
+            onChangeText={(text) => setPropertyTitle(text.replace(/[^a-zA-Z0-9\s]/g, ''))}
+            onFocus={() => setFocusedField('propertyTitle')}
+            onBlur={() => setFocusedField(null)}
           />
 
           <Text className="text-[15px] text-[#00000099] mb-2">Property Type</Text>
@@ -1234,13 +1230,13 @@ console.log('🔍 First image URI:', images[0]);
           className="bg-white rounded-lg p-4 mb-4"
           style={{ borderWidth: 1, borderColor: "#0000001A" }}
         >
-          <Text className="text-[15px] text-[#00000060] mb-3">Location</Text>
+          <Text className="text-[15px] text-[#00000060] mb-3">Location <Text className="text-red-500">*</Text></Text>
           <View
             className="flex-row items-center rounded-md p-3"
             style={{
               backgroundColor: "#D9D9D91C",
               borderWidth: 1,
-              borderColor: "#0000001A",
+              borderColor: focusedField === 'location' ? '#90EE90' : '#0000001A',
             }}
           >
             <Image
@@ -1251,7 +1247,9 @@ console.log('🔍 First image URI:', images[0]);
               placeholder="Enter Property Location" 
               className="flex-1"
               value={location}
-              onChangeText={setLocation}
+              onChangeText={(text) => setLocation(text.replace(/[^a-zA-Z0-9\s]/g, ''))}
+              onFocus={() => setFocusedField('location')}
+              onBlur={() => setFocusedField(null)}
             />
           </View>
         </View>
@@ -1263,13 +1261,13 @@ console.log('🔍 First image URI:', images[0]);
         >
           {/* Area with Unit Picker */}
           <Text className="text-[14px] font-medium text-[#00000099] mb-3">
-            Area
+            Area <Text className="text-red-500">*</Text>
           </Text>
           <View
             className="flex-row items-center mb-3 rounded-md"
             style={{
               borderWidth: 1,
-              borderColor: "#0000001A",
+              borderColor: focusedField === 'area' ? '#90EE90' : '#0000001A',
               backgroundColor: "#D9D9D91C",
               height: 52,
             }}
@@ -1279,8 +1277,10 @@ console.log('🔍 First image URI:', images[0]);
               className="flex-1 px-3"
               style={{ height: 52 }}
               value={area}
-              onChangeText={setArea}
+              onChangeText={(text) => setArea(text.replace(/[^0-9.]/g, ''))}
               keyboardType="numeric"
+              onFocus={() => setFocusedField('area')}
+              onBlur={() => setFocusedField(null)}
             />
             <View style={{ width: 1, backgroundColor: "#0000001A", height: "60%" }} />
             <View style={{ width: 100 }}>
@@ -1300,35 +1300,39 @@ console.log('🔍 First image URI:', images[0]);
           {/* Length & Breadth */}
           <View className="flex-row space-x-3 mb-3">
             <View className="flex-1">
-              <Text className="text-sm text-[#00000099] mb-2">Length (optional)</Text>
+              <Text className="text-sm text-[#00000099] mb-2">Length <Text className="text-red-500">*</Text></Text>
               <TextInput
                 placeholder="in Ft.."
                 className="rounded-md p-3 mx-1"
                 style={{
                   borderWidth: 1,
-                  borderColor: "#0000001A",
+                  borderColor: focusedField === 'length' ? '#90EE90' : '#0000001A',
                   backgroundColor: "#D9D9D91C",
                   height: 51,
                 }}
                 value={length}
-                onChangeText={setLength}
+                onChangeText={(text) => setLength(text.replace(/[^0-9.]/g, ''))}
                 keyboardType="numeric"
+                onFocus={() => setFocusedField('length')}
+                onBlur={() => setFocusedField(null)}
               />
             </View>
             <View className="flex-1">
-              <Text className="text-sm text-[#00000099] mb-2">Breadth (optional)</Text>
+              <Text className="text-sm text-[#00000099] mb-2">Breadth <Text className="text-red-500">*</Text></Text>
               <TextInput
                 placeholder="in Ft.."
                 className="rounded-md p-3 mx-1"
                 style={{
                   borderWidth: 1,
-                  borderColor: "#0000001A",
+                  borderColor: focusedField === 'breadth' ? '#90EE90' : '#0000001A',
                   backgroundColor: "#D9D9D91C",
                   height: 51,
                 }}
                 value={breadth}
-                onChangeText={setBreadth}
+                onChangeText={(text) => setBreadth(text.replace(/[^0-9.]/g, ''))}
                 keyboardType="numeric"
+                onFocus={() => setFocusedField('breadth')}
+                onBlur={() => setFocusedField(null)}
               />
             </View>
           </View>
@@ -1342,13 +1346,15 @@ console.log('🔍 First image URI:', images[0]);
             className="rounded-md p-3 mb-3"
             style={{
               borderWidth: 1,
-              borderColor: "#0000001A",
+              borderColor: focusedField === 'floors' ? '#90EE90' : '#0000001A',
               backgroundColor: "#D9D9D91C",
               height: 51,
             }}
             value={floorsAllowed}
-            onChangeText={setFloorsAllowed}
+            onChangeText={(text) => setFloorsAllowed(text.replace(/[^0-9]/g, ''))}
             keyboardType="numeric"
+            onFocus={() => setFocusedField('floors')}
+            onBlur={() => setFocusedField(null)}
           />
 
           {/* Boundary Wall */}
@@ -1429,26 +1435,30 @@ console.log('🔍 First image URI:', images[0]);
           </View>
 
           {/* Construction Type */}
-          <Text className="mb-2 text-[14px] text-[#00000099]">
-            What type of construction has been done?
-          </Text>
-          <View className="flex-row flex-wrap mb-3">
-            {[
-              { k: "Shed", l: "+ Shed" },
-              { k: "Room", l: "+ Room(s)" },
-              { k: "Washroom", l: "+ Washroom" },
-              { k: "Other", l: "+ Other" },
-            ].map((o) => (
-              <PillButton
-                key={o.k}
-                label={o.l}
-                selected={constructionType.includes(o.k)}
-                onPress={() =>
-                  toggleArray(constructionType, setConstructionType, o.k)
-                }
-              />
-            ))}
-          </View>
+          {constructionDone === "yes" && (
+            <>
+              <Text className="mb-2 text-[14px] text-[#00000099]">
+                What type of construction has been done?
+              </Text>
+              <View className="flex-row flex-wrap mb-3">
+                {[
+                  { k: "Shed", l: "+ Shed" },
+                  { k: "Room", l: "+ Room(s)" },
+                  { k: "Washroom", l: "+ Washroom" },
+                  { k: "Other", l: "+ Other" },
+                ].map((o) => (
+                  <PillButton
+                    key={o.k}
+                    label={o.l}
+                    selected={constructionType.includes(o.k)}
+                    onPress={() =>
+                      toggleArray(constructionType, setConstructionType, o.k)
+                    }
+                  />
+                ))}
+              </View>
+            </>
+          )}
 
           {/* Possession */}
           <Text className="text-[15px] text-[#00000099] mb-2">Possession By</Text>
@@ -1495,8 +1505,8 @@ console.log('🔍 First image URI:', images[0]);
               <PillButton
                 key={o}
                 label={o}
-                selected={ownership.includes(o)}
-                onPress={() => toggleArray(ownership, setOwnership, o)}
+                selected={ownership === o}
+                onPress={() => setOwnership(o)}
               />
             ))}
           </View>
@@ -1518,13 +1528,18 @@ console.log('🔍 First image URI:', images[0]);
 
           {/* Price Details */}
           <View className="mt-2">
-            <Text className="text-gray-500 font-semibold mb-2 text-left">Price Details</Text>
+            <Text className="text-gray-500 font-semibold mb-2 text-left">Price Details <Text className="text-red-500">*</Text></Text>
             <TextInput
               placeholder="₹ Expected Price"
               keyboardType="numeric"
               className="border border-gray-300 rounded-lg bg-[#F9F9F9] p-3 mb-3 text-gray-800 text-left"
               value={expectedPrice}
-              onChangeText={setExpectedPrice}
+              onChangeText={(text) => setExpectedPrice(text.replace(/[^0-9.]/g, ''))}
+              onFocus={() => setFocusedField('price')}
+              onBlur={() => setFocusedField(null)}
+              style={{
+                borderColor: focusedField === 'price' ? '#90EE90' : '#d1d5db',
+              }}
             />
           </View>
           <View className="flex-col gap-2 mb-2">
@@ -1553,13 +1568,13 @@ console.log('🔍 First image URI:', images[0]);
                 </TouchableOpacity>
               );
             })}
-            <TouchableOpacity>
+            <TouchableOpacity  onPress={() => setIsMorePricingModalVisible(true)}>
               <Text className="text-[#22C55E] font-semibold text-left">+ Add more pricing details</Text>
             </TouchableOpacity>
           </View>
 
           {/* Unique Features */}
-          <Text className="mt-4 mb-2 text-[15px] text-[#00000099]">What makes your property unique</Text>
+          <Text className="mt-4 mb-2 text-[15px] text-[#00000099]">What makes your property unique <Text className="text-red-500">*</Text></Text>
           <TextInput
             placeholder="Share some details about your property like spacious rooms, well maintained facilities."
             multiline={true}
@@ -1568,13 +1583,15 @@ console.log('🔍 First image URI:', images[0]);
             className="rounded-md p-3"
             style={{
               borderWidth: 1,
-              borderColor: "#0000001A",
+              borderColor: focusedField === 'description' ? '#90EE90' : '#0000001A',
               width: "100%",
               height: 108,
               paddingTop: 10,
             }}
             value={description}
-            onChangeText={setDescription}
+            onChangeText={(text) => setDescription(text.replace(/[^a-zA-Z0-9\s]/g, ''))}
+            onFocus={() => setFocusedField('description')}
+            onBlur={() => setFocusedField(null)}
           />
         </View>
 
@@ -1651,10 +1668,8 @@ console.log('🔍 First image URI:', images[0]);
                 <PillButton
                   key={item}
                   label={item}
-                  selected={propertyFacing.includes(item)}
-                  onPress={() =>
-                    toggleArray(propertyFacing, setPropertyFacing, item)
-                  }
+                  selected={propertyFacing === item}
+                  onPress={() => setPropertyFacing(item)}
                 />
               )
             )}
@@ -1665,7 +1680,7 @@ console.log('🔍 First image URI:', images[0]);
             style={{
               backgroundColor: "#D9D9D91C",
               borderWidth: 1,
-              borderColor: "#0000001A",
+              borderColor: focusedField === 'roadWidth' ? '#90EE90' : '#0000001A',
             }}
           >
             <TextInput
@@ -1673,8 +1688,10 @@ console.log('🔍 First image URI:', images[0]);
               className="flex-1 px-3"
               style={{ height: 52 }}
               value={roadWidth}
-              onChangeText={setRoadWidth}
+              onChangeText={(text) => setRoadWidth(text.replace(/[^0-9.]/g, ''))}
               keyboardType="numeric"
+              onFocus={() => setFocusedField('roadWidth')}
+              onBlur={() => setFocusedField(null)}
             />
             <View style={{ width: 1, backgroundColor: "#0000001A", height: "90%" }} />
             <View style={{ width: 100 }}>
@@ -1718,9 +1735,11 @@ console.log('🔍 First image URI:', images[0]);
           </View>
         </View>
 
-        <View
+       
+      </ScrollView>
+       <View
           style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 16, gap:12 }}
-          className="space-x-3"
+          className="space-x-3 mb-8"
         >
           {/* Cancel Button */}
           <TouchableOpacity
@@ -1757,7 +1776,8 @@ console.log('🔍 First image URI:', images[0]);
             )}
           </TouchableOpacity>
         </View>
-      </ScrollView>
     </View>
+    <Toast />
+    </>
   );
 }
