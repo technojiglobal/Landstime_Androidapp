@@ -83,7 +83,7 @@ export default function HomeScreen({ toggleSidebar ,sidebarOpen}) {
     onPress={toggleSidebar}
     style={{
       position: "absolute",
-      top: scaleHeight(10),
+      top: scaleHeight(4),
       left: 20,
       zIndex: 20,
     }}
@@ -110,7 +110,7 @@ export default function HomeScreen({ toggleSidebar ,sidebarOpen}) {
           <Image source={bell} style={{ width: 18, height: 18 }} />
         </TouchableOpacity>
 
-        <Text className="text-white font-bold text-2xl ml-6 mt-7">
+        <Text className="text-white font-bold text-2xl ml-6 mt-2">
           Find Your Dream Property
         </Text>
         <Text className="text-white font-semibold ml-6 mt-2">
