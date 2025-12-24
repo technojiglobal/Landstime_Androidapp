@@ -123,7 +123,7 @@ const MorePricingDetailsModal = ({ visible, onClose }) => {
           <View className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
             <TouchableOpacity
               onPress={onClose}   // ✅ CLOSE MODAL
-              className="bg-blue-600 rounded-md py-3 items-center"
+              className="bg-[#22C55E] rounded-md py-3 items-center"
             >
               <Text className="text-white font-semibold">
                 Submit
