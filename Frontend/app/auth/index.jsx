@@ -273,7 +273,7 @@ export default function RegisterScreen() {
         <View
           className="flex-row items-center border rounded-xl mb-4 px-3"
           style={{
-            borderWidth: 1,
+            borderWidth: 2,
             borderColor: getNameBorderColor(),
             backgroundColor: "#D9D9D91C",
           }}
@@ -298,7 +298,7 @@ export default function RegisterScreen() {
         <View
           className="flex-row items-center border rounded-xl mb-4 px-3"
           style={{
-            borderWidth: 1,
+            borderWidth: 2,
             borderColor: getPhoneBorderColor(),
             backgroundColor: "#D9D9D91C",
           }}
@@ -418,7 +418,7 @@ export default function RegisterScreen() {
         <View
           className="flex-row items-center border rounded-xl mb-4 px-3"
           style={{
-            borderWidth: 1,
+            borderWidth: 2,
             borderColor: getEmailBorderColor(),
             backgroundColor: "#D9D9D91C",
           }}
