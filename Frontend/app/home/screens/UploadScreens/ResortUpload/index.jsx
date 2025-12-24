@@ -649,7 +649,7 @@ const RESORT_TYPES = [
       >
         <View className="flex-row justify-end gap-4">
           <TouchableOpacity className="bg-gray-200 px-5 py-3 rounded-lg"
-          onPress={router.back()}>
+          onPress={() => router.back()}>
             <Text className="font-semibold">Cancel</Text>
           </TouchableOpacity>
 
