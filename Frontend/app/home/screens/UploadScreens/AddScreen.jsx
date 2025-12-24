@@ -1230,7 +1230,7 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
       </ScrollView> 
               <View
           style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 16, gap: 12 }}
-          className="space-x-3 mr-4 mb-8"
+          className="space-x-3 mr-4 "
         >
           {/* Cancel Button */}
           <TouchableOpacity
