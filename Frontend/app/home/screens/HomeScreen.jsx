@@ -110,7 +110,7 @@ export default function HomeScreen({ toggleSidebar ,sidebarOpen}) {
           <Image source={bell} style={{ width: 18, height: 18 }} />
         </TouchableOpacity>
 
-        <Text className="text-white font-bold text-2xl ml-6 mt-2">
+        <Text className="text-white font-bold text-2xl ml-6 mt-1">
           Find Your Dream Property
         </Text>
         <Text className="text-white font-semibold ml-6 mt-2">
@@ -119,13 +119,13 @@ export default function HomeScreen({ toggleSidebar ,sidebarOpen}) {
       </ImageBackground>
 
       {/* Search Bar */}
-      <View className="flex-row items-center bg-white mx-10 mt-[-20] p-2 rounded-xl shadow-md z-10">
+      <View className="flex-row items-center bg-white mx-10 mt-[-40] p-2 rounded-xl shadow-md z-10">
         <Ionicons name="search" size={20} color="gray" />
         <TextInput placeholder="Search properties..." className="ml-2 flex-1" />
       </View>
 
       {/* Language Selector */}
-      <View className=" flex-row justify-end mr-5 mt-2">
+      <View className=" flex-row justify-end mr-5 mb-4 mt-2">
         <TouchableOpacity
           onPress={() => setLanguageModalVisible(true)}
           style={{
@@ -159,15 +159,15 @@ export default function HomeScreen({ toggleSidebar ,sidebarOpen}) {
   key={idx}
   className="bg-white rounded-2xl border-l-8 border-[#22C55E] p-4 py-5 my-2 items-center justify-center"
 style={{ 
+  width: "46%",
+  minHeight: scaleHeight(180),   // ⬅️ INCREASE CARD HEIGHT
+  shadowColor: "#22C55E",
+  shadowOffset: { width: 0, height: 6 },
+  shadowOpacity: 0.3,
+  shadowRadius: 10,
+  elevation: 10,
+}}
 
-    width: "46%", 
-    aspectRatio: 0.95,
-    shadowColor: "#22C55E",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  }}
   onPress={() => handleCategoryPress(item.name)}
 >
               {/* VR Badge */}

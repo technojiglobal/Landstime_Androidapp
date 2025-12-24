@@ -419,8 +419,8 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                   padding: 12,
                   marginBottom: 16,
                   color: '#1f2937',
-                  borderColor: focusedField === 'propertyTitle' ? '#90EE90' : '#d1d5db',
-                  borderWidth: 1,
+                  borderColor: focusedField === 'propertyTitle' ? '#22C55E' : '#d1d5db',
+                  borderWidth: 2,
                 }}
                 onFocus={() => setFocusedField('propertyTitle')}
                 onBlur={() => setFocusedField(null)}
@@ -503,8 +503,8 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                         borderRadius: 8,
                         padding: 12,
                         color: '#1f2937',
-                        borderColor: focusedField === 'floors' ? '#90EE90' : '#d1d5db',
-                        borderWidth: 1,
+                        borderColor: focusedField === 'floors' ? '#22C55E' : '#d1d5db',
+                        borderWidth: 2,
                     }}
                     onFocus={() => setFocusedField('floors')}
                     onBlur={() => setFocusedField(null)}
@@ -522,8 +522,8 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                         borderRadius: 8,
                         padding: 12,
                         color: '#1f2937',
-                        borderColor: focusedField === 'area' ? '#90EE90' : '#d1d5db',
-                        borderWidth: 1,
+                        borderColor: focusedField === 'area' ? '#22C55E' : '#d1d5db',
+                        borderWidth: 2,
                     }}
                     onFocus={() => setFocusedField('area')}
                     onBlur={() => setFocusedField(null)}
@@ -545,8 +545,8 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                         borderRadius: 8,
                         padding: 12,
                         color: '#1f2937',
-                        borderColor: focusedField === 'bedrooms' ? '#90EE90' : '#d1d5db',
-                        borderWidth: 1,
+                        borderColor: focusedField === 'bedrooms' ? '#22C55E' : '#d1d5db',
+                        borderWidth: 2,
                     }}
                     onFocus={() => setFocusedField('bedrooms')}
                     onBlur={() => setFocusedField(null)}
@@ -564,8 +564,8 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                         borderRadius: 8,
                         padding: 12,
                         color: '#1f2937',
-                        borderColor: focusedField === 'bathrooms' ? '#90EE90' : '#d1d5db',
-                        borderWidth: 1,
+                        borderColor: focusedField === 'bathrooms' ? '#22C55E' : '#d1d5db',
+                        borderWidth: 2,
                     }}
                     onFocus={() => setFocusedField('bathrooms')}
                     onBlur={() => setFocusedField(null)}
@@ -586,8 +586,8 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                     borderRadius: 8,
                     padding: 12,
                     color: '#1f2937',
-                    borderColor: focusedField === 'balconies' ? '#90EE90' : '#d1d5db',
-                    borderWidth: 1,
+                    borderColor: focusedField === 'balconies' ? '#22C55E': '#d1d5db',
+                    borderWidth: 2,
                   }}
                   onFocus={() => setFocusedField('balconies')}
                   onBlur={() => setFocusedField(null)}
@@ -676,8 +676,8 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                       padding: 12,
                       marginBottom: 12,
                       color: '#1f2937',
-                      borderColor: focusedField === 'expectedPrice' ? '#90EE90' : '#d1d5db',
-                      borderWidth: 1,
+                      borderColor: focusedField === 'expectedPrice' ? '#22C55E' : '#d1d5db',
+                      borderWidth: 2,
                   }}
                   onFocus={() => setFocusedField('expectedPrice')}
                   onBlur={() => setFocusedField(null)}
@@ -727,8 +727,8 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                 borderRadius: 8,
                 padding: 12,
                 marginBottom: 16,
-                borderColor: focusedField === 'location' ? '#90EE90' : '#d1d5db',
-                borderWidth: 1,
+                borderColor: focusedField === 'location' ? '#22C55E' : '#d1d5db',
+                borderWidth: 2,
                 }}>
                 <Ionicons name="location-outline" size={20} color="#22C55E" />
                 <TextInput
@@ -749,25 +749,28 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
               <View style={{
                 borderRadius: 8,
                 marginBottom: 16,
-                borderColor: focusedField === 'description' ? '#90EE90' : '#d1d5db',
-                borderWidth: 1,
+                borderColor: focusedField === 'description' ? '#22C55E' : '#d1d5db',
+                borderWidth: 2,
                 }}>
-                <TextInput
-                  placeholder="Describe your property ........"
-                  placeholderTextColor="#888"
-                  value={description}
-                  onChangeText={(text) => setDescription(text.replace(/[^a-zA-Z0-9\s]/g, ''))}
-                  multiline
-                  numberOfLines={4}
-                  style={{
-                      backgroundColor: '#f3f4f6',
-                      width: '100%',
-                      padding: 12,
-                      color: '#1f2937',
-                  }}
-                  onFocus={() => setFocusedField('description')}
-                  onBlur={() => setFocusedField(null)}
-                />
+               <TextInput
+  placeholder="Describe your property ........"
+  placeholderTextColor="#888"
+  value={description}
+  onChangeText={(text) => setDescription(text.replace(/[^a-zA-Z0-9\s]/g, ''))}
+  multiline
+  numberOfLines={6}            // ⬅️ increases initial rows
+  textAlignVertical="top"      // ⬅️ cursor starts at top (Android fix)
+  style={{
+    backgroundColor: '#f3f4f6',
+    height: 150,               // ⬅️ KEY: fixed textarea height
+    width: '100%',
+    padding: 12,
+    color: '#1f2937',
+  }}
+  onFocus={() => setFocusedField('description')}
+  onBlur={() => setFocusedField(null)}
+/>
+
               </View>
             </View>
 
@@ -939,8 +942,8 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                   padding: 12,
                   marginBottom: 16,
                   color: '#1f2937',
-                  borderColor: focusedField === 'propertyTitle' ? '#90EE90' : '#d1d5db',
-                  borderWidth: 1,
+                  borderColor: focusedField === 'propertyTitle' ? '#22C55E' : '#d1d5db',
+                  borderWidth: 2,
                 }}
                 onFocus={() => setFocusedField('propertyTitle')}
                 onBlur={() => setFocusedField(null)}
@@ -977,8 +980,8 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                         borderRadius: 8,
                         padding: 12,
                         color: '#1f2937',
-                        borderColor: focusedField === 'floors' ? '#90EE90' : '#d1d5db',
-                        borderWidth: 1,
+                        borderColor: focusedField === 'floors' ? '#22C55E' : '#d1d5db',
+                        borderWidth: 2,
                     }}
                     onFocus={() => setFocusedField('floors')}
                     onBlur={() => setFocusedField(null)}
@@ -996,8 +999,8 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                         borderRadius: 8,
                         padding: 12,
                         color: '#1f2937',
-                        borderColor: focusedField === 'area' ? '#90EE90' : '#d1d5db',
-                        borderWidth: 1,
+                        borderColor: focusedField === 'area' ? '#22C55E': '#d1d5db',
+                        borderWidth: 2,
                     }}
                     onFocus={() => setFocusedField('area')}
                     onBlur={() => setFocusedField(null)}
@@ -1019,8 +1022,8 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                         borderRadius: 8,
                         padding: 12,
                         color: '#1f2937',
-                        borderColor: focusedField === 'bedrooms' ? '#90EE90' : '#d1d5db',
-                        borderWidth: 1,
+                        borderColor: focusedField === 'bedrooms' ? '#22C55E' : '#d1d5db',
+                        borderWidth: 2,
                     }}
                     onFocus={() => setFocusedField('bedrooms')}
                     onBlur={() => setFocusedField(null)}
@@ -1038,8 +1041,8 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                         borderRadius: 8,
                         padding: 12,
                         color: '#1f2937',
-                        borderColor: focusedField === 'bathrooms' ? '#90EE90' : '#d1d5db',
-                        borderWidth: 1,
+                        borderColor: focusedField === 'bathrooms' ? '#22C55E': '#d1d5db',
+                        borderWidth: 2,
                     }}
                     onFocus={() => setFocusedField('bathrooms')}
                     onBlur={() => setFocusedField(null)}
@@ -1131,8 +1134,8 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
                 borderRadius: 8,
                 padding: 12,
                 marginBottom: 16,
-                borderColor: focusedField === 'location' ? '#90EE90' : '#d1d5db',
-                borderWidth: 1,
+                borderColor: focusedField === 'location' ? '#22C55E' : '#d1d5db',
+                borderWidth: 2,
                 }}>
                 <Ionicons name="location-outline" size={20} color="#22C55E" />
                 <TextInput
@@ -1153,25 +1156,28 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
               <View style={{
                 borderRadius: 8,
                 marginBottom: 16,
-                borderColor: focusedField === 'description' ? '#90EE90' : '#d1d5db',
-                borderWidth: 1,
+                borderColor: focusedField === 'description' ?'#22C55E' : '#d1d5db',
+                borderWidth: 2,
                 }}>
-                <TextInput
-                  placeholder="Describe your property ........"
-                  placeholderTextColor="#888"
-                  value={description}
-                  onChangeText={(text) => setDescription(text.replace(/[^a-zA-Z0-9\s]/g, ''))}
-                  multiline
-                  numberOfLines={4}
-                  style={{
-                      backgroundColor: '#f3f4f6',
-                      width: '100%',
-                      padding: 12,
-                      color: '#1f2937',
-                  }}
-                  onFocus={() => setFocusedField('description')}
-                  onBlur={() => setFocusedField(null)}
-                />
+               <TextInput
+  placeholder="Describe your property ........"
+  placeholderTextColor="#888"
+  value={description}
+  onChangeText={(text) => setDescription(text.replace(/[^a-zA-Z0-9\s]/g, ''))}
+  multiline
+  numberOfLines={6}            // ⬅️ increases initial rows
+  textAlignVertical="top"      // ⬅️ cursor starts at top (Android fix)
+  style={{
+    backgroundColor: '#f3f4f6',
+    height: 150,               // ⬅️ KEY: fixed textarea height
+    width: '100%',
+    padding: 12,
+    color: '#1f2937',
+  }}
+  onFocus={() => setFocusedField('description')}
+  onBlur={() => setFocusedField(null)}
+/>
+
               </View>
             </View>
           </View>
@@ -1230,7 +1236,7 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
       </ScrollView> 
               <View
           style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 16, gap: 12 }}
-          className="space-x-3 mr-4 "
+          className="space-x-3 mr-4 mb-3"
         >
           {/* Cancel Button */}
           <TouchableOpacity

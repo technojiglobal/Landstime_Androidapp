@@ -1,3 +1,5 @@
+// Landstime_Androidapp/Frontend/app/onboarding/welcomescreen2.jsx
+
 import { View, Text, Image, TouchableOpacity, Dimensions,StatusBar } from "react-native";
 import { useRouter } from "expo-router";
 
@@ -129,7 +131,7 @@ export default function WelcomeScreen() {
       </TouchableOpacity>
 
       {/* Bottom Line */}
-      <View
+      {/* <View
         style={{
           position: "absolute",
           top: scaleHeight(892),
@@ -139,7 +141,8 @@ export default function WelcomeScreen() {
           backgroundColor: "black",
           borderRadius: scaleWidth(10),
         }}
-      />
+      /> */}
+
     </View>
   );
 }
