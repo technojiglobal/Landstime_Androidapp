@@ -1,7 +1,8 @@
 // Landstime_Androidapp/Frontend/app/onboarding/welcomescreen3.jsx
 
-import { View, Text, Image, TouchableOpacity, Dimensions,StatusBar } from "react-native";
+import { View, Text, Image, TouchableOpacity, Dimensions, StatusBar } from "react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -13,34 +14,35 @@ const REF_HEIGHT = 932;
 const scaleWidth = (size) => (SCREEN_WIDTH / REF_WIDTH) * size;
 const scaleHeight = (size) => (SCREEN_HEIGHT / REF_HEIGHT) * size;
 
-
 export default function WelcomeScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
     <View className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      
       {/* Back Arrow */}
       <View style={{ position: "absolute", top: scaleHeight(62), left: scaleWidth(25) }}>
-                <TouchableOpacity
-                  onPress={() => {
-                   
-                      router.push("/onboarding/welcomescreen2"); // fallback screen
-                    }
-                  }
-                >
-                  <Image
-                    source={require("../../assets/arrow.png")}
-                    style={{ width: scaleWidth(28), height: scaleHeight(28) }}
-                    resizeMode="contain"
-                  />
-                </TouchableOpacity>
-           </View>
+        <TouchableOpacity
+          onPress={() => {
+            router.push("/onboarding/welcomescreen2");
+          }}
+        >
+          <Image
+            source={require("../../assets/arrow.png")}
+            style={{ width: scaleWidth(28), height: scaleHeight(28) }}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+      </View>
 
       {/* Skip Text */}
       <View style={{ position: "absolute", top: scaleHeight(62), right: scaleWidth(32) }}>
         <TouchableOpacity onPress={() => router.push("/onboarding/welcomescreen4")}>
-          <Text className="underline text-gray-500 text-base font-semibold">Skip</Text>
+          <Text className="underline text-gray-500 text-base font-semibold">
+            {t('skip')}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -50,7 +52,7 @@ export default function WelcomeScreen() {
         style={{
           position: "absolute",
           top: scaleHeight(129),
-          left: SCREEN_WIDTH / 2 - scaleWidth(196), // center horizontally
+          left: SCREEN_WIDTH / 2 - scaleWidth(196),
           width: scaleWidth(392),
           height: scaleHeight(417),
           borderRadius: scaleWidth(50),
@@ -58,24 +60,22 @@ export default function WelcomeScreen() {
       />
 
       {/* Title Text */}
-     {/* Title Text */}
-<Text
-  style={{
-    position: "absolute",
-    top: scaleHeight(573),
-    left: SCREEN_WIDTH / 2 - scaleWidth(109),
-    width: scaleWidth(200),
-    height: scaleHeight(100), // increased height so 'Connect' is visible
-    fontSize: scaleWidth(28),
-    fontWeight: "500",
-    lineHeight: scaleHeight(34),
-    textAlign: "center",
-    color: "black",
-  }}
->
-  Direct Property{"\n"}Connect
-</Text>
-
+      <Text
+        style={{
+          position: "absolute",
+          top: scaleHeight(573),
+          left: SCREEN_WIDTH / 2 - scaleWidth(109),
+          width: scaleWidth(218),
+          height: scaleHeight(100),
+          fontSize: scaleWidth(28),
+          fontWeight: "500",
+          lineHeight: scaleHeight(34),
+          textAlign: "center",
+          color: "black",
+        }}
+      >
+        {t('direct_property_connect_label')}
+      </Text>
 
       {/* 3 Dots */}
       <View
@@ -119,23 +119,9 @@ export default function WelcomeScreen() {
             color: "#fff",
           }}
         >
-          Next
+          {t('next')}
         </Text>
       </TouchableOpacity>
-
-      {/* Underline */}
-      {/* <View
-        style={{
-          position: "absolute",
-          top: scaleHeight(892),
-          left: SCREEN_WIDTH / 2 - scaleWidth(67),
-          width: scaleWidth(134),
-          height: scaleHeight(5),
-          backgroundColor: "black",
-          borderRadius: scaleWidth(10),
-        }}
-      /> */}
-
     </View>
   );
 }

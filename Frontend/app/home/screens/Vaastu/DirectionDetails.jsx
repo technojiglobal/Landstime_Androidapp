@@ -1,11 +1,17 @@
+// ============================================
+// FILE 2: Frontend/app/home/screens/Vaastu/DirectionDetails.jsx
+// ============================================
+
 import React from "react";
 import { View, Text, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 export default function DirectionDetails({ data }) {
+  const { t } = useTranslation();
+
   return (
     <View className="border border-gray-200 rounded-xl p-5 mb-7 bg-white">
-
       {/* Title */}
       <View className="flex flex-row items-center gap-2">
         <Image
@@ -13,11 +19,11 @@ export default function DirectionDetails({ data }) {
           style={{ width: 13, height: 13 }}
           resizeMode="contain"
         />
-        <Text className="text-gray-800 font-bold text-lg">{data.name}</Text>
+        <Text className="text-gray-800 font-bold text-lg">{t(data.name)}</Text>
       </View>
 
       <Text className="text-sm text-gray-500 mt-1">
-        Element: {data.element} | Deity: {data.deity}
+        {t('vaastu_direction_title')}: {t(data.element)} | {t('vaastu_direction_deity')}: {t(data.deity)}
       </Text>
 
       {/* Benefits */}
@@ -29,15 +35,15 @@ export default function DirectionDetails({ data }) {
             resizeMode="contain"
           />
           <Text className="font-semibold text-green-600 text-base">
-            Benefits
+            {t('vaastu_section_benefits')}
           </Text>
         </View>
 
-        {data.benefits.map((benefit, index) => (
+        {data.benefits.map((benefitKey, index) => (
           <View key={index} className="flex-row items-center mt-2">
             <Ionicons name="ellipse" size={6} color="#22c55e" />
             <Text className="text-gray-700 text-sm ml-2 flex-1">
-              {benefit}
+              {t(benefitKey)}
             </Text>
           </View>
         ))}
@@ -46,11 +52,11 @@ export default function DirectionDetails({ data }) {
       {/* Ideal Placements */}
       <View className="mt-6">
         <Text className="font-semibold text-gray-700 mb-3">
-          ☆ Ideal Placements
+          ☆ {t('vaastu_section_ideal_placements')}
         </Text>
 
         <View className="flex-row flex-wrap gap-2">
-          {data.idealPlacements.map((item, index) => (
+          {data.idealPlacements.map((placementKey, index) => (
             <View
               key={index}
               className="px-3 py-[3px] rounded-full border"
@@ -59,23 +65,23 @@ export default function DirectionDetails({ data }) {
                 borderWidth: 1,
               }}
             >
-              <Text className="text-sm text-gray-700">{item}</Text>
+              <Text className="text-sm text-gray-700">{t(placementKey)}</Text>
             </View>
           ))}
         </View>
       </View>
 
       {/* Avoid */}
-      <View className="mt-6 ">
+      <View className="mt-6">
         <View className="flex-row items-center gap-2 mb-3">
           <Ionicons name="close-circle" size={18} color="#ef4444" />
           <Text className="font-semibold text-gray-700 text-base">
-            Avoid
+            {t('vaastu_section_avoid')}
           </Text>
         </View>
 
         <View className="flex-row flex-wrap gap-2">
-          {data.avoid.map((item, index) => (
+          {data.avoid.map((avoidKey, index) => (
             <View
               key={index}
               className="px-3 py-[3px] rounded-full border"
@@ -84,12 +90,11 @@ export default function DirectionDetails({ data }) {
                 borderWidth: 1,
               }}
             >
-              <Text className="text-sm text-gray-700">{item}</Text>
+              <Text className="text-sm text-gray-700">{t(avoidKey)}</Text>
             </View>
           ))}
         </View>
       </View>
-
     </View>
   );
 }

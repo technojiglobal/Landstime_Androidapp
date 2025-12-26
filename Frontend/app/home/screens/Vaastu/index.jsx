@@ -1,5 +1,8 @@
+// Frontend/app/home/screens/Vaastu/index.jsx
+
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Image, Dimensions, ScrollView,StatusBar } from "react-native";
+import { View, Text, TouchableOpacity, Image, Dimensions, ScrollView, StatusBar } from "react-native";
+import { useTranslation } from "react-i18next";
 import DirectionDetails from "./DirectionDetails";
 import Slidearrow from "../../../../assets/Slide-arrow.png";
 import directionsData from "../../../../data/directionsData";
@@ -18,11 +21,32 @@ const scaleWidth = (size) => (SCREEN_WIDTH / REF_WIDTH) * size;
 const scaleHeight = (size) => (SCREEN_HEIGHT / REF_HEIGHT) * size;
 
 export default function VastuDirections() {
-          const router = useRouter();
+  const { t } = useTranslation();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("Directions");
   const [activeDirection, setActiveDirection] = useState("North");
 
   const directions = Object.keys(directionsData);
+
+  // Tab configuration with translation keys
+  const tabs = [
+    { key: "Directions", label: t('vaastu_tab_directions') },
+    { key: "Rooms", label: t('vaastu_tab_rooms') },
+    { key: "Do's & Don'ts", label: t('vaastu_tab_dos_donts') },
+    { key: "Elements", label: t('vaastu_tab_elements') },
+  ];
+
+  // Direction labels mapping
+  const directionLabels = {
+    North: t('vaastu_direction_north'),
+    East: t('vaastu_direction_east'),
+    South: t('vaastu_direction_south'),
+    West: t('vaastu_direction_west'),
+    Northeast: t('vaastu_direction_northeast'),
+    Southeast: t('vaastu_direction_southeast'),
+    Southwest: t('vaastu_direction_southwest'),
+    Northwest: t('vaastu_direction_northwest'),
+  };
 
   // 🔥 Rotation mapping for arrow
   const directionRotation = {
@@ -37,8 +61,9 @@ export default function VastuDirections() {
   };
 
   return (
-      <ScrollView className="flex-1 bg-white px-4">
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <ScrollView className="flex-1 bg-white px-4">
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      
       {/* Back Arrow + Title in row */}
       <View style={{ flexDirection: "row", alignItems: "center", marginTop: scaleHeight(60) }}>
         <TouchableOpacity onPress={() => router.back()} style={{ marginRight: scaleWidth(12) }}>
@@ -59,7 +84,7 @@ export default function VastuDirections() {
             color: "#111",
           }}
         >
-          Vaastu Guidelines
+          {t('vaastu_title')}
         </Text>
       </View>
 
@@ -70,24 +95,24 @@ export default function VastuDirections() {
           fontSize: scaleWidth(14),
           fontWeight: "500",
           color: "#4c4545a6",
-           marginLeft: scaleWidth(36), 
+          marginLeft: scaleWidth(36), 
         }}
       >
-        Ancient wisdom for modern living
+        {t('vaastu_subtitle')}
       </Text>
        
       {/* Tabs Segmented Control */}
       <View className="flex-row justify-around bg-[#F2F2F2] rounded-full p-1 my-4 mx-6">
-        {["Directions", "Rooms", "Do's & Don'ts", "Elements"].map((tab) => (
+        {tabs.map((tab) => (
           <TouchableOpacity
-            key={tab}
-            onPress={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-full ${activeTab === tab ? "bg-[#22C55E]" : ""}`}
+            key={tab.key}
+            onPress={() => setActiveTab(tab.key)}
+            className={`px-4 py-2 rounded-full ${activeTab === tab.key ? "bg-[#22C55E]" : ""}`}
           >
             <Text
-              className={`text-sm ${activeTab === tab ? "text-white font-bold" : "text-gray-600"}`}
+              className={`text-sm ${activeTab === tab.key ? "text-white font-bold" : "text-gray-600"}`}
             >
-              {tab}
+              {tab.label}
             </Text>
           </TouchableOpacity>
         ))}
@@ -101,30 +126,31 @@ export default function VastuDirections() {
             <View className="w-56 h-56 rounded-full border border-gray-300 justify-center items-center relative">
 
               {/* 🔄 Rotating Arrow */}
-<View
-  className="absolute w-10 h-10 rounded-full justify-center items-center bg-[#6881F1]"
-  style={{
-    transform: [{ rotate: directionRotation[activeDirection] }],
-  }}
->
-  <Image
-    source={Slidearrow}
-    className="w-6 h-6"
-    resizeMode="contain"
-  />
-</View>
-              {/* Labels */}
+              <View
+                className="absolute w-10 h-10 rounded-full justify-center items-center bg-[#6881F1]"
+                style={{
+                  transform: [{ rotate: directionRotation[activeDirection] }],
+                }}
+              >
+                <Image
+                  source={Slidearrow}
+                  className="w-6 h-6"
+                  resizeMode="contain"
+                />
+              </View>
+              
+              {/* Labels - Using vaastu_compass_* keys for compass display */}
               <Text className="absolute -top-3 text-xs text-green-700 border border-green-700 px-2 rounded-full bg-white">
-                North
+                {t('vaastu_compass_north')}
               </Text>
               <Text className="absolute right-[-20px] top-1/2 -translate-y-1/2 text-xs text-blue-700 border border-blue-700 px-2 rounded-full bg-white">
-                East
+                {t('vaastu_compass_east')}
               </Text>
               <Text className="absolute -bottom-3 text-xs text-red-700 border border-red-700 px-2 rounded-full bg-white">
-                South
+                {t('vaastu_compass_south')}
               </Text>
               <Text className="absolute left-[-20px] top-1/2 -translate-y-1/2 text-xs text-yellow-700 border border-yellow-700 px-2 rounded-full bg-white">
-                West
+                {t('vaastu_compass_west')}
               </Text>
 
             </View>
@@ -149,7 +175,7 @@ export default function VastuDirections() {
                       : "text-gray-600"
                   }`}
                 >
-                  {dir}
+                  {directionLabels[dir]}
                 </Text>
               </TouchableOpacity>
             ))}
