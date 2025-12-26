@@ -1,3 +1,4 @@
+// Frontend/app/home/screens/Flats/index.jsx
 import React, { useState, useRef } from 'react';
 import {
   View,
@@ -10,7 +11,7 @@ import {
   Animated,
   PanResponder,
 } from 'react-native';
-import { SafeAreaView} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ChevronLeft,
   Search,
@@ -20,9 +21,10 @@ import {
   ChevronRight,
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 const districtsData = [
- { name: 'Anantapur', properties: 1725 },
+  { name: 'Anantapur', properties: 1725 },
   { name: 'Chittoor', properties: 1850 },
   { name: 'East Godavari', properties: 4251 },
   { name: 'Guntur', properties: 2904 },
@@ -39,8 +41,8 @@ const districtsData = [
 const itemWidth = 339;
 
 const SelectDistrictScreen = () => {
-  
   const router = useRouter();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [contentHeight, setContentHeight] = useState(1);
   const [scrollViewHeight, setScrollViewHeight] = useState(0);
@@ -91,8 +93,9 @@ const SelectDistrictScreen = () => {
       },
     })
   ).current;
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'white',paddingTop:7 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white', paddingTop: 7 }}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
       {/* Header */}
@@ -102,7 +105,7 @@ const SelectDistrictScreen = () => {
             <ChevronLeft color="black" size={25} />
           </TouchableOpacity>
 
-          <Text className="text-2xl font-bold ml-3">Select District in Andhra</Text>
+          <Text className="text-2xl font-bold ml-3">{t('selectDistrict.title')}</Text>
         </View>
 
         {/* Search Bar */}
@@ -118,7 +121,7 @@ const SelectDistrictScreen = () => {
             <Search color="#888" size={20} />
             <TextInput
               className="flex-1 text-base h-full ml-2"
-              placeholder="Search districts in Andhra..."
+              placeholder={t('selectDistrict.searchPlaceholder')}
               placeholderTextColor="#888"
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -150,7 +153,7 @@ const SelectDistrictScreen = () => {
           {filteredData.length === 0 && (
             <View style={{ padding: 20, alignItems: 'center' }}>
               <Text style={{ color: '#888', fontSize: 16 }}>
-                No districts found for "{searchQuery}"
+                {t('selectDistrict.noResults', { query: searchQuery })}
               </Text>
             </View>
           )}
@@ -167,7 +170,7 @@ const SelectDistrictScreen = () => {
                 <View className="flex-row items-center mt-1">
                   <MapPin color="#22C55E" size={14} />
                   <Text className="text-sm text-gray-500 ml-1">
-                    {district.properties.toLocaleString()} properties available
+                    {district.properties.toLocaleString()} {t('selectDistrict.propertiesAvailable')}
                   </Text>
                 </View>
               </View>
@@ -230,10 +233,6 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
     borderLeftWidth: 8,
     backgroundColor: '#fff',
-
-    // ✅ Only bottom green shadow
-    
-
     elevation: 6,
   },
 });

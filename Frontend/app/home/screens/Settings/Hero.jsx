@@ -1,6 +1,9 @@
+// Frontend/app/home/screens/Settings/Hero.jsx
+
 import { useRouter } from "expo-router";
 import React from "react";
 import { View, Text, Dimensions, TouchableOpacity, Image } from "react-native";
+import { useTranslation } from "react-i18next";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -10,8 +13,11 @@ const REF_HEIGHT = 932;
 
 const scaleWidth = (size) => (SCREEN_WIDTH / REF_WIDTH) * size;
 const scaleHeight = (size) => (SCREEN_HEIGHT / REF_HEIGHT) * size;
+
 const Hero = () => {
   const router = useRouter();
+  const { t } = useTranslation();
+
   return (
     <View className="border-b border-gray-200 m-2 p-2 flex flex-col">
       <View
@@ -34,15 +40,14 @@ const Hero = () => {
             resizeMode="contain"
           />
         </TouchableOpacity>
-        <Text className="font-bold text-lg">Settings</Text>
+        <Text className="font-bold text-lg">{t('settings_title')}</Text>
       </View>
       <Text
-  className="text-gray-700 text-sm"
-  style={{ marginLeft: scaleWidth(38) }}
->
-  Manage your app preferences
-</Text>
-
+        className="text-gray-700 text-sm"
+        style={{ marginLeft: scaleWidth(38) }}
+      >
+        {t('manage_preferences')}
+      </Text>
     </View>
   );
 };
