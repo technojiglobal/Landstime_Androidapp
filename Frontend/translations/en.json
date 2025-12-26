@@ -75,5 +75,17 @@
   "verify_button_send_otp": "Send OTP",
   "verify_otp_send_failed_title": "Error",
   "verify_otp_send_failed_desc": "Failed to send OTP. Please try again.",
-  "verify_network_error_desc": "Failed to send OTP. Please check your connection."
+  "verify_network_error_desc": "Failed to send OTP. Please check your connection.",
+  "home_banner_title": "Find Your Dream Property",
+  "home_banner_subtitle": "Explore premium real estate options in Vizag",
+  "home_search_placeholder": "Search properties...",
+  "home_category_sites": "Sites",
+  "home_category_sites_desc": "Plot Land",
+  "home_category_resorts": "Resorts",
+  "home_category_resorts_desc": "Luxury Getaways",
+  "home_category_flats": "Flats",
+  "home_category_flats_desc": "Investment Land",
+  "home_category_commercial": "Commercial",
+  "home_category_commercial_desc": "Business Spaces",
+  "home_language_modal_title": "Select Your Language"
 }
