@@ -1191,44 +1191,71 @@ if (!result.canceled && result.assets && result.assets.length > 0) {
         Owner Details
       </Text>
 
-      {/* Name */}
-      <View className="flex-row items-center border border-gray-300 rounded-lg px-3 py-2 mb-3">
-        <Ionicons name="person-outline" size={20} color="#9CA3AF" />
-        <TextInput
-          value={ownerName}
-          onChangeText={setOwnerName}
-          placeholder="Name of the Owner"
-          placeholderTextColor="#9CA3AF"
-          className="flex-1 ml-3 text-gray-900"
-        />
-      </View>
+     {/* Name */}
+<View 
+  className="flex-row items-center rounded-lg px-3 py-2 mb-3"
+  style={{
+    backgroundColor: '#f3f4f6',
+    borderWidth: 2,
+    borderColor: focusedField === 'ownerName' ? '#22C55E' : '#d1d5db',
+  }}
+>
+  <Ionicons name="person-outline" size={20} color="#9CA3AF" />
+  <TextInput
+    value={ownerName}
+    onChangeText={setOwnerName}
+    placeholder="Name of the Owner"
+    placeholderTextColor="#9CA3AF"
+    className="flex-1 ml-3 text-gray-900"
+    onFocus={() => setFocusedField('ownerName')}
+    onBlur={() => setFocusedField(null)}
+  />
+</View>
 
-      {/* Phone */}
-      <View className="flex-row items-center border border-gray-300 rounded-lg px-3 py-2 mb-3">
-        <Ionicons name="call-outline" size={20} color="#9CA3AF" />
-        <TextInput
-          value={phone}
-          onChangeText={setPhone}
-          placeholder="Phone Number"
-          placeholderTextColor="#9CA3AF"
-          keyboardType="phone-pad"
-          className="flex-1 ml-3 text-gray-900"
-        />
-      </View>
+{/* Phone */}
+<View 
+  className="flex-row items-center rounded-lg px-3 py-2 mb-3"
+  style={{
+    backgroundColor: '#f3f4f6',
+    borderWidth: 2,
+    borderColor: focusedField === 'phone' ? '#22C55E' : '#d1d5db',
+  }}
+>
+  <Ionicons name="call-outline" size={20} color="#9CA3AF" />
+  <TextInput
+    value={phone}
+    onChangeText={setPhone}
+    placeholder="Phone Number"
+    placeholderTextColor="#9CA3AF"
+    keyboardType="phone-pad"
+    className="flex-1 ml-3 text-gray-900"
+    onFocus={() => setFocusedField('phone')}
+    onBlur={() => setFocusedField(null)}
+  />
+</View>
 
-      {/* Email */}
-      <View className="flex-row items-center border border-gray-300 rounded-lg px-3 py-2">
-        <Ionicons name="mail-outline" size={20} color="#9CA3AF" />
-        <TextInput
-          value={email}
-          onChangeText={setEmail}
-          placeholder="Enter your Email"
-          placeholderTextColor="#9CA3AF"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          className="flex-1 ml-3 text-gray-900"
-        />
-      </View>
+{/* Email */}
+<View 
+  className="flex-row items-center rounded-lg px-3 py-2"
+  style={{
+    backgroundColor: '#f3f4f6',
+    borderWidth: 2,
+    borderColor: focusedField === 'email' ? '#22C55E' : '#d1d5db',
+  }}
+>
+  <Ionicons name="mail-outline" size={20} color="#9CA3AF" />
+  <TextInput
+    value={email}
+    onChangeText={setEmail}
+    placeholder="Enter your Email"
+    placeholderTextColor="#9CA3AF"
+    keyboardType="email-address"
+    autoCapitalize="none"
+    className="flex-1 ml-3 text-gray-900"
+    onFocus={() => setFocusedField('email')}
+    onBlur={() => setFocusedField(null)}
+  />
+</View>
 
     </View>
 
