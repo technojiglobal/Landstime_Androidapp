@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // API Base URL - Change this to your backend URL
 
 
-const API_BASE_URL = 'http://10.121.22.5:8000/api/user';
+const API_BASE_URL = 'http://192.168.0.108:8000/api/user';
 
 
 // Helper function to get token from AsyncStorage
