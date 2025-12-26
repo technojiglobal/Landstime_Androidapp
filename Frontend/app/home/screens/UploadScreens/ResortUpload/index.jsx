@@ -17,6 +17,9 @@ import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import TopAlert from "../TopAlert";
 import { SafeAreaView } from "react-native-safe-area-context";
+import DocumentUpload from "components/Documentupload";
+import { createProperty } from "../../../../../utils/propertyApi";
+import OwnerDetails from "components/OwnersDetails";
 /* ---------- Reusable Components ---------- */
 const PillButton = ({ label, selected, onPress }) => (
   <TouchableOpacity
@@ -52,7 +55,7 @@ export default function PropertyFormScreen() {
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [locAdvantages, setLocAdvantages] = useState([]);
-  const [image, setImage] = useState(null);
+  const [images, setImages] = useState([]);
   const [alertVisible, setAlertVisible] = useState(false);
 const [propertyFacing, setPropertyFacing] = useState("Select");
 const [masterSuitroom, setMasterSuitroom] = useState("Select");
@@ -74,6 +77,12 @@ const [recreation, setRecreation] = useState("Select");
 const [garden, setGarden] = useState("Select");
 const [resortType, setResortType] = useState("");
 const [resortOpen, setResortOpen] = useState(false);
+const [ownershipDocs, setOwnershipDocs] = useState([]);
+const [identityDocs, setIdentityDocs] = useState([]);
+const [ownerName, setOwnerName] = useState("");
+const [phone, setPhone] = useState("");
+const [email, setEmail] = useState("");
+const [focusedField, setFocusedField] = useState(null);
 
   /* ---------- Helpers ---------- */
   const isAlphaNumeric = (text) => /^[a-zA-Z0-9\s]+$/.test(text);
@@ -91,47 +100,60 @@ const showToast = (message) => {
 
 
 /* ---------- Validation ---------- */
-  const handleSubmit = () => {
-    const requiredTextFields = [
-      { label: "Resort Title", value: title },
-      { label: "Location", value: location },
-      { label: "Description", value: description },
-    ];
-
-    const requiredNumericFields = [
-      { label: "Rooms", value: rooms },
-      { label: "Floors", value: floors },
-      { label: "Land Area", value: area },
-      { label: "Build Area", value: buildArea },
-      { label: "Price", value: price },
-    ];
-
-    for (let field of requiredTextFields) {
-      if (!field.value.trim()) {
-        showToast(`${field.label} is mandatory`);
-        return;
-      }
-      if (!isAlphaNumeric(field.value)) {
-        showToast(`${field.label} must be alphanumeric`);
-        return;
-      }
-    }
-
-    for (let field of requiredNumericFields) {
-      if (!field.value.trim()) {
-        showToast(`${field.label} is mandatory`);
-        return;
-      }
-      if (!isNumeric(field.value)) {
-        showToast(`${field.label} must be numeric`);
-        return;
-      }
-    }
-
-    if (!resortType) {
-      showToast("Please select Resort Type");
+const handleSubmit = async () => {
+  try {
+    if (images.length === 0) {
+      showToast("Please upload at least one property image");
       return;
     }
+
+    if (ownershipDocs.length === 0 || identityDocs.length === 0) {
+      showToast("Please upload required documents");
+      return;
+    }
+  if (!ownerName.trim()) {
+  showToast("Owner name is required");
+  return;
+}
+
+if (!phone.trim()) {
+  showToast("Owner phone number is required");
+  return;
+}
+
+if (!email.trim()) {
+  showToast("Owner email is required");
+  return;
+}
+if (!title.trim()) {
+  showToast("Resort title is required");
+  return;
+}
+
+if (!location.trim()) {
+  showToast("Location is required");
+  return;
+}
+
+if (!price || Number(price) <= 0) {
+  showToast("Valid price is required");
+  return;
+}
+
+if (!area || Number(area) <= 0) {
+  showToast("Land area is required");
+  return;
+}
+
+if (!buildArea || Number(buildArea) <= 0) {
+  showToast("Build area is required");
+  return;
+}
+
+if (!resortType) {
+  showToast("Please select resort type");
+  return;
+}
 
     const vaasthuFields = [
       propertyFacing,
@@ -158,17 +180,70 @@ const showToast = (message) => {
       showToast("Please fill all Vaasthu Details");
       return;
     }
-  // ✅ Image mandatory
-if (!image) {
-  showToast("Please upload at least one property image");
-  return;
+
+    const propertyData = {
+      propertyType: "Resort",
+      propertyTitle: title,
+      location,
+      description,
+      expectedPrice: Number(price),
+      ownerDetails: {
+    name: ownerName.trim(),
+    phone: phone.trim(),
+    email: email.trim(),
+  },
+      resortDetails: {
+        rooms: Number(rooms),
+        floors: Number(floors),
+        landArea: Number(area),
+        buildArea: Number(buildArea),
+        resortType,
+        locationAdvantages: locAdvantages,
+        vaasthuDetails: {
+          propertyFacing,
+          entranceDirection,
+          receptionAreaFacing,
+          mainLobbyDirection,
+          masterSuitroom,
+          guestRoom,
+          restaurantDirection,
+          vipSuite,
+          conferenceDirection,
+          spaRoom,
+          swimmingPool,
+          yoga,
+          kitchenRoom,
+          poojaRoom,
+          office,
+          recreation,
+          balcony,
+          garden,
+        },
+      },
+    };
+
+    const result = await createProperty(
+      propertyData,
+      images,
+      ownershipDocs,
+      identityDocs
+    );
+
+    if (result.success) {
+  setAlertVisible(true);
+
+  // navigate AFTER alert animation
+  setTimeout(() => {
+    setAlertVisible(false);
+    router.replace("/(tabs)/home");
+  }, 2000); // same duration as TopAlert
 }
-    setAlertVisible(true);
-  };
 
-
-
-
+  } catch (err) {
+    console.error(err);
+    showToast("Something went wrong");
+  }
+};
 
 
 const RESORT_TYPES = [
@@ -235,21 +310,22 @@ const RESORT_TYPES = [
     );
   };
 
-  const openCamera = async () => {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert("Permission Required", "Camera permission is needed");
-      return;
-    }
+const openCamera = async () => {
+  const permission = await ImagePicker.requestCameraPermissionsAsync();
+  if (!permission.granted) {
+    Alert.alert("Permission Required", "Camera permission is needed");
+    return;
+  }
 
-    const result = await ImagePicker.launchCameraAsync({
-      quality: 1,
-    });
+  const result = await ImagePicker.launchCameraAsync({
+    quality: 0.8,
+  });
 
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-    }
-  };
+  if (!result.canceled) {
+    setImages(prev => [...prev, result.assets[0].uri]);
+  }
+};
+
 
   return (
     <>
@@ -296,12 +372,18 @@ const RESORT_TYPES = [
             <Text className="text-gray-500 mt-2">Add Photos or Videos</Text>
           </TouchableOpacity>
 
-          {image && (
-            <Image
-              source={{ uri: image }}
-              className="w-full h-48 rounded-lg"
-            />
-          )}
+        {images.length > 0 && (
+  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+    {images.map((uri, index) => (
+      <Image
+        key={index}
+        source={{ uri }}
+        className="w-40 h-40 rounded-lg mr-2"
+      />
+    ))}
+  </ScrollView>
+)}
+
         </View>
 
         {/* ---------- Basic Details ---------- */}
@@ -566,6 +648,7 @@ const RESORT_TYPES = [
             />
            </View>
         </View>
+         
          {/* Vaasthu Details */}
                     <View className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
 
@@ -618,6 +701,37 @@ const RESORT_TYPES = [
                         </View>
                       ))}
                     </View>
+                <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
+  <DocumentUpload
+    title="Property Ownership"
+    subtitle="Verify ownership to publish your property listing securely."
+    files={ownershipDocs}
+    setFiles={setOwnershipDocs}
+    required
+  />
+</View>
+
+<View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
+  <DocumentUpload
+    title="Owner Identity"
+    subtitle="Upload PAN, Aadhaar, Passport or Driver’s License"
+    files={identityDocs}
+    setFiles={setIdentityDocs}
+    required
+  />
+</View>
+
+  <OwnerDetails
+   ownerName={ownerName}
+   setOwnerName={setOwnerName}
+   phone={phone}
+   setPhone={setPhone}
+   email={email}
+   setEmail={setEmail}
+   focusedField={focusedField}
+   setFocusedField={setFocusedField}
+ />
+
           <Text className="text-[15px] font-bold text-gray-600 mb-3">
             Location Advantages
           </Text>

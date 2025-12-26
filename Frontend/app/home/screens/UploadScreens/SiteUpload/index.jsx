@@ -29,6 +29,10 @@ import Toast from 'react-native-toast-message';
 import MorePricingDetailsModal from "../MorePricingDetailsModal";
 import HowTo360Modal from "../HowTo360Modal";
 import PhotoUploadGuide from "../PhotoUploadGuide";
+import DocumentUpload from "components/Documentupload";
+import { Linking } from "react-native";
+import OwnerDetails from "components/OwnersDetails";
+
 export default function UploadPropertyScreen() {
   const params = useLocalSearchParams();
   const [propertyType, setPropertyType] = useState("Site/Plot/Land");
@@ -47,6 +51,12 @@ export default function UploadPropertyScreen() {
   const [boundaryWall, setBoundaryWall] = useState(null);
   const [openSides, setOpenSides] = useState("");
   const [unit, setUnit] = useState("sqft");
+  const [ownerName, setOwnerName] = useState("");
+const [phone, setPhone] = useState("");
+const [email, setEmail] = useState("");
+  const [ownershipDocs, setOwnershipDocs] = useState([]);
+  const [identityDocs, setIdentityDocs] = useState([]);
+  
    const [isMorePricingModalVisible, setIsMorePricingModalVisible] = useState(false);
     const [isHowto360ModalVisible, setIsHowto360ModalVisible] = useState(false);
    const [isPhotoGuideModalVisible, setIsPhotoGuideModalVisible] = useState(false);
@@ -232,6 +242,44 @@ export default function UploadPropertyScreen() {
         setIsSubmitting(false);
         return;
       }
+      if (ownershipDocs.length === 0 || identityDocs.length === 0) {
+   Toast.show({
+    type: 'error',
+    text1: 'Error',
+    text2: 'Please upload ownership and identity documents',
+    });
+    setIsSubmitting(false);
+    return;
+}
+ if (!ownerName?.trim()) {
+   Toast.show({
+     type: "error",
+     text1: "Missing details",
+     text2: "Owner name is required",
+   });
+   setIsSubmitting(false);
+   return;
+ }
+ 
+ if (!phone?.trim()) {
+   Toast.show({
+     type: "error",
+     text1: "Missing details",
+     text2: "Phone number is required",
+   });
+   setIsSubmitting(false);
+   return;
+ }
+ 
+ if (!email?.trim()) {
+   Toast.show({
+     type: "error",
+     text1: "Missing details",
+     text2: "Email is required",
+   });
+   setIsSubmitting(false);
+   return;
+ }
 
       console.log('✅ Validation passed');
     const propertyData = {
@@ -239,6 +287,12 @@ export default function UploadPropertyScreen() {
   propertyTitle,
   location,
   description,
+  ownerDetails: {
+    name: ownerName.trim(),
+    phone: phone.trim(),
+    email: email.trim(),
+  },
+
   expectedPrice: parseFloat(expectedPrice),
   priceDetails: {
     allInclusive: selectedPrices.includes("All inclusive price"),
@@ -274,18 +328,25 @@ console.log('📋 Final property data:', JSON.stringify(propertyData, null, 2));
 console.log('📸 Images to upload:', images.length, 'images');
 console.log('🔍 First image URI:', images[0]);
       
-      const result = await createProperty(propertyData, images);
+      const result = await createProperty(
+  propertyData,
+  images,
+  ownershipDocs,
+  identityDocs
+);
+
       
       console.log('📥 API Result:', result);
       console.log('📥 API Result Data:', JSON.stringify(result.data, null, 2));
       if (result.success) {
-        console.log('✅ Upload successful!');
-        Alert.alert("Success", "Property uploaded successfully!");
-        setAlertVisible(true);
-        
-        setTimeout(() => {
-          router.push("/(tabs)/home");
-        }, 2000);
+  setAlertVisible(true);
+
+  setTimeout(() => {
+    setAlertVisible(false);
+    router.replace("/(tabs)/home");
+  }, 2000);
+
+
       } else {
         console.error('❌ Upload failed:', result);
         Alert.alert(
@@ -816,7 +877,35 @@ console.log('🔍 First image URI:', images[0]);
             onBlur={() => setFocusedField(null)}
           />
         </View>
+      <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
+  <DocumentUpload
+    title="Property Ownership"
+    subtitle="Verify ownership to publish your property listing securely."
+    files={ownershipDocs}
+    setFiles={setOwnershipDocs}
+    required
+  />
+</View>
 
+<View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
+  <DocumentUpload
+    title="Owner Identity"
+    subtitle="Upload PAN, Aadhaar, Passport or Driver’s License"
+    files={identityDocs}
+    setFiles={setIdentityDocs}
+    required
+  />
+</View>
+       <OwnerDetails
+   ownerName={ownerName}
+   setOwnerName={setOwnerName}
+   phone={phone}
+   setPhone={setPhone}
+   email={email}
+   setEmail={setEmail}
+   focusedField={focusedField}
+   setFocusedField={setFocusedField}
+ />
         {/* Amenities, Overlooking, Facing */}
         <View
           className="bg-white rounded-lg p-4 mb-4"

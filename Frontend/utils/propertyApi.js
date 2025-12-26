@@ -1,7 +1,7 @@
 // Frontend/utils/propertyApi.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE_URL = 'http://10.10.5.166:8000/api/properties';
+const API_BASE_URL = 'http://10.121.22.5:8000/api/properties';
 
 // Helper function to get token
 const getToken = async () => {
@@ -59,35 +59,51 @@ const apiRequest = async (endpoint, method = 'GET', body = null, isFormData = fa
     };
   }
 };
-
-// Create property with images
-export const createProperty = async (propertyData, imageUris) => {
+export const createProperty = async (
+  propertyData,
+  imageUris = [],
+  ownershipDocs = [],
+  identityDocs = []
+) => {
   try {
     const formData = new FormData();
-    
-    // Append images
-    imageUris.forEach((uri, index) => {
+
+    imageUris.forEach((uri) => {
       const filename = uri.split('/').pop();
-      const match = /\.(\w+)$/.exec(filename);
-      const type = match ? `image/${match[1]}` : 'image/jpeg';
-      
+      const ext = filename.split('.').pop().toLowerCase();
+      const type = ext === 'png' ? 'image/png' : 'image/jpeg';
+
       formData.append('images', {
-        uri,
+        uri: uri.startsWith('file://') ? uri : `file://${uri}`,
         name: filename,
-        type
+        type,
       });
     });
-    
-    // Append property data as JSON string
+
+    ownershipDocs.forEach((file, index) => {
+      formData.append('ownershipDocs', {
+        uri: file.uri.startsWith('file://') ? file.uri : `file://${file.uri}`,
+        name: file.name || `ownership_${index}.jpg`,
+        type: file.type || 'image/jpeg',
+      });
+    });
+
+    identityDocs.forEach((file, index) => {
+      formData.append('identityDocs', {
+        uri: file.uri.startsWith('file://') ? file.uri : `file://${file.uri}`,
+        name: file.name || `identity_${index}.jpg`,
+        type: file.type || 'image/jpeg',
+      });
+    });
+
     formData.append('propertyData', JSON.stringify(propertyData));
-    
+
     return await apiRequest('/', 'POST', formData, true);
-    
   } catch (error) {
-    console.error('Create property error:', error);
     return { success: false, error: error.message };
   }
 };
+
 
 // Get all approved properties
 export const getApprovedProperties = async (propertyType = null, page = 1) => {
