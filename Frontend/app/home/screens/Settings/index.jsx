@@ -1,5 +1,7 @@
+// Frontend/app/home/screens/Settings/index.jsx
+
 import React from "react";
-import { View, ScrollView,StatusBar } from "react-native";
+import { View, ScrollView, StatusBar } from "react-native";
 
 import Hero from "./Hero";
 import Account from "./Account";
@@ -21,8 +23,6 @@ const Index = () => {
           <Notifications />
           <Privacy />
           <General />
-          
-          
         </View>
       </ScrollView>
     </View>

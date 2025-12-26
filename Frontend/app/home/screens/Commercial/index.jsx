@@ -1,3 +1,5 @@
+// Frontend/app/home/screens/Commercial/index.jsx
+
 import React, { useState, useRef } from "react";
 import {
   View,
@@ -20,6 +22,7 @@ import {
   ChevronRight,
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 const districtsData = [
   { name: "Anantapur", properties: 1725 },
@@ -40,6 +43,7 @@ const ITEM_WIDTH = 339;
 
 export default function SelectDistrictScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -101,7 +105,7 @@ export default function SelectDistrictScreen() {
       style={{
         flex: 1,
         backgroundColor: "white",
-        paddingTop:27, // remove safe area padding
+        paddingTop: 27,
       }}
     >
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
@@ -112,7 +116,7 @@ export default function SelectDistrictScreen() {
           <ChevronLeft color="black" size={25} />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Select District in Andhra</Text>
+        <Text style={styles.headerTitle}>{t('selectDistrict.title')}</Text>
       </View>
 
       {/* SEARCH BAR */}
@@ -121,7 +125,7 @@ export default function SelectDistrictScreen() {
           <Search color="#888" size={20} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search districts in Andhra..."
+            placeholder={t('selectDistrict.searchPlaceholder')}
             placeholderTextColor="#888"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -151,7 +155,7 @@ export default function SelectDistrictScreen() {
           {filteredData.length === 0 && (
             <View style={styles.noResults}>
               <Text style={styles.noResultsText}>
-                No districts found for "{searchQuery}"
+                {t('selectDistrict.noResults', { query: searchQuery })}
               </Text>
             </View>
           )}
@@ -170,7 +174,7 @@ export default function SelectDistrictScreen() {
                 <View style={styles.itemSubRow}>
                   <MapPin color="#22C55E" size={14} />
                   <Text style={styles.itemSubtitle}>
-                    {district.properties.toLocaleString()} properties available
+                    {district.properties.toLocaleString()} {t('selectDistrict.propertiesAvailable')}
                   </Text>
                 </View>
               </View>
@@ -204,8 +208,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 18,
     paddingBottom: 8,
-    paddingTop: 0,       // no padding
-    marginTop: -12,      // REMOVE TOP GAP COMPLETELY
+    paddingTop: 0,
+    marginTop: -12,
   },
   headerTitle: {
     fontSize: 22,

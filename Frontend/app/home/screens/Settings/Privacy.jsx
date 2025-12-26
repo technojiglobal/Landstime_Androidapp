@@ -1,5 +1,8 @@
+// Frontend/app/home/screens/Settings/Privacy.jsx
+
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
+import { useTranslation } from "react-i18next";
 
 const Toggle = ({ enabled, onChange }) => {
   return (
@@ -17,36 +20,34 @@ const Toggle = ({ enabled, onChange }) => {
 };
 
 const Privacy = () => {
+  const { t } = useTranslation();
   const [profileVisible, setProfileVisible] = useState(true);
   const [showActivity, setShowActivity] = useState(false);
   const [allowMessages, setAllowMessages] = useState(true);
 
   return (
     <View className="bg-white rounded-xl p-6 shadow-md ml-6 w-[80%] mt-6">
-      
       {/* Title */}
       <Text className="border-b border-gray-200 text-gray-700 font-semibold text-sm pb-2 mb-4">
-        Privacy
+        {t('privacy_title')}
       </Text>
 
       {/* Options */}
       <View className="gap-2 text-sm text-gray-600">
-
         <View className="flex flex-row justify-between items-center">
-          <Text>Profile Visible</Text>
+          <Text>{t('profile_visible')}</Text>
           <Toggle enabled={profileVisible} onChange={setProfileVisible} />
         </View>
 
         <View className="flex flex-row justify-between items-center">
-          <Text>Show Activity</Text>
+          <Text>{t('show_activity')}</Text>
           <Toggle enabled={showActivity} onChange={setShowActivity} />
         </View>
 
         <View className="flex flex-row justify-between items-center">
-          <Text>Allow Messages</Text>
+          <Text>{t('allow_messages')}</Text>
           <Toggle enabled={allowMessages} onChange={setAllowMessages} />
         </View>
-
       </View>
     </View>
   );
