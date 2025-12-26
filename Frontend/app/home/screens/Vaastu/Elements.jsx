@@ -1,37 +1,86 @@
+// Frontend/app/home/screens/Vaastu/Elements.jsx
 import React from "react";
 import { View, Text, ScrollView } from "react-native";
+import { useTranslation } from "react-i18next";
 
 export default function Elements() {
+  const { t } = useTranslation();
+
   const elements = [
     {
-      name: "Water(Jal)",
-      direction: "North & Northeast",
-      benefits: ["Wealth", "Peace", "Prosperity"],
-      items: ["Water Storage", "Aquarium", "Fountain", "Well"],
+      name: t('vaastu_element_water_name'),
+      direction: t('vaastu_element_water_direction'),
+      benefits: [
+        t('vaastu_element_water_benefit_1'),
+        t('vaastu_element_water_benefit_2'),
+        t('vaastu_element_water_benefit_3'),
+      ],
+      items: [
+        t('vaastu_element_water_item_1'),
+        t('vaastu_element_water_item_2'),
+        t('vaastu_element_water_item_3'),
+        t('vaastu_element_water_item_4'),
+      ],
     },
     {
-      name: "Fire(Agni)",
-      direction: "South & Southeast",
-      benefits: ["Health", "Energy", "Vitality"],
-      items: ["Kitchen", "Electrical Panel", "Generator", "Fireplace"],
+      name: t('vaastu_element_fire_name'),
+      direction: t('vaastu_element_fire_direction'),
+      benefits: [
+        t('vaastu_element_fire_benefit_1'),
+        t('vaastu_element_fire_benefit_2'),
+        t('vaastu_element_fire_benefit_3'),
+      ],
+      items: [
+        t('vaastu_element_fire_item_1'),
+        t('vaastu_element_fire_item_2'),
+        t('vaastu_element_fire_item_3'),
+        t('vaastu_element_fire_item_4'),
+      ],
     },
     {
-      name: "Air(Vayu)",
-      direction: "East & Northwest",
-      benefits: ["Movement", "Growth", "Communication"],
-      items: ["Windows", "Balconies", "Open Spaces", "Ventilation"],
+      name: t('vaastu_element_air_name'),
+      direction: t('vaastu_element_air_direction'),
+      benefits: [
+        t('vaastu_element_air_benefit_1'),
+        t('vaastu_element_air_benefit_2'),
+        t('vaastu_element_air_benefit_3'),
+      ],
+      items: [
+        t('vaastu_element_air_item_1'),
+        t('vaastu_element_air_item_2'),
+        t('vaastu_element_air_item_3'),
+        t('vaastu_element_air_item_4'),
+      ],
     },
     {
-      name: "Earth(Prithvi)",
-      direction: "West & Southwest",
-      benefits: ["Stability", "Strength", "Grounding"],
-      items: ["Bedroom", "Heavy Storage", "Foundation", "Walls"],
+      name: t('vaastu_element_earth_name'),
+      direction: t('vaastu_element_earth_direction'),
+      benefits: [
+        t('vaastu_element_earth_benefit_1'),
+        t('vaastu_element_earth_benefit_2'),
+        t('vaastu_element_earth_benefit_3'),
+      ],
+      items: [
+        t('vaastu_element_earth_item_1'),
+        t('vaastu_element_earth_item_2'),
+        t('vaastu_element_earth_item_3'),
+        t('vaastu_element_earth_item_4'),
+      ],
     },
     {
-      name: "Space(Akash)",
-      direction: "Center(Brahmasthana)",
-      benefits: ["Balance", "Harmony", "Spiritual Growth"],
-      items: ["Courtyard", "Living Room", "Central Hall", "Open Area"],
+      name: t('vaastu_element_space_name'),
+      direction: t('vaastu_element_space_direction'),
+      benefits: [
+        t('vaastu_element_space_benefit_1'),
+        t('vaastu_element_space_benefit_2'),
+        t('vaastu_element_space_benefit_3'),
+      ],
+      items: [
+        t('vaastu_element_space_item_1'),
+        t('vaastu_element_space_item_2'),
+        t('vaastu_element_space_item_3'),
+        t('vaastu_element_space_item_4'),
+      ],
     },
   ];
 
@@ -47,7 +96,6 @@ export default function Elements() {
             <Text className="text-lg font-semibold text-gray-900">
               {ele.name}
             </Text>
-
             <View className="px-3 py-1 rounded-lg border border-gray-200">
               <Text className="text-xs font-medium text-gray-400">
                 {ele.direction}
@@ -56,7 +104,9 @@ export default function Elements() {
           </View>
 
           {/* Benefits */}
-          <Text className="font-medium text-gray-800 mb-2">Benefits:</Text>
+          <Text className="font-medium text-gray-800 mb-2">
+            {t('vaastu_elements_benefits_label')}
+          </Text>
           <View className="flex-row flex-wrap gap-2 mb-3">
             {ele.benefits.map((benefit, i) => (
               <View
@@ -69,7 +119,9 @@ export default function Elements() {
           </View>
 
           {/* Suitable Items */}
-          <Text className="font-medium text-gray-800 mb-2">Suitable Items:</Text>
+          <Text className="font-medium text-gray-800 mb-2">
+            {t('vaastu_elements_items_label')}
+          </Text>
           <View className="flex-row flex-wrap gap-x-4 gap-y-2">
             {ele.items.map((item, i) => (
               <View key={i} className="flex-row items-center">

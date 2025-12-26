@@ -1,47 +1,52 @@
+// Frontend/app/home/screens/Vaastu/Rooms.jsx
+
 import React from "react";
 import { View, Text, Image, ScrollView } from "react-native";
-import VastuIcon from "../../../../assets/vastu.png"; // update if different path
+import { useTranslation } from "react-i18next";
+import VastuIcon from "../../../../assets/vastu.png";
 
 export default function Rooms() {
+  const { t } = useTranslation();
+
   const rooms = [
     {
-      title: "Main Entrance",
-      desc: "The main door should ideally face North, East, or Northeast.",
+      title: t('vaastu_room_main_entrance_title'),
+      desc: t('vaastu_room_main_entrance_desc'),
       tips: [
-        "Keep entrance clean and well-lit",
-        "Use high-quality materials for the door",
-        "Avoid obstacles in front of the door",
-        "Place auspicious symbols like Om or Swastik",
+        t('vaastu_room_main_entrance_tip_1'),
+        t('vaastu_room_main_entrance_tip_2'),
+        t('vaastu_room_main_entrance_tip_3'),
+        t('vaastu_room_main_entrance_tip_4'),
       ],
     },
     {
-      title: "Kitchen",
-      desc: "Southeast corner is ideal for kitchen placement",
+      title: t('vaastu_room_kitchen_title'),
+      desc: t('vaastu_room_kitchen_desc'),
       tips: [
-        "Cook facing East for better health",
-        "Keep kitchen clean and organized",
-        "Avoid kitchen in Northeast corner",
-        "Use light colors for kitchen tiles",
+        t('vaastu_room_kitchen_tip_1'),
+        t('vaastu_room_kitchen_tip_2'),
+        t('vaastu_room_kitchen_tip_3'),
+        t('vaastu_room_kitchen_tip_4'),
       ],
     },
     {
-      title: "Pooja Room",
-      desc: "Northeast corner is most auspicious for worship",
+      title: t('vaastu_room_pooja_title'),
+      desc: t('vaastu_room_pooja_desc'),
       tips: [
-        "Face East or North while praying",
-        "Keep the area clean and sacred",
-        "Use white or light yellow colors",
-        "Place idols on a raised platform",
+        t('vaastu_room_pooja_tip_1'),
+        t('vaastu_room_pooja_tip_2'),
+        t('vaastu_room_pooja_tip_3'),
+        t('vaastu_room_pooja_tip_4'),
       ],
     },
     {
-      title: "Study Room",
-      desc: "East or Northeast enhances concentration and learning",
+      title: t('vaastu_room_study_title'),
+      desc: t('vaastu_room_study_desc'),
       tips: [
-        "Face East or North while studying",
-        "Keep books organized and clean",
-        "Use good lighting",
-        "Avoid clutter on the study table",
+        t('vaastu_room_study_tip_1'),
+        t('vaastu_room_study_tip_2'),
+        t('vaastu_room_study_tip_3'),
+        t('vaastu_room_study_tip_4'),
       ],
     },
   ];
@@ -66,7 +71,9 @@ export default function Rooms() {
               className="w-5 h-5"
               resizeMode="contain"
             />
-            <Text className="font-semibold text-gray-700">Vaastu Tips</Text>
+            <Text className="font-semibold text-gray-700">
+              {t('vaastu_rooms_tips_heading')}
+            </Text>
           </View>
 
           {/* Bullet Tips */}
