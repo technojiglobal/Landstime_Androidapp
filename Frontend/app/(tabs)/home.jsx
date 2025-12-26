@@ -12,23 +12,25 @@ export default function HomeTab() {
   const navigation = useNavigation();
 
   useEffect(() => {
-    // Hide Expo TAB BAR
-    navigation.setOptions({
-      tabBarStyle: {
-        display: sidebarOpen ? "none" : "flex",
-      },
-    });
+  navigation.setOptions({
+    tabBarStyle: {
+      display: sidebarOpen ? "none" : "flex",
+    },
+  });
 
-    // 🔥 Hide Android system navigation buttons
-    if (Platform.OS === "android") {
-      if (sidebarOpen) {
-        NavigationBar.setVisibilityAsync("hidden"); // back / home / recent
-        NavigationBar.setBehaviorAsync("overlay-swipe"); // swipe to show
-      } else {
-        NavigationBar.setVisibilityAsync("visible");
-      }
+  if (Platform.OS === "android") {
+    NavigationBar.setBackgroundColorAsync("#ffffff");
+
+    if (sidebarOpen) {
+      NavigationBar.setVisibilityAsync("hidden");
+      NavigationBar.setBehaviorAsync("overlay-swipe");
+    } else {
+      NavigationBar.setVisibilityAsync("visible");
+      NavigationBar.setBehaviorAsync("inset-swipe");
     }
-  }, [sidebarOpen]);
+  }
+}, [sidebarOpen]);
+
 
   return (
     <SidebarLayout
