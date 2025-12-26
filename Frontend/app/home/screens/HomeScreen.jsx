@@ -1,5 +1,7 @@
 //Frontend//app//home//screens// HomeScreen.jsx
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { changeLanguage } from "i18next";
 import {
   View,
   Text,
@@ -24,26 +26,36 @@ export default function HomeScreen({ toggleSidebar ,sidebarOpen}) {
   const { scaleWidth, scaleHeight } = useResponsive();
 
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState("EN");
+ // Line 19 (inside component)
+const { i18n } = useTranslation();
+const [selectedLanguage, setSelectedLanguage] = useState(i18n.language.toUpperCase());
+
+
+// Add this useEffect to sync with i18n changes
+useEffect(() => {
+  const currentLang = i18n.language.toUpperCase();
+  setSelectedLanguage(currentLang);
+}, [i18n.language]);
+
 
   const router = useRouter();
 
-  const languages = [
-    { code: "EN", label: "English", enabled: true },
-    { code: "HI", label: "हिन्दी", enabled: true },
-    { code: "TE", label: "తెలుగు", enabled: true },
-    { code: "TA", label: "தமிழ்", enabled: false },
-    { code: "KA", label: "ಕನ್ನಡ", enabled: false },
-    { code: "ML", label: "മലയാളം", enabled: false },
-    { code: "GU", label: "ગુજરાતી", enabled: false },
-    { code: "MR", label: "मराठी", enabled: false },
-    { code: "ZH", label: "中文", enabled: false },
-    { code: "RU", label: "Русский", enabled: false },
-    { code: "DE", label: "Deutsch", enabled: false },
-    { code: "ES", label: "Español", enabled: false },
-    { code: "JA", label: "日本語", enabled: false },
-    { code: "BN", label: "বাংলা", enabled: false },
-  ];
+const languages = [
+  { code: "en", label: "English", enabled: true },
+  { code: "hi", label: "हिन्दी", enabled: true },
+  { code: "te", label: "తెలుగు", enabled: true },
+  { code: "ta", label: "தமிழ்", enabled: false },
+  { code: "ka", label: "ಕನ್ನಡ", enabled: false },
+  { code: "ml", label: "മലയാളം", enabled: false },
+  { code: "gu", label: "ગુજરાતી", enabled: false },
+  { code: "mr", label: "मराठी", enabled: false },
+  { code: "zh", label: "中文", enabled: false },
+  { code: "ru", label: "Русский", enabled: false },
+  { code: "de", label: "Deutsch", enabled: false },
+  { code: "es", label: "Español", enabled: false },
+  { code: "ja", label: "日本語", enabled: false },
+  { code: "bn", label: "বাংলা", enabled: false },
+];
 
   const categories = [
     { name: "Sites", desc: "Plot Land", img: require("../../../assets/Home.png") },
@@ -52,10 +64,13 @@ export default function HomeScreen({ toggleSidebar ,sidebarOpen}) {
     { name: "Commercial", desc: "Business Spaces", img: require("../../../assets/Bank.png") },
   ];
 
-  const handleLanguageSelect = (lang) => {
-    setSelectedLanguage(lang.code);
-    setLanguageModalVisible(false);
-  };
+// Line 67 - Update handler
+const handleLanguageSelect = async (lang) => {
+  const langCode = lang.code.toLowerCase(); // Convert EN -> en, HI -> hi, TE -> te
+  await changeLanguage(langCode);
+  setSelectedLanguage(lang.code);
+  setLanguageModalVisible(false);
+};
 
   const handleCategoryPress = (name) => {
     router.push(`/home/screens/${name}`);
@@ -146,7 +161,7 @@ export default function HomeScreen({ toggleSidebar ,sidebarOpen}) {
               fontSize: scaleWidth(14),
             }}
           >
-            {selectedLanguage}
+            {selectedLanguage.toUpperCase()}
           </Text>
         </TouchableOpacity>
       </View>
