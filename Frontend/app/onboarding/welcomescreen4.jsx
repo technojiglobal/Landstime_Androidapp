@@ -1,7 +1,8 @@
 // Landstime_Androidapp/Frontend/app/onboarding/welcomescreen4.jsx
 
-import { View, Text, Image, TouchableOpacity, Dimensions,StatusBar } from "react-native";
+import { View, Text, Image, TouchableOpacity, Dimensions, StatusBar } from "react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -14,11 +15,13 @@ const scaleHeight = (size) => (SCREEN_HEIGHT / REF_HEIGHT) * size;
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
     <View className="flex-1 bg-white">
-    <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      {/* ✅ Arrow + Discover Text in Same Row */}
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      
+      {/* Arrow + Discover Text in Same Row */}
       <View
         style={{
           flexDirection: "row",
@@ -48,10 +51,10 @@ export default function WelcomeScreen() {
             fontWeight: "500",
             lineHeight: scaleHeight(28),
             color: "black",
-            flexShrink: 1, // allows wrapping
+            flexShrink: 1,
           }}
         >
-          Discover a place you{"\n"}will love to live
+          {t('discover_title')}
         </Text>
       </View>
 
@@ -68,8 +71,7 @@ export default function WelcomeScreen() {
           color: "#000000A6",
         }}
       >
-        Browse homes for sale, original neighborhood photos, resident reviews,
-        local insights to find what is right for you
+        {t('discover_description')}
       </Text>
 
       {/* Explore Button */}
@@ -97,7 +99,7 @@ export default function WelcomeScreen() {
             color: "#fff",
           }}
         >
-          Let's Explore
+          {t('lets_explore_button')}
         </Text>
       </TouchableOpacity>
 

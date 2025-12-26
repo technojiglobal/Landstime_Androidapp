@@ -349,5 +349,13 @@
   "southwest_avoid_1": "Water Bodies",
   "southwest_avoid_2": "Open Spaces",
   "southwest_avoid_3": "Entrance",
-  "southwest_avoid_4": "Cuts"
+  "southwest_avoid_4": "Cuts",
+  "skip": "Skip",
+  "title": "Find Perfect Properties",
+  "next": "Next",
+  "smart_search_label": "Smart Search",
+  "direct_property_connect_label": "Direct Property Connect",
+  "discover_title": "Discover a place you will love to live",
+  "discover_description": "Browse homes for sale, original neighborhood photos, resident reviews, local insights to find what is right for you",
+  "lets_explore_button": "Let's Explore"
 }

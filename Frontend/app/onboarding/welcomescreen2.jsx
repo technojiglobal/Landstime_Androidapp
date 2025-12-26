@@ -1,7 +1,8 @@
 // Landstime_Androidapp/Frontend/app/onboarding/welcomescreen2.jsx
 
-import { View, Text, Image, TouchableOpacity, Dimensions,StatusBar } from "react-native";
+import { View, Text, Image, TouchableOpacity, Dimensions, StatusBar } from "react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -15,16 +16,18 @@ const scaleHeight = (size) => (SCREEN_HEIGHT / REF_HEIGHT) * size;
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
     <View className="flex-1 bg-white">
-   <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      
       {/* Back Arrow */}
       <View
         style={{
           position: "absolute",
           top: scaleHeight(62),
-          left: scaleWidth(25),   // moved away from screen edge
+          left: scaleWidth(25),
         }}
       >
         <TouchableOpacity
@@ -45,11 +48,13 @@ export default function WelcomeScreen() {
         style={{
           position: "absolute",
           top: scaleHeight(62),
-          right: scaleWidth(32),   // moved away from edge
+          right: scaleWidth(32),
         }}
       >
         <TouchableOpacity onPress={() => router.push("/onboarding/welcomescreen4")}>
-          <Text className="underline text-gray-500 text-base font-semibold">Skip</Text>
+          <Text className="underline text-gray-500 text-base font-semibold">
+            {t('skip')}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -81,7 +86,7 @@ export default function WelcomeScreen() {
           color: "black",
         }}
       >
-        Smart Search
+        {t('smart_search_label')}
       </Text>
 
       {/* 3 Dots */}
@@ -126,23 +131,9 @@ export default function WelcomeScreen() {
             color: "#fff",
           }}
         >
-          Next
+          {t('next')}
         </Text>
       </TouchableOpacity>
-
-      {/* Bottom Line */}
-      {/* <View
-        style={{
-          position: "absolute",
-          top: scaleHeight(892),
-          left: SCREEN_WIDTH / 2 - scaleWidth(67),
-          width: scaleWidth(134),
-          height: scaleHeight(5),
-          backgroundColor: "black",
-          borderRadius: scaleWidth(10),
-        }}
-      /> */}
-
     </View>
   );
 }
