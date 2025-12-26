@@ -1,7 +1,7 @@
 // //Frontend//app//home//screens// HomeScreen.jsx
 // import React, { useState,useEffect } from "react";
 // import { useTranslation } from "react-i18next";
-// import { changeLanguage } from "i18next";
+// import { changeLanguage } from "../../../i18n/index";
 // import {
 //   View,
 //   Text,
@@ -332,6 +332,9 @@
 //   },
 // });
 
+
+
+// Frontend/app/home/screens/HomeScreen.jsx
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { changeLanguage } from "../../../i18n/index";
@@ -419,30 +422,34 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
   ];
 
   // CORRECTED: Using proper translation keys from en.json
-  const categories = [
-    { 
-      name: t('home_category_sites'), 
-      desc: t('home_category_sites_desc'), 
-      img: require("../../../assets/Home.png") 
-    },
-    { 
-      name: t('home_category_resorts'), 
-      desc: t('home_category_resorts_desc'), 
-      img: require("../../../assets/palm tree.png"), 
-      vr: true 
-    },
-    { 
-      name: t('home_category_flats'), 
-      desc: t('home_category_flats_desc'), 
-      img: require("../../../assets/Tree.png"), 
-      vr: true 
-    },
-    { 
-      name: t('home_category_commercial'), 
-      desc: t('home_category_commercial_desc'), 
-      img: require("../../../assets/Bank.png") 
-    },
-  ];
+const categories = [
+  { 
+    key: 'Sites',  // Add route key
+    name: t('home_category_sites'), 
+    desc: t('home_category_sites_desc'), 
+    img: require("../../../assets/Home.png") 
+  },
+  { 
+    key: 'Resorts',
+    name: t('home_category_resorts'), 
+    desc: t('home_category_resorts_desc'), 
+    img: require("../../../assets/palm tree.png"), 
+    vr: true 
+  },
+  { 
+    key: 'Flats',
+    name: t('home_category_flats'), 
+    desc: t('home_category_flats_desc'), 
+    img: require("../../../assets/Tree.png"), 
+    vr: true 
+  },
+  { 
+    key: 'Commercial',
+    name: t('home_category_commercial'), 
+    desc: t('home_category_commercial_desc'), 
+    img: require("../../../assets/Bank.png") 
+  },
+];
 
   const handleLanguageSelect = async (lang) => {
     const langCode = lang.code.toLowerCase();
@@ -451,9 +458,18 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
     setLanguageModalVisible(false);
   };
 
-  const handleCategoryPress = (name) => {
-    router.push(`/home/screens/${name}`);
+const handleCategoryPress = (categoryKey) => {
+  // Map to English route names regardless of display language
+  const routeMap = {
+    [t('home_category_sites')]: 'Sites',
+    [t('home_category_resorts')]: 'Resorts',
+    [t('home_category_flats')]: 'Flats',
+    [t('home_category_commercial')]: 'Commercial'
   };
+  
+  const routeName = routeMap[categoryKey] || categoryKey;
+  router.push(`/home/screens/${routeName}`);
+};
 
   return (
     <View className="flex-1 bg-black">
@@ -577,7 +593,7 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
                   shadowRadius: 10,
                   elevation: 10,
                 }}
-                onPress={() => handleCategoryPress(item.name)}
+                onPress={() => handleCategoryPress(item.key)}
               >
                 {/* VR Badge */}
                 {item.vr && (

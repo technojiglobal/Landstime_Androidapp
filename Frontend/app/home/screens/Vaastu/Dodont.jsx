@@ -1,30 +1,35 @@
+// Frontend/app/home/screens/Vaastu/Dodont.jsx
+
 import React from "react";
 import { View, Text, Image } from "react-native";
+import { useTranslation } from "react-i18next";
 import TickIcon from "../../../../assets/Do.png";
 import WrongIcon from "../../../../assets/Dont.png";
 
 export default function Dodont() {
+  const { t } = useTranslation();
+
   const dos = [
-    "Avoid sleeping with feet towards south",
-    "Ensure proper ventilation and natural light",
-    "Use light and soothing colors",
-    "Plant trees on South and West sides",
-    "Use quality materials for construction",
-    "Maintain regular prayer and meditation",
-    "Keep books organized and clean",
-    "Keep water storage in North or Northeast",
-    "Face East or North while cooking/studying",
+    t('vaastu_do_1'),
+    t('vaastu_do_2'),
+    t('vaastu_do_3'),
+    t('vaastu_do_4'),
+    t('vaastu_do_5'),
+    t('vaastu_do_6'),
+    t('vaastu_do_7'),
+    t('vaastu_do_8'),
+    t('vaastu_do_9'),
   ];
 
   const donts = [
-    "Don’t place toilets in Northeast corner",
-    "Avoid sleeping with feet towards south",
-    "Don’t keep broken or unused items",
-    "Avoid dark colors in Northeast",
-    "Don’t place mirrors in bedrooms facing bed",
-    "Avoid overhead water tanks in Northeast",
-    "Don’t place kitchen in Northeast corner",
-    "Avoid keeping thorny plants inside house",
+    t('vaastu_dont_1'),
+    t('vaastu_dont_2'),
+    t('vaastu_dont_3'),
+    t('vaastu_dont_4'),
+    t('vaastu_dont_5'),
+    t('vaastu_dont_6'),
+    t('vaastu_dont_7'),
+    t('vaastu_dont_8'),
   ];
 
   return (
@@ -34,7 +39,9 @@ export default function Dodont() {
       <View className="bg-white rounded-xl p-5 border border-gray-300 mb-5">
         <View className="flex-row items-center gap-2 mb-3">
           <Image source={TickIcon} className="w-5 h-5" resizeMode="contain" />
-          <Text className="text-lg font-semibold text-[#17AB4E]">Vaastu Do's</Text>
+          <Text className="text-lg font-semibold text-[#17AB4E]">
+            {t('vaastu_dos_title')}
+          </Text>
         </View>
 
         {dos.map((text, i) => (
@@ -49,7 +56,9 @@ export default function Dodont() {
       <View className="bg-white rounded-xl p-5 border border-gray-300 mb-5">
         <View className="flex-row items-center gap-2 mb-3">
           <Image source={WrongIcon} className="w-5 h-5" resizeMode="contain" />
-          <Text className="text-lg font-semibold text-[#CD0007]">Vaastu Don'ts</Text>
+          <Text className="text-lg font-semibold text-[#CD0007]">
+            {t('vaastu_donts_title')}
+          </Text>
         </View>
 
         {donts.map((text, i) => (
