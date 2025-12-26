@@ -75,5 +75,17 @@
   "verify_button_send_otp": "OTP పంపండి",
   "verify_otp_send_failed_title": "లోపం",
   "verify_otp_send_failed_desc": "OTP పంపడంలో విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి.",
-  "verify_network_error_desc": "OTP పంపడంలో విఫలమైంది. దయచేసి మీ కనెక్షన్ తనిఖీ చేయండి."
+  "verify_network_error_desc": "OTP పంపడంలో విఫలమైంది. దయచేసి మీ కనెక్షన్ తనిఖీ చేయండి.",
+  "home_banner_title": "మీ కలల ఆస్తిని కనుగొనండి",
+  "home_banner_subtitle": "విజాగ్‌లో ప్రీమియం రియల్ ఎస్టేట్ ఎంపికలను అన్వేషించండి",
+  "home_search_placeholder": "ఆస్తులను వెతకండి...",
+  "home_category_sites": "సైట్లు",
+  "home_category_sites_desc": "ప్లాట్ భూమి",
+  "home_category_resorts": "రిసార్ట్స్",
+  "home_category_resorts_desc": "లగ్జరీ విహార ప్రదేశాలు",
+  "home_category_flats": "ఫ్లాట్స్",
+  "home_category_flats_desc": "పెట్టుబడి భూమి",
+  "home_category_commercial": "వాణిజ్య",
+  "home_category_commercial_desc": "వ్యాపార స్థలాలు",
+  "home_language_modal_title": "మీ భాషను ఎంచుకోండి"
 }

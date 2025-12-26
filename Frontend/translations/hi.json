@@ -75,5 +75,17 @@
   "verify_button_send_otp": "OTP भेजें",
   "verify_otp_send_failed_title": "त्रुटि",
   "verify_otp_send_failed_desc": "OTP भेजने में विफल। कृपया पुनः प्रयास करें।",
-  "verify_network_error_desc": "OTP भेजने में विफल। कृपया अपना कनेक्शन जांचें।"
+  "verify_network_error_desc": "OTP भेजने में विफल। कृपया अपना कनेक्शन जांचें।",
+  "home_banner_title": "अपनी सपनों की संपत्ति खोजें",
+  "home_banner_subtitle": "विजाग में प्रीमियम रियल एस्टेट विकल्पों का अन्वेषण करें",
+  "home_search_placeholder": "संपत्तियाँ खोजें...",
+  "home_category_sites": "साइट्स",
+  "home_category_sites_desc": "प्लॉट भूमि",
+  "home_category_resorts": "रिसॉर्ट्स",
+  "home_category_resorts_desc": "लक्ज़री अवकाश स्थल",
+  "home_category_flats": "फ्लैट्स",
+  "home_category_flats_desc": "निवेश भूमि",
+  "home_category_commercial": "व्यावसायिक",
+  "home_category_commercial_desc": "व्यावसायिक स्थान",
+  "home_language_modal_title": "अपनी भाषा चुनें"
 }
