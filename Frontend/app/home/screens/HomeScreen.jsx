@@ -82,7 +82,7 @@ const handleLanguageSelect = async (lang) => {
        className="flex-1 bg-white" 
        style={{ 
          marginTop: insets.top, 
-        marginBottom: insets.bottom
+       
        }}
      >
     
