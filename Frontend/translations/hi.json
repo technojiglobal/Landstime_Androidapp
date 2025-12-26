@@ -349,5 +349,13 @@
   "southwest_avoid_1": "जल स्रोत",
   "southwest_avoid_2": "खुली जगह",
   "southwest_avoid_3": "प्रवेश द्वार",
-  "southwest_avoid_4": "कटाव"
+  "southwest_avoid_4": "कटाव",
+  "skip": "छोड़ें",
+  "title": "परफेक्ट प्रॉपर्टी खोजें",
+  "next": "आगे",
+  "smart_search_label": "स्मार्ट खोज",
+  "direct_property_connect_label": "प्रत्यक्ष प्रॉपर्टी कनेक्ट",
+  "discover_title": "एक ऐसी जगह खोजें जहाँ आप रहना पसंद करेंगे",
+  "discover_description": "बिक्री के लिए घर देखें, मूल पड़ोस की तस्वीरें, निवासी समीक्षाएं और स्थानीय जानकारी से अपने लिए सही जगह पाएं",
+  "lets_explore_button": "चलिए शुरू करें"
 }

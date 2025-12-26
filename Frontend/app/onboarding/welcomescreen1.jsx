@@ -1,7 +1,8 @@
 // Landstime_Androidapp/Frontend/app/onboarding/welcomescreen1.jsx
 
-import { View, Text, Image, TouchableOpacity, Dimensions,StatusBar } from "react-native";
+import { View, Text, Image, TouchableOpacity, Dimensions, StatusBar } from "react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -13,13 +14,14 @@ const REF_HEIGHT = 932;
 const scaleWidth = (size) => (SCREEN_WIDTH / REF_WIDTH) * size;
 const scaleHeight = (size) => (SCREEN_HEIGHT / REF_HEIGHT) * size;
 
-
 export default function WelcomeScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
     <View className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      
       {/* Skip Button */}
       <View
         style={{
@@ -29,7 +31,9 @@ export default function WelcomeScreen() {
         }}
       >
         <TouchableOpacity onPress={() => router.push("/onboarding/welcomescreen4")}>
-          <Text className="text-gray-500 underline text-base font-semibold">Skip</Text>
+          <Text className="text-gray-500 underline text-base font-semibold">
+            {t('skip')}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -61,7 +65,7 @@ export default function WelcomeScreen() {
           color: "black",
         }}
       >
-        Find Perfect{"\n"}Properties
+        {t('title')}
       </Text>
 
       {/* 3 Dots */}
@@ -106,23 +110,9 @@ export default function WelcomeScreen() {
             color: "#fff",
           }}
         >
-          Next
+          {t('next')}
         </Text>
       </TouchableOpacity>
-
-      {/* Underline */}
-      {/* <View
-        style={{
-          position: "absolute",
-          top: scaleHeight(892),
-          left: SCREEN_WIDTH / 2 - scaleWidth(67),
-          width: scaleWidth(134),
-          height: scaleHeight(5),
-          backgroundColor: "black",
-          borderRadius: scaleWidth(10),
-        }}
-      /> */}
-
     </View>
   );
 }
