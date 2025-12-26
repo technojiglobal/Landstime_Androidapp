@@ -326,7 +326,7 @@ console.log('🔍 First image URI:', images[0]);
         onCameraPress={takePhoto}
         onGalleryPress={pickFromGallery}
       />
-         <View className="flex-row items-center mt-12 mb-4">
+         <View className="flex-row items-center mt-3 mb-4">
           <TouchableOpacity
             onPress={() => router.push("/home/screens/UploadScreens/AddScreen")}
             className="p-2"
@@ -959,15 +959,9 @@ console.log('🔍 First image URI:', images[0]);
 
        
       </ScrollView>
-       <View
-  style={{
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    marginTop: 16,
-    marginRight: 16, // ✅ proper right spacing
-    gap: 12,
-  }}
-  className="mb-8"
+   <View
+  style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 16, gap: 12 }}
+  className="space-x-3 mr-4 mb-3"
 >
   {/* Cancel Button */}
   <TouchableOpacity
@@ -985,24 +979,21 @@ console.log('🔍 First image URI:', images[0]);
   </TouchableOpacity>
 
   {/* Upload Property Button */}
-  <TouchableOpacity
-    style={{
-      backgroundColor: isSubmitting ? "#9CA3AF" : "#22C55E",
-      paddingVertical: 12,
-      paddingHorizontal: 20,
-      borderRadius: 10,
-    }}
-    onPress={handleUpload}
-    disabled={isSubmitting}
-  >
-    {isSubmitting ? (
-      <ActivityIndicator color="white" />
-    ) : (
-      <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
-        Upload Property
-      </Text>
-    )}
-  </TouchableOpacity>
+ <TouchableOpacity
+  style={{
+    backgroundColor: "#22C55E",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  }}
+  onPress={handleUpload}
+  disabled={isSubmitting}
+>
+  <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
+    {isSubmitting ? "Uploading..." : "Upload Property"}
+  </Text>
+</TouchableOpacity>
+
 </View>
 
     </View>
