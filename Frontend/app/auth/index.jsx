@@ -1,3 +1,5 @@
+// Landstime_Androidapp/Frontend/app/auth/index.jsx
+
 import { useState, useEffect } from "react";
 import Toast from 'react-native-toast-message';
 import {
@@ -19,9 +21,13 @@ import { Ionicons } from "@expo/vector-icons";
 import "../../global.css";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
+import { useTranslation } from 'react-i18next'; 
+//import '../../i18n/index';
+import i18n from '../../i18n/index';
 import { registerUser, saveToken, saveUserData, checkPhoneExists } from "../../utils/api";
 
 export default function RegisterScreen() {
+  const { t, i18n } = useTranslation();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -40,6 +46,25 @@ export default function RegisterScreen() {
 
   const router = useRouter();
   const params = useLocalSearchParams();
+
+    // Add this helper function
+ // Add this helper function
+  const getFontSize = (baseSize) => {
+  const currentLang = i18n?.language || 'en';
+  switch(currentLang) {
+    case 'te': return baseSize - 1.5; // Telugu slightly smaller
+    case 'hi': return baseSize - 1;   // Hindi slightly smaller
+    case 'en': 
+    default: return baseSize;         // English normal
+  }
+};
+
+const getLineHeight = () => {
+   const currentLang = i18n?.language || 'en';
+  if (currentLang === 'te') return 22;
+  if (currentLang === 'hi') return 21;
+  return 20;
+};
 
   useEffect(() => {
     if (!params || Object.keys(params).length === 0) return;
@@ -60,6 +85,21 @@ export default function RegisterScreen() {
       setAllowEdit(false);
     }
   }, [params]);
+
+  useEffect(() => {
+  // Force re-render when language changes
+  const handleLanguageChange = () => {
+    // Component will re-render automatically
+  };
+  
+  i18n.on('languageChanged', handleLanguageChange);
+  
+  return () => {
+    i18n.off('languageChanged', handleLanguageChange);
+  };
+}, []);
+
+
 
   const isNameValid = name.trim().length >= 2;
   const isPhoneValid = /^[0-9]{10}$/.test(phone);
@@ -94,8 +134,8 @@ export default function RegisterScreen() {
     if (!phoneVerified) {
       Toast.show({
         type: 'error',
-        text1: 'Phone Not Verified',
-        text2: 'Please verify your phone number first',
+        text1: t('toast_phone_not_verified_title'),
+  text2: t('toast_phone_not_verified_desc'),
         position: 'top',
         visibilityTime: 3000,
       });
@@ -105,8 +145,8 @@ export default function RegisterScreen() {
     if (!agree) {
       Toast.show({
         type: 'error',
-        text1: 'Terms Required',
-        text2: 'Please agree to Terms of Service',
+       text1: t('toast_terms_required_title'),
+      text2: t('toast_terms_required_desc'),
         position: 'top',
         visibilityTime: 3000,
       });
@@ -136,8 +176,8 @@ export default function RegisterScreen() {
 
         Toast.show({
           type: 'success',
-          text1: 'Registration Successful! 🎉',
-          text2: 'Welcome to LandsTime!',
+          text1: t('toast_register_success_title'),
+          text2: t('toast_register_success_desc'),
           position: 'top',
           visibilityTime: 2500,
         });
@@ -151,24 +191,24 @@ export default function RegisterScreen() {
         if (errorMessage.includes("phone number already exists")) {
           Toast.show({
             type: 'error',
-            text1: 'Phone Already Registered',
-            text2: 'This number is already registered. Please login.',
+           text1: t('toast_phone_exists_title'),
+           text2: t('toast_phone_exists_desc'),
             position: 'top',
             visibilityTime: 4000,
           });
         } else if (errorMessage.includes("email already exists")) {
           Toast.show({
             type: 'error',
-            text1: 'Email Already Registered',
-            text2: 'This email is already in use.',
+             text1: t('toast_email_exists_title'),
+            text2: t('toast_email_exists_desc'),
             position: 'top',
             visibilityTime: 4000,
           });
         } else if (errorMessage.includes("Phone verification expired")) {
           Toast.show({
             type: 'error',
-            text1: 'Verification Expired',
-            text2: 'Please verify your phone number again',
+            text1: t('toast_verification_expired_title'),
+            text2: t('toast_verification_expired_desc'),
             position: 'top',
             visibilityTime: 4000,
           });
@@ -176,7 +216,7 @@ export default function RegisterScreen() {
         } else {
           Toast.show({
             type: 'error',
-            text1: 'Registration Failed',
+             text1: t('toast_register_failed_title'),
             text2: errorMessage,
             position: 'top',
             visibilityTime: 4000,
@@ -187,8 +227,8 @@ export default function RegisterScreen() {
       console.error("Registration error:", error);
       Toast.show({
         type: 'error',
-        text1: 'Network Error',
-        text2: 'Failed to register. Please check your connection.',
+        text1: t('toast_network_error_title'),
+         text2: t('toast_network_error_desc'),
         position: 'top',
         visibilityTime: 4000,
       });
@@ -207,8 +247,8 @@ export default function RegisterScreen() {
       if (response.success && response.data.exists) {
         Toast.show({
           type: 'error',
-          text1: 'Phone Already Registered',
-          text2: 'This number is already registered. Please login instead.',
+         text1: t('toast_phone_exists_title'),
+        text2: t('toast_phone_exists_desc'),
           position: 'top',
           visibilityTime: 4000,
         });
@@ -229,7 +269,7 @@ export default function RegisterScreen() {
       console.error('Check phone error:', error);
       Toast.show({
         type: 'error',
-        text1: 'Error',
+        text1: t('toast_network_error_title'),
         text2: 'Failed to verify phone availability',
         position: 'top',
         visibilityTime: 3000,
@@ -261,12 +301,12 @@ export default function RegisterScreen() {
           </TouchableOpacity>
 
           <Text className="text-3xl font-bold text-center">
-            Create Accounts
+           {t("register_title")}
           </Text>
         </View>
 
         <Text className="text-gray-500 text-center mb-6">
-          Join thousands finding their perfect home
+         {t("register_subtitle")}
         </Text>
 
         {/* Name Input */}
@@ -285,7 +325,7 @@ export default function RegisterScreen() {
           />
           <TextInput
             className="flex-1 ml-3 h-12 text-base"
-            placeholder="Your Name"
+            placeholder={t("placeholder_name")}
             value={name}
             onChangeText={setName}
             placeholderTextColor="#9ca3af"
@@ -301,6 +341,8 @@ export default function RegisterScreen() {
             borderWidth: 2,
             borderColor: getPhoneBorderColor(),
             backgroundColor: "#D9D9D91C",
+            minHeight: 60,
+            alignItems: 'center',
           }}
         >
           <Ionicons
@@ -332,12 +374,26 @@ export default function RegisterScreen() {
 
           {phoneVerified && !allowEdit ? (
             <View className="flex-1 ml-2 h-12 justify-center">
-              <Text className="text-base text-gray-700">{phone}</Text>
+             <Text
+  style={{
+    fontSize: getFontSize(16),
+    lineHeight: getLineHeight(),
+  }}
+  className="text-gray-700"
+>
+  {phone}
+</Text>
+
             </View>
           ) : (
             <TextInput
-              className="flex-1 ml-2 h-12 text-base"
-              placeholder="Phone number"
+  className="flex-1 ml-2 min-h-[48px] py-2"
+  style={{
+    fontSize: getFontSize(16),
+    lineHeight: getLineHeight(),
+  }}
+
+              placeholder={t("placeholder_phone")}
               keyboardType="phone-pad"
               value={phone}
               onChangeText={(text) => {
@@ -363,7 +419,7 @@ export default function RegisterScreen() {
                 }}
                 className="ml-2"
               >
-                <Text className="text-blue-500 text-sm">Change</Text>
+                <Text className="text-blue-500 text-sm">{t("change_button")}</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -372,8 +428,14 @@ export default function RegisterScreen() {
                 className={`font-semibold ${
                   isPhoneValid ? "text-green-500" : "text-gray-400"
                 }`}
-              >
-                Verify
+                  style={{
+    fontSize: getFontSize(14),
+    lineHeight: getLineHeight() + 6, // 🔴 VERY IMPORTANT
+    paddingBottom: 2,               // 🔴 FIX CUTTING
+  }}
+>
+              
+               {t("verify_button")}
               </Text>
             </TouchableOpacity>
           )}
@@ -430,7 +492,7 @@ export default function RegisterScreen() {
           />
           <TextInput
             className="flex-1 ml-3 h-12 text-base"
-            placeholder="Enter your Email"
+            placeholder= {t("email_placeholder")}
             keyboardType="email-address"
             value={email}
             onChangeText={setEmail}
@@ -441,8 +503,8 @@ export default function RegisterScreen() {
           />
         </View>
 
-        {/* Role Selection */}
-        <Text className="text-gray-700 mb-2">What is your role?</Text>
+            {/* Role Selection */}
+            <Text className="text-gray-700 mb-2">{t("role_label")}</Text>
         <View className="flex-row mb-6">
           <TouchableOpacity
             className={`px-6 py-2 rounded-full mr-3 border ${
@@ -459,7 +521,7 @@ export default function RegisterScreen() {
                   : "text-gray-500"
               }`}
             >
-              Buyer
+              {t("role_buyer")}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -477,13 +539,13 @@ export default function RegisterScreen() {
                   : "text-gray-500"
               }`}
             >
-              Owner
+             {t("role_owner")}
             </Text>
           </TouchableOpacity>
         </View>
 
         {/* Terms */}
-        <View className="flex-row items-center mb-6">
+        <View className="flex-row items-start mb-6">
           <TouchableOpacity
             className={`w-6 h-6 rounded border border-gray-400 mr-3 items-center justify-center ${
               agree ? "bg-green-600" : ""
@@ -492,16 +554,23 @@ export default function RegisterScreen() {
           >
             {agree && <Ionicons name="checkmark" size={16} color="white" />}
           </TouchableOpacity>
-          <Text className="text-gray-600 flex-1">
-            I agree to the{" "}
-            <Text className="text-green-600 font-semibold">
-              Terms of Service
-            </Text>{" "}
-            and{" "}
-            <Text className="text-green-600 font-semibold">
-              Privacy Policy
-            </Text>
-          </Text>
+ <Text 
+  className="text-gray-600 flex-1 flex-wrap" 
+  style={{ 
+    lineHeight: i18n?.language === 'te' || i18n?.language === 'hi' ? 22 : 20,
+    fontSize: getFontSize(14),
+    flexWrap: 'wrap',
+  }}
+>
+  {t("agree_terms")}{" "}
+  <Text className="text-green-600 font-semibold">
+    {t("terms_service")}
+  </Text>{" "}
+  {t("and")}{" "}
+  <Text className="text-green-600 font-semibold">
+    {t("privacy_policy")}
+  </Text>
+</Text>
         </View>
 
         {/* Register Button */}
@@ -520,16 +589,16 @@ export default function RegisterScreen() {
                 canRegister ? "text-white" : "text-gray-500"
               }`}
             >
-              Register
+             {t("register_button")}
             </Text>
           )}
         </TouchableOpacity>
 
         {/* Sign In */}
         <View className="flex-row justify-center mt-6 mb-10">
-          <Text className="text-gray-600">Already have an account? </Text>
+          <Text className="text-gray-600">{t("already_account")}</Text>
           <TouchableOpacity onPress={() => router.push("/auth/LoginScreen")}>
-            <Text className="text-green-600 font-bold">Sign In</Text>
+            <Text className="text-green-600 font-bold">{t("sign_in")}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

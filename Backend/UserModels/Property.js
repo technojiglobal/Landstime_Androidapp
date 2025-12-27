@@ -16,6 +16,27 @@ const propertySchema = new mongoose.Schema({
   images: [{
     type: String // URLs of uploaded images
   }],
+  documents: {
+  ownership: [String], // Sale deed, conveyance
+  identity: [String]   // PAN, Aadhaar, etc
+},
+ownerDetails: {
+  name: {
+    type: String,
+    required: [true, "Owner name is required"],
+    trim: true,
+  },
+  phone: {
+    type: String,
+    required: [true, "Owner phone is required"],
+  },
+  email: {
+    type: String,
+    required: [true, "Owner email is required"],
+    lowercase: true,
+  },
+},
+
   location: {
     type: String,
     required: true

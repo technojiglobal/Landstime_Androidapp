@@ -1,4 +1,5 @@
-import { useState } from "react";
+// Landstime_Androidapp/Frontend/app/auth/LoginScreen.jsx
+import { useState, useEffect } from "react";
 import Toast from 'react-native-toast-message';
 import {
   View,
@@ -17,24 +18,58 @@ import { Ionicons } from "@expo/vector-icons";
 import "../../global.css";
 import { useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n/index';
 import { loginUser, saveToken, saveUserData } from "../../utils/api";
 
 export default function SignIn() {
+  const { t, i18n } = useTranslation();
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isFocused, setIsFocused] = useState(false); // Add focus state
+  const [isFocused, setIsFocused] = useState(false);
+
+  const router = useRouter();
+
+  // Helper functions for font sizing
+  const getFontSize = (baseSize) => {
+    const currentLang = i18n?.language || 'en';
+    switch(currentLang) {
+      case 'te': return baseSize - 1.5;
+      case 'hi': return baseSize - 1;
+      case 'en': 
+      default: return baseSize;
+    }
+  };
+
+  const getLineHeight = () => {
+    const currentLang = i18n?.language || 'en';
+    if (currentLang === 'te') return 22;
+    if (currentLang === 'hi') return 21;
+    return 20;
+  };
+
+  useEffect(() => {
+    // Force re-render when language changes
+    const handleLanguageChange = () => {
+      // Component will re-render automatically
+    };
+    
+    i18n.on('languageChanged', handleLanguageChange);
+    
+    return () => {
+      i18n.off('languageChanged', handleLanguageChange);
+    };
+  }, []);
 
   const isPhoneValid = /^[0-9]{10}$/.test(phone);
   const canSignIn = isPhoneValid;
-
-  const router = useRouter();
 
   const handleSignIn = async () => {
     if (!canSignIn) {
       Toast.show({
         type: 'error',
-        text1: 'Invalid Phone Number',
-        text2: 'Please enter a valid 10-digit phone number',
+        text1: t('login_invalid_phone_title'),
+        text2: t('login_invalid_phone_desc'),
         position: 'top',
         visibilityTime: 3000,
       });
@@ -55,8 +90,8 @@ export default function SignIn() {
 
         Toast.show({
           type: 'success',
-          text1: 'Login Successful! 👋',
-          text2: `Welcome back, ${response.data.data.user.name}`,
+          text1: t('login_success_title'),
+          text2: `${t('login_success_desc')}, ${response.data.data.user.name}`,
           position: 'top',
           visibilityTime: 2500,
         });
@@ -70,23 +105,23 @@ export default function SignIn() {
         if (errorMessage.includes("not found") || errorMessage.includes("Please register")) {
           Toast.show({
             type: 'error',
-            text1: 'Account Not Found',
-            text2: 'This number is not registered. Please sign up first.',
+            text1: t('login_account_not_found_title'),
+            text2: t('login_account_not_found_desc'),
             position: 'top',
             visibilityTime: 4000,
           });
         } else if (errorMessage.includes("not verified")) {
           Toast.show({
             type: 'error',
-            text1: 'Phone Not Verified',
-            text2: 'Please verify your phone number',
+            text1: t('login_phone_not_verified_title'),
+            text2: t('login_phone_not_verified_desc'),
             position: 'top',
             visibilityTime: 4000,
           });
         } else {
           Toast.show({
             type: 'error',
-            text1: 'Login Failed',
+            text1: t('login_failed_title'),
             text2: errorMessage,
             position: 'top',
             visibilityTime: 4000,
@@ -97,8 +132,8 @@ export default function SignIn() {
       console.error("Login error:", error);
       Toast.show({
         type: 'error',
-        text1: 'Network Error',
-        text2: 'Failed to login. Please check your connection.',
+        text1: t('login_network_error_title'),
+        text2: t('login_network_error_desc'),
         position: 'top',
         visibilityTime: 4000,
       });
@@ -110,9 +145,9 @@ export default function SignIn() {
   // Determine border color based on state
   const getBorderColor = () => {
     if (phone) {
-      return isPhoneValid ? "#22c55e" : "#ef4444"; // green-500 : red-500
+      return isPhoneValid ? "#22c55e" : "#ef4444";
     }
-    return isFocused ? "#22c55e" : "#0000001A"; // green-500 when focused : default gray
+    return isFocused ? "#22c55e" : "#0000001A";
   };
 
   const Content = (
@@ -134,20 +169,33 @@ export default function SignIn() {
         </TouchableOpacity>
 
         {/* Title */}
-        <Text className="text-3xl font-bold">
-          Let's <Text className="text-black">Sign In...</Text>
+        <Text 
+          className="text-3xl font-bold"
+          style={{
+            fontSize: getFontSize(30),
+            lineHeight: getLineHeight() + 10,
+          }}
+        >
+          {t('login_title')}
         </Text>
-        <Text className="text-gray-500 mt-2 mb-6">
-          Enter your phone number to access your account
+        <Text 
+          className="text-gray-500 mt-2 mb-6"
+          style={{
+            fontSize: getFontSize(14),
+            lineHeight: getLineHeight(),
+          }}
+        >
+          {t('login_subtitle')}
         </Text>
 
         {/* Phone Input */}
         <View
           className="flex-row items-center border rounded-xl mb-4 px-3"
           style={{
-            borderWidth: 2, // Increased to 2 for better visibility
+            borderWidth: 2,
             borderColor: getBorderColor(),
             backgroundColor: "#D9D9D91C",
+            height: 48,
           }}
         >
           <Ionicons
@@ -156,8 +204,12 @@ export default function SignIn() {
             color={phone ? (isPhoneValid ? "#16a34a" : "#ef4444") : "#9ca3af"}
           />
           <TextInput
-            className="flex-1 ml-3 h-12 text-base"
-            placeholder="Phone number"
+            className="flex-1 ml-3 h-12"
+            style={{
+              fontSize: getFontSize(16),
+              lineHeight: getLineHeight(),
+            }}
+            placeholder={t('placeholder_phone')}
             placeholderTextColor="#9ca3af"
             keyboardType="phone-pad"
             value={phone}
@@ -172,8 +224,14 @@ export default function SignIn() {
           />
         </View>
 
-        <Text className="text-gray-500 text-sm mb-6">
-          Note: Make sure you registered this phone number before signing in.
+        <Text 
+          className="text-gray-500 text-sm mb-6"
+          style={{
+            fontSize: getFontSize(14),
+            lineHeight: getLineHeight(),
+          }}
+        >
+          {t('login_note_registered_phone')}
         </Text>
 
         {/* Sign In Button */}
@@ -191,17 +249,36 @@ export default function SignIn() {
               className={`text-lg font-semibold ${
                 canSignIn ? "text-white" : "text-gray-500"
               }`}
+              style={{
+                fontSize: getFontSize(18),
+              }}
             >
-              Sign In
+              {t('sign_in')}
             </Text>
           )}
         </TouchableOpacity>
 
         {/* Register Link */}
         <View className="flex-row justify-center mt-6">
-          <Text className="text-gray-600">Don't have an account? </Text>
+          <Text 
+            className="text-gray-600"
+            style={{
+              fontSize: getFontSize(14),
+              lineHeight: getLineHeight(),
+            }}
+          >
+            {t('already_account')}{" "}
+          </Text>
           <TouchableOpacity onPress={() => router.push("/auth")}>
-            <Text className="text-green-600 font-bold">Register</Text>
+            <Text 
+              className="text-green-600 font-bold"
+              style={{
+                fontSize: getFontSize(14),
+                lineHeight: getLineHeight(),
+              }}
+            >
+              {t('register')}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

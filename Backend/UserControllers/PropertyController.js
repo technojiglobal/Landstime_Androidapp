@@ -8,67 +8,93 @@ import User from '../UserModels/User.js'; // Import User model
 
 export const createProperty = async (req, res) => {
   try {
-    console.log('📥 Request received');
-    console.log('📋 Raw body:', req.body);
-    console.log('📁 Files:', req.files);
-    
-    // Parse propertyData from FormData
+    console.log('📥 Property upload request');
+
+    if (!req.body.propertyData) {
+      return res.status(400).json({
+        success: false,
+        message: 'Property data missing'
+      });
+    }
+
     const propertyData = JSON.parse(req.body.propertyData);
-    console.log('✅ Parsed propertyData:', propertyData);
-    
-    // Get uploaded image URLs
-    const images = req.files ? req.files.map(file => file.path) : [];
-    console.log('🖼️ Images:', images);
-    
-    // Validate required fields
+      // 🔐 Owner details validation
+if (!propertyData.ownerDetails) {
+  return res.status(400).json({
+    success: false,
+    message: "Owner details are required",
+  });
+}
+
+const { name, phone, email } = propertyData.ownerDetails;
+
+if (!name || !phone || !email) {
+  return res.status(400).json({
+    success: false,
+    message: "Owner name, phone and email are mandatory",
+  });
+}
+
+    // Extract uploaded files
+    const images = req.files?.images?.map(file => file.path) || [];
+    const ownershipDocs = req.files?.ownershipDocs?.map(file => file.path) || [];
+    const identityDocs = req.files?.identityDocs?.map(file => file.path) || [];
+
+    // 🔐 Backend validation (DO NOT SKIP)
     if (!propertyData.propertyTitle) {
-      return res.status(400).json({
-        success: false,
-        message: 'Property title is required'
-      });
+      return res.status(400).json({ success: false, message: 'Property title is required' });
     }
-    
+
     if (!propertyData.location) {
-      return res.status(400).json({
-        success: false,
-        message: 'Location is required'
-      });
+      return res.status(400).json({ success: false, message: 'Location is required' });
     }
-    
+
     if (!propertyData.expectedPrice) {
-      return res.status(400).json({
-        success: false,
-        message: 'Expected price is required'
-      });
+      return res.status(400).json({ success: false, message: 'Expected price is required' });
     }
-    
+
     if (!propertyData.propertyType) {
-      return res.status(400).json({
-        success: false,
-        message: 'Property type is required'
-      });
+      return res.status(400).json({ success: false, message: 'Property type is required' });
     }
-    
-    // Create property object
+
+    if (images.length === 0) {
+      return res.status(400).json({ success: false, message: 'At least one image is required' });
+    }
+
+    if (ownershipDocs.length === 0) {
+      return res.status(400).json({ success: false, message: 'Ownership document is required' });
+    }
+
+    if (identityDocs.length === 0) {
+      return res.status(400).json({ success: false, message: 'Identity document is required' });
+    }
+
+    // Create property
     const property = new Property({
       ...propertyData,
+       ownerDetails: propertyData.ownerDetails,
       images,
+      documents: {
+        ownership: ownershipDocs,
+        identity: identityDocs
+      },
       userId: req.user._id,
       status: 'pending'
     });
-    
-    console.log('💾 Saving property...');
+
     await property.save();
-    console.log('✅ Property saved successfully');
-    
+   console.log("✅ PROPERTY SAVED TO DATABASE");
+console.log("🆔 Property ID:", property._id);
+console.log("🏷 Property Type:", property.propertyType);
+
     res.status(201).json({
       success: true,
-      message: 'Property uploaded successfully and pending approval',
+      message: 'Property submitted successfully and pending approval',
       data: property
     });
-    
+
   } catch (error) {
-    console.error('❌ Create property error:', error);
+    console.error('❌ Property creation error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to create property',
