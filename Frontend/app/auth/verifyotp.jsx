@@ -421,28 +421,34 @@ export default function OtpVerificationScreen() {
         >
           {maskedPhone}
         </Text>
-        <TouchableOpacity onPress={() => {
-          router.replace({
-            pathname: "/auth",
-            params: {
-              phone: phoneNumber,
-              countryCode: countryCode,
-              name: params.name || "",
-              email: params.email || "",
-              role: params.role || "",
-              allowEdit: "true",
-              verified: "false",
-              fromEdit: "true"
-            }
-          });
-        }}>
-          <Text 
+        <TouchableOpacity
+          onPress={() => {
+            console.log('✏️ OTP Edit pressed — params:', params);
+            router.replace({
+              pathname: "/auth",
+              params: {
+                phone: phoneNumber,
+                countryCode: countryCode,
+                name: params.name || "",
+                email: params.email || "",
+                role: params.role || "",
+                allowEdit: "true",
+                verified: "false",
+                fromEdit: "true",
+              },
+            });
+          }}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          activeOpacity={0.7}
+          accessibilityLabel="Edit phone number"
+        >
+          <Text
             className="text-green-600 ml-3 font-medium underline"
             style={{
               fontSize: getFontSize(16),
             }}
           >
-            {t('otp_edit')}
+            {t('otp_edit') || 'Edit'}
           </Text>
         </TouchableOpacity>
       </View>

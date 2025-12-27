@@ -29,7 +29,10 @@ import { registerUser, saveToken, saveUserData, checkPhoneExists } from "../../u
 export default function RegisterScreen() {
   const { t, i18n } = useTranslation();
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  
+  const params = useLocalSearchParams();
+ const [phone, setPhone] = useState(() => params.phone || "");
+
   const [email, setEmail] = useState("");
   const [countryCode, setCountryCode] = useState("+91");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -45,7 +48,6 @@ export default function RegisterScreen() {
   const [isEmailFocused, setIsEmailFocused] = useState(false);
 
   const router = useRouter();
-  const params = useLocalSearchParams();
 
     // Add this helper function
  // Add this helper function
@@ -66,25 +68,29 @@ const getLineHeight = () => {
   return 20;
 };
 
-  useEffect(() => {
-    if (!params || Object.keys(params).length === 0) return;
-    
-    console.log('📥 Received params:', JSON.stringify(params, null, 2));
-    
-    if (params.phone) setPhone(params.phone);
-    if (params.countryCode) setCountryCode(params.countryCode);
-    if (params.name) setName(params.name);
-    if (params.email) setEmail(params.email);
-    if (params.role) setRole(params.role);
-    
-    if (params.allowEdit === "true") {
-      setPhoneVerified(false);
-      setAllowEdit(true);
-    } else if (params.verified === "true") {
-      setPhoneVerified(true);
-      setAllowEdit(false);
-    }
-  }, [params]);
+useEffect(() => {
+  if (!params || Object.keys(params).length === 0) return;
+
+  if (params.countryCode) setCountryCode(params.countryCode);
+  if (params.name) setName(params.name);
+  if (params.email) setEmail(params.email);
+  if (params.role) setRole(params.role);
+
+  const allowEditFlag =
+    String(params.allowEdit) === "true" ||
+    String(params.fromEdit) === "true";
+
+  const verifiedFlag = String(params.verified) === "true";
+
+  if (allowEditFlag) {
+    setPhoneVerified(false);
+    setAllowEdit(true);
+  } else if (verifiedFlag) {
+    setPhoneVerified(true);
+    setAllowEdit(false);
+  }
+}, [params]);
+
 
   useEffect(() => {
   // Force re-render when language changes
