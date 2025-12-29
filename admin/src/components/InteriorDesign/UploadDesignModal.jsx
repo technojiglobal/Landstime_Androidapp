@@ -1,3 +1,5 @@
+//admin/src/components/InteriorDesign/UploadDesignModal.jsx
+
 import { useState } from "react";
 import { X, Image as ImageIcon } from "lucide-react";
 

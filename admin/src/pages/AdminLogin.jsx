@@ -30,13 +30,8 @@ const handleLogin = async (e) => {
     localStorage.setItem("token", res.token);
     localStorage.setItem("role", "Admin");
 
-<<<<<<< HEAD
     // ✅ Navigate to admin dashboard / properties
     navigate("/dashboard");
-=======
-    // Navigate to admin dashboard
-    navigate("/properties");
->>>>>>> 30bf1f4e1c27ae3bf7205575a9bddf928f1cab82
   } catch (err) {
     console.error("Admin login failed:", err);
     alert(err.response?.data?.message || "Invalid admin credentials");
