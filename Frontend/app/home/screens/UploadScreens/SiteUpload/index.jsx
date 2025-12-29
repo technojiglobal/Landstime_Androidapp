@@ -414,13 +414,7 @@ console.log('🔍 First image URI:', images[0]);
         {/* Header */}
      
 
-                <PropertyImageUpload
-                     images={images}
-                     onPickImage={pickImage}
-                     onRemoveImage={removeImage}
-                     onViewGuidelines={() => setIsPhotoGuideModalVisible(true)}
-                     onWatchTutorial={() => setIsHowto360ModalVisible(true)}
-                   />                
+                               
 
         {/* Basic Details */}
         <View
