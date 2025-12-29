@@ -6,21 +6,21 @@ import cors from 'cors';
 import userRoutes from './UserRoutes/UserRoute.js';
 import propertyRoutes from './UserRoutes/PropertyRoute.js';
 import subscriptionRoutes from './UserRoutes/SubscriptionRoute.js';
-
+import adminAuthRoutes from "./AdminRoutes/AdminRoute.js";
 
 const app = express();
 const PORT = process.env.PORT || 8000;
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:8081', 'http://10.32.238.77:8081'], // Add your frontend URLs
+  origin: ['http://localhost:8081', 'http://192.168.31.115:8081'], // Add your frontend URLs
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+app.use("/api/admin", adminAuthRoutes);
 // MongoDB Connection with better error handling
 console.log('🔍 Attempting MongoDB connection...');
 console.log('MongoDB URI:', process.env.MONGODB_URI ? 'URI exists ✅' : 'URI missing ❌');
