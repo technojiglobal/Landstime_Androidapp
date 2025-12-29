@@ -1,3 +1,5 @@
+// Landstime_Androidapp/admin/src/services/propertyService.js
+
 import axiosInstance from "../utils/axiosInstance";
 
 // Fetch ALL properties (admin)

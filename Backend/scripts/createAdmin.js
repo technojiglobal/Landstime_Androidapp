@@ -1,3 +1,5 @@
+// Landstime_Androidapp/Backend/scripts/createAdmin.js
+
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import Admin from "../AdminModels/Admin.js";
