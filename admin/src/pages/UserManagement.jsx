@@ -1,3 +1,5 @@
+//admin/src/pages/UserManagement.jsx
+
 import { useMemo, useState, useEffect } from "react";
 import StatCard from "../components/UserManagement/StatsCard";
 import DeleteModal from "../components/UserManagement/DeleteModal";

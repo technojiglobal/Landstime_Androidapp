@@ -1,3 +1,5 @@
+//admin/src/components/UserManagement/StatsCard.jsx
+
 export default function StatCard({ title, value, icon: Icon ,trend}) {
   return (
     <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow transition flex justify-between ">
