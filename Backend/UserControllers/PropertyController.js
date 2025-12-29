@@ -350,19 +350,31 @@ export const updatePropertyStatus = async (req, res) => {
 };
 
 // Get all properties (Admin only)
+// ✅ NEW CODE
 export const getAllProperties = async (req, res) => {
   try {
+    console.log("📥 Admin fetching all properties");
+    
     const { status, propertyType, page = 1, limit = 10 } = req.query;
     
-    const query = {};
+    // Fetch properties that are NOT deleted (including old properties without the field)
+    const query = { 
+      $or: [
+        { adminDeletedStatus: 'active' },
+        { adminDeletedStatus: { $exists: false } }
+      ]
+    };
     if (status) query.status = status;
     if (propertyType) query.propertyType = propertyType;
     
-    const properties = await Property.find(query)
-      .populate('userId', 'name phone email')
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+   const properties = await Property.find(query)
+  .populate({
+    path: 'userId',
+    select: 'name phone email currentSubscription'
+  })
+  .sort({ createdAt: -1 })
+  .limit(limit * 1)
+  .skip((page - 1) * limit);
     
     const count = await Property.countDocuments(query);
     
@@ -378,6 +390,137 @@ export const getAllProperties = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch properties',
+      error: error.message
+    });
+  }
+};
+
+// Add this AFTER the getAllProperties function
+export const debugProperties = async (req, res) => {
+  try {
+    const allProps = await Property.find({}).select('propertyTitle adminDeletedStatus status');
+    const activeProps = await Property.find({ adminDeletedStatus: 'active' });
+    const withoutDeleteStatus = await Property.find({ adminDeletedStatus: { $exists: false } });
+    
+    res.json({
+      total: allProps.length,
+      allProperties: allProps,
+      activeProperties: activeProps.length,
+      propertiesWithoutDeleteStatus: withoutDeleteStatus.length
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Soft delete property (Admin only)
+export const softDeleteProperty = async (req, res) => {
+  try {
+    const property = await Property.findByIdAndUpdate(
+      req.params.id,
+      { adminDeletedStatus: 'deleted' },
+      { new: true }
+    );
+    
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found'
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Property deleted successfully'
+    });
+    
+  } catch (error) {
+    console.error('Soft delete error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete property',
+      error: error.message
+    });
+  }
+};
+
+// Update property status (Available/Sold) - Admin only
+export const updatePropertyAvailability = async (req, res) => {
+  try {
+    const { propertyStatus } = req.body;
+    
+    if (!['Available', 'Sold'].includes(propertyStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid property status'
+      });
+    }
+    
+    const property = await Property.findByIdAndUpdate(
+      req.params.id,
+      { propertyStatus },
+      { new: true }
+    );
+    
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found'
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Property status updated successfully',
+      data: property
+    });
+    
+  } catch (error) {
+    console.error('Update property status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update property status',
+      error: error.message
+    });
+  }
+};
+
+// Admin update property details - Admin only
+// Admin update property details - Admin only
+export const adminUpdateProperty = async (req, res) => {
+  try {
+    console.log('📝 Admin updating property:', req.params.id);
+    console.log('📦 Update data:', req.body);
+    
+    const property = await Property.findById(req.params.id);
+    
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found'
+      });
+    }
+    
+    // Admin can update without changing status
+    const updatedProperty = await Property.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    ).populate('userId', 'name phone email currentSubscription');
+    
+    console.log('✅ Property updated successfully');
+    
+    res.status(200).json({
+      success: true,
+      message: 'Property updated successfully',
+      data: updatedProperty
+    });
+    
+  } catch (error) {
+    console.error('❌ Admin update property error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update property',
       error: error.message
     });
   }
