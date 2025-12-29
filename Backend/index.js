@@ -4,8 +4,8 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import userRoutes from './UserRoutes/UserRoute.js';
-//import propertyRoutes from './routes/propertyRoutes.js';
 import propertyRoutes from './UserRoutes/PropertyRoute.js';
+import subscriptionRoutes from './UserRoutes/SubscriptionRoute.js';
 
 
 const app = express();
@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 8000;
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:8081', 'http://10.121.22.5:8081'], // Add your frontend URLs
+  origin: ['http://localhost:8081', 'http://10.10.7.122:8081'], // Add your frontend URLs
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -21,10 +21,46 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('✅ MongoDB Connected'))
-  .catch((err) => console.error('❌ MongoDB Connection Error:', err));
+// MongoDB Connection with better error handling
+console.log('🔍 Attempting MongoDB connection...');
+console.log('MongoDB URI:', process.env.MONGODB_URI ? 'URI exists ✅' : 'URI missing ❌');
+
+mongoose.connect(process.env.MONGODB_URI, {
+  serverSelectionTimeoutMS: 10000, // Timeout after 10 seconds
+  socketTimeoutMS: 45000,
+})
+  .then(() => {
+    console.log('✅ MongoDB Connected Successfully');
+    console.log('📊 Database:', mongoose.connection.name);
+  })
+  .catch((err) => {
+    console.error('❌ MongoDB Connection Error:', err.message);
+    console.log('\n💡 Troubleshooting Steps:');
+    console.log('   1. Check MongoDB Atlas → Network Access → Whitelist your IP');
+    console.log('   2. Verify your MongoDB credentials');
+    console.log('   3. Check if cluster is active (not paused)');
+    console.log('   4. Try: 0.0.0.0/0 for "Allow from Anywhere"\n');
+  });
+
+// Monitor connection status
+mongoose.connection.on('connected', () => {
+  console.log('🟢 Mongoose connected to MongoDB');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('🔴 Mongoose connection error:', err.message);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('🟡 Mongoose disconnected from MongoDB');
+});
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  await mongoose.connection.close();
+  console.log('MongoDB connection closed due to app termination');
+  process.exit(0);
+});
 
 // Root Route
 app.get('/', (req, res) => {
@@ -37,9 +73,9 @@ app.get('/', (req, res) => {
 
 // User Routes
 app.use('/api/user', userRoutes);
-
-// NEW CODE - Add this line
 app.use('/api/properties', propertyRoutes);
+app.use('/api/subscriptions', subscriptionRoutes); // NEW
+
 
 // 404 Handler
 app.use('*', (req, res) => {
