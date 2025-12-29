@@ -1,3 +1,4 @@
+// Landstime_Androidapp/admin/src/pages/AdminLogin.jsx
 import { useState } from "react";
 import { Mail, Lock, Building2 } from "lucide-react";
 import { adminLogin } from "../services/authService";
@@ -9,28 +10,40 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
+
+// ✅ NEW CODE
+const handleLogin = async (e) => {
+  e.preventDefault(); // Prevent form submission if wrapped in form
+  
+  // Validate inputs
+  if (!email || !password) {
+    alert("Please enter both email and password");
+    return;
+  }
+
   try {
     setLoading(true);
 
     const res = await adminLogin(email, password);
 
-    // ✅ Save token
+    // Save token
     localStorage.setItem("token", res.token);
-
-    // ✅ Explicitly store admin role
     localStorage.setItem("role", "Admin");
 
+<<<<<<< HEAD
     // ✅ Navigate to admin dashboard / properties
     navigate("/dashboard");
+=======
+    // Navigate to admin dashboard
+    navigate("/properties");
+>>>>>>> 30bf1f4e1c27ae3bf7205575a9bddf928f1cab82
   } catch (err) {
     console.error("Admin login failed:", err);
-    alert("Invalid admin credentials");
+    alert(err.response?.data?.message || "Invalid admin credentials");
   } finally {
     setLoading(false);
   }
 };
-
   return (
     <div className="min-h-screen flex">
 

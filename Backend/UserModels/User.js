@@ -48,7 +48,12 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+<<<<<<< HEAD
   // NEW - Add subscription tracking
+=======
+
+  // Subscription tracking
+>>>>>>> 30bf1f4e1c27ae3bf7205575a9bddf928f1cab82
   currentSubscription: {
     subscriptionId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -78,6 +83,10 @@ const userSchema = new mongoose.Schema({
       default: null
     }
   },
+<<<<<<< HEAD
+=======
+
+>>>>>>> 30bf1f4e1c27ae3bf7205575a9bddf928f1cab82
   createdAt: {
     type: Date,
     default: Date.now,

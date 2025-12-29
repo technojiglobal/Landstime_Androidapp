@@ -1,3 +1,5 @@
+// Landstime_Androidapp/Backend/AdminModels/Admin.js
+
 import mongoose from "mongoose";
 
 const adminSchema = new mongoose.Schema({

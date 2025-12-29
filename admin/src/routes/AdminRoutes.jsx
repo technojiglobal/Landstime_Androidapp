@@ -1,4 +1,10 @@
+<<<<<<< HEAD
 import { Routes, Route, Navigate } from "react-router-dom";
+=======
+// Landstime_Androidapp/admin/src/routes/AdminRoutes.jsx
+
+import { Routes, Route } from "react-router-dom";
+>>>>>>> 30bf1f4e1c27ae3bf7205575a9bddf928f1cab82
 import AdminLayout from "../layouts/AdminLayout";
 
 import Dashboard from "../pages/Dashboard";
