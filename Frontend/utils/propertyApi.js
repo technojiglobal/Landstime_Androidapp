@@ -1,7 +1,7 @@
 // Frontend/utils/propertyApi.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE_URL = 'http://10.32.238.77:8000/api/properties';
+const API_BASE_URL = 'http://10.121.22.5:8000/api/properties';
 
 // Helper function to get token
 const getToken = async () => {
