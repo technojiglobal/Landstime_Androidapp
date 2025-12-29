@@ -3,7 +3,9 @@ import express from 'express';
 const router = express.Router();
 //import propertyController from '../controllers/propertyController.js';
 import * as propertyController from '../UserControllers/PropertyController.js';
+// ✅ NEW CODE
 import { verifyToken, checkAdmin } from '../UserMiddleware/UserMiddleware.js';
+import { verifyAdmin } from '../AdminMiddleware/AdminMiddleware.js';
 import { uploadImages,handleUploadError } from '../UserMiddleware/uploadMiddleware.js';
 
 // Public routes
@@ -20,10 +22,14 @@ router.post(
 
 router.get('/user/my-properties', verifyToken, propertyController.getUserProperties);
 
-// Admin routes
-router.get('/admin/all', verifyToken, checkAdmin, propertyController.getAllProperties);
-router.get('/admin/pending', verifyToken, checkAdmin, propertyController.getPendingProperties);
-router.patch('/admin/:id/status', verifyToken, checkAdmin, propertyController.updatePropertyStatus);
+// Admin routes - Use verifyAdmin instead
+router.get('/admin/all', verifyAdmin, propertyController.getAllProperties);
+router.get('/admin/pending', verifyAdmin, propertyController.getPendingProperties);
+router.get('/admin/debug', verifyAdmin, propertyController.debugProperties);
+router.patch('/admin/:id/status', verifyAdmin, propertyController.updatePropertyStatus);
+router.patch('/admin/:id/soft-delete', verifyAdmin, propertyController.softDeleteProperty);
+router.patch('/admin/:id/property-status', verifyAdmin, propertyController.updatePropertyAvailability);
+router.put('/admin/:id/update', verifyAdmin, propertyController.adminUpdateProperty);
 
 // Generic ID route LAST
 router.get('/:id', verifyToken, propertyController.getPropertyById);

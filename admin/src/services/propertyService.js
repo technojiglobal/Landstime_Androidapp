@@ -15,3 +15,25 @@ export const updatePropertyStatus = async (id, status) => {
   });
   return res.data.data;
 };
+
+
+// Soft delete property
+export const softDeleteProperty = async (id) => {
+  const res = await axiosInstance.patch(`/admin/${id}/soft-delete`);
+  return res.data;
+};
+
+// Update property availability
+export const updatePropertyAvailability = async (id, propertyStatus) => {
+  const res = await axiosInstance.patch(`/admin/${id}/property-status`, {
+    propertyStatus
+  });
+  return res.data;
+};
+
+// Update property details
+// Update property details
+export const updatePropertyDetails = async (id, updatedData) => {
+  const res = await axiosInstance.put(`/admin/${id}/update`, updatedData);
+  return res.data.data;
+};

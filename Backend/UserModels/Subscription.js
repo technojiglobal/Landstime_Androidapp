@@ -1,3 +1,5 @@
+// Landstime_Androidapp/Backend/UserModels/Subscription.js
+
 import mongoose from 'mongoose';
 
 const subscriptionSchema = new mongoose.Schema({

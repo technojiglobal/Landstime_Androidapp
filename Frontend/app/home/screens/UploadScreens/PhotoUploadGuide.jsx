@@ -1,3 +1,5 @@
+// Landstime_Androidapp/Frontend/app/home/screens/UploadScreens/PhotoUploadGuide.jsx
+
 import React from "react";
 import {
   View,
