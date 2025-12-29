@@ -1,3 +1,5 @@
+//admin/src/constants/sidebarLinks.js
+
 import {
   LayoutDashboard,
   Users,
