@@ -123,7 +123,7 @@ const PORT = process.env.PORT || 8000;
 app.use(cors({
   origin: [
     'http://localhost:8081',           // React Native/Expo
-    'http://192.168.31.115:8081',      // React Native/Expo (network)
+    'http://10.10.7.122:8081',      // React Native/Expo (network)
     'http://localhost:5173'            // Admin Panel (Vite)
   ],
   credentials: true,

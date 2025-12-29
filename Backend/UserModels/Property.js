@@ -66,6 +66,20 @@ ownerDetails: {
     ref: 'User',
     required: true
   },
+  // Admin soft delete
+  adminDeletedStatus: {
+    type: String,
+    enum: ['active', 'deleted'],
+    default: 'active'
+  },
+  
+  // Property availability status
+  propertyStatus: {
+    type: String,
+    enum: ['Available', 'Sold'],
+    default: 'Available'
+  },
+
   
   // House specific fields
   houseDetails: {

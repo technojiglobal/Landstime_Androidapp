@@ -1,3 +1,5 @@
+// Landstime_Androidapp/Frontend/app/home/screens/UploadScreens/MorePricingDetailsModal.jsx
+
 import React, { useState } from "react";
 import {
   View,

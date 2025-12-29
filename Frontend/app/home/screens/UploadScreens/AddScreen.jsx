@@ -301,48 +301,54 @@ const propertyData = {
     negotiable: selectedPrices.includes("Price Negotiable"),
     taxExcluded: selectedPrices.includes("Tax and Govt.charges excluded"),
   },
-  houseDetails: {
-    floors: parseInt(floors) || 0,
-    area: parseFloat(area) || 0,
-    areaUnit: "sqft",
-    bedrooms: parseInt(bedrooms) || 0,
-    bathrooms: parseInt(bathrooms) || 0,
-    balconies: parseInt(balconies) || 0,
+// ✅ NEW CODE
+houseDetails: {
+  floors: parseInt(floors) || 0,
+  area: parseFloat(area) || 0,
+  areaUnit: "sqft",
+  bedrooms: parseInt(bedrooms) || 0,
+  bathrooms: parseInt(bathrooms) || 0,
+  balconies: parseInt(balconies) || 0,
 
-    availabilityStatus:
-      constructionStatus === "Ready"
-        ? "Ready to Move"
-        : "Under Construction",
+  availabilityStatus:
+    constructionStatus === "Ready"
+      ? "Ready to Move"
+      : "Under Construction",
 
-    ageOfProperty: selectedAge,
-    ownership: selectedOwnership,
+  ageOfProperty: selectedAge,
+  ownership: selectedOwnership,
 
-    possessionBy:
-      constructionStatus === "Under" ? possessionBy : undefined,
+  possessionBy:
+    constructionStatus === "Under" ? possessionBy : undefined,
 
-    otherRooms,
+  otherRooms,
 
-    parking: {
-      covered,
-      open,
-    },
+  furnishing: furnishing || undefined, // Add furnishing type
+  furnishingItems: furnishings.length > 0 ? furnishings : undefined, // Add furnishing items
 
-    vaasthuDetails: {
-      houseFacing,
-      masterBedroom,
-      childrenBedroom,
-      livingRoom,
-      kitchenRoom,
-      poojaRoom,
-      balcony,
-    },
+  parking: {
+    covered,
+    open,
   },
+
+  vaasthuDetails: {
+    houseFacing,
+    masterBedroom,
+    childrenBedroom,
+    livingRoom,
+    kitchenRoom,
+    poojaRoom,
+    balcony,
+  },
+},
+
+
 };
 
 // ✅ add furnishing ONLY if selected
-if (furnishing) {
-  propertyData.houseDetails.furnishing = furnishing;
-}
+// if (furnishing) {
+//   propertyData.houseDetails.furnishing = furnishing;
+// }
 
 
       // Call API
@@ -485,12 +491,20 @@ if (furnishing) {
                 visible={isMorePricingModalVisible}
                 onClose={() => setIsMorePricingModalVisible(false)}
               />
-              <FurnishingsModal
-                visible={modalOpen}
-                onClose={() => setModalOpen(false)}
-                subtitle={modalSubtitle}
-                onSubmit={(data) => setFurnishings(data)}
-              />
+              
+<FurnishingsModal
+  visible={modalOpen}
+  onClose={() => setModalOpen(false)}
+  subtitle={modalSubtitle}
+  onSubmit={(data) => {
+    // Convert quantities and extras to a flat array
+    const items = [
+      ...data.quantities.map(([item, qty]) => `${item} (${qty})`),
+      ...data.extras
+    ];
+    setFurnishings(items);
+  }}
+/>
 
               <View className="flex-row items-center mt-3 mb-4">
                 <TouchableOpacity
