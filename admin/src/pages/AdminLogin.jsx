@@ -22,7 +22,7 @@ export default function AdminLogin() {
     localStorage.setItem("role", "Admin");
 
     // ✅ Navigate to admin dashboard / properties
-    navigate("/properties");
+    navigate("/dashboard");
   } catch (err) {
     console.error("Admin login failed:", err);
     alert("Invalid admin credentials");

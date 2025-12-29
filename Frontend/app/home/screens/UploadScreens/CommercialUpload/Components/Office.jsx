@@ -863,11 +863,11 @@ export default function PropertyFormScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-  className="px-5 py-3 rounded-lg bg-green-500"
-  onPress={() => handleNext(location, area, router)}
->
-  <Text className="text-white font-semibold">Next</Text>
-</TouchableOpacity>
+              className="px-5 py-3 rounded-lg bg-green-500"
+              onPress={() => handleNext(location, area, router)}
+            >
+              <Text className="text-white font-semibold">Next</Text>
+            </TouchableOpacity>
 
           </View>
 

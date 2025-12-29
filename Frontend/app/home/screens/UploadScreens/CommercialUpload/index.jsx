@@ -58,7 +58,7 @@ export default function PropertyFormScreen() {
 
   const [images, setImages] = useState([]);
   const [selectedType, setSelectedType] = useState(null);
-  const [officeKinds, setOfficeKinds] = useState([]);
+  const [storageKinds, setStorageKinds] = useState([]);
 
   const [alertVisible, setAlertVisible] = useState(false);
   const [isHowto360ModalVisible, setIsHowto360ModalVisible] = useState(false);
@@ -81,6 +81,11 @@ export default function PropertyFormScreen() {
     "Bare shell office space",
     "Co-working office space",
   ];
+   const storageKindPills = [
+    "Warehouse",
+    "Cold Storage",
+  ];
+
 
   /* ---------- IMAGE HANDLERS ---------- */
   const pickImage = (uri) => {
@@ -250,7 +255,26 @@ export default function PropertyFormScreen() {
         {selectedType === "Retail" && <Retail />}
         {selectedType === "Plot/Land" && <Plot />}
         {selectedType === "Industry" && <Industry />}
-        {selectedType === "Storage" && <Storage />}
+        {selectedType === "Storage" &&
+        (
+          <>
+            <Text className="text-[15px] text-[#00000099] font-bold mb-2">
+              What kind of storage is it ?
+            </Text>
+            <View className="flex-row flex-wrap mb-4">
+              {storageKindPills.map((p) => (
+                <PillButton
+                  key={p}
+                  label={p}
+                  selected={storageKinds.includes(p)}
+                  onPress={() => setStorageKinds([p])}
+                />
+              ))}
+            </View>
+           
+          </>
+        )
+        }
         {selectedType === "Hospitality" && <Hospitality />}
         {selectedType === "Other" && <Other />}
 

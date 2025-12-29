@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import AdminLayout from "../layouts/AdminLayout";
 
 import Dashboard from "../pages/Dashboard";
@@ -19,7 +19,10 @@ const AdminRoutes = () => {
       {/* 🔐 PROTECTED ADMIN ROUTES */}
       <Route element={<AdminProtectedRoute />}>
         <Route element={<AdminLayout />}>
-          <Route index element={<Dashboard />} />
+          {/* ✅ DEFAULT REDIRECT */}
+          <Route index element={<Navigate to="dashboard" replace />} />
+
+          <Route path="dashboard" element={<Dashboard />} />
           <Route path="users" element={<Users />} />
           <Route path="properties" element={<Properties />} />
           <Route path="notifications" element={<Notifications />} />
