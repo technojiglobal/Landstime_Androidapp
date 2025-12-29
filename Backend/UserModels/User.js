@@ -48,7 +48,40 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+<<<<<<< HEAD
 
+=======
+  // NEW - Add subscription tracking
+  currentSubscription: {
+    subscriptionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Subscription',
+      default: null
+    },
+    planId: {
+      type: String,
+      enum: ['gold', 'platinum', 'diamond', null],
+      default: null
+    },
+    planName: {
+      type: String,
+      default: null
+    },
+    status: {
+      type: String,
+      enum: ['active', 'expired', 'cancelled', null],
+      default: null
+    },
+    startDate: {
+      type: Date,
+      default: null
+    },
+    endDate: {
+      type: Date,
+      default: null
+    }
+  },
+>>>>>>> d9ddba39ed63d3e7263ea8d4b77ce4e76bd8db4d
   createdAt: {
     type: Date,
     default: Date.now,

@@ -26,7 +26,7 @@ export const subscriptionPlans = [
     title: "Platinum",
     image: platinum,
     color: "#9EB6FF",
-    price: 1999,
+    price: 2999,
     period: "month",
     features: [
       "List up to 25 properties",
