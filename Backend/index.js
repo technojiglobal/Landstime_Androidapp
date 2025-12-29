@@ -12,10 +12,15 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 
 // Middleware
+// ✅ NEW CODE
 app.use(cors({
-  origin: ['http://localhost:8081', 'http://192.168.31.115:8081'], // Add your frontend URLs
+  origin: [
+    'http://localhost:8081',           // React Native/Expo
+    'http://192.168.31.115:8081',      // React Native/Expo (network)
+    'http://localhost:5173'            // Admin Panel (Vite)
+  ],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
