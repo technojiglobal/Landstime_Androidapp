@@ -14,69 +14,32 @@ import {
   Clock,
   X,
 } from "lucide-react";
+import {
+  fetchAllProperties,
+  updatePropertyStatus,
+} from "../services/propertyService";
 
 /* ---------------- DATA ---------------- */
-const INITIAL_PROPERTIES = [
-  {
-    id: 1,
-    title: "Sunset Villa Estate",
-    location: "Miami Beach, FL",
-    type: "Resort",
-    price: "$2,500,000",
-    status: "verified",
-    uploaded: "2024-06-15",
-    owner: "James Wilson",
-    phone: "+1 (555) 123-4567",
-  },
-  {
-    id: 2,
-    title: "Manhattan Penthouse",
-    location: "New York, NY",
-    type: "Flat",
-    price: "$4,850,000",
-    status: "pending",
-    uploaded: "2024-07-20",
-    owner: "Victoria Chen",
-    phone: "+1 (555) 234-5678",
-    area: "3,800 sqft",
-    description:
-      "Luxurious penthouse in Midtown with floor-to-ceiling windows and Central Park views.",
-    email: "v.chen@luxuryrealty.com",
-  },
-  {
-    id: 3,
-    title: "Silicon Valley Tech Campus",
-    location: "Palo Alto, CA",
-    type: "Commercial",
-    price: "$15,000,000",
-    status: "verified",
-    uploaded: "2024-05-10",
-    owner: "TechVentures LLC",
-    phone: "+1 (555) 345-6789",
-  },
-  {
-    id: 4,
-    title: "Rocky Mountain Retreat Plot",
-    location: "Aspen, CO",
-    type: "Site",
-    price: "$1,850,000",
-    status: "rejected",
-    uploaded: "2024-08-01",
-    owner: "Thomas Harrison",
-    phone: "+1 (555) 456-7890",
-  },
-];
+
 
 /* ---------------- COMPONENT ---------------- */
 export default function Properties() {
-  const [properties, setProperties] = useState(INITIAL_PROPERTIES);
+  const [properties, setProperties] = useState([]);
+
   const [search, setSearch] = useState("");
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState(null);
   const [toast, setToast] = useState("");
 
-  useEffect(() => setPage(1), [search, pageSize]);
+  useEffect(() => {
+    loadProperties();
+  }, []);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, pageSize]);
+
 
   /* ---------- FILTER (ALL COLUMNS) ---------- */
   const filtered = useMemo(() => {
@@ -102,22 +65,57 @@ export default function Properties() {
   const end = Math.min(page * pageSize, filtered.length);
 
   /* ---------- ACTIONS ---------- */
-  const updateStatus = (id, status) => {
-    setProperties((prev) =>
-      prev.map((p) =>
-        p.id === id ? { ...p, status } : p
-      )
-    );
-    setToast(`Property ${status}`);
+  const updateStatus = async (id, status) => {
+    try {
+      await updatePropertyStatus(id, status); // 🔥 DB update
+      setToast(`Property ${status}`);
+      loadProperties(); // 🔄 re-fetch from DB
+    } catch (error) {
+      console.error("Status update failed", error);
+    }
   };
 
+  const loadProperties = async () => {
+    try {
+      const data = await fetchAllProperties();
+
+      const formatted = data.map((p) => ({
+        id: p._id,
+        title: p.propertyTitle,
+        location: p.location,
+        type: p.propertyType,
+        price: `₹${p.expectedPrice}`,
+        status: p.status,
+        sold: p.sold ?? false,
+        uploaded: new Date(p.createdAt).toLocaleDateString(),
+        owner: p.ownerDetails?.name,
+        phone: p.ownerDetails?.phone,
+        email: p.ownerDetails?.email,
+        raw: p, // full object for modal
+      }));
+
+      setProperties(formatted);
+    } catch (err) {
+      console.error("Failed to fetch properties", err);
+    }
+  };
+
+
   /* ---------- STATS ---------- */
-  const stats = [
-    { title: "Total Properties", value: "892", icon: Building2, color: "blue" },
-    { title: "Approved", value: "654", icon: CheckCircle, color: "green" },
-    { title: "Pending", value: "149", icon: Clock, color: "yellow" },
-    { title: "Rejected", value: "89", icon: X, color: "red" },
-  ];
+  const stats = useMemo(() => {
+    const total = properties.length;
+    const approved = properties.filter(p => p.status === "approved").length;
+    const pending = properties.filter(p => p.status === "pending").length;
+    const rejected = properties.filter(p => p.status === "rejected").length;
+
+    return [
+      { title: "Total Properties", value: total, icon: Building2, color: "blue" },
+      { title: "Approved", value: approved, icon: CheckCircle, color: "green" },
+      { title: "Pending", value: pending, icon: Clock, color: "yellow" },
+      { title: "Rejected", value: rejected, icon: X, color: "red" },
+    ];
+  }, [properties]);
+
 
   return (
     <div className="space-y-6">
@@ -169,7 +167,7 @@ export default function Properties() {
         <table className="min-w-[900px] w-full text-sm">
           <thead className="bg-gray-50">
             <tr>
-              {["Property", "Type", "Price", "Status", "Uploaded", "Owner", "Phone", "Actions"].map(
+              {["Property", "Type", "Price", "Status", "Property Status", "Uploaded", "Owner", "Phone", "Actions"].map(
                 (h) => (
                   <th
                     key={h}
@@ -193,17 +191,28 @@ export default function Properties() {
                 <td className="px-4 py-3">{p.price}</td>
                 <td className="px-4 py-3">
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      p.status === "verified"
-                        ? "bg-green-100 text-green-700"
-                        : p.status === "pending"
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${p.status === "approved"
+                      ? "bg-green-100 text-green-700"
+                      : p.status === "pending"
                         ? "bg-blue-100 text-blue-700"
                         : "bg-red-500 text-white"
-                    }`}
+                      }`}
                   >
                     {p.status}
                   </span>
+
                 </td>
+                <td className="px-4 py-3">
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${p.sold
+                      ? "bg-gray-800 text-white"
+                      : "bg-green-100 text-green-700"
+                      }`}
+                  >
+                    {p.sold ? "Sold" : "Available"}
+                  </span>
+                </td>
+
                 <td className="px-4 py-3">{p.uploaded}</td>
                 <td className="px-4 py-3">{p.owner}</td>
                 <td className="px-4 py-3">{p.phone}</td>
@@ -218,8 +227,9 @@ export default function Properties() {
                       <CheckCircle
                         size={16}
                         className="text-green-600 cursor-pointer"
-                        onClick={() => updateStatus(p.id, "verified")}
+                        onClick={() => updateStatus(p.id, "approved")}
                       />
+
                       <XCircle
                         size={16}
                         className="text-red-500 cursor-pointer"
