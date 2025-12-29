@@ -1,6 +1,14 @@
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Header = ({ title, subtitle }) => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    navigate("/login");
+  };
   return (
     <header className="h-16 bg-white border-b flex items-center justify-between px-6">
       
@@ -46,6 +54,13 @@ const Header = ({ title, subtitle }) => {
           <span className="text-sm font-medium text-gray-800">
             Admin User
           </span>
+          <button
+            onClick={handleLogout}
+            className="ml-2 p-1 text-gray-600 hover:text-red-600"
+            title="Logout"
+          >
+            <LogOut size={18} />
+          </button>
         </div>
       </div>
     </header>
