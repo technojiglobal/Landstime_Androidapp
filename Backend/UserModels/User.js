@@ -1,57 +1,100 @@
-// Backend/UserModels/User.js
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
+
   phone: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
+
   countryCode: {
     type: String,
     required: true,
-    default: '+91'
+    default: "+91",
   },
+
   email: {
     type: String,
     required: true,
     unique: true,
-    lowercase: true
+    lowercase: true,
   },
+
+  password: {
+    type: String,
+    required: function () {
+      return this.role === "Admin"; // ✅ ONLY admin needs password
+    },
+  },
+
   role: {
     type: String,
-    enum: ['Buyer', 'Owner'],
-    required: true
+    enum: ["Buyer", "Owner", "Admin"],
+    required: true,
   },
+
   isPhoneVerified: {
     type: Boolean,
-    default: false
+    default: false,
   },
+
   isEmailVerified: {
     type: Boolean,
-    default: false
+    default: false,
   },
+
+  // Subscription tracking
+  currentSubscription: {
+    subscriptionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Subscription',
+      default: null
+    },
+    planId: {
+      type: String,
+      enum: ['gold', 'platinum', 'diamond', null],
+      default: null
+    },
+    planName: {
+      type: String,
+      default: null
+    },
+    status: {
+      type: String,
+      enum: ['active', 'expired', 'cancelled', null],
+      default: null
+    },
+    startDate: {
+      type: Date,
+      default: null
+    },
+    endDate: {
+      type: Date,
+      default: null
+    }
+  },
+
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
+
   updatedAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
-// Update the updatedAt field before saving
-userSchema.pre('save', function(next) {
+userSchema.pre("save", function (next) {
   this.updatedAt = Date.now();
   next();
 });
 
-const User = mongoose.model('User', userSchema);
-
+const User = mongoose.model("User", userSchema);
 export default User;

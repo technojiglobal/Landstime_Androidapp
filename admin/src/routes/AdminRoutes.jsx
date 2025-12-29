@@ -1,3 +1,5 @@
+// Landstime_Androidapp/admin/src/routes/AdminRoutes.jsx
+
 import { Routes, Route } from "react-router-dom";
 import AdminLayout from "../layouts/AdminLayout";
 
@@ -7,17 +9,25 @@ import Properties from "../pages/Properties";
 import Notifications from "../pages/Notifications";
 import Banners from "../pages/Banners";
 import InteriorDesign from "../pages/InteriorDesign";
+import AdminLogin from "../pages/AdminLogin";
+import AdminProtectedRoute from "./AdminProtectedRoute";
 
 const AdminRoutes = () => {
   return (
     <Routes>
-      <Route element={<AdminLayout />}>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/users" element={<Users />} />
-        <Route path="/properties" element={<Properties />} />
-        <Route path="/notifications" element={<Notifications />} />
-        <Route path="/banners" element={<Banners />} />
-        <Route path="/interior-design" element={<InteriorDesign />} />
+      {/* 🔓 PUBLIC ADMIN LOGIN */}
+      <Route path="login" element={<AdminLogin />} />
+
+      {/* 🔐 PROTECTED ADMIN ROUTES */}
+      <Route element={<AdminProtectedRoute />}>
+        <Route element={<AdminLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="users" element={<Users />} />
+          <Route path="properties" element={<Properties />} />
+          <Route path="notifications" element={<Notifications />} />
+          <Route path="banners" element={<Banners />} />
+          <Route path="interior-design" element={<InteriorDesign />} />
+        </Route>
       </Route>
     </Routes>
   );
