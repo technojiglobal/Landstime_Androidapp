@@ -31,6 +31,13 @@ router.patch('/admin/:id/soft-delete', verifyAdmin, propertyController.softDelet
 router.patch('/admin/:id/property-status', verifyAdmin, propertyController.updatePropertyAvailability);
 router.put('/admin/:id/update', verifyAdmin, propertyController.adminUpdateProperty);
 
+
+// Image and Document management routes (Admin only)
+router.post('/admin/:id/upload-images', verifyAdmin, uploadImages, handleUploadError, propertyController.uploadAdditionalImages);
+router.delete('/admin/:id/delete-image', verifyAdmin, propertyController.deletePropertyImage);
+router.post('/admin/:id/upload-documents', verifyAdmin, uploadImages, handleUploadError, propertyController.uploadAdditionalDocuments);
+router.delete('/admin/:id/delete-document', verifyAdmin, propertyController.deletePropertyDocument);
+
 // Generic ID route LAST
 router.get('/:id', verifyToken, propertyController.getPropertyById);
 router.put('/:id', verifyToken, propertyController.updateProperty);

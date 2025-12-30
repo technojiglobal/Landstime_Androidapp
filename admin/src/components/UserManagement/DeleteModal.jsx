@@ -1,3 +1,5 @@
+//admin/src/components/UserManagement/DeleteModal.jsx
+
 export default function DeleteModal({
   title = "Delete Item",
   subtitle = "Are you sure you want to delete this item?",

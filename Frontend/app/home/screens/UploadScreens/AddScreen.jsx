@@ -1,4 +1,4 @@
-//Frontend//app//home//screens//UploadScreens//AddScreen.jsx
+//Frontend//app//home//screens//UploadScreens//AddScreen.jsx (Home / House)
 import React, { useState, useEffect } from "react";
 import { createProperty } from "../../../../utils/propertyApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";

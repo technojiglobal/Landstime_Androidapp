@@ -12,6 +12,7 @@ import InteriorDesign from "../pages/InteriorDesign";
 import AdminLogin from "../pages/AdminLogin";
 import AdminProtectedRoute from "./AdminProtectedRoute";
 
+
 const AdminRoutes = () => {
   return (
     <Routes>

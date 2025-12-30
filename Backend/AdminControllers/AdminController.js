@@ -8,6 +8,9 @@ export const adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // Add debug logs
+    console.log("📧 Login attempt for:", email);
+
     // 1️⃣ Validate
     if (!email || !password) {
       return res.status(400).json({
@@ -18,19 +21,24 @@ export const adminLogin = async (req, res) => {
 
     // 2️⃣ Find admin
     const admin = await Admin.findOne({ email });
+    console.log("👤 Admin found:", admin ? "YES" : "NO");
+    
     if (!admin) {
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials",
+        message: "Admin not found with this email", // More specific
       });
     }
 
     // 3️⃣ Compare password
+    console.log("🔐 Comparing passwords...");
     const isMatch = await bcrypt.compare(password, admin.password);
+    console.log("🔐 Password match:", isMatch ? "YES" : "NO");
+    
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials",
+        message: "Incorrect password", // More specific
       });
     }
 
