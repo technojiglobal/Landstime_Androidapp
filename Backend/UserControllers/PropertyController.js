@@ -525,3 +525,193 @@ export const adminUpdateProperty = async (req, res) => {
     });
   }
 };
+
+
+// Add at the end of the file, before the export statements
+
+// Upload additional images to existing property
+export const uploadAdditionalImages = async (req, res) => {
+  try {
+    const property = await Property.findById(req.params.id);
+    
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found'
+      });
+    }
+    
+    const newImages = req.files?.images?.map(file => file.path) || [];
+    
+    if (newImages.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No images provided'
+      });
+    }
+    
+    // Add new images to existing ones
+    property.images = [...property.images, ...newImages];
+    await property.save();
+    
+    res.status(200).json({
+      success: true,
+      message: 'Images uploaded successfully',
+      data: property
+    });
+    
+  } catch (error) {
+    console.error('Upload additional images error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upload images',
+      error: error.message
+    });
+  }
+};
+
+// Delete specific image from property
+export const deletePropertyImage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { imagePath } = req.body;
+    
+    const property = await Property.findById(id);
+    
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found'
+      });
+    }
+    
+    // Remove image from array
+    property.images = property.images.filter(img => img !== imagePath);
+    await property.save();
+    
+    // Optional: Delete file from filesystem
+    // import fs from 'fs';
+    // import path from 'path';
+    // try {
+    //   fs.unlinkSync(path.join(__dirname, '..', imagePath));
+    // } catch (err) {
+    //   console.error('Failed to delete file:', err);
+    // }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Image deleted successfully',
+      data: property
+    });
+    
+  } catch (error) {
+    console.error('Delete image error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete image',
+      error: error.message
+    });
+  }
+};
+
+// Upload additional documents to existing property
+export const uploadAdditionalDocuments = async (req, res) => {
+  try {
+    const { documentType } = req.body; // 'ownership' or 'identity'
+    
+    if (!['ownership', 'identity'].includes(documentType)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid document type'
+      });
+    }
+    
+    const property = await Property.findById(req.params.id);
+    
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found'
+      });
+    }
+    
+    const newDocs = req.files?.[`${documentType}Docs`]?.map(file => file.path) || [];
+    
+    if (newDocs.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No documents provided'
+      });
+    }
+    
+    // Add new documents to existing ones
+    if (documentType === 'ownership') {
+      property.documents.ownership = [...property.documents.ownership, ...newDocs];
+    } else {
+      property.documents.identity = [...property.documents.identity, ...newDocs];
+    }
+    
+    await property.save();
+    
+    res.status(200).json({
+      success: true,
+      message: 'Documents uploaded successfully',
+      data: property
+    });
+    
+  } catch (error) {
+    console.error('Upload additional documents error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upload documents',
+      error: error.message
+    });
+  }
+};
+
+// Delete specific document from property
+export const deletePropertyDocument = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { documentPath, documentType } = req.body;
+    
+    if (!['ownership', 'identity'].includes(documentType)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid document type'
+      });
+    }
+    
+    const property = await Property.findById(id);
+    
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found'
+      });
+    }
+    
+    // Remove document from array
+    if (documentType === 'ownership') {
+      property.documents.ownership = property.documents.ownership.filter(doc => doc !== documentPath);
+    } else {
+      property.documents.identity = property.documents.identity.filter(doc => doc !== documentPath);
+    }
+    
+    await property.save();
+    
+    res.status(200).json({
+      success: true,
+      message: 'Document deleted successfully',
+      data: property
+    });
+    
+  } catch (error) {
+    console.error('Delete document error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete document',
+      error: error.message
+    });
+  }
+};

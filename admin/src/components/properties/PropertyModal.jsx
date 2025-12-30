@@ -2,6 +2,14 @@
 
 import { X, FileText, Download, Edit2, Save,Upload, Trash2 } from "lucide-react";
 import { useState } from "react";
+//import { uploadPropertyImages, deletePropertyImage, uploadPropertyDocuments, deletePropertyDocument } from "../services/propertyService";
+import {
+  uploadPropertyImages,
+  deletePropertyImage,
+  uploadPropertyDocuments,
+  deletePropertyDocument
+} from "../../services/propertyService";
+
 
 export default function PropertyModal({ property, onClose, onUpdate }) {
   const [showImages, setShowImages] = useState(false);
@@ -434,13 +442,22 @@ const getPropertyDetails = () => {
             multiple
             accept="image/*"
             className="hidden"
-            onChange={(e) => {
-              // Handle new image upload
-              const files = Array.from(e.target.files);
-              console.log('New images selected:', files);
-              // You'll need to implement the upload logic
-              alert('Image upload feature - to be implemented with backend API');
-            }}
+            onChange={async (e) => {
+  const files = Array.from(e.target.files);
+  if (files.length > 0) {
+    try {
+      const result = await uploadPropertyImages(property.id, files);
+      if (result.success) {
+        alert('Images uploaded successfully!');
+        onUpdate(property.id, {}); // Trigger refresh
+      } else {
+        alert('Failed to upload images: ' + result.message);
+      }
+    } catch (error) {
+      alert('Error uploading images');
+    }
+  }
+}}
           />
         </label>
       )}
@@ -468,13 +485,21 @@ const getPropertyDetails = () => {
             />
             {isEditing && (
               <button
-                onClick={() => {
-                  if (window.confirm('Delete this image?')) {
-                    // Handle image deletion
-                    console.log('Delete image:', img);
-                    alert('Image deletion feature - to be implemented with backend API');
-                  }
-                }}
+               onClick={async () => {
+  if (window.confirm('Delete this image?')) {
+    try {
+      const result = await deletePropertyImage(property.id, img);
+      if (result.success) {
+        alert('Image deleted successfully!');
+        onUpdate(property.id, {}); // Trigger refresh
+      } else {
+        alert('Failed to delete image: ' + result.message);
+      }
+    } catch (error) {
+      alert('Error deleting image');
+    }
+  }
+}}
                 className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <Trash2 size={12} />

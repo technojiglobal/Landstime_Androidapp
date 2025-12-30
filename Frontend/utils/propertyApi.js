@@ -68,33 +68,66 @@ export const createProperty = async (
   try {
     const formData = new FormData();
 
-    imageUris.forEach((uri) => {
-      const filename = uri.split('/').pop();
-      const ext = filename.split('.').pop().toLowerCase();
-      const type = ext === 'png' ? 'image/png' : 'image/jpeg';
+    // Handle images - support both blob URIs (web) and file URIs (mobile)
+    for (let i = 0; i < imageUris.length; i++) {
+      const uri = imageUris[i];
+      
+      if (uri.startsWith('blob:')) {
+        // Web: Convert blob to File object
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        formData.append('images', blob, `image-${i}.jpg`);
+      } else {
+        // Mobile: Use file URI
+        const filename = uri.split('/').pop();
+        const ext = filename.split('.').pop().toLowerCase();
+        const type = ext === 'png' ? 'image/png' : 'image/jpeg';
 
-      formData.append('images', {
-        uri: uri.startsWith('file://') ? uri : `file://${uri}`,
-        name: filename,
-        type,
-      });
-    });
+        formData.append('images', {
+          uri: uri.startsWith('file://') ? uri : `file://${uri}`,
+          name: filename,
+          type,
+        });
+      }
+    }
 
-    ownershipDocs.forEach((file, index) => {
-      formData.append('ownershipDocs', {
-        uri: file.uri.startsWith('file://') ? file.uri : `file://${file.uri}`,
-        name: file.name || `ownership_${index}.jpg`,
-        type: file.type || 'image/jpeg',
-      });
-    });
+    // Handle ownership documents
+    for (let i = 0; i < ownershipDocs.length; i++) {
+      const file = ownershipDocs[i];
+      
+      if (file.uri && file.uri.startsWith('blob:')) {
+        // Web: Convert blob to File object
+        const response = await fetch(file.uri);
+        const blob = await response.blob();
+        formData.append('ownershipDocs', blob, file.name || `ownership-${i}.pdf`);
+      } else {
+        // Mobile: Use file URI
+        formData.append('ownershipDocs', {
+          uri: file.uri.startsWith('file://') ? file.uri : `file://${file.uri}`,
+          name: file.name || `ownership_${i}.jpg`,
+          type: file.type || 'image/jpeg',
+        });
+      }
+    }
 
-    identityDocs.forEach((file, index) => {
-      formData.append('identityDocs', {
-        uri: file.uri.startsWith('file://') ? file.uri : `file://${file.uri}`,
-        name: file.name || `identity_${index}.jpg`,
-        type: file.type || 'image/jpeg',
-      });
-    });
+    // Handle identity documents
+    for (let i = 0; i < identityDocs.length; i++) {
+      const file = identityDocs[i];
+      
+      if (file.uri && file.uri.startsWith('blob:')) {
+        // Web: Convert blob to File object
+        const response = await fetch(file.uri);
+        const blob = await response.blob();
+        formData.append('identityDocs', blob, file.name || `identity-${i}.pdf`);
+      } else {
+        // Mobile: Use file URI
+        formData.append('identityDocs', {
+          uri: file.uri.startsWith('file://') ? file.uri : `file://${file.uri}`,
+          name: file.name || `identity_${i}.jpg`,
+          type: file.type || 'image/jpeg',
+        });
+      }
+    }
 
     formData.append('propertyData', JSON.stringify(propertyData));
 
@@ -103,7 +136,6 @@ export const createProperty = async (
     return { success: false, error: error.message };
   }
 };
-
 
 // Get all approved properties
 export const getApprovedProperties = async (propertyType = null, page = 1) => {

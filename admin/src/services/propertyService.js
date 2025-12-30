@@ -37,3 +37,105 @@ export const updatePropertyDetails = async (id, updatedData) => {
   const res = await axiosInstance.put(`/admin/${id}/update`, updatedData);
   return res.data.data;
 };
+
+
+// Add to existing propertyService.js
+
+// Upload additional images
+export const uploadPropertyImages = async (propertyId, imageFiles) => {
+  try {
+    const formData = new FormData();
+    
+    imageFiles.forEach(file => {
+      formData.append('images', file);
+    });
+    
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/properties/admin/${propertyId}/upload-images`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        },
+        body: formData
+      }
+    );
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Upload images error:', error);
+    throw error;
+  }
+};
+
+// Delete property image
+export const deletePropertyImage = async (propertyId, imagePath) => {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/properties/admin/${propertyId}/delete-image`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        },
+        body: JSON.stringify({ imagePath })
+      }
+    );
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Delete image error:', error);
+    throw error;
+  }
+};
+
+// Upload additional documents
+export const uploadPropertyDocuments = async (propertyId, documentFiles, documentType) => {
+  try {
+    const formData = new FormData();
+    formData.append('documentType', documentType);
+    
+    documentFiles.forEach(file => {
+      formData.append(`${documentType}Docs`, file);
+    });
+    
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/properties/admin/${propertyId}/upload-documents`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        },
+        body: formData
+      }
+    );
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Upload documents error:', error);
+    throw error;
+  }
+};
+
+// Delete property document
+export const deletePropertyDocument = async (propertyId, documentPath, documentType) => {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/properties/admin/${propertyId}/delete-document`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        },
+        body: JSON.stringify({ documentPath, documentType })
+      }
+    );
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Delete document error:', error);
+    throw error;
+  }
+};

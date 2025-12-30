@@ -1,3 +1,5 @@
+//Frontend/components/PropertyImageUpload.jsx
+
 import React from "react";
 import { View, Text, TouchableOpacity, Image, FlatList } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
