@@ -334,10 +334,10 @@ export const cancelSubscription = async (req, res) => {
 
 // ==================== GET CURRENT USER SUBSCRIPTION ====================
 export const getCurrentUserSubscription = async (req, res) => {
-  try {
+ try {
     const userId = req.userId;
 
-    const user = await User.findById(userId).select('currentSubscription');
+    const user = await User.findById(userId).select('currentSubscription isBlocked');
 
     if (!user || !user.currentSubscription || !user.currentSubscription.planId) {
       return res.status(200).json({
@@ -345,6 +345,16 @@ export const getCurrentUserSubscription = async (req, res) => {
         hasActiveSubscription: false,
         data: null,
         message: 'No active subscription'
+      });
+    }
+
+    // Check if user is blocked
+    if (user.isBlocked) {
+      return res.status(200).json({
+        success: true,
+        hasActiveSubscription: false,
+        data: { ...user.currentSubscription.toObject(), status: 'blocked' },
+        message: 'User is blocked'
       });
     }
 

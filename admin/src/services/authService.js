@@ -12,3 +12,25 @@ export const adminLogin = async (email, password) => {
   console.log("✅ Login response:", res.data); // Debug log
   return res.data;
 };
+
+// NEW CODE (add to existing file):
+
+const API_BASE_URL = "http://localhost:8000/api"; 
+export const adminLogout = async () => {
+  const token = localStorage.getItem("token");
+  
+  const res = await fetch(`${API_BASE_URL}/admin/logout`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw err;
+  }
+
+  return await res.json();
+};
