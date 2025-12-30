@@ -23,8 +23,8 @@ const PhotoUploadGuide = ({
         <View className="bg-white w-[92%] rounded-2xl overflow-hidden">
 
           {/* Header */}
-          <View className="flex-row items-center items-center justify-between px-4 py-3">
-            <Text className="text-base  text-lg  text-gray-900">
+          <View className="flex-row items-center justify-between px-4 py-3">
+            <Text className="text-lg text-gray-900">
               Photo Upload Guidelines
             </Text>
             <TouchableOpacity onPress={onClose}>
