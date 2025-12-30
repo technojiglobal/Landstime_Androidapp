@@ -1,4 +1,6 @@
-import {React,useState} from "react";
+// // // Frontend/app/home/screens/Sidebar/RoomOverview.jsx
+
+import {React,useState,useEffect} from "react";
 import { View, Text, Image, ScrollView, TouchableOpacity,StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -7,19 +9,54 @@ import saveIcon from "../../../../assets/save-icon.png" ;
 import saveBlue from "../../../../assets/save-blue.png"
 export default function RoomOverviewScreen() {
   const router = useRouter();
-  const { item } = useLocalSearchParams();
-  const data = JSON.parse(item);
+  const { id } = useLocalSearchParams();
+const BASE_URL = "http://192.168.31.115:8000";
 const [save,setSave]=useState(false)
+const [data, setData] = useState(null);
+const [loading, setLoading] = useState(true);
+
+
+useEffect(() => {
+  fetchDesign();
+}, []);
+
+const fetchDesign = async () => {
+  try {
+    const res = await fetch(
+      `${BASE_URL}/api/admin/interior/designs/${id}`
+    );
+    const json = await res.json();
+    setData(json.data);
+  } catch (error) {
+    console.error("Failed to load design", error);
+  } finally {
+    setLoading(false);
+  }
+};
+if (loading || !data) {
+  return (
+    <View className="flex-1 justify-center items-center bg-white">
+      <Text>Loading...</Text>
+    </View>
+  );
+}
+
+
   return (
     <ScrollView className="flex-1 bg-white mt-12">
   <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       {/* Top Image Section */}
       <View className="relative">
-        <Image 
-          source={data.image}
-          className="w-full h-64"
-          resizeMode="cover"
-        />
+        <Image
+  source={{
+    uri: data.images?.[0]
+      ? `${BASE_URL}${data.images[0]}`
+      : "https://via.placeholder.com/600x400",
+  }}
+  className="w-full h-64"
+  resizeMode="cover"
+/>
+
 
         {/* Back Icon */}
         <TouchableOpacity 
@@ -38,11 +75,13 @@ const [save,setSave]=useState(false)
         <View className="absolute bottom-3 right-3 flex-row space-x-4">
           <View className=" px-2 py-1 rounded-2xl bg-[#302924CC] flex-row items-center mx-2 ">
             <Ionicons name="eye" size={16} color="white" />
-            <Text className="text-white ml-1">{data.views}</Text>
+            <Text className="text-white ml-1">{Math.floor(Math.random() * 3000) + 500}
+</Text>
           </View>
           <View className="flex-row items-center px-2 py-1 rounded-2xl bg-[#302924CC]">
             <Ionicons name="heart" size={16} color="white" />
-            <Text className="text-white ml-1">{data.likes}</Text>
+            <Text className="text-white ml-1">{Math.floor(Math.random() * 3000) + 500}
+</Text>
           </View>
         </View>
       </View>
@@ -52,7 +91,7 @@ const [save,setSave]=useState(false)
 
         {/* Title */}
         <Text className="text-xl font-bold text-gray-900">
-          {data.title}
+          {data.name}
         </Text>
 
         {/* Rating Row */}
@@ -88,11 +127,13 @@ const [save,setSave]=useState(false)
                    </View>
            
             <Text className="ml-1 text-gray-800 font-semibold">
-              {data.rating}
+              {data.rating ?? 4.8}
+<Text className="ml-1 text-gray-500 text-sm">(Verified)</Text>
+
             </Text>
-            <Text className="ml-1 text-gray-500 text-sm">
+            {/* <Text className="ml-1 text-gray-500 text-sm">
               ({data.reviews})
-            </Text>
+            </Text> */}
           </View>
 
           {/* Button */}
@@ -105,8 +146,8 @@ const [save,setSave]=useState(false)
 
         {/* Price Section */}
         <Text className="text-green-600 mt-3 text-xl font-bold">
-          {data.minprice}
-          <Text className="text-green-300 mt-3 text-lg font-bold">{data.maxprice}</Text>
+          {data.price}
+          
         </Text>
 
         {/* Info Row */}
@@ -160,3 +201,161 @@ const [save,setSave]=useState(false)
     </ScrollView>
   );
 }
+// import React, { useEffect, useState } from "react";
+// import {
+//   View,
+//   Text,
+//   Image,
+//   ScrollView,
+//   TouchableOpacity,
+//   StatusBar,
+//   ActivityIndicator,
+// } from "react-native";
+// import { Ionicons } from "@expo/vector-icons";
+// import { useLocalSearchParams, useRouter } from "expo-router";
+// import starImg from "../../../../assets/star-3d.png";
+// import saveIcon from "../../../../assets/save-icon.png";
+// import saveBlue from "../../../../assets/save-blue.png";
+
+// const BASE_URL = "http://192.168.31.115:8000";
+
+// export default function RoomOverviewScreen() {
+//   const router = useRouter();
+//   const { id } = useLocalSearchParams();
+
+//   const [data, setData] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [save, setSave] = useState(false);
+
+//   useEffect(() => {
+//     fetchDesign();
+//   }, [id]);
+
+//   const fetchDesign = async () => {
+//     try {
+//       const res = await fetch(
+//         `${BASE_URL}/api/admin/interior/designs/${id}`
+//       );
+//       const json = await res.json();
+
+//       if (res.ok) {
+//         setData(json.data);
+//       } else {
+//         console.error(json.message);
+//       }
+//     } catch (err) {
+//       console.error("Fetch design error:", err);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   if (loading) {
+//     return (
+//       <View className="flex-1 justify-center items-center bg-white">
+//         <ActivityIndicator size="large" color="#22C55E" />
+//       </View>
+//     );
+//   }
+
+//   if (!data) {
+//     return (
+//       <View className="flex-1 justify-center items-center bg-white">
+//         <Text>Design not found</Text>
+//       </View>
+//     );
+//   }
+
+//   return (
+//     <ScrollView className="flex-1 bg-white mt-12">
+//       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+
+//       {/* ---------- IMAGE SECTION ---------- */}
+//       <View className="relative">
+//         <Image
+//           source={{
+//             uri: data.images?.[0]
+//               ? `${BASE_URL}${data.images[0]}`
+//               : "https://via.placeholder.com/400x300",
+//           }}
+//           className="w-full h-64"
+//           resizeMode="cover"
+//         />
+
+//         {/* Back */}
+//         <TouchableOpacity
+//           onPress={() => router.back()}
+//           className="absolute top-10 left-4 bg-black/30 p-2 rounded-full"
+//         >
+//           <Ionicons name="arrow-back" size={22} color="white" />
+//         </TouchableOpacity>
+
+//         {/* Save */}
+//         <TouchableOpacity
+//           className="absolute top-10 right-4 bg-black/30 p-2 rounded-full"
+//           onPress={() => setSave(!save)}
+//         >
+//           <Image source={save ? saveBlue : saveIcon} className="w-6 h-6" />
+//         </TouchableOpacity>
+//       </View>
+
+//       {/* ---------- CONTENT ---------- */}
+//       <View className="p-4">
+
+//         {/* Title */}
+//         <Text className="text-xl font-bold text-gray-900">
+//           {data.name}
+//         </Text>
+
+//         {/* Rating */}
+//         <View className="flex-row items-center mt-2 ">
+//           {[1, 2, 3, 4, 5].map((_, i) => (
+//             <Image
+//               key={i}
+//               source={starImg}
+//               style={{
+//                 width: 20,
+//                 height: 20,
+//                 marginRight: 2,
+//                 opacity: i < Math.round(data.rating) ? 1 : 0.3,
+//               }}
+//             />
+//           ))}
+//           <Text className="ml-2 font-semibold text-gray-800">
+//             {data.rating}
+//           </Text>
+//           <TouchableOpacity className="bg-[#22C55E] px-4 py-2  rounded-full flex-row -right-4 ml-24">
+// //             <Ionicons name="location-outline" size={18} color="white" />
+// //             <Text className="ml-2 text-white font-semibold">See on Map</Text>
+// //           </TouchableOpacity>
+//         </View>
+
+//         {/* Price */}
+//         <Text className="text-green-600 mt-3 text-xl font-bold">
+//           {data.price}
+//         </Text>
+
+//         {/* Info */}
+//         <View className="flex-row justify-between mt-4">
+//           <Info label="Area" value={data.area} />
+//           <Info label="Duration" value={data.duration} />
+//           <Info label="Location" value={data.location} />
+//         </View>
+
+//         {/* Description */}
+//         <Text className="mt-6 text-xl font-semibold">Description</Text>
+//         <Text className="text-gray-600 mt-2 leading-6">
+//           {data.description || "No description available"}
+//         </Text>
+//       </View>
+//     </ScrollView>
+//   );
+// }
+
+// /* ---------- Helper ---------- */
+// const Info = ({ label, value }) => (
+//   <View className="items-center">
+//     <Text className="font-semibold text-base">{value}</Text>
+//     <Text className="text-gray-500 text-sm">{label}</Text>
+//   </View>
+// );

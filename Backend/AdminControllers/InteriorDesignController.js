@@ -1,4 +1,4 @@
-// Backend/Controllers/InteriorDesignController.js
+// Backend/AdminControllers/InteriorDesignController.js
 
 import InteriorDesign from '../AdminModels/InteriorDesign.js';
 

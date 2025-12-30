@@ -1,4 +1,4 @@
-// Backend/Models/InteriorDesign.js
+// Backend/AdminModels/InteriorDesign.js
 
 import mongoose from 'mongoose';
 
