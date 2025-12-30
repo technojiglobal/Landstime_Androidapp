@@ -78,12 +78,7 @@ const OfficeNext = () => {
 
     return (
         <View className="flex-1 bg-gray-50">
-            <ScrollView
-                contentContainerStyle={{ padding: 16, paddingBottom: 36 }}
-                showsVerticalScrollIndicator={false}
-
-            >
-                <View className="flex-row items-center mt-7 mb-4">
+             <View className="flex-row items-center mt-7 mb-4">
                     <TouchableOpacity
                         onPress={() =>
                             router.push("/home/screens/UploadScreens/AddScreen")
@@ -105,6 +100,12 @@ const OfficeNext = () => {
                         </Text>
                     </View>
                 </View>
+            <ScrollView
+                contentContainerStyle={{ padding: 16, paddingBottom: 36 }}
+                showsVerticalScrollIndicator={false}
+
+            >
+               
                 {/* ---------- PRICE DETAILS ---------- */}
                 <View
                     className="bg-white rounded-lg p-4 mb-4"
@@ -338,6 +339,22 @@ const OfficeNext = () => {
                             ))}
                         </View>
                     </View>
+                    <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-3">
+                                <TouchableOpacity
+                                  className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
+                                >
+                                  <Text className="font-semibold">Cancel</Text>
+                                </TouchableOpacity>
+                    
+                                <TouchableOpacity
+                                  className="px-5 py-3 rounded-lg bg-green-500"
+                                  onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload/Components/OfficeVaastu")}
+                                >
+                                  <Text className="text-white font-semibold">Next</Text>
+                                </TouchableOpacity>
+                    
+                              </View>
+                    
                 </View>
             </ScrollView>
         </View>

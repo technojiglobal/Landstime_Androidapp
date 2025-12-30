@@ -14,16 +14,14 @@ import { useRouter } from "expo-router";
 const PillButton = ({ label, selected, onPress }) => (
   <TouchableOpacity
     onPress={onPress}
-    className={`px-4 py-1.5 rounded-full mr-2 mb-2 border ${
-      selected
+    className={`px-4 py-1.5 rounded-full mr-2 mb-2 border ${selected
         ? "border-green-500 bg-green-50"
         : "border-gray-200 bg-white"
-    }`}
+      }`}
   >
     <Text
-      className={`text-xs ${
-        selected ? "text-green-600" : "text-gray-500"
-      }`}
+      className={`text-xs ${selected ? "text-green-600" : "text-gray-500"
+        }`}
     >
       {label}
     </Text>
@@ -36,11 +34,10 @@ const Checkbox = ({ label, checked, onPress }) => (
     className="flex-row items-center mb-3"
   >
     <View
-      className={`w-4 h-4 mr-2 items-center justify-center border ${
-        checked
+      className={`w-4 h-4 mr-2 items-center justify-center border ${checked
           ? "border-green-500 bg-green-500"
           : "border-gray-300 bg-white"
-      }`}
+        }`}
     >
       {checked && <Text className="text-white text-[10px]">✓</Text>}
     </View>
@@ -179,11 +176,11 @@ export default function RetailNext() {
             checked={taxExcluded}
             onPress={() => setTaxExcluded(!taxExcluded)}
           />
-             <TouchableOpacity>
-                                    <Text className="text-[#22C55E] text-sm mt-2">
-                                        + Add more pricing details
-                                    </Text>
-                                </TouchableOpacity>
+          <TouchableOpacity>
+            <Text className="text-[#22C55E] text-sm mt-2">
+              + Add more pricing details
+            </Text>
+          </TouchableOpacity>
           {/* PRE-LEASED */}
           <Text className="font-semibold mt-4 mb-2">
             Is it Pre-leased / Pre-rented?
@@ -291,24 +288,20 @@ export default function RetailNext() {
       </ScrollView>
 
       {/* BOTTOM BUTTONS */}
-      <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-4 flex-row">
+      <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-8">
         <TouchableOpacity
-          onPress={() => router.back()}
-          className="flex-1 mr-3 bg-gray-200 py-3 rounded-xl items-center"
+          className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
         >
-          <Text className="font-medium">Cancel</Text>
+          <Text className="font-semibold">Cancel</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() =>
-            router.push(
-              "/home/screens/UploadScreens/CommercialUpload/Components/VastuDetails"
-            )
-          }
-          className="flex-1 bg-green-500 py-3 rounded-xl items-center"
+          className="px-5 py-3 rounded-lg bg-green-500"
+          onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload/Components/RetailVaastu")}
         >
           <Text className="text-white font-semibold">Next</Text>
         </TouchableOpacity>
+
       </View>
     </View>
   );
