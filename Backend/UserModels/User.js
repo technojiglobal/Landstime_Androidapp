@@ -48,6 +48,11 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+    isBlocked: {
+    type: Boolean,
+    default: false,
+  },
+
 
   // Subscription tracking
   currentSubscription: {
@@ -67,7 +72,7 @@ const userSchema = new mongoose.Schema({
     },
     status: {
       type: String,
-      enum: ['active', 'expired', 'cancelled', null],
+      enum: ['active', 'expired', 'cancelled', 'blocked', null],
       default: null
     },
     startDate: {

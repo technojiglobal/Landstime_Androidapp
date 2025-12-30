@@ -1,59 +1,37 @@
-// //admin/src/layouts/Sidebar.jsx
-
-// import { NavLink } from "react-router-dom";
-// import { sidebarLinks } from "../constants/sidebarLinks";
-
-// const Sidebar = () => {
-//   return (
-//     <aside className="w-64 bg-[#0B1220] text-white flex flex-col">
-      
-//       {/* Logo */}
-//       <div className="h-16 flex items-center gap-3 px-6 border-b border-white/10">
-//         <div className="w-8 h-8 bg-blue-600 rounded-md flex items-center justify-center">
-//           <span className="font-bold text-lg">P</span>
-//         </div>
-//         <span className="text-green-400 font-semibold">PropAdmin</span>
-//       </div>
-
-//       {/* Menu */}
-//       <nav className="flex-1 px-3 py-4 space-y-1">
-//         {sidebarLinks.map(({ label, path, icon: Icon }) => (
-//           <NavLink
-//             key={label}
-//             to={path}
-//             end
-//             className={({ isActive }) =>
-//               `flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition
-//               ${
-//                 isActive
-//                   ? "bg-blue-600 text-white"
-//                   : "text-gray-300 hover:bg-white/10"
-//               }`
-//             }
-//           >
-//             <Icon size={18} />
-//             {label}
-//           </NavLink>
-//         ))}
-//       </nav>
-
-//       {/* Logout */}
-//       <div className="px-6 py-4 border-t border-white/10 text-sm text-gray-300">
-//         Logout
-//       </div>
-//     </aside>
-//   );
-// };
-
-// export default Sidebar;
-
-
-import React from "react";
-import { NavLink } from "react-router-dom";
+//admin/src/layouts/Sidebar.jsx
+import React , {useState} from "react";
+import { NavLink , useNavigate} from "react-router-dom";
 import { sidebarLinks } from "../constants/sidebarLinks";
 import { X } from "lucide-react";
+import { adminLogout } from "../services/authService";
+import LogoutModal from "../components/LogoutModal";
 
 const Sidebar = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+ // NEW CODE:
+ // NEW CODE:
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await adminLogout();
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Even if API call fails, clear local storage and redirect
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+      navigate("/login");
+    } finally {
+      setLoggingOut(false);
+      setShowLogoutModal(false);
+    }
+  };
+
   return (
     <>
       {/* Mobile Overlay */}
@@ -111,12 +89,24 @@ const Sidebar = ({ isOpen, onClose }) => {
         </nav>
 
         {/* Logout */}
+       {/* Logout */}
         <div className="px-6 py-4 border-t border-white/10">
-          <button className="text-sm text-gray-300 hover:text-white transition w-full text-left">
+          <button 
+            onClick={() => setShowLogoutModal(true)}
+            className="text-sm text-gray-300 hover:text-white transition w-full text-left"
+          >
             Logout
           </button>
         </div>
       </aside>
+
+      {/* Logout Modal */}
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleLogout}
+        loading={loggingOut}
+      />
     </>
   );
 };
