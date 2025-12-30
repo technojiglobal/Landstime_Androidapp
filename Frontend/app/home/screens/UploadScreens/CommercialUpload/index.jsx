@@ -55,7 +55,7 @@ export default function PropertyFormScreen() {
   );
   const [propertyType, setPropertyType] = useState("Commercial");
   const [visible, setVisible] = useState(null);
-
+const [officeKinds, setOfficeKinds] = useState([]);
   const [images, setImages] = useState([]);
   const [selectedType, setSelectedType] = useState(null);
   const [storageKinds, setStorageKinds] = useState([]);

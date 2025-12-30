@@ -282,17 +282,17 @@ export default function PlotNext() {
       </ScrollView>
 
       {/* BOTTOM BUTTONS */}
-      <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex-row p-4">
+      <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-12">
         <TouchableOpacity
           onPress={() => router.back()}
-          className="flex-1 bg-gray-200 py-3 rounded-lg mr-2 items-center"
+          className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
         >
           <Text>Cancel</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => router.push("/home/screens/UploadScreens/NextStep")}
-          className="flex-1 bg-green-500 py-3 rounded-lg items-center"
+          onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload/Components/PlotVaastu")}
+          className="px-5 py-3 rounded-lg bg-green-500 mx-3"
         >
           <Text className="text-white font-semibold">Next</Text>
         </TouchableOpacity>

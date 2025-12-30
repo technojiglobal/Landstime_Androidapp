@@ -26,7 +26,7 @@ const OfficeNext = () => {
     const [taxExcluded, setTaxExcluded] = useState(false);
     const [IndustryApprovedBy, setIndustryApprovedBy] = useState("");
     const [approvedIndustryType, setApprovedIndustryType] = useState("");
-    const authorityOptions = ['Local Authority', ];
+    const authorityOptions = ['Local Authority',];
     /* ---------------- YES / NO STATES ---------------- */
     const [preLeased, setPreLeased] = useState(null);
     const [nocCertified, setNocCertified] = useState(null);
@@ -34,7 +34,7 @@ const OfficeNext = () => {
 
     /* ---------------- PREVIOUS USE ---------------- */
     const [visible, setVisible] = useState(null);
-    
+
     const prevUsedForOptions = ["Commercial", "Residential", "Warehouse"];
 
     /* ---------------- DESCRIPTION ---------------- */
@@ -44,7 +44,7 @@ const OfficeNext = () => {
 
     /* ---------------- AMENITIES ---------------- */
     const amenityOptions = [
-       
+
         "+Water Storage",
         "+currently Air Conditioned",
         "+Vaastu Complex",
@@ -86,6 +86,9 @@ const OfficeNext = () => {
             });
             return;
         }
+        router.push(
+            "/home/screens/UploadScreens/CommercialUpload/Components/StorageVaastu"
+        );
         // Navigate to next screen or submit
         // router.push("/next-screen");
     };
@@ -125,11 +128,11 @@ const OfficeNext = () => {
                     style={{ borderWidth: 1, borderColor: "#0000001A" }}
                 >
                     <Text className="text-[15px] text-[#00000099] font-bold mb-2">Ownership</Text>
-                              <View className="flex-row flex-wrap mb-4">
-                                {ownershipOptions.map((o) => (
-                                  <PillButton key={o} label={o} selected={ownership === o} onPress={() => setOwnership(o)} />
-                                ))}
-                </View>
+                    <View className="flex-row flex-wrap mb-4">
+                        {ownershipOptions.map((o) => (
+                            <PillButton key={o} label={o} selected={ownership === o} onPress={() => setOwnership(o)} />
+                        ))}
+                    </View>
 
                     <Text className="mb-2 text-[15px] font-bold text-[#00000099]">
                         Which authority the property is approved by?
@@ -147,20 +150,20 @@ const OfficeNext = () => {
                     <Text className="mb-2 text-[15px] font-bold text-[#00000099]">
                         Approved for industry type
                     </Text>
-                    
-                     <TextInput
-                                placeholder="select Industry Type"
-                                value={approvedIndustryType}
-                                onChangeText={setApprovedIndustryType}
-                                onFocus={() => setFocusedField("industryType")}
-                                onBlur={() => setFocusedField(null)}
-                                className="rounded-md p-3 mb-3"
-                                style={{
-                                    borderWidth: 1,
-                                    borderColor: focusedField === "industryType" ? "#22C55E" : "#0000001A",
-                                    backgroundColor: "#D9D9D91C",
-                                    height: 50,
-                                }}
+
+                    <TextInput
+                        placeholder="select Industry Type"
+                        value={approvedIndustryType}
+                        onChangeText={setApprovedIndustryType}
+                        onFocus={() => setFocusedField("industryType")}
+                        onBlur={() => setFocusedField(null)}
+                        className="rounded-md p-3 mb-3"
+                        style={{
+                            borderWidth: 1,
+                            borderColor: focusedField === "industryType" ? "#22C55E" : "#0000001A",
+                            backgroundColor: "#D9D9D91C",
+                            height: 50,
+                        }}
                     />
 
                     <Text className="mb-2 text-[15px] font-bold text-[#00000099]">
@@ -224,7 +227,7 @@ const OfficeNext = () => {
                     {preLeased === "Yes" && (
                         <View className="mb-4">
                             {/* Lease Duration */}
-                            
+
                             <TextInput
                                 placeholder="Current rent per month"
                                 value={leaseDuration}
@@ -241,7 +244,7 @@ const OfficeNext = () => {
                             />
 
                             {/* Monthly Rent */}
-                           
+
                             <TextInput
                                 placeholder=" Lease Tenure in years"
                                 value={monthlyRent}
@@ -262,13 +265,13 @@ const OfficeNext = () => {
 
 
                     {/* ---------- FIRE NOC ---------- */}
-                    
+
 
                     {/* ---------- OCCUPANCY ---------- */}
-                    
+
 
                     {/* ---------- PREVIOUS USE ---------- */}
-                    
+
                     {/* ---------- DESCRIPTION ---------- */}
                     <Text className="mt-4 mb-2 font-bold text-[15px] text-[#00000099]">
                         Describe your property
@@ -327,22 +330,22 @@ const OfficeNext = () => {
                             ))}
                         </View>
                     </View>
-                     <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-3">
-                                <TouchableOpacity
-                                  className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
-                                    onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload/Components/Storage")}
-                                >
-                                  <Text className="font-semibold">Cancel</Text>
-                                </TouchableOpacity>
-                    
-                                <TouchableOpacity
-                                  className="px-5 py-3 rounded-lg bg-green-500"
-                                  onPress={handleNext}
-                                >
-                                  <Text className="text-white font-semibold">Next</Text>
-                                </TouchableOpacity>
-                    
-                              </View>
+                    <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-3">
+                        <TouchableOpacity
+                            className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
+                            onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload/Components/Storage")}
+                        >
+                            <Text className="font-semibold">Cancel</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            className="px-5 py-3 rounded-lg bg-green-500"
+                            onPress={handleNext}
+                        >
+                            <Text className="text-white font-semibold">Next</Text>
+                        </TouchableOpacity>
+
+                    </View>
                 </View>
 
                 {/* More Pricing Details Modal */}
@@ -350,7 +353,7 @@ const OfficeNext = () => {
                     visible={pricingModalVisible}
                     onClose={() => setPricingModalVisible(false)}
                 />
-                
+
             </ScrollView>
         </View>
     );

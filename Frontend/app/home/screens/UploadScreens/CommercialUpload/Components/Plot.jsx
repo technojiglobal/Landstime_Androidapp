@@ -56,17 +56,27 @@ const toggleConstruction = (value) => {
   }
 };
 
-  /* ---------- NEXT ---------- */
-  const handleNext = () => {
+  const handleNext = (location, plotArea, router) => {
     if (!location.trim()) {
-      Toast.show({ type: "error", text1: "Location required" });
+      Toast.show({
+        type: 'error',
+        text1: 'Location Required',
+        text2: 'Please enter the property location.',
+      });
       return;
     }
     if (!plotArea.trim()) {
-      Toast.show({ type: "error", text1: "Plot area required" });
+      Toast.show({
+        type: 'error',
+        text1: 'Plot Area Required',
+        text2: 'Please enter the plot area.',
+      });
       return;
     }
-    router.push("/home/screens/UploadScreens/CommercialUpload/Components/PlotNext");
+  
+    router.push(
+      "/home/screens/UploadScreens/CommercialUpload/Components/PlotNext"
+    );
   };
 
   return (
@@ -225,21 +235,20 @@ const toggleConstruction = (value) => {
       </ScrollView>
 
       {/* FOOTER */}
-      <View className="flex-row p-4 bg-white">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="flex-1 mr-3 bg-[#E5E7EB] py-3 items-center rounded-md"
-        >
-          <Text>Cancel</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={handleNext}
-          className="flex-1 bg-[#22C55E] py-3 items-center rounded-md"
-        >
-          <Text className="text-white font-semibold">Next</Text>
-        </TouchableOpacity>
-      </View>
+      <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-12">
+                  <TouchableOpacity
+                    className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
+                  >
+                    <Text className="font-semibold">Cancel</Text>
+                  </TouchableOpacity>
+      
+                  <TouchableOpacity
+                    className="px-5 py-3 rounded-lg bg-green-500"
+                    onPress={() => handleNext(location, plotArea, router)}
+                  >
+                    <Text className="text-white font-semibold">Next</Text>
+                  </TouchableOpacity>
+                </View>
     </View>
   );
 }
