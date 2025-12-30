@@ -119,9 +119,7 @@ export const createDesign = async (req, res) => {
       duration,
       location,
       rating,
-      description,
-      images,
-      features
+      description
     } = req.body;
 
     // Validation
@@ -130,6 +128,12 @@ export const createDesign = async (req, res) => {
         success: false,
         message: 'Please provide all required fields'
       });
+    }
+
+    // Handle uploaded images
+    let imageUrls = [];
+    if (req.files && req.files.length > 0) {
+      imageUrls = req.files.map(file => `/uploads/interior-designs/${file.filename}`);
     }
 
     // Create new design
@@ -143,8 +147,8 @@ export const createDesign = async (req, res) => {
       location,
       rating: rating || 4.8,
       description,
-      images: images || [],
-      features: features || [],
+      images: imageUrls,
+      features: [],
       uploadedBy: req.adminId // From middleware
     });
 

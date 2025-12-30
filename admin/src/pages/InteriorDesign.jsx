@@ -68,7 +68,7 @@ export default function InteriorDesign() {
 
   // Get token from localStorage
   const getToken = () => {
-    return localStorage.getItem("adminToken");
+    return localStorage.getItem("token");
   };
 
   // Fetch designs from backend
@@ -171,13 +171,33 @@ export default function InteriorDesign() {
         return;
       }
 
+      const formData = new FormData();
+
+      // Append text fields
+      formData.append('name', design.name);
+      formData.append('designer', design.designer);
+      formData.append('phone', design.phone);
+      formData.append('area', design.area);
+      formData.append('price', design.price);
+      formData.append('duration', design.duration);
+      formData.append('location', design.location);
+      if (design.description) formData.append('description', design.description);
+
+      // Append image files
+      if (design.images && design.images.length > 0) {
+        design.images.forEach((image, index) => {
+          if (image instanceof File) {
+            formData.append('images', image);
+          }
+        });
+      }
+
       const response = await fetch(`${API_URL}/designs`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(design),
+        body: formData,
       });
 
       const data = await response.json();

@@ -123,7 +123,7 @@ const PORT = process.env.PORT || 8000;
 app.use(cors({
   origin: [
     'http://localhost:8081',           // React Native/Expo
-    'http://10.10.7.122:8081',      // React Native/Expo (network)
+    'http://192.168.31.115:8081',      // React Native/Expo (network)
     'http://localhost:5173'            // Admin Panel (Vite)
   ],
   credentials: true,
@@ -132,6 +132,9 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '50mb' })); // Increased for image uploads
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Serve static files
+app.use('/uploads', express.static('uploads'));
 
 // MongoDB Connection
 console.log('🔍 Attempting MongoDB connection...');
