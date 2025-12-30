@@ -22,6 +22,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import DocumentUpload from "components/Documentupload";
 import { createProperty } from "../../../../../utils/propertyApi";
 import OwnerDetails from "components/OwnersDetails";
+import CustomPickerAlert from "../../../../../components/CustomPickerAlert";
+import HowTo360Modal from "../HowTo360Modal";
+import PhotoUploadGuide from "../PhotoUploadGuide";
+//import PropertyImageUpload from "../../../../components/PropertyImageUpload";
+import PropertyImageUpload from "../../../../../components/PropertyImageUpload";
+import { Linking, Platform } from "react-native";
 /* ---------- Reusable Components ---------- */
 const PillButton = ({ label, selected, onPress }) => (
   <TouchableOpacity
@@ -85,6 +91,9 @@ const [ownerName, setOwnerName] = useState("");
 const [phone, setPhone] = useState("");
 const [email, setEmail] = useState("");
 const [focusedField, setFocusedField] = useState(null);
+const [pickerAlertVisible, setPickerAlertVisible] = useState(false);
+const [isHowto360ModalVisible, setIsHowto360ModalVisible] = useState(false);
+const [isPhotoGuideModalVisible, setIsPhotoGuideModalVisible] = useState(false);
 
   /* ---------- Helpers ---------- */
   const isAlphaNumeric = (text) => /^[a-zA-Z0-9\s]+$/.test(text);
@@ -312,20 +321,69 @@ const RESORT_TYPES = [
     );
   };
 
-const openCamera = async () => {
-  const permission = await ImagePicker.requestCameraPermissionsAsync();
-  if (!permission.granted) {
-    Alert.alert("Permission Required", "Camera permission is needed");
-    return;
-  }
+const takePhoto = async () => {
+  setPickerAlertVisible(false);
+  let permission = await ImagePicker.getCameraPermissionsAsync();
 
+  if (permission.status !== "granted") {
+    permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (permission.status !== "granted") {
+      Alert.alert(
+        "Permission Required",
+        "You need to grant camera permissions to use this feature."
+      );
+      return;
+    }
+  }
   const result = await ImagePicker.launchCameraAsync({
+    allowsEditing: false,
     quality: 0.8,
   });
-
-  if (!result.canceled) {
-    setImages(prev => [...prev, result.assets[0].uri]);
+  if (!result.canceled && result.assets && result.assets.length > 0) {
+    const newImages = result.assets.map((asset) => asset.uri);
+    setImages([...images, ...newImages]);
   }
+};
+
+const pickFromGallery = async () => {
+  setPickerAlertVisible(false);
+  let permission = await ImagePicker.getMediaLibraryPermissionsAsync();
+
+  if (permission.status !== "granted") {
+    permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permission.status !== "granted") {
+      Alert.alert(
+        "Permission Required",
+        "You need to grant access to your photo library."
+      );
+      return;
+    }
+  }
+  const result = await ImagePicker.launchImageLibraryAsync({
+    allowsEditing: false,
+    quality: 0.8,
+    allowsMultipleSelection: true,
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  });
+  if (!result.canceled && result.assets && result.assets.length > 0) {
+    const newImages = result.assets.map((asset) => asset.uri);
+    setImages([...images, ...newImages]);
+  }
+};
+
+const pickImage = () => {
+  setPickerAlertVisible(true);
+};
+
+const removeImage = (index) => {
+  setImages(images.filter((_, i) => i !== index));
+};
+
+const handleOpenPlayStore = () => {
+  const playStoreLink = "https://play.google.com/store/apps/details?id=com.google.android.street";
+  Linking.openURL(playStoreLink).catch((err) =>
+    console.error("Couldn't load page", err)
+  );
 };
 
 
@@ -334,6 +392,21 @@ const openCamera = async () => {
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" translucent={false} />
       <TopAlert visible={alertVisible} onHide={() => setAlertVisible(false)} />
+        <HowTo360Modal
+        visible={isHowto360ModalVisible}
+        onClose={() => setIsHowto360ModalVisible(false)}
+        onOpenPlayStore={handleOpenPlayStore}
+      />
+      <PhotoUploadGuide
+        visible={isPhotoGuideModalVisible}
+        onClose={() => setIsPhotoGuideModalVisible(false)}
+      />
+      <CustomPickerAlert
+        visible={pickerAlertVisible}
+        onClose={() => setPickerAlertVisible(false)}
+        onCameraPress={takePhoto}
+        onGalleryPress={pickFromGallery}
+      />
       {/* ---------- Header ---------- */}
         <View className="flex-row items-center  mb-2">
           <TouchableOpacity
@@ -362,31 +435,14 @@ const openCamera = async () => {
       >
         
 
-        {/* ---------- Property Media ---------- */}
-        <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
-          <Text className="text-[15px] font-bold mb-2">Property Details <Text style={{ color: "red" }}>*</Text></Text>
-
-          <TouchableOpacity
-            onPress={openCamera}
-            className="border-2 bg-[#D9D9D91C] border-dashed border-gray-300 rounded-xl p-6 items-center mb-4"
-          >
-            <Ionicons name="camera-outline" size={40} color="#888" />
-            <Text className="text-gray-500 mt-2">Add Photos or Videos</Text>
-          </TouchableOpacity>
-
-        {images.length > 0 && (
-  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-    {images.map((uri, index) => (
-      <Image
-        key={index}
-        source={{ uri }}
-        className="w-40 h-40 rounded-lg mr-2"
-      />
-    ))}
-  </ScrollView>
-)}
-
-        </View>
+       {/* ---------- Property Media ---------- */}
+        <PropertyImageUpload
+          images={images}
+          onPickImage={pickImage}
+          onRemoveImage={removeImage}
+          onViewGuidelines={() => setIsPhotoGuideModalVisible(true)}
+          onWatchTutorial={() => setIsHowto360ModalVisible(true)}
+        />
 
         {/* ---------- Basic Details ---------- */}
         <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
