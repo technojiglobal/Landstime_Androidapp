@@ -1,4 +1,3 @@
-import React from "react";
 import {
   View,
   Text,
@@ -22,7 +21,7 @@ const HowTo360Modal = ({
 
           {/* Header */}
           <View className="flex-row items-center text-center justify-between px-4 py-3">
-            <Text className="text-base  text-lg  text-gray-900">
+            <Text className="text-lg text-gray-900">
               How to Take 360° Property Photos
             </Text>
             <TouchableOpacity onPress={onClose}>

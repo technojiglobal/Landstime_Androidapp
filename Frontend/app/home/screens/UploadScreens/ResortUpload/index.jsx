@@ -642,7 +642,7 @@ const handleOpenPlayStore = () => {
   }
 }}
  keyboardType="numeric"
-            className=" bg-[#D9D9D91C] rounded-md p-3 mb-3 bg-gray-100 border border-gray-200 focus:border-green-500 focus:ring-green-500"
+            className="bg-[#D9D9D91C] rounded-md p-3 mb-3 border border-gray-200 focus:border-green-500 focus:ring-green-500"
           />
         </View>
 
