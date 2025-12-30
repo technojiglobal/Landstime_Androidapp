@@ -82,18 +82,15 @@ export default function PropertyFormScreen() {
     "Bare shell office space",
     "Co-working office space",
   ];
-<<<<<<< HEAD
    const storageKindPills = [
     "Warehouse",
     "Cold Storage",
   ];
 
-=======
   const retailTypeOptions = [
   "Commercial Shop",
   "Commercial Showroom",
 ];
->>>>>>> 30bf1f4e1c27ae3bf7205575a9bddf928f1cab82
 
   /* ---------- IMAGE HANDLERS ---------- */
   const pickImage = (uri) => {
