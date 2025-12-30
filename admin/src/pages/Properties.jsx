@@ -146,7 +146,7 @@ const formatted = data.map((p) => {
                          'Active';
   }
 
-  return {
+ return {
     id: p._id,
     title: p.propertyTitle,
     location: p.location,
@@ -166,8 +166,7 @@ const formatted = data.map((p) => {
       ownership: (p.documents?.ownership || []).map(doc => doc.replace(/\\/g, '/')),
       identity: (p.documents?.identity || []).map(doc => doc.replace(/\\/g, '/'))
     },
-    furnishingItems: p.houseDetails?.furnishingItems || [],
-    raw: p,
+    raw: p, // Keep the entire raw object - this is the key fix
   };
 });
 
