@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { useRouter,useLocalSearchParams } from "expo-router";
 import DocumentUpload from "components/Documentupload";
+import ImageUpload from "components/ImageUpload";
 import OwnerDetails from "components/OwnersDetails";
 import { createProperty } from "utils/propertyApi";
 
@@ -25,7 +26,8 @@ const commercialDetails = useMemo(() => {
 
   return JSON.parse(params.commercialDetails);
 }, [params.commercialDetails]);
-    // State for documents
+    // State for documents and images
+    const [propertyImages, setPropertyImages] = useState([]);
     const [ownershipDocs, setOwnershipDocs] = useState([]);
     const [identityDocs, setIdentityDocs] = useState([]);
 
@@ -40,6 +42,10 @@ const commercialDetails = useMemo(() => {
 
     const handleSubmit = async () => {
         // Validation
+        if (propertyImages.length === 0) {
+            Alert.alert("Error", "Please upload at least one property image.");
+            return;
+        }
         if (ownershipDocs.length === 0) {
             Alert.alert("Error", "Please upload property ownership documents.");
             return;
@@ -88,7 +94,8 @@ const propertyData = {
 
         try {
   // Use shared API helper to upload property and docs
-  const result = await createProperty(propertyData, [], ownershipDocs, identityDocs);
+  const imageUris = propertyImages.map(img => img.uri);
+  const result = await createProperty(propertyData, imageUris, ownershipDocs, identityDocs);
 
   if (!result.success) {
     throw new Error(result.error || result.data?.message || "Upload failed");
@@ -142,6 +149,14 @@ const propertyData = {
 
                     {/* Header */}
                     
+                    {/* Image Upload */}
+                    <ImageUpload
+                        title="Property Images"
+                        subtitle="Upload at least one image of your property."
+                        files={propertyImages}
+                        setFiles={setPropertyImages}
+                        required
+                    />
 
                     {/* Document Uploads */}
                     <DocumentUpload

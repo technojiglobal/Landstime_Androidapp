@@ -45,6 +45,7 @@ export const uploadImages = multer({
   fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }
 }).fields([
+  { name: 'images', maxCount: 10 },
   { name: 'propertyImages', maxCount: 10 },
   { name: 'ownershipDocs', maxCount: 5 },
   { name: 'identityDocs', maxCount: 5 }
