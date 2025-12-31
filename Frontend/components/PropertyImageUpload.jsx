@@ -12,7 +12,7 @@ export default function PropertyImageUpload({
   onWatchTutorial,
 }) {
   return (
-    <View className="border rounded-xl border-gray-300 bg-white m-5">
+    <View className="border rounded-xl border-gray-300 bg-white mb-4">
       {/* Header */}
       <View className="px-4 py-4 flex-row justify-between items-center">
         <Text className="font-semibold text-base text-gray-900">

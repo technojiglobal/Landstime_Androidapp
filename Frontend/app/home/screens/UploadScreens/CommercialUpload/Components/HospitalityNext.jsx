@@ -6,24 +6,27 @@ import {
     TouchableOpacity,
     ScrollView,
     Image,
-    ToastAndroid,
 } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
-
+import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import Toast from 'react-native-toast-message';
 
 import { PillButton, Checkbox } from "./Office";
 import MorePricingDetailsModal from "../../MorePricingDetailsModal";
 
-const OfficeNext = () => {
+const HospitalityNext = () => {
     const router = useRouter();
 
     /* ---------------- PRICE STATES ---------------- */
+    const ownershipOptions = ['Freehold', 'Leasehold', 'Company Owned', 'Other'];
+    const [ownership, setOwnership] = useState('');
     const [expectedPrice, setExpectedPrice] = useState("");
     const [allInclusive, setAllInclusive] = useState(false);
     const [priceNegotiable, setPriceNegotiable] = useState(false);
     const [taxExcluded, setTaxExcluded] = useState(false);
-
+    const [IndustryApprovedBy, setIndustryApprovedBy] = useState("");
+    const [approvedIndustryType, setApprovedIndustryType] = useState("");
+    const authorityOptions = ['Local Authority'];
     /* ---------------- YES / NO STATES ---------------- */
     const [preLeased, setPreLeased] = useState(null);
     const [nocCertified, setNocCertified] = useState(null);
@@ -31,29 +34,28 @@ const OfficeNext = () => {
 
     /* ---------------- PREVIOUS USE ---------------- */
     const [visible, setVisible] = useState(null);
-    const [prevUsedFor, setPrevUsedFor] = useState("Commercial");
+
     const prevUsedForOptions = ["Commercial", "Residential", "Warehouse"];
 
     /* ---------------- DESCRIPTION ---------------- */
     const [describeProperty, setDescribeProperty] = useState("");
+    const [wheelchairFriendly, setWheelchairFriendly] = useState(false);
+    const [amenities, setAmenities] = useState([]);
+    const [locAdvantages, setLocAdvantages] = useState([]);
+    const [flooringType, setFlooringType] = useState('');
+    const [focusedField, setFocusedField] = useState(null);
+    const [pricingModalVisible, setPricingModalVisible] = useState(false);
 
     /* ---------------- AMENITIES ---------------- */
     const amenityOptions = [
-        "+Maintenance Staff",
+
         "+Water Storage",
-        "+Water Disposal",
-        "+ATM",
-        "+Shopping Center",
-        "+Wheelchair Accessibility",
-        "+Cafeteria/Foodcourt",
-        "+DG Availability",
-        "+CCTV Surveillance",
-        "+Grocery shop",
+        "+currently Air Conditioned",
+        "+Vaastu Complex",
+        "+Security fire Alarm",
         "+Visitor Parking",
-        "+Power Backup",
-        "+Lift(s)",
     ];
-    const [amenities, setAmenities] = useState([]);
+   
 
     /* ---------------- LOCATION ADVANTAGES ---------------- */
     const locationAdvantages = [
@@ -66,13 +68,9 @@ const OfficeNext = () => {
         "+Close to Mall",
         "+Close to Highway",
     ];
-    const [locAdvantages, setLocAdvantages] = useState([]);
+   
     const [leaseDuration, setLeaseDuration] = useState("");
     const [monthlyRent, setMonthlyRent] = useState("");
-
-    /* ---------------- MODAL AND FOCUS STATES ---------------- */
-    const [focusedField, setFocusedField] = useState(null);
-    const [isMorePricingModalVisible, setIsMorePricingModalVisible] = useState(false);
 
     /* ---------------- HELPERS ---------------- */
     const toggleArrayItem = (setter, array, value) => {
@@ -82,56 +80,42 @@ const OfficeNext = () => {
             setter([...array, value]);
         }
     };
-  const params = useLocalSearchParams();
 
-const officeDetails = params.officeDetails
-  ? JSON.parse(params.officeDetails)
-  : null;
-  const handleNext = () => {
-  if (!officeDetails) {
-    alert("Missing office details. Please restart.");
-    return;
-  }
-
-  const commercialDetails = {
-    subType: "Office",
-
-    officeDetails,
-
-    expectedPrice: Number(expectedPrice),
-
-    priceDetails: {
-      allInclusive,
-      negotiable: priceNegotiable,
-      taxExcluded,
-    },
-
-    preLeased,
-    leaseDuration,
-    monthlyRent,
-    nocCertified,
-    occupancyCertified,
-    previouslyUsedFor: prevUsedFor,
-    description: describeProperty,
-    amenities,
-    locationAdvantages: locAdvantages,
-  };
-
-  router.push({
-    pathname:
-      "/home/screens/UploadScreens/CommercialUpload/Components/OfficeVaastu",
-    params: {
-      commercialDetails: JSON.stringify(commercialDetails),
-    },
-  });
-};
+    const handleNext = () => {
+        if (!expectedPrice.trim()) {
+            Toast.show({
+                type: 'error',
+                text1: 'Price Required',
+                text2: 'Please enter the expected price.',
+            });
+            return;
+        }
+        if (!describeProperty.trim()) {
+            Toast.show({
+                type: 'error',
+                text1: 'Description Required',
+                text2: 'Please describe your property.',
+            });
+            return;
+        }
+        Toast.show({
+            type: 'success',
+            text1: 'Details Saved',
+            text2: 'Moving to next step...',
+        });
+        router.push(
+            "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityVaastu"
+        );
+        // Navigate to next screen or submit
+        // router.push("/next-screen");
+    };
 
     return (
-        <View className="flex-1 bg-gray-50">
-             <View className="flex-row items-center mt-7 mb-4">
+        <View className="flex-1 bg-white">
+            <View className="flex-row items-center mt-7 mt-4 mb-3 ml-4">
                     <TouchableOpacity
                         onPress={() =>
-                            router.push("/home/screens/UploadScreens/AddScreen")
+                            router.push("/home/screens/UploadScreens/CommercialUpload/Components/Hospitality")
                         }
                         className="p-2"
                     >
@@ -155,34 +139,73 @@ const officeDetails = params.officeDetails
                 showsVerticalScrollIndicator={false}
 
             >
-               
+                
                 {/* ---------- PRICE DETAILS ---------- */}
                 <View
                     className="bg-white rounded-lg p-4 mb-4"
                     style={{ borderWidth: 1, borderColor: "#0000001A" }}
                 >
+                    <Text className="text-[15px] text-[#00000099] font-bold mb-2">Ownership</Text>
+                    <View className="flex-row flex-wrap mb-4">
+                        {ownershipOptions.map((o) => (
+                            <PillButton key={o} label={o} selected={ownership === o} onPress={() => setOwnership(o)} />
+                        ))}
+                    </View>
+
                     <Text className="mb-2 text-[15px] font-bold text-[#00000099]">
-                        Price Details <Text className="text-red-500">*</Text>
+                        Which authority the property is approved by?
+                    </Text>
+                    <View className="flex-row flex-wrap mb-4">
+                        {authorityOptions.map((auth) => (
+                            <PillButton
+                                key={auth}
+                                label={auth}
+                                selected={IndustryApprovedBy === auth}
+                                onPress={() => setIndustryApprovedBy(auth)}
+                            />
+                        ))}
+                    </View>
+                    <Text className="mb-2 text-[15px] font-bold text-[#00000099]">
+                        Approved for industry type
+                    </Text>
+
+                    <TextInput
+                        placeholder="select Industry Type"
+                        value={approvedIndustryType}
+                        onChangeText={setApprovedIndustryType}
+                        onFocus={() => setFocusedField("industryType")}
+                        onBlur={() => setFocusedField(null)}
+                        className="rounded-md p-3 mb-3"
+                        style={{
+                            borderWidth: 1,
+                            borderColor: focusedField === "industryType" ? "#22C55E" : "#0000001A",
+                            backgroundColor: "#D9D9D91C",
+                            height: 50,
+                        }}
+                    />
+
+                    <Text className="mb-2 text-[15px] font-bold text-[#00000099]">
+                        Expected Price Details <Text className="text-red-500">*</Text>
                     </Text>
 
                     <TextInput
                         placeholder="₹ Expected Price"
                         value={expectedPrice}
                         onChangeText={setExpectedPrice}
+                        onFocus={() => setFocusedField("expectedPrice")}
+                        onBlur={() => setFocusedField(null)}
                         className="rounded-md p-3 mb-3"
                         style={{
-                            borderWidth: 2,
+                            borderWidth: 1,
                             borderColor: focusedField === "expectedPrice" ? "#22C55E" : "#0000001A",
                             height: 52,
                             backgroundColor: "#D9D9D91C",
                         }}
                         keyboardType="numeric"
-                        onFocus={() => setFocusedField("expectedPrice")}
-                        onBlur={() => setFocusedField(null)}
                     />
 
                     <Checkbox
-                        label="All inclusive price"
+                        label="DG & UPS Price included"
                         selected={allInclusive}
                         onPress={() => setAllInclusive(!allInclusive)}
                     />
@@ -197,7 +220,7 @@ const officeDetails = params.officeDetails
                         onPress={() => setTaxExcluded(!taxExcluded)}
                     />
 
-                    <TouchableOpacity onPress={() => setIsMorePricingModalVisible(true)}>
+                    <TouchableOpacity onPress={() => setPricingModalVisible(true)}>
                         <Text className="text-[#22C55E] text-sm mt-2">
                             + Add more pricing details
                         </Text>
@@ -222,143 +245,72 @@ const officeDetails = params.officeDetails
                     {preLeased === "Yes" && (
                         <View className="mb-4">
                             {/* Lease Duration */}
-                            <Text className="text-[13px] font-semibold text-[#00000099] mb-1">
-                                Lease Duration
-                            </Text>
+
                             <TextInput
-                                placeholder="Eg: 3 Years"
+                                placeholder="Current rent per month"
                                 value={leaseDuration}
                                 onChangeText={setLeaseDuration}
+                                onFocus={() => setFocusedField("leaseDuration")}
+                                onBlur={() => setFocusedField(null)}
                                 className="rounded-md p-3 mb-3"
                                 style={{
-                                    borderWidth: 2,
+                                    borderWidth: 1,
                                     borderColor: focusedField === "leaseDuration" ? "#22C55E" : "#0000001A",
                                     backgroundColor: "#D9D9D91C",
                                     height: 50,
                                 }}
-                                onFocus={() => setFocusedField("leaseDuration")}
-                                onBlur={() => setFocusedField(null)}
                             />
 
                             {/* Monthly Rent */}
-                            <Text className="text-[13px] font-semibold text-[#00000099] mb-1">
-                                Monthly Rent
-                            </Text>
+
                             <TextInput
-                                placeholder="₹ Monthly Rent"
+                                placeholder=" Lease Tenure in years"
                                 value={monthlyRent}
                                 onChangeText={setMonthlyRent}
+                                onFocus={() => setFocusedField("monthlyRent")}
+                                onBlur={() => setFocusedField(null)}
                                 keyboardType="numeric"
                                 className="rounded-md p-3"
                                 style={{
-                                    borderWidth: 2,
+                                    borderWidth: 1,
                                     borderColor: focusedField === "monthlyRent" ? "#22C55E" : "#0000001A",
                                     backgroundColor: "#D9D9D91C",
                                     height: 50,
                                 }}
-                                onFocus={() => setFocusedField("monthlyRent")}
-                                onBlur={() => setFocusedField(null)}
                             />
                         </View>
                     )}
 
 
                     {/* ---------- FIRE NOC ---------- */}
-                    <Text className="text-[14px] font-bold text-[#00000099] mb-2">
-                        Is your office fire NOC Certified?
-                    </Text>
-                    <View className="flex-row mb-4">
-                        <PillButton
-                            label="Yes"
-                            selected={nocCertified === "Yes"}
-                            onPress={() => setNocCertified("Yes")}
-                        />
-                        <PillButton
-                            label="No"
-                            selected={nocCertified === "No"}
-                            onPress={() => setNocCertified("No")}
-                        />
-                    </View>
+
 
                     {/* ---------- OCCUPANCY ---------- */}
-                    <Text className="text-[14px] font-bold text-[#00000099] mb-2">
-                        Is it Occupancy Certified?
-                    </Text>
-                    <View className="flex-row mb-4">
-                        <PillButton
-                            label="Yes"
-                            selected={occupancyCertified === "Yes"}
-                            onPress={() => setOccupancyCertified("Yes")}
-                        />
-                        <PillButton
-                            label="No"
-                            selected={occupancyCertified === "No"}
-                            onPress={() => setOccupancyCertified("No")}
-                        />
-                    </View>
+
 
                     {/* ---------- PREVIOUS USE ---------- */}
-                    <Text className="text-[14px] font-bold text-[#00000099] mb-2">
-                        Office previously used for (optional)
-                    </Text>
-
-                    <TouchableOpacity
-                        onPress={() =>
-                            setVisible(visible === "prevUsedFor" ? null : "prevUsedFor")
-                        }
-                        className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 mb-3"
-                    >
-                        <Text>{prevUsedFor}</Text>
-                        <Ionicons name="chevron-down" size={22} color="#888" />
-                    </TouchableOpacity>
-
-                    {visible === "prevUsedFor" && (
-                        <View
-                            className="bg-white rounded-lg shadow-lg -mt-3 mb-4"
-                            style={{ borderWidth: 1, borderColor: "#0000001A" }}
-                        >
-                            {prevUsedForOptions.map((item) => (
-                                <TouchableOpacity
-                                    key={item}
-                                    onPress={() => {
-                                        setPrevUsedFor(item);
-                                        setVisible(null);
-                                    }}
-                                    className={`p-4 border-b ${prevUsedFor === item ? "bg-green-500" : "bg-white"
-                                        }`}
-                                >
-                                    <Text
-                                        className={
-                                            prevUsedFor === item ? "text-white" : "text-gray-800"
-                                        }
-                                    >
-                                        {item}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    )}
 
                     {/* ---------- DESCRIPTION ---------- */}
                     <Text className="mt-4 mb-2 font-bold text-[15px] text-[#00000099]">
-                        Describe your property <Text className="text-red-500">*</Text>
+                        Description <Text className="text-red-500">*</Text>
                     </Text>
 
                     <TextInput
-                        placeholder="Share some details about your property like spacious rooms, well maintained facilities."
+                        placeholder="write here what makes your property unique."
                         value={describeProperty}
                         onChangeText={setDescribeProperty}
+                        onFocus={() => setFocusedField("describeProperty")}
+                        onBlur={() => setFocusedField(null)}
                         multiline
                         textAlignVertical="top"
                         className="rounded-md p-3"
                         style={{
-                            borderWidth: 2,
+                            borderWidth: 1,
                             borderColor: focusedField === "describeProperty" ? "#22C55E" : "#0000001A",
                             height: 108,
                         }}
-                        onFocus={() => setFocusedField("describeProperty")}
-                        onBlur={() => setFocusedField(null)}
                     />
+
 
                     {/* ---------- AMENITIES & LOCATION ---------- */}
                     <View
@@ -380,7 +332,63 @@ const officeDetails = params.officeDetails
                                 />
                             ))}
                         </View>
-
+                         <Text className="text-[15px] font-bold text-[#00000099] mb-3">
+                            Other Features
+                        </Text>
+                        <Checkbox
+                        label="Wheelchair Friendly"
+                        selected={wheelchairFriendly}
+                        onPress={() => setWheelchairFriendly(!wheelchairFriendly)}
+                    />
+<Text className="text-[15px] font-bold text-[#00000099] mb-2 mt-3">Type of flooring</Text>
+          <TouchableOpacity
+            onPress={() => setVisible(visible === 'flooring' ? null : 'flooring')}
+            className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 mb-3"
+          >
+            <Text className="text-gray-800 text-left">{flooringType || "Select Flooring"}</Text>
+            <Ionicons name="chevron-down" size={24} color="#888" />
+          </TouchableOpacity>
+          {visible === 'flooring' && (
+  <View
+    className="bg-white rounded-lg shadow-lg -mt-4 mb-4"
+    style={{ borderWidth: 1, borderColor: "#0000001A" }}
+  >
+    {[
+      "Marble",
+      "Concrete",
+      "Ceramic",
+      "Mosaic",
+      "Cement",
+      "Stone",
+      "Vinyl",
+      "Spartex",
+      "IPS Finish",
+      "Vitrified",
+      "Wooden",
+      "Granite",
+      "Others",
+    ].map((item) => (
+      <TouchableOpacity
+        key={item}
+        onPress={() => {
+          setFlooringType(item);
+          setVisible(null);
+        }}
+        className={`p-4 border-b border-gray-200 ${
+          flooringType === item ? "bg-green-500" : "bg-white"
+        }`}
+      >
+        <Text
+          className={`${
+            flooringType === item ? "text-white" : "text-gray-800"
+          }`}
+        >
+          {item}
+        </Text>
+      </TouchableOpacity>
+    ))}
+  </View>
+          )}
                         <Text className="text-[15px] font-bold text-[#00000099] mb-3">
                             Location Advantages
                         </Text>
@@ -397,31 +405,36 @@ const officeDetails = params.officeDetails
                             ))}
                         </View>
                     </View>
-                    <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-3">
-                                <TouchableOpacity
-                                  className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
-                                >
-                                  <Text className="font-semibold">Cancel</Text>
-                                </TouchableOpacity>
-                    
-                               <TouchableOpacity
-  className="px-5 py-3 rounded-lg bg-green-500"
-  onPress={handleNext}
->
-  <Text className="text-white font-semibold">Next</Text>
-</TouchableOpacity>
 
-                    
-                              </View>
-                    
                 </View>
+
+                {/* More Pricing Details Modal */}
+                <MorePricingDetailsModal
+                    visible={pricingModalVisible}
+                    onClose={() => setPricingModalVisible(false)}
+                />
+
             </ScrollView>
-            <MorePricingDetailsModal
-                visible={isMorePricingModalVisible}
-                onClose={() => setIsMorePricingModalVisible(false)}
-            />
+            <View className="bg-white border-t border-gray-200">
+            <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-12">
+                <TouchableOpacity
+                    className="px-10 py-3 rounded-lg bg-gray-200 mx-3"
+                    onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload/Components/HospitalityVaastu")}
+                >
+                    <Text className="font-semibold">Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    className="px-8 py-3 rounded-lg bg-green-500"
+                    onPress={handleNext}
+                >
+                    <Text className="text-white font-semibold">Next</Text>
+                </TouchableOpacity>
+
+            </View>
+            </View>
         </View>
     );
 };
 
-export default OfficeNext;
+export default HospitalityNext;

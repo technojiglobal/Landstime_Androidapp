@@ -14,7 +14,7 @@ export default function LocationSection({
     >
       {/* Title */}
       <Text className="text-[15px] font-semibold text-gray-800 mb-3">
-        Location
+        Location <Text className="text-red-500">*</Text>
       </Text>
 
       {/* Location Input */}

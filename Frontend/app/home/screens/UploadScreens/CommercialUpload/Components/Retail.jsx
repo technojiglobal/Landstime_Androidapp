@@ -177,8 +177,7 @@ const handleRetailNext = (location, area, router) => {
   /* ---------- UI ---------- */
   return (
     <View style={{ flex: 1, backgroundColor: "#F9FAFB" }}>
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
-   <View className="flex-row items-center mt-7 mb-4">
+      <View className="flex-row items-center mt-7 mb-4">
              <TouchableOpacity
                onPress={() =>
                  router.push("/home/screens/UploadScreens/AddScreen")
@@ -200,6 +199,8 @@ const handleRetailNext = (location, area, router) => {
                </Text>
              </View>
            </View>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
+   
         {/* LOCATION */}
         <LocationSection
           location={location}
@@ -221,7 +222,7 @@ const handleRetailNext = (location, area, router) => {
   }}
 >
 
-     <Text style={sectionLabel}>Area (sqft)</Text>
+     <Text style={sectionLabel}>Area (sqft)<Text className="text-red-500">*</Text></Text>
 
 <View style={inputWithUnit}>
   <TextInput
@@ -436,10 +437,13 @@ const handleRetailNext = (location, area, router) => {
       </ScrollView>
 
       {/* BOTTOM BUTTONS */}
-      <View style={{ flexDirection: "row", padding: 16, backgroundColor: "#fff" }}>
+      <View style={{ flexDirection: "row", padding: 16, backgroundColor: "#fff" }}
+      className="mb-8 justify-end mt-4 space-x-5 mx-3"
+      >
         <TouchableOpacity
           onPress={() => router.back()}
-          style={{ flex: 1, marginRight: 10, backgroundColor: "#E5E7EB", padding: 14, alignItems: "center" }}
+          style={{  marginRight: 10, backgroundColor: "#E5E7EB", padding: 14, alignItems: "center" }}
+          className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
         >
           <Text>Cancel</Text>
         </TouchableOpacity>
@@ -447,7 +451,8 @@ const handleRetailNext = (location, area, router) => {
         <TouchableOpacity
           onPress={() =>
             handleRetailNext(location, area, router)}
-          style={{ flex: 1, backgroundColor: "#22C55E", padding: 14, alignItems: "center" }}
+          style={{  backgroundColor: "#22C55E", padding: 14, alignItems: "center" }}
+          className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
         >
           <Text style={{ color: "#fff", fontWeight: "600" }}>Next</Text>
         </TouchableOpacity>

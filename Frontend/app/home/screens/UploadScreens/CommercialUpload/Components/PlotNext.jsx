@@ -8,7 +8,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-
+import Toast from "react-native-toast-message";
+import MorePricingDetailsModal from "../../MorePricingDetailsModal";
 /* ---------- UI HELPERS ---------- */
 const PillButton = ({ label, selected, onPress }) => (
   <TouchableOpacity
@@ -68,7 +69,9 @@ export default function PlotNext() {
 
   const [amenities, setAmenities] = useState([]);
   const [locationAdvantages, setLocationAdvantages] = useState([]);
-
+  const [focusedField, setFocusedField] = useState(null);
+ const [isMorePricingModalVisible, setIsMorePricingModalVisible] =
+    useState(false);
   /* ---------- OPTIONS ---------- */
   const ownershipOptions = [
     "Freehold",
@@ -110,13 +113,41 @@ export default function PlotNext() {
     );
   };
 
-  return (
-    <View className="flex-1 bg-gray-100">
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 120 }}>
+  /* ---------------- VALIDATION ---------------- */
+  const handleNext = () => {
+    if (!expectedPrice.trim()) {
+      Toast.show({
+        type: 'error',
+        text1: 'Expected Price Required',
+        text2: 'Please enter the expected price.',
+      });
+      return;
+    }
 
+    if (!description.trim()) {
+      Toast.show({
+        type: 'error',
+        text1: 'Description Required',
+        text2: 'Please enter a description.',
+      });
+      return;
+    }
+
+    Toast.show({
+      type: 'success',
+      text1: 'Details Saved',
+      text2: 'Moving to next step...',
+    });
+
+    router.push("/home/screens/UploadScreens/CommercialUpload/Components/PlotVaastu");
+  };
+
+  return (
+    <View className="flex-1 bg-white">
+      
          {/* HEADER */}
-                <View className="flex-row items-center mt-6 mb-4">
-                  <TouchableOpacity onPress={() => router.back()} className="p-2">
+                <View className="flex-row items-center  ml-4 mt-12 mb-4">
+                  <TouchableOpacity onPress={() =>  router.push("/home/screens/UploadScreens/CommercialUpload/Components/Plot")}>
                     <Image
                       source={require("../../../../../../assets/arrow.png")}
                       className="w-5 h-5"
@@ -129,6 +160,8 @@ export default function PlotNext() {
                     </Text>
                   </View>
                 </View>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 120 }}>
+
 
         {/* ================= WHITE CARD ================= */}
         <View className="bg-white border border-gray-200 rounded-xl p-4">
@@ -154,7 +187,13 @@ export default function PlotNext() {
             placeholder="Local Authority"
             value={authority}
             onChangeText={setAuthority}
-            className="border border-gray-300 rounded-lg px-3 py-3 mb-4 text-sm"
+            className="border rounded-lg px-3 py-3 mb-4 text-sm"
+            style={{
+              borderWidth: 2,
+              borderColor: focusedField === "authority" ? "#22C55E" : "#d1d5db",
+            }}
+            onFocus={() => setFocusedField("authority")}
+            onBlur={() => setFocusedField(null)}
           />
 
           {/* INDUSTRY TYPE */}
@@ -169,13 +208,19 @@ export default function PlotNext() {
           </TouchableOpacity>
 
           {/* PRICE */}
-          <Text className="font-semibold mb-2">Expected Price Details</Text>
+          <Text className="font-semibold mb-2">Expected Price Details <Text className="text-red-500">*</Text></Text>
           <TextInput
             placeholder="₹ Expected Price"
             value={expectedPrice}
             onChangeText={setExpectedPrice}
             keyboardType="numeric"
-            className="border border-gray-300 rounded-lg px-3 py-3 mb-3 text-sm"
+            className="border rounded-lg px-3 py-3 mb-3 text-sm"
+            style={{
+              borderWidth: 2,
+              borderColor: focusedField === "expectedPrice" ? "#22C55E" : "#d1d5db",
+            }}
+            onFocus={() => setFocusedField("expectedPrice")}
+            onBlur={() => setFocusedField(null)}
           />
 
           <Checkbox
@@ -193,7 +238,7 @@ export default function PlotNext() {
             checked={taxExcluded}
             onPress={() => setTaxExcluded(!taxExcluded)}
           />
-         <TouchableOpacity>
+         <TouchableOpacity  onPress={() => setIsMorePricingModalVisible(true)}>
                                 <Text className="text-[#22C55E] text-sm mt-2">
                                     + Add more pricing details
                                 </Text>
@@ -220,25 +265,43 @@ export default function PlotNext() {
                             placeholder="Lease duration (eg: 5 years)"
                             value={leaseDuration}
                             onChangeText={setLeaseDuration}
-                            className="border border-gray-200 rounded-xl px-4 py-3 mb-3 text-sm"
+                            className="border rounded-xl px-4 py-3 mb-3 text-sm"
+                            style={{
+                              borderWidth: 2,
+                              borderColor: focusedField === "leaseDuration" ? "#22C55E" : "#e5e7eb",
+                            }}
+                            onFocus={() => setFocusedField("leaseDuration")}
+                            onBlur={() => setFocusedField(null)}
                           />
                           <TextInput
                             placeholder="₹ Monthly rent"
                             value={monthlyRent}
                             onChangeText={setMonthlyRent}
                             keyboardType="numeric"
-                            className="border border-gray-200 rounded-xl px-4 py-3 text-sm"
+                            className="border rounded-xl px-4 py-3 text-sm"
+                            style={{
+                              borderWidth: 2,
+                              borderColor: focusedField === "monthlyRent" ? "#22C55E" : "#e5e7eb",
+                            }}
+                            onFocus={() => setFocusedField("monthlyRent")}
+                            onBlur={() => setFocusedField(null)}
                           />
                         </>
                       )}
           {/* DESCRIPTION */}
-          <Text className="font-semibold mb-2">Description</Text>
+          <Text className="font-semibold mb-2">Description <Text className="text-red-500">*</Text></Text>
           <TextInput
             placeholder="Write here what makes your property unique"
             value={description}
             onChangeText={setDescription}
             multiline
-            className="border border-gray-300 rounded-lg px-3 py-3 h-24 text-sm mb-4"
+            className="border rounded-lg px-3 py-3 h-24 text-sm mb-4"
+            style={{
+              borderWidth: 2,
+              borderColor: focusedField === "description" ? "#22C55E" : "#d1d5db",
+            }}
+            onFocus={() => setFocusedField("description")}
+            onBlur={() => setFocusedField(null)}
           />
 
           {/* OTHER FEATURES */}
@@ -284,19 +347,23 @@ export default function PlotNext() {
       {/* BOTTOM BUTTONS */}
       <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-12">
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() =>  router.push("/home/screens/UploadScreens/CommercialUpload/Components/Plot")}
           className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
         >
           <Text>Cancel</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload/Components/PlotVaastu")}
+          onPress={handleNext}
           className="px-5 py-3 rounded-lg bg-green-500 mx-3"
         >
           <Text className="text-white font-semibold">Next</Text>
         </TouchableOpacity>
       </View>
+      <MorePricingDetailsModal
+        visible={isMorePricingModalVisible}
+        onClose={() => setIsMorePricingModalVisible(false)}
+      />
     </View>
   );
 }

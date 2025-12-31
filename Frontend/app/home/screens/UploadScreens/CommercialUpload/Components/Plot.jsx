@@ -36,6 +36,7 @@ export default function Plot() {
   const [possessionYear, setPossessionYear] = useState("");
   const [possessionMonth, setPossessionMonth] = useState("");
   const [constructionTypes, setConstructionTypes] = useState([]);
+  const [focusedField, setFocusedField] = useState(null);
 
 
   const monthOptions = [
@@ -73,6 +74,30 @@ const toggleConstruction = (value) => {
       });
       return;
     }
+    if (!length.trim()) {
+      Toast.show({
+        type: 'error',
+        text1: 'Length Required',
+        text2: 'Please enter the plot length.',
+      });
+      return;
+    }
+    if (!breadth.trim()) {
+      Toast.show({
+        type: 'error',
+        text1: 'Breadth Required',
+        text2: 'Please enter the plot breadth.',
+      });
+      return;
+    }
+    if (!roadWidth.trim()) {
+      Toast.show({
+        type: 'error',
+        text1: 'Road Width Required',
+        text2: 'Please enter the road width.',
+      });
+      return;
+    }
   
     router.push(
       "/home/screens/UploadScreens/CommercialUpload/Components/PlotNext"
@@ -85,7 +110,9 @@ const toggleConstruction = (value) => {
         
         {/* HEADER */}
         <View className="flex-row items-center mt-6 mb-4">
-          <TouchableOpacity onPress={() => router.back()} className="p-2">
+          <TouchableOpacity onPress={() =>  router.push(
+      "/home/screens/UploadScreens/CommercialUpload/Components/index"
+    )} className="p-2">
             <Image
               source={require("../../../../../../assets/arrow.png")}
               className="w-5 h-5"
@@ -96,7 +123,7 @@ const toggleConstruction = (value) => {
             <Text className="text-[12px] text-[#00000066]">
               Add your property details
             </Text>
-          </View>
+          </View> 
         </View>
 
         {/* LOCATION */}
@@ -112,15 +139,21 @@ const toggleConstruction = (value) => {
 
           {/* AREA */}
           <Text className="text-[13px] font-semibold text-[#374151] mb-1">
-            Add Area Details
+            Add Area Details<Text className="text-red-500">*</Text>
           </Text>
-          <View className="flex-row items-center h-[52px] px-3 mb-3 border border-[#E5E7EB] rounded-[12px]">
+          <View className="flex-row items-center h-[52px] px-3 mb-3 border rounded-[12px]"
+                style={{
+                  borderWidth: 2,
+                  borderColor: focusedField === "plotArea" ? "#22C55E" : "#E5E7EB",
+                }}>
             <TextInput
               placeholder="Plot Area"
               value={plotArea}
-              onChangeText={setPlotArea}
+              onChangeText={(t) => setPlotArea(t.replace(/[^0-9]/g, ""))}
               keyboardType="numeric"
               className="flex-1 text-[14px]"
+              onFocus={() => setFocusedField("plotArea")}
+              onBlur={() => setFocusedField(null)}
             />
             <Text className="text-[#6B7280]">sqft</Text>
           </View>
@@ -132,27 +165,47 @@ const toggleConstruction = (value) => {
           <TextInput
             placeholder="Length of plot (ft)"
             value={length}
-            onChangeText={setLength}
-            className="border border-[#E5E7EB] rounded-[12px] p-3 mb-2"
+            onChangeText={(t) => setLength(t.replace(/[^0-9]/g, ""))}
+            keyboardType="numeric"
+            className="border rounded-[12px] p-3 mb-2"
+            style={{
+              borderWidth: 2,
+              borderColor: focusedField === "length" ? "#22C55E" : "#E5E7EB",
+            }}
+            onFocus={() => setFocusedField("length")}
+            onBlur={() => setFocusedField(null)}
           />
           <TextInput
             placeholder="Breadth of plot (ft)"
             value={breadth}
-            onChangeText={setBreadth}
-            className="border border-[#E5E7EB] rounded-[12px] p-3 mb-3"
+            onChangeText={(t) => setBreadth(t.replace(/[^0-9]/g, ""))}
+            keyboardType="numeric"
+            className="border rounded-[12px] p-3 mb-3"
+            style={{
+              borderWidth: 2,
+              borderColor: focusedField === "breadth" ? "#22C55E" : "#E5E7EB",
+            }}
+            onFocus={() => setFocusedField("breadth")}
+            onBlur={() => setFocusedField(null)}
           />
 
           {/* ROAD WIDTH */}
           <Text className="text-[13px] font-semibold text-[#374151] mb-1">
-            Width of facing road
+            Width of facing road<Text className="text-red-500">*</Text>
           </Text>
-          <View className="flex-row items-center h-[52px] px-3 mb-3 border border-[#E5E7EB] rounded-[12px]">
+          <View className="flex-row items-center h-[52px] px-3 mb-3 border rounded-[12px]"
+                style={{
+                  borderWidth: 2,
+                  borderColor: focusedField === "roadWidth" ? "#22C55E" : "#E5E7EB",
+                }}>
             <TextInput
               placeholder="Enter the width"
               value={roadWidth}
-              onChangeText={setRoadWidth}
+              onChangeText={(t) => setRoadWidth(t.replace(/[^0-9]/g, ""))}
               keyboardType="numeric"
               className="flex-1"
+              onFocus={() => setFocusedField("roadWidth")}
+              onBlur={() => setFocusedField(null)}
             />
             <Text className="text-[#6B7280]">Feet</Text>
           </View>
@@ -196,9 +249,15 @@ const toggleConstruction = (value) => {
           <TextInput
             placeholder="Year"
             value={possessionYear}
-            onChangeText={setPossessionYear}
+            onChangeText={(t) => setPossessionYear(t.replace(/[^0-9]/g, ""))}
             keyboardType="numeric"
-            className="border border-[#E5E7EB] rounded-[12px] p-3 mb-2"
+            className="border rounded-[12px] p-3 mb-2"
+            style={{
+              borderWidth: 2,
+              borderColor: focusedField === "possessionYear" ? "#22C55E" : "#E5E7EB",
+            }}
+            onFocus={() => setFocusedField("possessionYear")}
+            onBlur={() => setFocusedField(null)}
           />
 
           {possessionYear.length === 4 && (
@@ -238,6 +297,7 @@ const toggleConstruction = (value) => {
       <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-12">
                   <TouchableOpacity
                     className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
+                    onPress={()=> router.push( "/home/screens/UploadScreens/CommercialUpload/Components/index" )}
                   >
                     <Text className="font-semibold">Cancel</Text>
                   </TouchableOpacity>

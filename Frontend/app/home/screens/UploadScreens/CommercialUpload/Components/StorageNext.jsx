@@ -78,6 +78,14 @@ const OfficeNext = () => {
     };
 
     const handleNext = () => {
+        if (!expectedPrice.trim()) {
+            Toast.show({
+                type: 'error',
+                text1: 'Price Required',
+                text2: 'Please enter the expected price.',
+            });
+            return;
+        }
         if (!describeProperty.trim()) {
             Toast.show({
                 type: 'error',
@@ -86,6 +94,11 @@ const OfficeNext = () => {
             });
             return;
         }
+        Toast.show({
+            type: 'success',
+            text1: 'Details Saved',
+            text2: 'Moving to next step...',
+        });
         router.push(
             "/home/screens/UploadScreens/CommercialUpload/Components/StorageVaastu"
         );
@@ -167,7 +180,7 @@ const OfficeNext = () => {
                     />
 
                     <Text className="mb-2 text-[15px] font-bold text-[#00000099]">
-                        Price Details
+                        Price Details <Text className="text-red-500">*</Text>
                     </Text>
 
                     <TextInput
@@ -274,7 +287,7 @@ const OfficeNext = () => {
 
                     {/* ---------- DESCRIPTION ---------- */}
                     <Text className="mt-4 mb-2 font-bold text-[15px] text-[#00000099]">
-                        Describe your property
+                        Describe your property <Text className="text-red-500">*</Text>
                     </Text>
 
                     <TextInput

@@ -119,7 +119,7 @@ const propertyData = {
 
     return (
         <View className="flex-1 bg-[#F5F6F8]">
-            <View className="flex-row items-center mt-3 mb-4">
+            <View className="flex-row items-center mt-12 ">
                         <TouchableOpacity
                             onPress={() => router.push("/(tabs)/home")}
                             className="p-2"
@@ -145,7 +145,7 @@ const propertyData = {
             >
 
                 {/* uploads + owner details */}
-                <View className="px-4 mt-4 space-y-4">
+                <View className="px-4 mt-4  border border-gray-200 rounded-lg bg-white space-y-4">
 
                     {/* Header */}
                     
@@ -198,9 +198,11 @@ const propertyData = {
                             marginTop: 16,
                             gap: 12,
                         }}
-                        className="space-x-3 mr-4 mb-3"
+                        className=" mr-4 mb-3 bg-white border-t border-gray-200 py-4"
                     >
                         {/* Cancel Button */}
+                        <View className="flex-row justify-end  space-x-3 mx-3 mb-4">
+                        
                         <TouchableOpacity
                             style={{
                                 backgroundColor: "#E5E7EB",
@@ -209,6 +211,7 @@ const propertyData = {
                                 borderRadius: 10,
                             }}
                             onPress={() => router.push("/(tabs)/home")}
+                            className="mx-4"
                         >
                             <Text
                                 style={{ color: "black", fontWeight: "600", fontSize: 15 }}
@@ -234,7 +237,9 @@ const propertyData = {
                                 {isSubmitting ? "Uploading..." : "Upload Property"}
                             </Text>
                         </TouchableOpacity>
-                    </View>
+                        </View>
+                        </View>
+                    
         </View>
 
     );

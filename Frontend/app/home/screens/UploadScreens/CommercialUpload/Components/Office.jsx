@@ -179,6 +179,7 @@ const officeKindFromBase = baseDetails?.subType;
 
   // Floor / stairs / lifts
   const [totalFloors, setTotalFloors] = useState('');
+  const [floorNo, setFloorNo] = useState('');
   const [stairCase, setStairCase] = useState(null);
   const stairOptions = ['1', '2', '3', '4+'];
 
@@ -535,7 +536,7 @@ const officeKindFromBase = baseDetails?.subType;
             onPress={() => setShowMaxSeats(true)}
           >
             <Text className="text-sm font-bold text-green-500">
-              Add max seats
+              + Add max seats
             </Text>
           </TouchableOpacity>
 
@@ -686,48 +687,6 @@ const officeKindFromBase = baseDetails?.subType;
             onToggle={() => toggleFeature("ups")}
           />
 
-          <Text className="text-[15px]  font-bold text-[#00000099] mb-2">Carpet Area (optional)</Text>
-          <View
-            onTouchStart={() => setFocusedField("carpetarea")}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              marginBottom: 12,
-              borderRadius: 6,
-              borderWidth: 1,
-              borderColor:
-                focusedField === "carpetarea" ? "#22C55E" : "#0000001A",
-              backgroundColor: "#D9D9D91C",
-              height: 52,
-            }}
-          >
-            <TextInput
-              placeholder="Carpet Area"
-              value={carpetArea}
-              keyboardType="numeric"
-              onChangeText={(t) => setCarpetArea(t.replace(/[^0-9]/g, ""))}
-              className="flex-1 px-3"
-              onBlur={() => setFocusedField(null)}
-              style={{ height: 52 }}
-            />
-
-            <View
-              style={{
-                width: 1,
-                height: "60%",
-                backgroundColor: "#0000001A",
-              }}
-            />
-
-            <Picker
-              selectedValue={carpetUnit}
-              onValueChange={setCarpetUnit}
-              style={{ width: 100, height: 52 }}
-            >
-              <Picker.Item label="sqft" value="sqft" />
-            </Picker>
-          </View>
-
 
 
 
@@ -748,10 +707,18 @@ const officeKindFromBase = baseDetails?.subType;
           <TextInput placeholder="Total floors" value={totalFloors} onChangeText={(text) => setTotalFloors(text.replace(/[^0-9]/g, ""))}
             onFocus={() => setFocusedField("totalfloors")}
             onBlur={() => setFocusedField(null)}
-            className="rounded-lg px-3"
+            className="rounded-lg px-3 mb-3"
             style={{
               borderWidth: 1,
               borderColor: focusedField === "totalfloors" ? "#22C55E" : "#0000001A",
+            }} keyboardType="numeric" />
+            <TextInput placeholder="Your floor No" value={floorNo} onChangeText={(text) => setFloorNo(text.replace(/[^0-9]/g, ""))} className=" flex-1 mb-3 rounded-md p-3"
+
+            onFocus={() => setFocusedField("cabins")}
+            onBlur={() => setFocusedField(null)}
+            style={{
+              height: 50, backgroundColor: "#D9D9D91C", borderWidth: 1,
+              borderColor: focusedField === "cabins" ? "#22C55E" : "#0000001A",
             }} keyboardType="numeric" />
 
           <Text className="text-[15px] font-bold text-[#00000099] mb-2">No.of stair cases (optional)</Text>
