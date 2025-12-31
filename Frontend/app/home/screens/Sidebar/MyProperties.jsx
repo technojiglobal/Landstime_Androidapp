@@ -8,6 +8,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  TextInput,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -63,33 +64,29 @@ export default function MyProperties() {
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
       {/* Header */}
-      <View className="mt-12 px-4 py-4 flex-row items-center border-b border-gray-200">
+      <View className="mt-6 px-4 py-2 flex-row items-center bg-white">
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text className="text-xl font-semibold text-black ml-4">
+        <Text className="text-lg font-semibold text-black ml-4">
           My Properties
         </Text>
       </View>
 
       {/* Search Bar */}
-      <View className="px-4 mt-4">
-        <View className="flex-row bg-gray-50 p-3 rounded-xl items-center">
-          <Ionicons name="search" size={20} color="gray" />
-          <Text className="ml-2 text-gray-400 flex-1">
-            Search properties in Vizag...
-          </Text>
-          <TouchableOpacity>
-            <Image
-              source={require("../../../../assets/mic.png")}
-              style={{ width: 22, height: 22, marginRight: 10 }}
-            />
+      <View className="px-4 mt-2 mb-2">
+        <View className="flex-row bg-gray-50 px-4 py-3 rounded-xl items-center">
+          <Ionicons name="search" size={20} color="#9CA3AF" />
+          <TextInput
+            placeholder="Search properties in Vizag..."
+            placeholderTextColor="#9CA3AF"
+            className="ml-3 text-gray-700 flex-1 text-base"
+          />
+          <TouchableOpacity className="mr-3">
+            <Ionicons name="mic-outline" size={22} color="#6B7280" />
           </TouchableOpacity>
           <TouchableOpacity>
-            <Image
-              source={require("../../../../assets/filter.png")}
-              style={{ width: 24, height: 24 }}
-            />
+            <Ionicons name="options-outline" size={22} color="#6B7280" />
           </TouchableOpacity>
         </View>
       </View>
@@ -98,18 +95,25 @@ export default function MyProperties() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        className="px-4 mt-4"
+        className="px-4"
+        contentContainerStyle={{ paddingRight: 20 }}
       >
         {tabs.map((tab) => (
           <TouchableOpacity
             key={tab.label}
             onPress={() => setActiveTab(tab.label)}
-            className={`mr-4 px-4 py-2 rounded-full ${
+            className={`mr-3 px-5 py-3 rounded-full ${
               activeTab === tab.label ? "bg-green-600" : "bg-gray-100"
             }`}
+            style={{
+              minWidth: 100,
+              height: 44,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
           >
             <Text
-              className={`font-medium ${
+              className={`font-semibold text-base ${
                 activeTab === tab.label ? "text-white" : "text-gray-700"
               }`}
             >
@@ -120,38 +124,50 @@ export default function MyProperties() {
       </ScrollView>
 
       {/* Property Cards */}
-      <ScrollView className="px-4 mt-4 flex-1">
+      {/* Property Cards */}
+<ScrollView
+  className="px-4 flex-1"
+  showsVerticalScrollIndicator={false}
+>
+
         {filteredProperties.map((property) => (
           <View
             key={property.id}
-            className="bg-white rounded-2xl mb-4 shadow-sm border border-gray-100"
+            className="bg-white rounded-2xl mb-4 overflow-hidden"
+            style={{
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 8,
+              elevation: 3,
+            }}
           >
             {/* Property Image */}
             <View className="relative">
               <Image
                 source={{ uri: property.image }}
-                className="w-full h-48 rounded-t-2xl"
+                className="w-full h-52"
                 resizeMode="cover"
               />
 
               {/* Status Badge */}
               <View
-                className={`absolute top-3 left-3 px-3 py-1 rounded-full ${
+                className={`absolute top-3 left-3 px-3 py-1.5 rounded-full ${
                   property.status === "Active" ? "bg-green-600" : "bg-yellow-500"
                 }`}
               >
-                <Text className="text-white text-xs font-semibold">
+                <Text className="text-white text-xs font-bold">
                   {property.status}
                 </Text>
               </View>
 
               {/* Action Icons */}
-              <View className="absolute top-3 right-3 flex-row space-x-2">
-                <TouchableOpacity className="bg-white/90 p-2 rounded-full">
-                  <Ionicons name="create-outline" size={18} color="black" />
+              <View className="absolute top-3 right-3 flex-row">
+                <TouchableOpacity className="bg-white/95 p-2.5 rounded-full mr-2">
+                  <Ionicons name="create-outline" size={20} color="black" />
                 </TouchableOpacity>
-                <TouchableOpacity className="bg-white/90 p-2 rounded-full">
-                  <Ionicons name="bookmark-outline" size={18} color="black" />
+                <TouchableOpacity className="bg-white/95 p-2.5 rounded-full">
+                  <Ionicons name="bookmark-outline" size={20} color="black" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -159,30 +175,33 @@ export default function MyProperties() {
             {/* Property Details */}
             <View className="p-4">
               {/* Title & Subtitle */}
-              <Text className="text-green-600 font-semibold text-base">
+              <Text className="text-green-600 font-bold text-base">
                 {property.title}
               </Text>
-              <Text className="text-gray-600 text-sm mt-1">
+              <Text className="text-gray-500 text-sm mt-1">
                 {property.subtitle}
               </Text>
 
-              {/* Rating */}
-              <View className="flex-row items-center mt-2">
-                {[1, 2, 3, 4].map((_, i) => (
-                  <Ionicons key={i} name="star" size={16} color="#FFD700" />
-                ))}
-                <Ionicons name="star-outline" size={16} color="#FFD700" />
-                <Text className="ml-2 text-gray-700 font-semibold">
+              {/* Rating Row */}
+              <View className="flex-row items-center mt-3">
+                <View className="flex-row">
+                  {[1, 2, 3, 4].map((_, i) => (
+                    <Ionicons key={i} name="star" size={16} color="#FCD34D" />
+                  ))}
+                  <Ionicons name="star-outline" size={16} color="#FCD34D" />
+                </View>
+                <Text className="ml-2 text-gray-800 font-semibold text-sm">
                   {property.rating}
-                  <Text className="text-gray-500 text-xs">
+                  <Text className="text-gray-500 font-normal">
                     {" "}
                     ({property.reviews} reviews)
                   </Text>
                 </Text>
                 {property.verified && (
-                  <View className="ml-auto bg-green-600 px-2 py-1 rounded-full">
-                    <Text className="text-white text-xs font-semibold">
-                      ✓ Verified
+                  <View className="ml-auto bg-green-600 px-2.5 py-1 rounded-full flex-row items-center">
+                    <Ionicons name="checkmark-circle" size={12} color="white" />
+                    <Text className="text-white text-xs font-semibold ml-1">
+                      Verified
                     </Text>
                   </View>
                 )}
@@ -190,29 +209,37 @@ export default function MyProperties() {
 
               {/* Location */}
               <View className="flex-row items-center mt-3">
-                <Ionicons name="location-outline" size={16} color="gray" />
+                <Ionicons name="location-outline" size={16} color="#6B7280" />
                 <Text className="text-gray-600 text-sm ml-1">
                   {property.location}
                 </Text>
               </View>
 
-              {/* Price */}
+              {/* Price & Actions */}
               <View className="flex-row items-center justify-between mt-4">
                 <Text className="text-green-600 text-xl font-bold">
                   {property.price}
                 </Text>
-                <View className="flex-row space-x-2">
-                  <TouchableOpacity className="border border-green-600 px-4 py-2 rounded-full">
-                    <Text className="text-green-600 font-semibold">👁 View</Text>
+                <View className="flex-row">
+                  <TouchableOpacity className="border border-green-600 px-4 py-2 rounded-full mr-2 flex-row items-center">
+                    <Ionicons name="eye-outline" size={16} color="#16A34A" />
+                    <Text className="text-green-600 font-semibold ml-1 text-sm">
+                      View
+                    </Text>
                   </TouchableOpacity>
                   <TouchableOpacity className="bg-green-600 px-4 py-2 rounded-full">
-                    <Text className="text-white font-semibold">Contact</Text>
+                    <Text className="text-white font-semibold text-sm">
+                      Contact
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
             </View>
           </View>
         ))}
+
+        {/* Bottom spacing */}
+        {/* <View className="h-6" /> */}
       </ScrollView>
     </View>
   );
