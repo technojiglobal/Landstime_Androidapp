@@ -71,17 +71,15 @@ const commercialDetails = useMemo(() => {
   return;
 }
 
+const { expectedPrice, ...restOfCommercialDetails } = commercialDetails;
+
 const propertyData = {
-  propertyTitle: commercialDetails.propertyTitle || "Commercial Office",
+  propertyTitle: restOfCommercialDetails.propertyTitle || "Commercial Office",
   propertyType: "Commercial",
+  location: restOfCommercialDetails.officeDetails?.location,
+  expectedPrice: expectedPrice,
 
-  commercialDetails: {
-    ...commercialDetails,
-
-    // 🔥 REQUIRED BY BACKEND
-    location: commercialDetails.officeDetails?.location,
-    area: commercialDetails.officeDetails?.area,
-  },
+  commercialDetails: restOfCommercialDetails,
 
   ownerDetails: {
     name: ownerName,
