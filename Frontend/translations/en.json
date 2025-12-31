@@ -98,6 +98,10 @@
   "sidebar_menu_saved": "Saved",
   "sidebar_menu_chat": "Chat",
   "sidebar_menu_notifications": "Notifications",
+"sidebar_menu_my_properties": "My Properties",
+
+
+
   "sidebar_menu_settings": "Settings",
   "sidebar_menu_logout": "Logout",
   "sidebar_logout_confirm_title": "Logout",

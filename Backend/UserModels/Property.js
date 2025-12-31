@@ -152,95 +152,176 @@ ownerDetails: {
     
     // Office specific
    officeDetails: {
-  officeKind: String,
+  /* -------- BASIC (OPTIONAL) -------- */
+  officeKind: {
+    type: String,          // IT / Co-working / Business Center / etc
+    default: null,
+  },
 
-  // Location
-  location: String,
-  locatedInside: String,
-  zoneType: String,
+  /* -------- REQUIRED -------- */
+  location: {
+    type: String,
+    required: true,
+    trim: true,
+  },
 
-  // Area
-  area: Number,
-  areaUnit: { type: String, default: "sqft" },
-  carpetArea: Number,
-  carpetAreaUnit: { type: String, default: "sqft" },
+  area: {
+    type: Number,
+    required: true,
+  },
 
-  // Setup
-  cabins: Number,
-  meetingRooms: Number,
-  seats: Number,
-  maxSeats: Number,
-  conferenceRooms: String,
+  /* -------- LOCATION INFO (OPTIONAL) -------- */
+  locatedInside: {
+    type: String,
+    default: null,
+  },
 
-  // Washrooms
+  zoneType: {
+    type: String,
+    default: null,
+  },
+
+  /* -------- AREA DETAILS (OPTIONAL) -------- */
+  areaUnit: {
+    type: String,
+    default: "sqft",
+  },
+
+  carpetArea: {
+    type: Number,
+    default: null,
+  },
+
+  carpetAreaUnit: {
+    type: String,
+    default: "sqft",
+  },
+
+  /* -------- OFFICE SETUP (OPTIONAL) -------- */
+  cabins: {
+    type: Number,
+    default: null,
+  },
+
+  meetingRooms: {
+    type: Number,
+    default: null,
+  },
+
+  seats: {
+    type: Number,
+    default: null,
+  },
+
+  maxSeats: {
+    type: Number,
+    default: null,
+  },
+
+  conferenceRooms: {
+    type: String,          // "1", "2", "3", "4+"
+    default: null,
+  },
+
+  /* -------- WASHROOMS (OPTIONAL) -------- */
   washrooms: {
-    public: Number,
-    private: Number,
-  },
-
-  // Features
-  receptionArea: Boolean,
-  privacy: Boolean,
-  furnishing: Boolean,
-  additionalFeatures: [String],
-  fireSafetyMeasures: [String],
-
-  // Floors & lifts
-  totalFloors: Number,
-  staircases: String,
-  lift: String,
-  passengerLifts: Number,
-  serviceLifts: Number,
-
-  // Parking
-  parking: {
-    type: String,
-    options: {
-      basement: Boolean,
-      outside: Boolean,
-      private: Boolean,
+    public: {
+      type: Number,
+      default: null,
     },
-    count: Number,
+    private: {
+      type: Number,
+      default: null,
+    },
   },
 
-  // Availability
-  availability: String,
-  ageOfProperty: String,
-  possessionBy: String,
+  /* -------- FEATURES (OPTIONAL) -------- */
+  receptionArea: {
+    type: Boolean,
+    default: false,
+  },
 
-  ownership: String,
-}
-,
-    // Retail specific
-   retailDetails: {
-  retailType: String,
+  furnishing: {
+    type: Boolean,
+    default: false,
+  },
 
-  locatedInside: String,
-  zoneType: String,
+  additionalFeatures: {
+    type: [String],
+    default: [],
+  },
 
-  area: Number,
-  areaUnit: { type: String, default: "sqft" },
-  carpetArea: Number,
-  carpetAreaUnit: { type: String, default: "sqft" },
+  fireSafetyMeasures: {
+    type: [String],
+    default: [],
+  },
 
-  frontage: Number,
-  floorNumber: Number,
-  ceilingHeight: Number,
+  /* -------- FLOORS & LIFTS (OPTIONAL) -------- */
+  totalFloors: {
+    type: Number,
+    default: null,
+  },
 
-  washrooms: Number,
-
-  parking: {
+  staircases: {
     type: String,
-    count: Number,
+    default: null,
   },
 
-  availability: String,
-  possessionBy: String,
-  ownership: String,
+  lift: {
+    type: String,          // "Available" | "Not-Available"
+    default: null,
+  },
 
-  amenities: [String],
-}
-,
+  passengerLifts: {
+    type: Number,
+    default: null,
+  },
+
+  serviceLifts: {
+    type: Number,
+    default: null,
+  },
+
+  /* -------- PARKING (OPTIONAL, FIXED) -------- */
+  parking: {
+    parkingType: {
+      type: String,        // "Available" | "Not-Available"
+      default: null,
+    },
+    options: {
+      basement: { type: Boolean, default: false },
+      outside: { type: Boolean, default: false },
+      private: { type: Boolean, default: false },
+    },
+    count: {
+      type: Number,
+      default: null,
+    },
+  },
+
+  /* -------- AVAILABILITY (OPTIONAL) -------- */
+  availability: {
+    type: String,          // "Ready" | "UnderConstruction"
+    default: null,
+  },
+
+  ageOfProperty: {
+    type: String,
+    default: null,
+  },
+
+  possessionBy: {
+    type: String,
+    default: null,
+  },
+
+  ownership: {
+    type: String,          // Freehold / Leasehold / etc
+    default: null,
+  },
+},
+
+
     
     // Plot/Land specific for commercial
     plotDetails: {

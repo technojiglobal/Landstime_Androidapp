@@ -70,9 +70,9 @@ export const createProperty = async (
 
     console.log("📸 Images:", imageUris);
 
-    // ✅ PROPERTY IMAGES (EXPO SAFE)
+    // ✅ PROPERTY IMAGES — FIXED FIELD NAME
     imageUris.forEach((uri, index) => {
-      formData.append("propertyImages", {
+      formData.append("images", {
         uri: uri.startsWith("file://") ? uri : `file://${uri}`,
         name: `property_${index}.jpg`,
         type: "image/jpeg",
@@ -106,6 +106,7 @@ export const createProperty = async (
     return { success: false, error: error.message };
   }
 };
+
 
 
 // Get all approved properties
