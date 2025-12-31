@@ -55,13 +55,14 @@ export default function PropertyFormScreen() {
   );
   const [propertyType, setPropertyType] = useState("Commercial");
   const [visible, setVisible] = useState(null);
-const [officeKinds, setOfficeKinds] = useState([]);
+  const [officeKinds, setOfficeKinds] = useState([]);
   const [images, setImages] = useState([]);
   const [selectedType, setSelectedType] = useState(null);
   const [storageKinds, setStorageKinds] = useState([]);
-
+  const [industryKinds, setIndustryKinds] = useState([]);
+  const [HospitalityKinds, setHospitalityKinds] = useState([]);
   const [alertVisible, setAlertVisible] = useState(false);
-   const [locatedInside, setLocatedInside] = useState("");
+  const [locatedInside, setLocatedInside] = useState("");
   const [isHowto360ModalVisible, setIsHowto360ModalVisible] = useState(false);
   const [isPhotoGuideModalVisible, setIsPhotoGuideModalVisible] =
     useState(false);
@@ -82,15 +83,26 @@ const [officeKinds, setOfficeKinds] = useState([]);
     "Bare shell office space",
     "Co-working office space",
   ];
-   const storageKindPills = [
+  const storageKindPills = [
     "Warehouse",
     "Cold Storage",
   ];
 
   const retailTypeOptions = [
-  "Commercial Shop",
-  "Commercial Showroom",
-];
+    "Commercial Shop",
+    "Commercial Showroom",
+  ];
+  const industryKindPills = [
+    "Factory",
+    "Manufacturing",
+  ];
+  const hospitalityKindPills = [
+    "Hotel/Resorts",
+    "Guest-House/Banquet-Halls"
+  ];
+
+
+
 
   /* ---------- IMAGE HANDLERS ---------- */
   const pickImage = (uri) => {
@@ -145,13 +157,7 @@ const [officeKinds, setOfficeKinds] = useState([]);
         visible={alertVisible}
         onHide={() => setAlertVisible(false)}
       />
-
-      <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 36 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* ---------- HEADER ---------- */}
-        <View className="flex-row items-center mt-7 mb-4">
+       <View className="flex-row items-center mt-12 mb-4 ml-4">
           <TouchableOpacity
             onPress={() =>
               router.push("/home/screens/UploadScreens/AddScreen")
@@ -174,6 +180,13 @@ const [officeKinds, setOfficeKinds] = useState([]);
           </View>
         </View>
 
+
+      <ScrollView
+        contentContainerStyle={{ padding: 16, paddingBottom: 36 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ---------- HEADER ---------- */}
+       
         {/* ---------- IMAGE UPLOAD ---------- */}
         <PropertyImageUpload
           images={images}
@@ -219,183 +232,222 @@ const [officeKinds, setOfficeKinds] = useState([]);
             <Ionicons name="chevron-down" size={20} />
           </TouchableOpacity>
           <Text className="text-[15px] text-[#00000099] font-bold mt-4 mb-2">
-          Select Property Type
-        </Text>
-        <View className="flex-row flex-wrap mb-4">
-          {typePills.map((p) => (
-            <PillButton
-              key={p}
-              label={p}
-              selected={selectedType === p}
-              onPress={() => setSelectedType(p)}
-            />
-          ))}
-        </View>
-        {selectedType === "Office" && (
+            Select Property Type
+          </Text>
+          <View className="flex-row flex-wrap mb-4">
+            {typePills.map((p) => (
+              <PillButton
+                key={p}
+                label={p}
+                selected={selectedType === p}
+                onPress={() => setSelectedType(p)}
+              />
+            ))}
+          </View>
+          {selectedType === "Office" && (
+            <>
+              <Text className="text-[15px] text-[#00000099] font-bold mb-2">
+                What kind of office is it ?
+              </Text>
+              <View className="flex-row flex-wrap mb-4">
+                {officeKindPills.map((p) => (
+                  <PillButton
+                    key={p}
+                    label={p}
+                    selected={officeKinds.includes(p)}
+                    onPress={() => setOfficeKinds([p])}
+                  />
+                ))}
+              </View>
+
+            </>
+          )}
+          {selectedType === "Industry" && (
           <>
             <Text className="text-[15px] text-[#00000099] font-bold mb-2">
-              What kind of office is it ?
+              What kind of industry is it ?
             </Text>
             <View className="flex-row flex-wrap mb-4">
-              {officeKindPills.map((p) => (
+              {industryKindPills.map((p) => (
                 <PillButton
                   key={p}
                   label={p}
-                  selected={officeKinds.includes(p)}
-                  onPress={() => setOfficeKinds([p])}
+                  selected={industryKinds.includes(p)}
+                  onPress={() => setIndustryKinds([p])}
                 />
               ))}
             </View>
            
           </>
          )}
-             {selectedType === "Retail" && (
-  <>
-    <Text className="text-[15px] text-[#00000099] font-bold mb-2">
-      What kind of office  is it?
-    </Text>
+          {selectedType === "Retail" && (
+            <>
+              <Text className="text-[15px] text-[#00000099] font-bold mb-2">
+                What kind of office  is it?
+              </Text>
 
-    <View className="flex-row flex-wrap mb-2">
-      {["Commercial Shop", "Commercial Showroom"].map((type) => (
-        <PillButton
-          key={type}
-          label={type}
-          selected={officeKinds.includes(type)}
-          onPress={() => setOfficeKinds([type])}
-        />
-      ))}
-    </View>
- {/* Located Inside */}
-<View
-  className=" mb-4"
-  
->
-  <Text className="text-[15px] text-[#00000099] mb-3">
-    Located Inside
-  </Text>
+              <View className="flex-row flex-wrap mb-2">
+                {["Commercial Shop", "Commercial Showroom"].map((type) => (
+                  <PillButton
+                    key={type}
+                    label={type}
+                    selected={officeKinds.includes(type)}
+                    onPress={() => setOfficeKinds([type])}
+                  />
+                ))}
+              </View>
+              {/* Located Inside */}
+              <View
+                className=" mb-4"
 
-  {/* Dropdown trigger */}
-  <TouchableOpacity
-    onPress={() =>
-      setVisible(visible === "locatedInside" ? null : "locatedInside")
-    }
-    className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300"
-  >
-    <Text className="text-gray-800">
-      {locatedInside || "Select Located Inside"}
-    </Text>
-    <Ionicons name="chevron-down" size={22} color="#888" />
-  </TouchableOpacity>
+              >
+                <Text className="text-[15px] text-[#00000099] mb-3">
+                  Located Inside
+                </Text>
 
-  {/* Dropdown list */}
-  {visible === "locatedInside" && (
-    <View
-      className="bg-white rounded-lg shadow-lg mt-2"
-      style={{ borderWidth: 1, borderColor: "#0000001A" }}
-    >
-      {[
-        "Mall",
-        "Commercial Project",
-        "Residential Project",
-        "Retail Complex / Building",
-        "Market / High Street",
-      ].map((item) => (
-        <TouchableOpacity
-          key={item}
-          onPress={() => {
-            setLocatedInside(item);
-            setVisible(null);
-          }}
-          className={`p-4 border-b border-gray-200 ${
-            locatedInside === item ? "bg-green-500" : "bg-white"
-          }`}
-        >
-          <Text
-            className={`${
-              locatedInside === item ? "text-white" : "text-gray-800"
-            }`}
-          >
-            {item}
-          </Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-  )}
-</View>
+                {/* Dropdown trigger */}
+                <TouchableOpacity
+                  onPress={() =>
+                    setVisible(visible === "locatedInside" ? null : "locatedInside")
+                  }
+                  className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300"
+                >
+                  <Text className="text-gray-800">
+                    {locatedInside || "Select Located Inside"}
+                  </Text>
+                  <Ionicons name="chevron-down" size={22} color="#888" />
+                </TouchableOpacity>
 
-    
-  </>
-)}
-
-{selectedType === "Plot/Land" && (
-  <>
-    <Text className="text-[15px] text-[#00000099] font-bold mb-2">
-      What kind of plot/land is it ?
-    </Text>
-
-    <View className="flex-row flex-wrap mb-2">
-      {["commercial Land/Inst.Land", "Agricultural/Farm Land","Industrial Lands/Plots"].map((type) => (
-        <PillButton
-          key={type}
-          label={type}
-          selected={officeKinds.includes(type)}
-          onPress={() => setOfficeKinds([type])}
-        />
-      ))}
-    </View>
+                {/* Dropdown list */}
+                {visible === "locatedInside" && (
+                  <View
+                    className="bg-white rounded-lg shadow-lg mt-2"
+                    style={{ borderWidth: 1, borderColor: "#0000001A" }}
+                  >
+                    {[
+                      "Mall",
+                      "Commercial Project",
+                      "Residential Project",
+                      "Retail Complex / Building",
+                      "Market / High Street",
+                    ].map((item) => (
+                      <TouchableOpacity
+                        key={item}
+                        onPress={() => {
+                          setLocatedInside(item);
+                          setVisible(null);
+                        }}
+                        className={`p-4 border-b border-gray-200 ${locatedInside === item ? "bg-green-500" : "bg-white"
+                          }`}
+                      >
+                        <Text
+                          className={`${locatedInside === item ? "text-white" : "text-gray-800"
+                            }`}
+                        >
+                          {item}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
 
 
-    
-  </>
-)}
+            </>
+          )}
+
+          {selectedType === "Plot/Land" && (
+            <>
+              <Text className="text-[15px] text-[#00000099] font-bold mb-2">
+                What kind of plot/land is it ?
+              </Text>
+
+              <View className="flex-row flex-wrap mb-2">
+                {["commercial Land/Inst.Land", "Agricultural/Farm Land", "Industrial Lands/Plots"].map((type) => (
+                  <PillButton
+                    key={type}
+                    label={type}
+                    selected={officeKinds.includes(type)}
+                    onPress={() => setOfficeKinds([type])}
+                  />
+                ))}
+              </View>
+
+
+
+            </>
+          )}
+           {selectedType === "Hospitality" && 
+        (
+            <>
+              <Text className="text-[15px] text-[#00000099] font-bold mb-2">
+                What kind of Hospitality is it ?
+              </Text>
+              <View className="flex-row flex-wrap mb-4">
+                {hospitalityKindPills.map((p) => (
+                  <PillButton
+                    key={p}
+                    label={p}
+                    selected={HospitalityKinds.includes(p)}
+                    onPress={() => setHospitalityKinds([p])}
+                  />
+                ))}
+              </View>
+
+            </>
+          )
+        }
         </View>
 
         {/* ---------- SELECT COMMERCIAL TYPE ---------- */}
 
 
-  
+
+
 
        
-        {selectedType === "Industry" && <Industry />}
         {selectedType === "Storage" &&
-        (
-          <>
-            <Text className="text-[15px] text-[#00000099] font-bold mb-2">
-              What kind of storage is it ?
-            </Text>
-            <View className="flex-row flex-wrap mb-4">
-              {storageKindPills.map((p) => (
-                <PillButton
-                  key={p}
-                  label={p}
-                  selected={storageKinds.includes(p)}
-                  onPress={() => setStorageKinds([p])}
-                />
-              ))}
-            </View>
-           
-          </>
-        )
+          (
+            <>
+              <Text className="text-[15px] text-[#00000099] font-bold mb-2">
+                What kind of storage is it ?
+              </Text>
+              <View className="flex-row flex-wrap mb-4">
+                {storageKindPills.map((p) => (
+                  <PillButton
+                    key={p}
+                    label={p}
+                    selected={storageKinds.includes(p)}
+                    onPress={() => setStorageKinds([p])}
+                  />
+                ))}
+              </View>
+
+            </>
+          )
         }
-        {selectedType === "Hospitality" && <Hospitality />}
+       
         {selectedType === "Other" && <Other />}
 
         {/* ---------- ACTION BUTTONS ---------- */}
-        <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-3">
+        
+      </ScrollView>
+      <View className="border-t border-gray-200 bg-white">
+        <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-12">
           <TouchableOpacity
-            className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
+            className="px-10 py-3 rounded-lg bg-gray-200 mx-3"
           >
             <Text className="font-semibold">Cancel</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            className="px-5 py-3 rounded-lg bg-green-500"
+            className="px-8 py-3 rounded-lg bg-green-500"
             onPress={handleNext}
           >
             <Text className="text-white font-semibold">Next</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+        </View>
     </View>
   );
 }
