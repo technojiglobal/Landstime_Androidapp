@@ -2,10 +2,7 @@ import React, { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import VastuDropdown from "../../VastuDropdown";
-import { useRouter } from "expo-router";
-/* ---------------- REUSABLE DROPDOWN ---------------- */
-
-
+import { useRouter,useLocalSearchParams } from "expo-router";
 /* ---------------- MAIN SCREEN ---------------- */
 
 export default function VastuDetailsScreen() {
@@ -13,6 +10,47 @@ export default function VastuDetailsScreen() {
     const router = useRouter();
     const update = (key, value) =>
         setForm((prev) => ({ ...prev, [key]: value }));
+    const params = useLocalSearchParams();
+
+const commercialDetails = params.commercialDetails
+  ? JSON.parse(params.commercialDetails)
+  : null;
+ const handleNext = () => {
+  if (!commercialDetails) {
+    alert("Missing property details. Please restart.");
+    return;
+  }
+
+  const updatedCommercialDetails = {
+    ...commercialDetails,
+    officeDetails: {
+      ...commercialDetails.officeDetails,
+      vaasthuDetails: {
+        officeFacing: form.officeFacing,
+        entrance: form.entrance,
+        cabin: form.cabin,
+        workstations: form.workstations,
+        conference: form.conference,
+        reception: form.reception,
+        accounts: form.accounts,
+        pantry: form.pantry,
+        server: form.server,
+        washrooms: form.washrooms,
+        staircase: form.staircase,
+        storage: form.storage,
+        cashLocker: form.cashLocker,
+      },
+    },
+  };
+
+  router.push({
+    pathname:
+      "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
+    params: {
+      commercialDetails: JSON.stringify(updatedCommercialDetails),
+    },
+  });
+};
 
     return (
         <View className="flex-1 bg-gray-100">
@@ -122,7 +160,7 @@ export default function VastuDetailsScreen() {
 
                 <TouchableOpacity
                     className="px-5 py-3 rounded-lg bg-green-500"
-                    onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen")}
+                    onPress={handleNext}
                 >
                     <Text className="text-white font-semibold">Next</Text>
                 </TouchableOpacity>

@@ -1,3 +1,5 @@
+//Frontend/app/home/screens/Sidebar/InteriorDesign.jsx
+
 import React, { useState } from "react";
 import { View, Text, Image, ScrollView, TextInput, TouchableOpacity,StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";

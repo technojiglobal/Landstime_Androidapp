@@ -1,4 +1,4 @@
-// // // Frontend/app/home/screens/Sidebar/RoomOverview.jsx
+//Frontend/app/home/screens/Sidebar/RoomOverview.jsx
 
 import {React,useState,useEffect} from "react";
 import { View, Text, Image, ScrollView, TouchableOpacity,StatusBar } from "react-native";
@@ -10,7 +10,7 @@ import saveBlue from "../../../../assets/save-blue.png"
 export default function RoomOverviewScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
-const BASE_URL = "http://192.168.31.115:8000";
+const BASE_URL = "http://10.10.1.101:8000";
 const [save,setSave]=useState(false)
 const [data, setData] = useState(null);
 const [loading, setLoading] = useState(true);
@@ -182,25 +182,14 @@ if (loading || !data) {
             </Text>
 
         
-        {/* Action Buttons */}
-        {/* <View className="flex-row justify-between mt-8">
-
-          <TouchableOpacity className="flex-1 mr-2 border-2 border-green-600 py-3 rounded-xl items-center">
-            <Text className="text-green-600 font-semibold">Chat</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity className="flex-1 ml-2 bg-green-600 py-3 rounded-xl items-center">
-            <Text className="text-white font-semibold">
-              Call +91 727272928
-            </Text>
-          </TouchableOpacity>
-
-        </View> */}
+       
 
       </View>
     </ScrollView>
   );
 }
+
+
 // import React, { useEffect, useState } from "react";
 // import {
 //   View,

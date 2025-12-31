@@ -172,6 +172,9 @@
 //     </TouchableOpacity>
 //   );
 // }
+
+
+//Frontend/components/interior/DesignCard.jsx
 import React, { useState } from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
@@ -189,7 +192,7 @@ import starIcon from "../../assets/star-icon.png";
 import star3d from "../../assets/star-3d.png";
 import profileImg from "../../assets/profile.jpg";
 
-const BASE_URL = "http://192.168.31.115:8000";
+const BASE_URL = "http://10.10.1.101:8000";
 
 export default function DesignCard({ data }) {
   const router = useRouter();
