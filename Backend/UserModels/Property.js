@@ -151,47 +151,96 @@ ownerDetails: {
     },
     
     // Office specific
-    officeDetails: {
-      officeKind: String,
-      location: String,
-      locatedInside: String,
-      zoneType: String,
-      area: Number,
-      areaUnit: String,
-      cabins: Number,
-      meetingRooms: Number,
-      seats: Number,
-      conferenceRooms: Number,
-      washrooms: {
-        public: Number,
-        private: Number
-      },
-      receptionArea: Boolean,
-      privacy: Boolean,
-      washroomType: String,
-      carpetArea: Number,
-      carpetAreaUnit: String,
-      additionalFeatures: [String],
-      fireSafetyMeasures: [String],
-      totalFloors: Number,
-      staircases: Number,
-      lift: String,
-      parking: String,
-      availability: String,
-      ownership: String,
-      preLeased: String,
-      nocCertified: String,
-      occupancyCertified: String,
-      previouslyUsedFor: String,
-      amenities: [String],
-      locationAdvantages: [String]
+   officeDetails: {
+  officeKind: String,
+
+  // Location
+  location: String,
+  locatedInside: String,
+  zoneType: String,
+
+  // Area
+  area: Number,
+  areaUnit: { type: String, default: "sqft" },
+  carpetArea: Number,
+  carpetAreaUnit: { type: String, default: "sqft" },
+
+  // Setup
+  cabins: Number,
+  meetingRooms: Number,
+  seats: Number,
+  maxSeats: Number,
+  conferenceRooms: String,
+
+  // Washrooms
+  washrooms: {
+    public: Number,
+    private: Number,
+  },
+
+  // Features
+  receptionArea: Boolean,
+  privacy: Boolean,
+  furnishing: Boolean,
+  additionalFeatures: [String],
+  fireSafetyMeasures: [String],
+
+  // Floors & lifts
+  totalFloors: Number,
+  staircases: String,
+  lift: String,
+  passengerLifts: Number,
+  serviceLifts: Number,
+
+  // Parking
+  parking: {
+    type: String,
+    options: {
+      basement: Boolean,
+      outside: Boolean,
+      private: Boolean,
     },
-    
+    count: Number,
+  },
+
+  // Availability
+  availability: String,
+  ageOfProperty: String,
+  possessionBy: String,
+
+  ownership: String,
+}
+,
     // Retail specific
-    retailDetails: {
-      retailType: String,
-      // Add retail specific fields
-    },
+   retailDetails: {
+  retailType: String,
+
+  locatedInside: String,
+  zoneType: String,
+
+  area: Number,
+  areaUnit: { type: String, default: "sqft" },
+  carpetArea: Number,
+  carpetAreaUnit: { type: String, default: "sqft" },
+
+  frontage: Number,
+  floorNumber: Number,
+  ceilingHeight: Number,
+
+  washrooms: Number,
+
+  parking: {
+    type: String,
+    count: Number,
+  },
+
+  availability: String,
+  possessionBy: String,
+  ownership: String,
+
+  amenities: [String],
+}
+,
     
     // Plot/Land specific for commercial
     plotDetails: {

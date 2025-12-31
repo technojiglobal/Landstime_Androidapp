@@ -55,10 +55,15 @@ export default function PropertyFormScreen() {
   );
   const [propertyType, setPropertyType] = useState("Commercial");
   const [visible, setVisible] = useState(null);
-const [officeKinds, setOfficeKinds] = useState([]);
+const [officeKind, setOfficeKind] = useState("");
+const [retailKind, setRetailKind] = useState("");
+const [plotKind, setPlotKind] = useState("");
+const [storageKind, setStorageKind] = useState("");
+
+
   const [images, setImages] = useState([]);
   const [selectedType, setSelectedType] = useState(null);
-  const [storageKinds, setStorageKinds] = useState([]);
+  
 
   const [alertVisible, setAlertVisible] = useState(false);
    const [locatedInside, setLocatedInside] = useState("");
@@ -91,6 +96,17 @@ const [officeKinds, setOfficeKinds] = useState([]);
   "Commercial Shop",
   "Commercial Showroom",
 ];
+const handleTypeSelect = (type) => {
+  setSelectedType(type);
+
+  setOfficeKind("");
+  setRetailKind("");
+  setPlotKind("");
+  setStorageKind("");
+  setLocatedInside(""); 
+};
+
+
 
   /* ---------- IMAGE HANDLERS ---------- */
   const pickImage = (uri) => {
@@ -103,39 +119,121 @@ const [officeKinds, setOfficeKinds] = useState([]);
 
   /* ---------- NEXT HANDLER ---------- */
   const handleNext = () => {
-    if (!selectedType) {
-      Alert.alert("Select Property Type", "Please select a property type");
-      return;
-    }
+  if (!selectedType) {
+    Alert.alert("Select Property Type", "Please select a property type");
+    return;
+  }
 
-    const base = "/home/screens/UploadScreens/CommercialUpload/Components";
+  if (selectedType === "Office" && officeKind.trim() === "") {
 
-    switch (selectedType) {
-      case "Office":
-        router.push(`${base}/Office`);
-        break;
-      case "Retail":
-        router.push(`${base}/Retail`);
-        break;
-      case "Plot/Land":
-        router.push(`${base}/Plot`);
-        break;
-      case "Industry":
-        router.push(`${base}/Industry`);
-        break;
-      case "Storage":
-        router.push(`${base}/Storage`);
-        break;
-      case "Hospitality":
-        router.push(`${base}/Hospitality`);
-        break;
-      case "Other":
-        router.push(`${base}/Other`);
-        break;
-      default:
-        break;
-    }
-  };
+  Alert.alert("Missing Details", "Please select office type");
+  return;
+}
+
+if (selectedType === "Retail" && retailKind.trim() === ""){
+  Alert.alert("Missing Details", "Please select retail type");
+  return;
+}
+
+if (selectedType === "Plot/Land" && plotKind.trim() === ""){
+  Alert.alert("Missing Details", "Please select plot type");
+  return;
+}
+
+if (selectedType === "Storage" && storageKind.trim() === "") {
+  Alert.alert("Missing Details", "Please select storage type");
+  return;
+}
+
+
+ const commercialBaseDetails = {
+  propertyTitle,
+  propertyType: "Commercial",
+  category: selectedType,
+  subType:
+    selectedType === "Office"
+      ? officeKind
+      : selectedType === "Retail"
+      ? retailKind
+      : selectedType === "Plot/Land"
+      ? plotKind
+      : selectedType === "Storage"
+      ? storageKind
+      : null,
+  locatedInside,
+  images,
+};
+
+
+
+  const base = "/home/screens/UploadScreens/CommercialUpload/Components";
+
+  switch (selectedType) {
+    case "Office":
+      router.push({
+        pathname: `${base}/Office`,
+        params: {
+          commercialBaseDetails: JSON.stringify(commercialBaseDetails),
+        },
+      });
+      break;
+
+    case "Retail":
+      router.push({
+        pathname: `${base}/Retail`,
+        params: {
+          commercialBaseDetails: JSON.stringify(commercialBaseDetails),
+        },
+      });
+      break;
+
+    case "Plot/Land":
+      router.push({
+        pathname: `${base}/Plot`,
+        params: {
+          commercialBaseDetails: JSON.stringify(commercialBaseDetails),
+        },
+      });
+      break;
+
+    case "Storage":
+      router.push({
+        pathname: `${base}/Storage`,
+        params: {
+          commercialBaseDetails: JSON.stringify(commercialBaseDetails),
+        },
+      });
+      break;
+
+    case "Industry":
+      router.push({
+        pathname: `${base}/Industry`,
+        params: {
+          commercialBaseDetails: JSON.stringify(commercialBaseDetails),
+        },
+      });
+      break;
+
+    case "Hospitality":
+      router.push({
+        pathname: `${base}/Hospitality`,
+        params: {
+          commercialBaseDetails: JSON.stringify(commercialBaseDetails),
+        },
+      });
+      break;
+
+    case "Other":
+      router.push({
+        pathname: `${base}/Other`,
+        params: {
+          commercialBaseDetails: JSON.stringify(commercialBaseDetails),
+        },
+      });
+      break;
+  }
+};
+
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -227,7 +325,7 @@ const [officeKinds, setOfficeKinds] = useState([]);
               key={p}
               label={p}
               selected={selectedType === p}
-              onPress={() => setSelectedType(p)}
+              onPress={() => handleTypeSelect(p)}
             />
           ))}
         </View>
@@ -238,13 +336,14 @@ const [officeKinds, setOfficeKinds] = useState([]);
             </Text>
             <View className="flex-row flex-wrap mb-4">
               {officeKindPills.map((p) => (
-                <PillButton
-                  key={p}
-                  label={p}
-                  selected={officeKinds.includes(p)}
-                  onPress={() => setOfficeKinds([p])}
-                />
-              ))}
+  <PillButton
+    key={p}
+    label={p}
+    selected={officeKind === p}
+    onPress={() => setOfficeKind(p)}
+  />
+))}
+
             </View>
            
           </>
@@ -257,13 +356,14 @@ const [officeKinds, setOfficeKinds] = useState([]);
 
     <View className="flex-row flex-wrap mb-2">
       {["Commercial Shop", "Commercial Showroom"].map((type) => (
-        <PillButton
-          key={type}
-          label={type}
-          selected={officeKinds.includes(type)}
-          onPress={() => setOfficeKinds([type])}
-        />
-      ))}
+  <PillButton
+    key={type}
+    label={type}
+    selected={retailKind === type}
+    onPress={() => setRetailKind(type)}
+  />
+))}
+
     </View>
  {/* Located Inside */}
 <View
@@ -334,14 +434,19 @@ const [officeKinds, setOfficeKinds] = useState([]);
     </Text>
 
     <View className="flex-row flex-wrap mb-2">
-      {["commercial Land/Inst.Land", "Agricultural/Farm Land","Industrial Lands/Plots"].map((type) => (
-        <PillButton
-          key={type}
-          label={type}
-          selected={officeKinds.includes(type)}
-          onPress={() => setOfficeKinds([type])}
-        />
-      ))}
+     {[
+  "commercial Land/Inst.Land",
+  "Agricultural/Farm Land",
+  "Industrial Lands/Plots",
+].map((type) => (
+  <PillButton
+    key={type}
+    label={type}
+    selected={plotKind === type}
+    onPress={() => setPlotKind(type)}
+  />
+))}
+
     </View>
 
 
@@ -351,9 +456,6 @@ const [officeKinds, setOfficeKinds] = useState([]);
         </View>
 
         {/* ---------- SELECT COMMERCIAL TYPE ---------- */}
-
-
-  
 
        
         {selectedType === "Industry" && <Industry />}
@@ -365,13 +467,14 @@ const [officeKinds, setOfficeKinds] = useState([]);
             </Text>
             <View className="flex-row flex-wrap mb-4">
               {storageKindPills.map((p) => (
-                <PillButton
-                  key={p}
-                  label={p}
-                  selected={storageKinds.includes(p)}
-                  onPress={() => setStorageKinds([p])}
-                />
-              ))}
+  <PillButton
+    key={p}
+    label={p}
+    selected={storageKind === p}
+    onPress={() => setStorageKind(p)}
+  />
+))}
+
             </View>
            
           </>

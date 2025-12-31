@@ -11,7 +11,7 @@ import {
   Modal,
   FlatList,
 } from 'react-native';
-import { useRouter } from "expo-router";
+import { useRouter,useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
@@ -110,32 +110,19 @@ const Counter = ({ value, setValue }) => (
   </View>
 );
 
-const handleNext = (location, area, router) => {
-  if (!location.trim()) {
-    Toast.show({
-      type: 'error',
-      text1: 'Location Required',
-      text2: 'Please enter the property location.',
-    });
-    return;
-  }
-  if (!area.trim()) {
-    Toast.show({
-      type: 'error',
-      text1: 'Area Required',
-      text2: 'Please enter the area.',
-    });
-    return;
-  }
-
-  router.push(
-    "/home/screens/UploadScreens/CommercialUpload/Components/OfficeNext"
-  );
-};
 
 
 
 export default function PropertyFormScreen() {
+  const params = useLocalSearchParams();
+
+const baseDetails = params.commercialBaseDetails
+  ? JSON.parse(params.commercialBaseDetails)
+  : null;
+
+// ✅ office type from previous screen
+const officeKindFromBase = baseDetails?.subType;
+
   // Basic Details
 
   const [visible, setVisible] = useState(null);
@@ -143,7 +130,7 @@ export default function PropertyFormScreen() {
 
 
 
-  const [officeKinds, setOfficeKinds] = useState(['Ready to move office space']);
+  
 
 
   // Location
@@ -226,6 +213,97 @@ export default function PropertyFormScreen() {
     if (arr.includes(value)) arrSetter(arr.filter((a) => a !== value));
     else arrSetter([...arr, value]);
   };
+  const handleNext = () => {
+     if (!officeKindFromBase) {
+  Toast.show({
+    type: "error",
+    text1: "Office type missing",
+    text2: "Please go back and select office type",
+  });
+  return;
+}
+
+    if (!location.trim()) {
+    Toast.show({
+      type: "error",
+      text1: "Location Required",
+      text2: "Please enter the property location.",
+    });
+    return;
+  }
+
+  if (!area.trim()) {
+    Toast.show({
+      type: "error",
+      text1: "Area Required",
+      text2: "Please enter the area.",
+    });
+    return;
+  }
+
+  const officeDetails = {
+   officeKind: officeKindFromBase,
+
+    location,
+    locatedInside,
+    zoneType,
+
+    area: Number(area),
+    areaUnit: unit,
+
+    carpetArea: carpetArea ? Number(carpetArea) : undefined,
+    carpetAreaUnit: carpetUnit,
+
+    cabins: cabins ? Number(cabins) : undefined,
+    meetingRooms: meetingRooms ? Number(meetingRooms) : undefined,
+    seats: seats ? Number(seats) : undefined,
+    maxSeats: maxSeats ? Number(maxSeats) : undefined,
+
+    conferenceRooms: conferenceCount,
+
+    washrooms: {
+      public: publicWashrooms ? Number(publicWashrooms) : undefined,
+      private: privateWashrooms ? Number(privateWashrooms) : undefined,
+    },
+
+    receptionArea: features.reception,
+    furnishing: features.furnishing,
+
+    additionalFeatures: [
+      features.centralAC && "Central AC",
+      features.oxygenDuct && "Oxygen Duct",
+      features.ups && "UPS",
+    ].filter(Boolean),
+
+    fireSafetyMeasures: fireMeasures,
+
+    totalFloors: totalFloors ? Number(totalFloors) : undefined,
+    staircases: stairCase,
+
+    lift,
+    passengerLifts,
+    serviceLifts,
+
+    parking: {
+      type: parking,
+      options: parkingOptions,
+      count: parkingCount ? Number(parkingCount) : undefined,
+    },
+
+    availability,
+    ageOfProperty,
+    possessionBy,
+    ownership,
+  };
+
+  router.push({
+    pathname:
+      "/home/screens/UploadScreens/CommercialUpload/Components/OfficeNext",
+    params: {
+      officeDetails: JSON.stringify(officeDetails),
+    },
+  });
+};
 
 
   return (
@@ -864,7 +942,7 @@ export default function PropertyFormScreen() {
 
             <TouchableOpacity
               className="px-5 py-3 rounded-lg bg-green-500"
-              onPress={() => handleNext(location, area, router)}
+              onPress={handleNext}
             >
               <Text className="text-white font-semibold">Next</Text>
             </TouchableOpacity>

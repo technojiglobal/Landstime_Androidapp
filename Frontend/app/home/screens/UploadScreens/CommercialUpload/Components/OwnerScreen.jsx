@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useMemo } from "react";
 import {
     View,
     Text,
@@ -7,14 +7,27 @@ import {
     Image,
     Alert,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter,useLocalSearchParams } from "expo-router";
 import DocumentUpload from "components/Documentupload";
+import ImageUpload from "components/ImageUpload";
 import OwnerDetails from "components/OwnersDetails";
+import { createProperty } from "utils/propertyApi";
 
 export default function OwnerScreen() {
     const router = useRouter();
+     const params = useLocalSearchParams();
 
-    // State for documents
+const commercialDetails = useMemo(() => {
+  if (!params.commercialDetails) return null;
+
+  if (Array.isArray(params.commercialDetails)) {
+    return JSON.parse(params.commercialDetails[0]);
+  }
+
+  return JSON.parse(params.commercialDetails);
+}, [params.commercialDetails]);
+    // State for documents and images
+    const [propertyImages, setPropertyImages] = useState([]);
     const [ownershipDocs, setOwnershipDocs] = useState([]);
     const [identityDocs, setIdentityDocs] = useState([]);
 
@@ -29,6 +42,10 @@ export default function OwnerScreen() {
 
     const handleSubmit = async () => {
         // Validation
+        if (propertyImages.length === 0) {
+            Alert.alert("Error", "Please upload at least one property image.");
+            return;
+        }
         if (ownershipDocs.length === 0) {
             Alert.alert("Error", "Please upload property ownership documents.");
             return;
@@ -49,24 +66,56 @@ export default function OwnerScreen() {
             Alert.alert("Error", "Please enter email address.");
             return;
         }
+        if (!commercialDetails) {
+  Alert.alert("Error", "Property details missing. Please restart.");
+  return;
+}
+
+const propertyData = {
+  propertyTitle: commercialDetails.propertyTitle || "Commercial Office",
+  propertyType: "Commercial",
+
+  commercialDetails: {
+    ...commercialDetails,
+
+    // 🔥 REQUIRED BY BACKEND
+    location: commercialDetails.officeDetails?.location,
+    area: commercialDetails.officeDetails?.area,
+  },
+
+  ownerDetails: {
+    name: ownerName,
+    phone,
+    email,
+  },
+};
 
         setIsSubmitting(true);
 
         try {
-            // TODO: Implement API call to submit property with owner details
-            // For now, just show success and navigate
-            Alert.alert("Success", "Property uploaded successfully!", [
-                {
-                    text: "OK",
-                    onPress: () => router.push("/(tabs)/home"),
-                },
-            ]);
-        } catch (error) {
-            Alert.alert("Error", "Failed to upload property. Please try again.");
-        } finally {
-            setIsSubmitting(false);
-        }
+  // Use shared API helper to upload property and docs
+  const imageUris = propertyImages.map(img => img.uri);
+  const result = await createProperty(propertyData, imageUris, ownershipDocs, identityDocs);
+
+  if (!result.success) {
+    throw new Error(result.error || result.data?.message || "Upload failed");
+  }
+
+  Alert.alert("Success", "Property uploaded successfully!", [
+    {
+      text: "OK",
+      onPress: () => router.push("/(tabs)/home"),
+    },
+  ]);
+} catch (error) {
+  console.error(error);
+  Alert.alert("Error", error.message || "Failed to upload property");
+} finally {
+  setIsSubmitting(false);
+}
+
     };
+    
 
     return (
         <View className="flex-1 bg-[#F5F6F8]">
@@ -100,6 +149,14 @@ export default function OwnerScreen() {
 
                     {/* Header */}
                     
+                    {/* Image Upload */}
+                    <ImageUpload
+                        title="Property Images"
+                        subtitle="Upload at least one image of your property."
+                        files={propertyImages}
+                        setFiles={setPropertyImages}
+                        required
+                    />
 
                     {/* Document Uploads */}
                     <DocumentUpload
