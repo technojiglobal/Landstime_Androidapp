@@ -36,7 +36,12 @@ if (!name || !phone || !email) {
 }
 
     // Extract uploaded files
-    const images = req.files?.images?.map(file => file.path) || [];
+   const images =
+  req.files?.images?.map(file => file.path) ||
+  req.files?.propertyImages?.map(file => file.path) ||
+  [];
+
+
     const ownershipDocs = req.files?.ownershipDocs?.map(file => file.path) || [];
     const identityDocs = req.files?.identityDocs?.map(file => file.path) || [];
 
@@ -45,18 +50,67 @@ if (!name || !phone || !email) {
       return res.status(400).json({ success: false, message: 'Property title is required' });
     }
 
-    if (!propertyData.location) {
-      return res.status(400).json({ success: false, message: 'Location is required' });
-    }
-
-    if (!propertyData.expectedPrice) {
-      return res.status(400).json({ success: false, message: 'Expected price is required' });
-    }
+    
 
     if (!propertyData.propertyType) {
       return res.status(400).json({ success: false, message: 'Property type is required' });
     }
+   if (propertyData.propertyType === "Commercial") {
+  const { commercialDetails } = propertyData;
 
+  if (!commercialDetails) {
+    return res.status(400).json({
+      success: false,
+      message: "Commercial details are required",
+    });
+  }
+
+  if (!commercialDetails.subType) {
+    return res.status(400).json({
+      success: false,
+      message: "Commercial subType is required",
+    });
+  }
+
+  // OFFICE
+ if (commercialDetails.subType.toLowerCase().includes("office")) {
+  if (!commercialDetails.location) {
+    return res.status(400).json({
+      success: false,
+      message: "Office location is required",
+    });
+  }
+
+  if (!commercialDetails.area) {
+    return res.status(400).json({
+      success: false,
+      message: "Office area is required",
+    });
+  }
+}
+
+  // RETAIL
+  if (commercialDetails.subType.includes("Shop") || commercialDetails.subType.includes("Showroom")) {
+    if (!commercialDetails.retailDetails) {
+      return res.status(400).json({
+        success: false,
+        message: "Retail details are required",
+      });
+    }
+  }
+
+  // PLOT
+  if (commercialDetails.subType.includes("Land")) {
+    if (!commercialDetails.plotDetails) {
+      return res.status(400).json({
+        success: false,
+        message: "Plot details are required",
+      });
+    }
+  }
+}
+
+/* ✅ END OF COMMERCIAL VALIDATION */
     if (images.length === 0) {
       return res.status(400).json({ success: false, message: 'At least one image is required' });
     }

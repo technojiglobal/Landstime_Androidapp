@@ -7,7 +7,8 @@ import {
     ScrollView,
     Image,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
+
 import { Ionicons } from "@expo/vector-icons";
 
 import { PillButton, Checkbox } from "./Office";
@@ -75,6 +76,49 @@ const OfficeNext = () => {
             setter([...array, value]);
         }
     };
+  const params = useLocalSearchParams();
+
+const officeDetails = params.officeDetails
+  ? JSON.parse(params.officeDetails)
+  : null;
+  const handleNext = () => {
+  if (!officeDetails) {
+    alert("Missing office details. Please restart.");
+    return;
+  }
+
+  const commercialDetails = {
+    subType: "Office",
+
+    officeDetails,
+
+    expectedPrice: Number(expectedPrice),
+
+    priceDetails: {
+      allInclusive,
+      negotiable: priceNegotiable,
+      taxExcluded,
+    },
+
+    preLeased,
+    leaseDuration,
+    monthlyRent,
+    nocCertified,
+    occupancyCertified,
+    previouslyUsedFor: prevUsedFor,
+    description: describeProperty,
+    amenities,
+    locationAdvantages: locAdvantages,
+  };
+
+  router.push({
+    pathname:
+      "/home/screens/UploadScreens/CommercialUpload/Components/OfficeVaastu",
+    params: {
+      commercialDetails: JSON.stringify(commercialDetails),
+    },
+  });
+};
 
     return (
         <View className="flex-1 bg-gray-50">
@@ -346,12 +390,13 @@ const OfficeNext = () => {
                                   <Text className="font-semibold">Cancel</Text>
                                 </TouchableOpacity>
                     
-                                <TouchableOpacity
-                                  className="px-5 py-3 rounded-lg bg-green-500"
-                                  onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload/Components/OfficeVaastu")}
-                                >
-                                  <Text className="text-white font-semibold">Next</Text>
-                                </TouchableOpacity>
+                               <TouchableOpacity
+  className="px-5 py-3 rounded-lg bg-green-500"
+  onPress={handleNext}
+>
+  <Text className="text-white font-semibold">Next</Text>
+</TouchableOpacity>
+
                     
                               </View>
                     

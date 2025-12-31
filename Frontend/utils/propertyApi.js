@@ -1,7 +1,7 @@
 // Frontend/utils/propertyApi.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE_URL = 'http://192.168.0.108:8000/api/properties';
+const API_BASE_URL = 'http://192.168.43.223:8000/api/properties';
 
 // Helper function to get token
 const getToken = async () => {
@@ -68,74 +68,45 @@ export const createProperty = async (
   try {
     const formData = new FormData();
 
-    // Handle images - support both blob URIs (web) and file URIs (mobile)
-    for (let i = 0; i < imageUris.length; i++) {
-      const uri = imageUris[i];
-      
-      if (uri.startsWith('blob:')) {
-        // Web: Convert blob to File object
-        const response = await fetch(uri);
-        const blob = await response.blob();
-        formData.append('images', blob, `image-${i}.jpg`);
-      } else {
-        // Mobile: Use file URI
-        const filename = uri.split('/').pop();
-        const ext = filename.split('.').pop().toLowerCase();
-        const type = ext === 'png' ? 'image/png' : 'image/jpeg';
+    console.log("📸 Images:", imageUris);
 
-        formData.append('images', {
-          uri: uri.startsWith('file://') ? uri : `file://${uri}`,
-          name: filename,
-          type,
-        });
-      }
-    }
+    // ✅ PROPERTY IMAGES (EXPO SAFE)
+    imageUris.forEach((uri, index) => {
+      formData.append("propertyImages", {
+        uri: uri.startsWith("file://") ? uri : `file://${uri}`,
+        name: `property_${index}.jpg`,
+        type: "image/jpeg",
+      });
+    });
 
-    // Handle ownership documents
-    for (let i = 0; i < ownershipDocs.length; i++) {
-      const file = ownershipDocs[i];
-      
-      if (file.uri && file.uri.startsWith('blob:')) {
-        // Web: Convert blob to File object
-        const response = await fetch(file.uri);
-        const blob = await response.blob();
-        formData.append('ownershipDocs', blob, file.name || `ownership-${i}.pdf`);
-      } else {
-        // Mobile: Use file URI
-        formData.append('ownershipDocs', {
-          uri: file.uri.startsWith('file://') ? file.uri : `file://${file.uri}`,
-          name: file.name || `ownership_${i}.jpg`,
-          type: file.type || 'image/jpeg',
-        });
-      }
-    }
+    // ✅ OWNERSHIP DOCS
+    ownershipDocs.forEach((file, index) => {
+      formData.append("ownershipDocs", {
+        uri: file.uri.startsWith("file://") ? file.uri : `file://${file.uri}`,
+        name: file.name || `ownership_${index}.jpg`,
+        type: file.type || "image/jpeg",
+      });
+    });
 
-    // Handle identity documents
-    for (let i = 0; i < identityDocs.length; i++) {
-      const file = identityDocs[i];
-      
-      if (file.uri && file.uri.startsWith('blob:')) {
-        // Web: Convert blob to File object
-        const response = await fetch(file.uri);
-        const blob = await response.blob();
-        formData.append('identityDocs', blob, file.name || `identity-${i}.pdf`);
-      } else {
-        // Mobile: Use file URI
-        formData.append('identityDocs', {
-          uri: file.uri.startsWith('file://') ? file.uri : `file://${file.uri}`,
-          name: file.name || `identity_${i}.jpg`,
-          type: file.type || 'image/jpeg',
-        });
-      }
-    }
+    // ✅ IDENTITY DOCS
+    identityDocs.forEach((file, index) => {
+      formData.append("identityDocs", {
+        uri: file.uri.startsWith("file://") ? file.uri : `file://${file.uri}`,
+        name: file.name || `identity_${index}.jpg`,
+        type: file.type || "image/jpeg",
+      });
+    });
 
-    formData.append('propertyData', JSON.stringify(propertyData));
+    // ✅ PROPERTY DATA
+    formData.append("propertyData", JSON.stringify(propertyData));
 
-    return await apiRequest('/', 'POST', formData, true);
+    return await apiRequest("/", "POST", formData, true);
   } catch (error) {
+    console.error("❌ createProperty error:", error);
     return { success: false, error: error.message };
   }
 };
+
 
 // Get all approved properties
 export const getApprovedProperties = async (propertyType = null, page = 1) => {
