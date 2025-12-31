@@ -120,6 +120,12 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
       route: "/home/screens/Sidebar/MessagesScreen" 
     },
     { 
+    name: t('sidebar_menu_my_properties'), 
+    icon: "briefcase-outline", 
+    route: "/home/screens/Sidebar/MyProperties" 
+    },
+
+    { 
       name: t('sidebar_menu_notifications'), 
       icon: "notifications-outline", 
       route: "/home/screens/Notifications" 

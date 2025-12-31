@@ -24,6 +24,11 @@
 //     </View>
 //   );
 // }
+
+
+
+
+//Frontend/components/interior/FeaturedDesigns.jsx
 import { View, Text, ActivityIndicator } from "react-native";
 import { useEffect, useState } from "react";
 import DesignCard from "./DesignCard";
