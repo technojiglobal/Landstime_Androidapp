@@ -1,3 +1,5 @@
+//Backend/scripts/migrateProperties.js
+
 import mongoose from 'mongoose';
 import Property from '../UserModels/Property.js';
 import 'dotenv/config';
