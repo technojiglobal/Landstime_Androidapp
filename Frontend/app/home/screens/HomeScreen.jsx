@@ -1,6 +1,3 @@
-
-
-
 // Frontend/app/home/screens/HomeScreen.jsx
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -16,18 +13,24 @@ import {
   Modal,
   FlatList,
   Pressable,
-  StyleSheet
+  StyleSheet,
+  ActivityIndicator
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useResponsive } from "../../../utils/responsive";
+import { useNotifications } from "../../../context/NotificationContext";
 import bell from "../../../assets/Bell-icon.png";
 
 export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
   const insets = useSafeAreaInsets();
   const { scaleWidth, scaleHeight } = useResponsive();
   const { t, i18n } = useTranslation();
+  const router = useRouter();
+
+  // Use notification context
+  const { unreadCount, isLoading: notificationLoading, refreshCount } = useNotifications();
 
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState(i18n.language.toUpperCase());
@@ -69,8 +72,6 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
     };
   }, []);
 
-  const router = useRouter();
-
   const languages = [
     { code: "en", label: "English", enabled: true },
     { code: "hi", label: "हिन्दी", enabled: true },
@@ -88,35 +89,34 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
     { code: "bn", label: "বাংলা", enabled: false },
   ];
 
-  // CORRECTED: Using proper translation keys from en.json
-const categories = [
-  { 
-    key: 'Sites',  // Add route key
-    name: t('home_category_sites'), 
-    desc: t('home_category_sites_desc'), 
-    img: require("../../../assets/Home.png") 
-  },
-  { 
-    key: 'Resorts',
-    name: t('home_category_resorts'), 
-    desc: t('home_category_resorts_desc'), 
-    img: require("../../../assets/palm tree.png"), 
-    vr: true 
-  },
-  { 
-    key: 'Flats',
-    name: t('home_category_flats'), 
-    desc: t('home_category_flats_desc'), 
-    img: require("../../../assets/Tree.png"), 
-    vr: true 
-  },
-  { 
-    key: 'Commercial',
-    name: t('home_category_commercial'), 
-    desc: t('home_category_commercial_desc'), 
-    img: require("../../../assets/Bank.png") 
-  },
-];
+  const categories = [
+    { 
+      key: 'Sites',
+      name: t('home_category_sites'), 
+      desc: t('home_category_sites_desc'), 
+      img: require("../../../assets/Home.png") 
+    },
+    { 
+      key: 'Resorts',
+      name: t('home_category_resorts'), 
+      desc: t('home_category_resorts_desc'), 
+      img: require("../../../assets/palm tree.png"), 
+      vr: true 
+    },
+    { 
+      key: 'Flats',
+      name: t('home_category_flats'), 
+      desc: t('home_category_flats_desc'), 
+      img: require("../../../assets/Tree.png"), 
+      vr: true 
+    },
+    { 
+      key: 'Commercial',
+      name: t('home_category_commercial'), 
+      desc: t('home_category_commercial_desc'), 
+      img: require("../../../assets/Bank.png") 
+    },
+  ];
 
   const handleLanguageSelect = async (lang) => {
     const langCode = lang.code.toLowerCase();
@@ -125,18 +125,21 @@ const categories = [
     setLanguageModalVisible(false);
   };
 
-const handleCategoryPress = (categoryKey) => {
-  // Map to English route names regardless of display language
-  const routeMap = {
-    [t('home_category_sites')]: 'Sites',
-    [t('home_category_resorts')]: 'Resorts',
-    [t('home_category_flats')]: 'Flats',
-    [t('home_category_commercial')]: 'Commercial'
+  const handleCategoryPress = (categoryKey) => {
+    const routeMap = {
+      [t('home_category_sites')]: 'Sites',
+      [t('home_category_resorts')]: 'Resorts',
+      [t('home_category_flats')]: 'Flats',
+      [t('home_category_commercial')]: 'Commercial'
+    };
+    
+    const routeName = routeMap[categoryKey] || categoryKey;
+    router.push(`/home/screens/${routeName}`);
   };
-  
-  const routeName = routeMap[categoryKey] || categoryKey;
-  router.push(`/home/screens/${routeName}`);
-};
+
+  const handleNotificationPress = () => {
+    router.push("/home/screens/Notifications");
+  };
 
   return (
     <View className="flex-1 bg-black">
@@ -167,9 +170,9 @@ const handleCategoryPress = (categoryKey) => {
             </TouchableOpacity>
           )}
 
-          {/* Notification */}
+          {/* Notification with Badge */}
           <TouchableOpacity
-            onPress={() => router.push("/home/screens/Notifications")}
+            onPress={handleNotificationPress}
             style={{
               position: "absolute",
               top: scaleHeight(10),
@@ -183,6 +186,49 @@ const handleCategoryPress = (categoryKey) => {
             }}
           >
             <Image source={bell} style={{ width: 18, height: 18 }} />
+            
+            {/* Badge */}
+            {unreadCount > 0 && (
+              <View
+                style={{
+                  position: "absolute",
+                  top: -4,
+                  right: -4,
+                  backgroundColor: "#EF4444",
+                  borderRadius: 10,
+                  minWidth: 20,
+                  height: 20,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  paddingHorizontal: 4,
+                  borderWidth: 2,
+                  borderColor: "white",
+                }}
+              >
+                <Text
+                  style={{
+                    color: "white",
+                    fontSize: 10,
+                    fontWeight: "bold",
+                  }}
+                >
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </Text>
+              </View>
+            )}
+
+            {/* Loading indicator */}
+            {notificationLoading && (
+              <View
+                style={{
+                  position: "absolute",
+                  top: -2,
+                  right: -2,
+                }}
+              >
+                <ActivityIndicator size="small" color="#22C55E" />
+              </View>
+            )}
           </TouchableOpacity>
 
           <Text 
@@ -205,7 +251,7 @@ const handleCategoryPress = (categoryKey) => {
           </Text>
         </ImageBackground>
 
-        {/* Search Bar - CORRECTED translation key */}
+        {/* Search Bar */}
         <View className="flex-row items-center bg-white mx-10 mt-[-40] p-2 rounded-xl shadow-md z-10">
           <Ionicons name="search" size={20} color="gray" />
           <TextInput 
@@ -314,7 +360,7 @@ const handleCategoryPress = (categoryKey) => {
           </View>
         </View>
 
-        {/* Language Modal - CORRECTED translation key */}
+        {/* Language Modal */}
         <Modal
           animationType="slide"
           transparent={true}
