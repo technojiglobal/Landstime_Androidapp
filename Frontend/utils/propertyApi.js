@@ -1,7 +1,8 @@
 // Frontend/utils/propertyApi.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
-const API_BASE_URL = 'http://192.168.43.223:8000/api/properties';
+const API_BASE_URL = 'http://10.37.92.184:8000/api/properties';
 
 // Helper function to get token
 const getToken = async () => {
@@ -71,13 +72,16 @@ export const createProperty = async (
     console.log("📸 Images:", imageUris);
 
     // ✅ PROPERTY IMAGES (EXPO SAFE)
-    imageUris.forEach((uri, index) => {
-      formData.append("propertyImages", {
-        uri: uri.startsWith("file://") ? uri : `file://${uri}`,
-        name: `property_${index}.jpg`,
-        type: "image/jpeg",
-      });
-    });
+   imageUris.forEach((uri, index) => {
+  // Clean the URI - remove any file:// prefix if present
+  const cleanUri = uri.replace('file://', '');
+  
+  formData.append("propertyImages", {
+    uri: Platform.OS === 'ios' ? cleanUri : `file://${cleanUri}`,
+    name: `property_${Date.now()}_${index}.jpg`,
+    type: "image/jpeg",
+  });
+});
 
     // ✅ OWNERSHIP DOCS
     ownershipDocs.forEach((file, index) => {

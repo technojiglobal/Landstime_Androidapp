@@ -131,7 +131,7 @@ const __dirname = path.dirname(__filename);
 app.use(cors({
   origin: [
     'http://localhost:8081',           // React Native/Expo
-    'http://192.168.43.223:8081',      // React Native/Expo (network)
+    'http://10.37.92.184:8081',      // React Native/Expo (network)
     'http://localhost:5173'            // Admin Panel (Vite)
   ],
   credentials: true,
