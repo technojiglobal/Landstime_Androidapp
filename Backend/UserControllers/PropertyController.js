@@ -143,7 +143,8 @@ console.log('🔄 Translating property fields...');
 const translatedFields = await translatePropertyFields({
   propertyTitle: propertyData.propertyTitle,
   description: propertyData.description,
-  location: propertyData.location
+  location: propertyData.location,
+  area: propertyData.area
 }, originalLanguage);
 
 console.log('✅ Translation complete');
@@ -152,7 +153,8 @@ const property = new Property({
   ...propertyData,
   propertyTitle: translatedFields.propertyTitle, // Now has {te, hi, en}
   description: translatedFields.description,     // Now has {te, hi, en}
-  location: translatedFields.location,           // Now has {te, hi, en}
+  location: translatedFields.location,
+  area: translatedFields.area, // Add this line
   originalLanguage,                              // Store which language user used
   ownerDetails: propertyData.ownerDetails,
   images,
@@ -203,16 +205,17 @@ export const getApprovedProperties = async (req, res) => {
       .skip((page - 1) * limit);
     
     // ✅ ADD THIS: Transform properties to return only requested language
-    const transformedProperties = properties.map(prop => {
-      const propObj = prop.toObject();
-      
-      return {
-        ...propObj,
-        propertyTitle: propObj.propertyTitle?.[language] || propObj.propertyTitle?.en || '',
-        description: propObj.description?.[language] || propObj.description?.en || '',
-        location: propObj.location?.[language] || propObj.location?.en || ''
-      };
-    });
+ const transformedProperties = properties.map(prop => {
+  const propObj = prop.toObject();
+  
+  return {
+    ...propObj,
+    propertyTitle: propObj.propertyTitle?.[language] || propObj.propertyTitle?.en || '',
+    description: propObj.description?.[language] || propObj.description?.en || '',
+    location: propObj.location?.[language] || propObj.location?.en || '',
+    area: propObj.area?.[language] || propObj.area?.en || ''  // ✅ ADD THIS LINE
+  };
+});
     
     const count = await Property.countDocuments(query);
     

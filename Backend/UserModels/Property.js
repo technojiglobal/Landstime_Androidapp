@@ -48,6 +48,13 @@ originalLanguage: {
   hi: { type: String, trim: true },
   en: { type: String, trim: true }
 },
+area: {
+  te: { type: String, trim: true },
+  hi: { type: String, trim: true },
+  en: { type: String, trim: true }
+},
+
+
   // ✅ NEW CODE
 description: {
   te: { type: String },
