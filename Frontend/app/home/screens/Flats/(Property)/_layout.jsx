@@ -1,3 +1,5 @@
+// landstime_Androidapp/Frontend/app/home/screens/Flats/(Property)/_layout.jsx
+
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Slot, useRouter, usePathname } from "expo-router";

@@ -1,4 +1,4 @@
-// Sites // (Property) // Review.jsx
+//Frontend/app/home/screens/Flats/(Property)/Review.jsx
 import React from "react";
 import { View, Text, FlatList, TouchableOpacity, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";

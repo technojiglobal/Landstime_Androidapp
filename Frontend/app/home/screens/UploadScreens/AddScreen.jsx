@@ -59,6 +59,7 @@ export default function AddScreen() {
   const [balconies, setBalconies] = useState("");
 
   const [location, setLocation] = useState("");
+  
   const [description, setDescription] = useState("");
   const [expectedPrice, setExpectedPrice] = useState("");
   const [otherRooms, setOtherRooms] = useState([]);
@@ -196,6 +197,16 @@ export default function AddScreen() {
         return;
       }
 
+      if (!area?.trim()) {
+  Toast.show({
+    type: "error",
+    text1: "Error",
+    text2: "Area is required.",
+  });
+  setIsSubmitting(false);
+  return;
+}
+
       const priceValue = parseFloat(expectedPrice);
       console.log("💰 Price validation:", {
         expectedPrice,
@@ -299,6 +310,7 @@ const propertyData = {
   propertyType: "House",
   propertyTitle,
   location,
+  area,
   description,
   originalLanguage: getUserLanguage(), // Store original language
   expectedPrice: parseFloat(expectedPrice),
@@ -1007,6 +1019,40 @@ houseDetails: {
                         />
                       </View>
                     </View>
+
+                    {/* Area */}
+<View className="border border-gray-300 rounded-lg bg-white ml-5 mt-5 mr-4 p-5">
+  <Text className="text-gray-500 font-semibold mb-2 text-left">
+    Area <Text className="text-red-500">*</Text>
+  </Text>
+  <View
+    style={{
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "#f3f4f6",
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 16,
+      borderColor: focusedField === "area" ? "#22C55E" : "#d1d5db",
+      borderWidth: 2,
+    }}
+  >
+    <Ionicons name="location-outline" size={20} color="#22C55E" />
+    <TextInput
+      placeholder="Enter Area/Neighborhood (e.g., Akkayapalem)"
+      placeholderTextColor="#888"
+      value={area}
+      onChangeText={(text) => setArea(text)}
+      style={{ flex: 1, marginLeft: 8, color: "#1f2937" }}
+      onFocus={() => setFocusedField("area")}
+      onBlur={() => setFocusedField(null)}
+    />
+  </View>
+</View>
+
+                    
+
+
 
                     {/* Description */}
                     <View className="border border-gray-300 rounded-lg bg-white ml-5 mr-4 mt-5 p-5">

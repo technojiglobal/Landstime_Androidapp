@@ -1,3 +1,4 @@
+// Landstime_Androidapp/Backend/services/translationService.js
 import { Translate } from '@google-cloud/translate/build/src/v2/index.js';
 
 const translateClient = new Translate({
@@ -34,23 +35,40 @@ export const translateToAllLanguages = async (text, sourceLang = 'en') => {
   }
 };
 
-export const translatePropertyFields = async (fields, sourceLang = 'en') => {
-  const translatedFields = {};
+// export const translatePropertyFields = async (fields, sourceLang = 'en') => {
+//   const translatedFields = {};
 
-  for (const [fieldName, fieldValue] of Object.entries(fields)) {
-    if (fieldValue && typeof fieldValue === 'string') {
-      translatedFields[fieldName] = await translateToAllLanguages(fieldValue, sourceLang);
-    }
-  }
+//   for (const [fieldName, fieldValue] of Object.entries(fields)) {
+//     if (fieldValue && typeof fieldValue === 'string') {
+//       translatedFields[fieldName] = await translateToAllLanguages(fieldValue, sourceLang);
+//     }
+//   }
 
-  return translatedFields;
-};
+//   return translatedFields;
+// };
 
 /**
  * Detect language of text
  * @param {string} text
  * @returns {string} - Language code (te, hi, en, etc.)
  */
+
+
+// Make sure your translation service includes area in the fields to translate
+// Example structure:
+// ✅ NEW CODE (Working)
+export const translatePropertyFields = async (fields, originalLanguage) => {
+  const result = {};
+  
+  for (const [key, value] of Object.entries(fields)) {
+    if (value && typeof value === 'string') {
+      // Actually translate the field using translateToAllLanguages
+      result[key] = await translateToAllLanguages(value, originalLanguage);
+    }
+  }
+  
+  return result;
+};
 export const detectLanguage = async (text) => {
   try {
     if (!text || !text.trim()) return 'en';
