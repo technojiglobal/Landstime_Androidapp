@@ -8,59 +8,40 @@ const propertySchema = new mongoose.Schema({
     enum: ['House', 'Site/Plot/Land', 'Commercial', 'Resort'],
     required: true
   },
- propertyTitle: {
-  te: { type: String, trim: true },
-  hi: { type: String, trim: true },
-  en: { type: String, trim: true }
-},
+  propertyTitle: {
+    type: String,
+    required: true,
+    trim: true
+  },
   images: [{
-    type: String // URLs of uploaded images
+    type: String // Base64 encoded images
   }],
   documents: {
-  ownership: [String], // Sale deed, conveyance
-  identity: [String]   // PAN, Aadhaar, etc
-},
-ownerDetails: {
-  name: {
-    type: String,
-    required: [true, "Owner name is required"],
-    trim: true,
+    ownership: [String], // Base64 encoded documents
+    identity: [String]   // Base64 encoded documents
   },
-  // ✅ NEW CODE - Add this new field
-originalLanguage: {
-  type: String,
-  enum: ['te', 'hi', 'en'],
-  default: 'en'
-},
-  phone: {
-    type: String,
-    required: [true, "Owner phone is required"],
+  ownerDetails: {
+    name: {
+      type: String,
+      required: [true, "Owner name is required"],
+      trim: true,
+    },
+    phone: {
+      type: String,
+      required: [true, "Owner phone is required"],
+    },
+    email: {
+      type: String,
+      required: [true, "Owner email is required"],
+      lowercase: true,
+    },
   },
-  email: {
-    type: String,
-    required: [true, "Owner email is required"],
-    lowercase: true,
-  },
-},
 
   location: {
-  te: { type: String, trim: true },
-  hi: { type: String, trim: true },
-  en: { type: String, trim: true }
-},
-area: {
-  te: { type: String, trim: true },
-  hi: { type: String, trim: true },
-  en: { type: String, trim: true }
-},
-
-
-  // ✅ NEW CODE
-description: {
-  te: { type: String },
-  hi: { type: String },
-  en: { type: String }
-},
+    type: String,
+    required: true
+  },
+  description: String,
   expectedPrice: {
     type: Number,
     required: true
@@ -169,209 +150,261 @@ description: {
       enum: ['Office', 'Retail', 'Plot/Land', 'Storage', 'Industry', 'Hospitality', 'Other']
     },
     
-    // Office specific
-   officeDetails: {
-  /* -------- BASIC (OPTIONAL) -------- */
-  officeKind: {
-    type: String,          // IT / Co-working / Business Center / etc
-    default: null,
-  },
+    // Office specific - REMOVED required: true from schema level
+    officeDetails: {
+      officeKind: {
+        type: String,
+        default: null,
+      },
 
-  /* -------- REQUIRED -------- */
-  location: {
-    type: String,
-    required: false,
-    trim: true,
-  },
+      location: {
+        type: String,
+        // Required validation handled in controller, not schema
+        trim: true,
+        default: null
+      },
 
-  area: {
-    type: Number,
-    required: false,
-  },
+      area: {
+        type: Number,
+        // Required validation handled in controller, not schema
+        default: null
+      },
 
-  /* -------- LOCATION INFO (OPTIONAL) -------- */
-  locatedInside: {
-    type: String,
-    default: null,
-  },
+      locatedInside: {
+        type: String,
+        default: null,
+      },
 
-  zoneType: {
-    type: String,
-    default: null,
-  },
+      zoneType: {
+        type: String,
+        default: null,
+      },
 
-  /* -------- AREA DETAILS (OPTIONAL) -------- */
-  areaUnit: {
-    type: String,
-    default: "sqft",
-  },
+      areaUnit: {
+        type: String,
+        default: "sqft",
+      },
 
-  carpetArea: {
-    type: Number,
-    default: null,
-  },
+      carpetArea: {
+        type: Number,
+        default: null,
+      },
 
-  carpetAreaUnit: {
-    type: String,
-    default: "sqft",
-  },
+      carpetAreaUnit: {
+        type: String,
+        default: "sqft",
+      },
 
-  /* -------- OFFICE SETUP (OPTIONAL) -------- */
-  cabins: {
-    type: Number,
-    default: null,
-  },
+      cabins: {
+        type: Number,
+        default: null,
+      },
 
-  meetingRooms: {
-    type: Number,
-    default: null,
-  },
+      meetingRooms: {
+        type: Number,
+        default: null,
+      },
 
-  seats: {
-    type: Number,
-    default: null,
-  },
+      seats: {
+        type: Number,
+        default: null,
+      },
 
-  maxSeats: {
-    type: Number,
-    default: null,
-  },
+      maxSeats: {
+        type: Number,
+        default: null,
+      },
 
-  conferenceRooms: {
-    type: String,          // "1", "2", "3", "4+"
-    default: null,
-  },
+      conferenceRooms: {
+        type: String,
+        default: null,
+      },
 
-  /* -------- WASHROOMS (OPTIONAL) -------- */
-  washrooms: {
-    public: {
-      type: Number,
-      default: null,
+      washrooms: {
+        public: {
+          type: Number,
+          default: null,
+        },
+        private: {
+          type: Number,
+          default: null,
+        },
+      },
+
+      receptionArea: {
+        type: Boolean,
+        default: false,
+      },
+
+      furnishing: {
+        type: Boolean,
+        default: false,
+      },
+
+      additionalFeatures: {
+        type: [String],
+        default: [],
+      },
+
+      fireSafetyMeasures: {
+        type: [String],
+        default: [],
+      },
+
+      totalFloors: {
+        type: Number,
+        default: null,
+      },
+
+      staircases: {
+        type: String,
+        default: null,
+      },
+
+      lift: {
+        type: String,
+        default: null,
+      },
+
+      passengerLifts: {
+        type: Number,
+        default: null,
+      },
+
+      serviceLifts: {
+        type: Number,
+        default: null,
+      },
+
+      parking: {
+        parkingType: {
+          type: String,
+          default: null,
+        },
+        options: {
+          basement: { type: Boolean, default: false },
+          outside: { type: Boolean, default: false },
+          private: { type: Boolean, default: false },
+        },
+        count: {
+          type: Number,
+          default: null,
+        },
+      },
+
+      availability: {
+        type: String,
+        default: null,
+      },
+
+      ageOfProperty: {
+        type: String,
+        default: null,
+      },
+
+      possessionBy: {
+        type: String,
+        default: null,
+      },
+
+      ownership: {
+        type: String,
+        default: null,
+      },
     },
-    private: {
-      type: Number,
-      default: null,
+
+    // Retail specific
+    retailDetails: {
+      shopType: String,
+      area: Number,
+      areaUnit: { type: String, default: 'sqft' },
+      floors: Number,
+      washrooms: Number,
+      parking: {
+        available: Boolean,
+        count: Number
+      },
+      frontage: Number,
+      ceilingHeight: Number,
+      entrances: Number,
+      cornerShop: Boolean,
+      mainRoadFacing: Boolean,
+      furnishing: String,
+      availability: String,
+      ageOfProperty: String,
+      ownership: String
     },
-  },
-
-  /* -------- FEATURES (OPTIONAL) -------- */
-  receptionArea: {
-    type: Boolean,
-    default: false,
-  },
-
-  furnishing: {
-    type: Boolean,
-    default: false,
-  },
-
-  additionalFeatures: {
-    type: [String],
-    default: [],
-  },
-
-  fireSafetyMeasures: {
-    type: [String],
-    default: [],
-  },
-
-  /* -------- FLOORS & LIFTS (OPTIONAL) -------- */
-  totalFloors: {
-    type: Number,
-    default: null,
-  },
-
-  staircases: {
-    type: String,
-    default: null,
-  },
-
-  lift: {
-    type: String,          // "Available" | "Not-Available"
-    default: null,
-  },
-
-  passengerLifts: {
-    type: Number,
-    default: null,
-  },
-
-  serviceLifts: {
-    type: Number,
-    default: null,
-  },
-
-  /* -------- PARKING (OPTIONAL, FIXED) -------- */
-  parking: {
-    parkingType: {
-      type: String,        // "Available" | "Not-Available"
-      default: null,
-    },
-    options: {
-      basement: { type: Boolean, default: false },
-      outside: { type: Boolean, default: false },
-      private: { type: Boolean, default: false },
-    },
-    count: {
-      type: Number,
-      default: null,
-    },
-  },
-
-  /* -------- AVAILABILITY (OPTIONAL) -------- */
-  availability: {
-    type: String,          // "Ready" | "UnderConstruction"
-    default: null,
-  },
-
-  ageOfProperty: {
-    type: String,
-    default: null,
-  },
-
-  possessionBy: {
-    type: String,
-    default: null,
-  },
-
-  ownership: {
-    type: String,          // Freehold / Leasehold / etc
-    default: null,
-  },
-},
-
-
     
     // Plot/Land specific for commercial
     plotDetails: {
       plotType: String,
-      // Add plot specific fields
+      area: Number,
+      areaUnit: { type: String, default: 'sqft' },
+      length: Number,
+      breadth: Number,
+      boundaryWall: String,
+      cornerPlot: Boolean,
+      approvedBy: [String],
+      zoneType: String,
+      floorsAllowed: Number,
+      roadWidth: Number,
+      roadWidthUnit: String,
+      openSides: String
     },
     
     // Industry specific
     industryDetails: {
-      // Add industry specific fields
+      industryType: String,
+      area: Number,
+      areaUnit: { type: String, default: 'sqft' },
+      buildingType: String,
+      powerLoad: Number,
+      ceilingHeight: Number,
+      flooring: String,
+      waterAvailability: String,
+      drainage: Boolean,
+      fireNOC: Boolean,
+      pollutionClearance: Boolean
     },
     
     // Storage specific
     storageDetails: {
-      // Add storage specific fields
+      storageType: String,
+      area: Number,
+      areaUnit: { type: String, default: 'sqft' },
+      covered: Boolean,
+      ceilingHeight: Number,
+      flooring: String,
+      ventilation: String,
+      security: [String],
+      temperatureControl: Boolean,
+      accessibility: String
     },
     
     // Hospitality specific
     hospitalityDetails: {
-      // Add hospitality specific fields
+      hospitalityType: String,
+      area: Number,
+      areaUnit: { type: String, default: 'sqft' },
+      rooms: Number,
+      halls: Number,
+      kitchens: Number,
+      parking: Number,
+      starRating: Number,
+      licensesAvailable: [String]
     },
     
     // Other specific
     otherDetails: {
-      // Add other specific fields
+      description: String,
+      area: Number,
+      areaUnit: { type: String, default: 'sqft' },
+      features: [String]
     }
   },
   
   // Resort specific fields
   resortDetails: {
-    // Add resort specific fields
     area: Number,
     areaUnit: String,
     rooms: Number,
@@ -389,6 +422,5 @@ propertySchema.index({ userId: 1 });
 propertySchema.index({ propertyType: 1 });
 propertySchema.index({ 'commercialDetails.subType': 1 });
 
-// NEW CODE at the end
 const Property = mongoose.model('Property', propertySchema);
 export default Property;

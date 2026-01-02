@@ -42,4 +42,17 @@ router.delete('/admin/:id/delete-document', verifyAdmin, propertyController.dele
 router.get('/:id', verifyToken, propertyController.getPropertyById);
 router.put('/:id', verifyToken, propertyController.updateProperty);
 router.delete('/:id', verifyToken, propertyController.deleteProperty);
+// Add this temporary route to Backend/UserRoutes/PropertyRoute.js
+router.get('/debug/my-properties', verifyToken, async (req, res) => {
+  try {
+    const properties = await Property.find({ userId: req.user._id });
+    res.json({
+      userId: req.user._id,
+      count: properties.length,
+      properties: properties
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 export default router;
