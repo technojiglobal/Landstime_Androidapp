@@ -2,6 +2,7 @@
 
 import Property from '../UserModels/Property.js';
 import User from '../UserModels/User.js'; // Import User model
+import { translatePropertyFields } from "../services/translationService.js";
 
 // Create a new property
 // Backend/controllers/propertyController.js
@@ -44,9 +45,22 @@ const images = req.files?.images?.map(file => file.path) || [];
     const identityDocs = req.files?.identityDocs?.map(file => file.path) || [];
 
     // 🔐 Backend validation (DO NOT SKIP)
-    if (!propertyData.propertyTitle) {
-      return res.status(400).json({ success: false, message: 'Property title is required' });
-    }
+    // ✅ NEW CODE
+if (!propertyData.propertyTitle) {
+  return res.status(400).json({ 
+    success: false, 
+    message: 'Property title is required' 
+  });
+}
+
+// Extract original language (sent from frontend)
+// ✅ Extract and validate original language
+const originalLanguage = propertyData.originalLanguage || 'en';
+console.log('📝 Property uploaded in language:', originalLanguage);
+console.log('📝 Original title:', propertyData.propertyTitle);
+console.log('📝 Original location:', propertyData.location);
+
+console.log('🔄 Starting translation...');
 
     
 
@@ -122,17 +136,33 @@ const images = req.files?.images?.map(file => file.path) || [];
     }
 
     // Create property
-    const property = new Property({
-      ...propertyData,
-       ownerDetails: propertyData.ownerDetails,
-      images,
-      documents: {
-        ownership: ownershipDocs,
-        identity: identityDocs
-      },
-      userId: req.user._id,
-      status: 'pending'
-    });
+   // ✅ NEW CODE
+console.log('🔄 Translating property fields...');
+
+// Translate text fields to all 3 languages
+const translatedFields = await translatePropertyFields({
+  propertyTitle: propertyData.propertyTitle,
+  description: propertyData.description,
+  location: propertyData.location
+}, originalLanguage);
+
+console.log('✅ Translation complete');
+
+const property = new Property({
+  ...propertyData,
+  propertyTitle: translatedFields.propertyTitle, // Now has {te, hi, en}
+  description: translatedFields.description,     // Now has {te, hi, en}
+  location: translatedFields.location,           // Now has {te, hi, en}
+  originalLanguage,                              // Store which language user used
+  ownerDetails: propertyData.ownerDetails,
+  images,
+  documents: {
+    ownership: ownershipDocs,
+    identity: identityDocs
+  },
+  userId: req.user._id,
+  status: 'pending'
+});
 
     await property.save();
    console.log("✅ PROPERTY SAVED TO DATABASE");
@@ -156,9 +186,10 @@ console.log("🏷 Property Type:", property.propertyType);
 };
 
 // Get all approved properties (for public viewing)
+// ✅ NEW CODE
 export const getApprovedProperties = async (req, res) => {
   try {
-    const { propertyType, page = 1, limit = 10 } = req.query;
+    const { propertyType, page = 1, limit = 10, language = 'en' } = req.query;
     
     const query = { status: 'approved' };
     if (propertyType) {
@@ -171,11 +202,23 @@ export const getApprovedProperties = async (req, res) => {
       .limit(limit * 1)
       .skip((page - 1) * limit);
     
+    // ✅ ADD THIS: Transform properties to return only requested language
+    const transformedProperties = properties.map(prop => {
+      const propObj = prop.toObject();
+      
+      return {
+        ...propObj,
+        propertyTitle: propObj.propertyTitle?.[language] || propObj.propertyTitle?.en || '',
+        description: propObj.description?.[language] || propObj.description?.en || '',
+        location: propObj.location?.[language] || propObj.location?.en || ''
+      };
+    });
+    
     const count = await Property.countDocuments(query);
     
     res.status(200).json({
       success: true,
-      data: properties,
+      data: transformedProperties, // ✅ CHANGED from properties
       totalPages: Math.ceil(count / limit),
       currentPage: page
     });

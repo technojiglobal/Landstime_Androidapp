@@ -99,7 +99,14 @@ export const createProperty = async (
     });
 
     // ✅ PROPERTY DATA
-    formData.append("propertyData", JSON.stringify(propertyData));
+    // ✅ PROPERTY DATA with debug logging
+console.log("📦 Property Data being sent:", {
+  originalLanguage: propertyData.originalLanguage,
+  propertyTitle: propertyData.propertyTitle,
+  location: propertyData.location?.substring(0, 30)
+});
+
+formData.append("propertyData", JSON.stringify(propertyData));
 
     return await apiRequest("/", "POST", formData, true);
   } catch (error) {
@@ -111,8 +118,9 @@ export const createProperty = async (
 
 
 // Get all approved properties
-export const getApprovedProperties = async (propertyType = null, page = 1) => {
-  let endpoint = `/approved?page=${page}`;
+// ✅ NEW CODE
+export const getApprovedProperties = async (propertyType = null, page = 1, language = 'en') => {
+  let endpoint = `/approved?page=${page}&language=${language}`;
   if (propertyType) {
     endpoint += `&propertyType=${propertyType}`;
   }
