@@ -1,3 +1,5 @@
+// UserModels/User.js - Updated with lastLogin field
+
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
@@ -48,11 +50,17 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-    isBlocked: {
+
+  isBlocked: {
     type: Boolean,
     default: false,
   },
 
+  // NEW: Track last login for active/inactive user filtering
+  lastLogin: {
+    type: Date,
+    default: Date.now,
+  },
 
   // Subscription tracking
   currentSubscription: {
@@ -100,6 +108,12 @@ userSchema.pre("save", function (next) {
   this.updatedAt = Date.now();
   next();
 });
+
+// Method to update last login timestamp
+userSchema.methods.updateLastLogin = function () {
+  this.lastLogin = new Date();
+  return this.save();
+};
 
 const User = mongoose.model("User", userSchema);
 export default User;
