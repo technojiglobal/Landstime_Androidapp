@@ -71,17 +71,14 @@ export const createProperty = async (
 
     console.log("📸 Images:", imageUris);
 
-    // ✅ PROPERTY IMAGES (EXPO SAFE)
-   imageUris.forEach((uri, index) => {
-  // Clean the URI - remove any file:// prefix if present
-  const cleanUri = uri.replace('file://', '');
-  
-  formData.append("propertyImages", {
-    uri: Platform.OS === 'ios' ? cleanUri : `file://${cleanUri}`,
-    name: `property_${Date.now()}_${index}.jpg`,
-    type: "image/jpeg",
-  });
-});
+    // ✅ PROPERTY IMAGES — FIXED FIELD NAME
+    imageUris.forEach((uri, index) => {
+      formData.append("images", {
+        uri: uri.startsWith("file://") ? uri : `file://${uri}`,
+        name: `property_${index}.jpg`,
+        type: "image/jpeg",
+      });
+    });
 
     // ✅ OWNERSHIP DOCS
     ownershipDocs.forEach((file, index) => {
@@ -110,6 +107,7 @@ export const createProperty = async (
     return { success: false, error: error.message };
   }
 };
+
 
 
 // Get all approved properties

@@ -14,7 +14,7 @@ import Toast from 'react-native-toast-message';
 import { PillButton, Checkbox } from "./Office";
 import MorePricingDetailsModal from "../../MorePricingDetailsModal";
 
-const OfficeNext = () => {
+const HospitalityNext = () => {
     const router = useRouter();
 
     /* ---------------- PRICE STATES ---------------- */
@@ -26,7 +26,7 @@ const OfficeNext = () => {
     const [taxExcluded, setTaxExcluded] = useState(false);
     const [IndustryApprovedBy, setIndustryApprovedBy] = useState("");
     const [approvedIndustryType, setApprovedIndustryType] = useState("");
-    const authorityOptions = ['Local Authority',];
+    const authorityOptions = ['Local Authority'];
     /* ---------------- YES / NO STATES ---------------- */
     const [preLeased, setPreLeased] = useState(null);
     const [nocCertified, setNocCertified] = useState(null);
@@ -39,6 +39,10 @@ const OfficeNext = () => {
 
     /* ---------------- DESCRIPTION ---------------- */
     const [describeProperty, setDescribeProperty] = useState("");
+    const [wheelchairFriendly, setWheelchairFriendly] = useState(false);
+    const [amenities, setAmenities] = useState([]);
+    const [locAdvantages, setLocAdvantages] = useState([]);
+    const [flooringType, setFlooringType] = useState('');
     const [focusedField, setFocusedField] = useState(null);
     const [pricingModalVisible, setPricingModalVisible] = useState(false);
 
@@ -51,7 +55,7 @@ const OfficeNext = () => {
         "+Security fire Alarm",
         "+Visitor Parking",
     ];
-    const [amenities, setAmenities] = useState([]);
+   
 
     /* ---------------- LOCATION ADVANTAGES ---------------- */
     const locationAdvantages = [
@@ -64,7 +68,7 @@ const OfficeNext = () => {
         "+Close to Mall",
         "+Close to Highway",
     ];
-    const [locAdvantages, setLocAdvantages] = useState([]);
+   
     const [leaseDuration, setLeaseDuration] = useState("");
     const [monthlyRent, setMonthlyRent] = useState("");
 
@@ -100,23 +104,18 @@ const OfficeNext = () => {
             text2: 'Moving to next step...',
         });
         router.push(
-            "/home/screens/UploadScreens/CommercialUpload/Components/StorageVaastu"
+            "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityVaastu"
         );
         // Navigate to next screen or submit
         // router.push("/next-screen");
     };
 
     return (
-        <View className="flex-1 bg-gray-50">
-            <ScrollView
-                contentContainerStyle={{ padding: 16, paddingBottom: 36 }}
-                showsVerticalScrollIndicator={false}
-
-            >
-                <View className="flex-row items-center mt-7 mb-4">
+        <View className="flex-1 bg-white">
+            <View className="flex-row items-center mt-7 mt-4 mb-3 ml-4">
                     <TouchableOpacity
                         onPress={() =>
-                            router.push("/home/screens/UploadScreens/CommercialUpload/Components/Storage")
+                            router.push("/home/screens/UploadScreens/CommercialUpload/Components/Hospitality")
                         }
                         className="p-2"
                     >
@@ -135,6 +134,12 @@ const OfficeNext = () => {
                         </Text>
                     </View>
                 </View>
+            <ScrollView
+                contentContainerStyle={{ padding: 16, paddingBottom: 36 }}
+                showsVerticalScrollIndicator={false}
+
+            >
+                
                 {/* ---------- PRICE DETAILS ---------- */}
                 <View
                     className="bg-white rounded-lg p-4 mb-4"
@@ -180,7 +185,7 @@ const OfficeNext = () => {
                     />
 
                     <Text className="mb-2 text-[15px] font-bold text-[#00000099]">
-                        Price Details <Text className="text-red-500">*</Text>
+                        Expected Price Details <Text className="text-red-500">*</Text>
                     </Text>
 
                     <TextInput
@@ -200,7 +205,7 @@ const OfficeNext = () => {
                     />
 
                     <Checkbox
-                        label="All inclusive price"
+                        label="DG & UPS Price included"
                         selected={allInclusive}
                         onPress={() => setAllInclusive(!allInclusive)}
                     />
@@ -287,11 +292,11 @@ const OfficeNext = () => {
 
                     {/* ---------- DESCRIPTION ---------- */}
                     <Text className="mt-4 mb-2 font-bold text-[15px] text-[#00000099]">
-                        Describe your property <Text className="text-red-500">*</Text>
+                        Description <Text className="text-red-500">*</Text>
                     </Text>
 
                     <TextInput
-                        placeholder="Share some details about your property like spacious rooms, well maintained facilities."
+                        placeholder="write here what makes your property unique."
                         value={describeProperty}
                         onChangeText={setDescribeProperty}
                         onFocus={() => setFocusedField("describeProperty")}
@@ -305,6 +310,7 @@ const OfficeNext = () => {
                             height: 108,
                         }}
                     />
+
 
                     {/* ---------- AMENITIES & LOCATION ---------- */}
                     <View
@@ -326,7 +332,63 @@ const OfficeNext = () => {
                                 />
                             ))}
                         </View>
-
+                         <Text className="text-[15px] font-bold text-[#00000099] mb-3">
+                            Other Features
+                        </Text>
+                        <Checkbox
+                        label="Wheelchair Friendly"
+                        selected={wheelchairFriendly}
+                        onPress={() => setWheelchairFriendly(!wheelchairFriendly)}
+                    />
+<Text className="text-[15px] font-bold text-[#00000099] mb-2 mt-3">Type of flooring</Text>
+          <TouchableOpacity
+            onPress={() => setVisible(visible === 'flooring' ? null : 'flooring')}
+            className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 mb-3"
+          >
+            <Text className="text-gray-800 text-left">{flooringType || "Select Flooring"}</Text>
+            <Ionicons name="chevron-down" size={24} color="#888" />
+          </TouchableOpacity>
+          {visible === 'flooring' && (
+  <View
+    className="bg-white rounded-lg shadow-lg -mt-4 mb-4"
+    style={{ borderWidth: 1, borderColor: "#0000001A" }}
+  >
+    {[
+      "Marble",
+      "Concrete",
+      "Ceramic",
+      "Mosaic",
+      "Cement",
+      "Stone",
+      "Vinyl",
+      "Spartex",
+      "IPS Finish",
+      "Vitrified",
+      "Wooden",
+      "Granite",
+      "Others",
+    ].map((item) => (
+      <TouchableOpacity
+        key={item}
+        onPress={() => {
+          setFlooringType(item);
+          setVisible(null);
+        }}
+        className={`p-4 border-b border-gray-200 ${
+          flooringType === item ? "bg-green-500" : "bg-white"
+        }`}
+      >
+        <Text
+          className={`${
+            flooringType === item ? "text-white" : "text-gray-800"
+          }`}
+        >
+          {item}
+        </Text>
+      </TouchableOpacity>
+    ))}
+  </View>
+          )}
                         <Text className="text-[15px] font-bold text-[#00000099] mb-3">
                             Location Advantages
                         </Text>
@@ -343,22 +405,7 @@ const OfficeNext = () => {
                             ))}
                         </View>
                     </View>
-                    <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-3">
-                        <TouchableOpacity
-                            className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
-                            onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload/Components/Storage")}
-                        >
-                            <Text className="font-semibold">Cancel</Text>
-                        </TouchableOpacity>
 
-                        <TouchableOpacity
-                            className="px-5 py-3 rounded-lg bg-green-500"
-                            onPress={handleNext}
-                        >
-                            <Text className="text-white font-semibold">Next</Text>
-                        </TouchableOpacity>
-
-                    </View>
                 </View>
 
                 {/* More Pricing Details Modal */}
@@ -368,8 +415,26 @@ const OfficeNext = () => {
                 />
 
             </ScrollView>
+            <View className="bg-white border-t border-gray-200">
+            <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-12">
+                <TouchableOpacity
+                    className="px-10 py-3 rounded-lg bg-gray-200 mx-3"
+                    onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload/Components/HospitalityVaastu")}
+                >
+                    <Text className="font-semibold">Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    className="px-8 py-3 rounded-lg bg-green-500"
+                    onPress={handleNext}
+                >
+                    <Text className="text-white font-semibold">Next</Text>
+                </TouchableOpacity>
+
+            </View>
+            </View>
         </View>
     );
 };
 
-export default OfficeNext;
+export default HospitalityNext;

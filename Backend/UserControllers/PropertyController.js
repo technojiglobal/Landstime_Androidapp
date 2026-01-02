@@ -36,10 +36,8 @@ if (!name || !phone || !email) {
 }
 
     // Extract uploaded files
-   const images =
-  req.files?.images?.map(file => file.path) ||
-  req.files?.propertyImages?.map(file => file.path) ||
-  [];
+const images = req.files?.images?.map(file => file.path) || [];
+
 
 
     const ownershipDocs = req.files?.ownershipDocs?.map(file => file.path) || [];
@@ -74,14 +72,14 @@ if (!name || !phone || !email) {
 
   // OFFICE
  if (commercialDetails.subType.toLowerCase().includes("office")) {
-  if (!commercialDetails.location) {
+  if (!commercialDetails.officeDetails?.location) {
     return res.status(400).json({
       success: false,
       message: "Office location is required",
     });
   }
 
-  if (!commercialDetails.area) {
+  if (!commercialDetails.officeDetails?.area) {
     return res.status(400).json({
       success: false,
       message: "Office area is required",

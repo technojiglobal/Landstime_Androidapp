@@ -8,12 +8,14 @@ import {
     TouchableOpacity,
     ScrollView,
     Image,
+    ToastAndroid,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
 import { Ionicons } from "@expo/vector-icons";
 
 import { PillButton, Checkbox } from "./Office";
+import MorePricingDetailsModal from "../../MorePricingDetailsModal";
 
 const OfficeNext = () => {
     const router = useRouter();
@@ -69,6 +71,10 @@ const OfficeNext = () => {
     const [locAdvantages, setLocAdvantages] = useState([]);
     const [leaseDuration, setLeaseDuration] = useState("");
     const [monthlyRent, setMonthlyRent] = useState("");
+
+    /* ---------------- MODAL AND FOCUS STATES ---------------- */
+    const [focusedField, setFocusedField] = useState(null);
+    const [isMorePricingModalVisible, setIsMorePricingModalVisible] = useState(false);
 
     /* ---------------- HELPERS ---------------- */
     const toggleArrayItem = (setter, array, value) => {
@@ -158,7 +164,7 @@ const officeDetails = params.officeDetails
                     style={{ borderWidth: 1, borderColor: "#0000001A" }}
                 >
                     <Text className="mb-2 text-[15px] font-bold text-[#00000099]">
-                        Price Details
+                        Price Details <Text className="text-red-500">*</Text>
                     </Text>
 
                     <TextInput
@@ -167,12 +173,14 @@ const officeDetails = params.officeDetails
                         onChangeText={setExpectedPrice}
                         className="rounded-md p-3 mb-3"
                         style={{
-                            borderWidth: 1,
-                            borderColor: "#0000001A",
+                            borderWidth: 2,
+                            borderColor: focusedField === "expectedPrice" ? "#22C55E" : "#0000001A",
                             height: 52,
                             backgroundColor: "#D9D9D91C",
                         }}
                         keyboardType="numeric"
+                        onFocus={() => setFocusedField("expectedPrice")}
+                        onBlur={() => setFocusedField(null)}
                     />
 
                     <Checkbox
@@ -191,7 +199,7 @@ const officeDetails = params.officeDetails
                         onPress={() => setTaxExcluded(!taxExcluded)}
                     />
 
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={() => setIsMorePricingModalVisible(true)}>
                         <Text className="text-[#22C55E] text-sm mt-2">
                             + Add more pricing details
                         </Text>
@@ -225,11 +233,13 @@ const officeDetails = params.officeDetails
                                 onChangeText={setLeaseDuration}
                                 className="rounded-md p-3 mb-3"
                                 style={{
-                                    borderWidth: 1,
-                                    borderColor: "#0000001A",
+                                    borderWidth: 2,
+                                    borderColor: focusedField === "leaseDuration" ? "#22C55E" : "#0000001A",
                                     backgroundColor: "#D9D9D91C",
                                     height: 50,
                                 }}
+                                onFocus={() => setFocusedField("leaseDuration")}
+                                onBlur={() => setFocusedField(null)}
                             />
 
                             {/* Monthly Rent */}
@@ -243,11 +253,13 @@ const officeDetails = params.officeDetails
                                 keyboardType="numeric"
                                 className="rounded-md p-3"
                                 style={{
-                                    borderWidth: 1,
-                                    borderColor: "#0000001A",
+                                    borderWidth: 2,
+                                    borderColor: focusedField === "monthlyRent" ? "#22C55E" : "#0000001A",
                                     backgroundColor: "#D9D9D91C",
                                     height: 50,
                                 }}
+                                onFocus={() => setFocusedField("monthlyRent")}
+                                onBlur={() => setFocusedField(null)}
                             />
                         </View>
                     )}
@@ -331,7 +343,7 @@ const officeDetails = params.officeDetails
 
                     {/* ---------- DESCRIPTION ---------- */}
                     <Text className="mt-4 mb-2 font-bold text-[15px] text-[#00000099]">
-                        Describe your property
+                        Describe your property <Text className="text-red-500">*</Text>
                     </Text>
 
                     <TextInput
@@ -342,10 +354,12 @@ const officeDetails = params.officeDetails
                         textAlignVertical="top"
                         className="rounded-md p-3"
                         style={{
-                            borderWidth: 1,
-                            borderColor: "#0000001A",
+                            borderWidth: 2,
+                            borderColor: focusedField === "describeProperty" ? "#22C55E" : "#0000001A",
                             height: 108,
                         }}
+                        onFocus={() => setFocusedField("describeProperty")}
+                        onBlur={() => setFocusedField(null)}
                     />
 
                     {/* ---------- AMENITIES & LOCATION ---------- */}
@@ -404,6 +418,10 @@ const officeDetails = params.officeDetails
                     
                 </View>
             </ScrollView>
+            <MorePricingDetailsModal
+                visible={isMorePricingModalVisible}
+                onClose={() => setIsMorePricingModalVisible(false)}
+            />
         </View>
     );
 };
