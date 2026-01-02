@@ -8,11 +8,11 @@ const propertySchema = new mongoose.Schema({
     enum: ['House', 'Site/Plot/Land', 'Commercial', 'Resort'],
     required: true
   },
-  propertyTitle: {
-    type: String,
-    required: true,
-    trim: true
-  },
+ propertyTitle: {
+  te: { type: String, trim: true },
+  hi: { type: String, trim: true },
+  en: { type: String, trim: true }
+},
   images: [{
     type: String // URLs of uploaded images
   }],
@@ -26,6 +26,12 @@ ownerDetails: {
     required: [true, "Owner name is required"],
     trim: true,
   },
+  // ✅ NEW CODE - Add this new field
+originalLanguage: {
+  type: String,
+  enum: ['te', 'hi', 'en'],
+  default: 'en'
+},
   phone: {
     type: String,
     required: [true, "Owner phone is required"],
@@ -38,10 +44,16 @@ ownerDetails: {
 },
 
   location: {
-    type: String,
-    required: true
-  },
-  description: String,
+  te: { type: String, trim: true },
+  hi: { type: String, trim: true },
+  en: { type: String, trim: true }
+},
+  // ✅ NEW CODE
+description: {
+  te: { type: String },
+  hi: { type: String },
+  en: { type: String }
+},
   expectedPrice: {
     type: Number,
     required: true
@@ -161,13 +173,13 @@ ownerDetails: {
   /* -------- REQUIRED -------- */
   location: {
     type: String,
-    required: true,
+    required: false,
     trim: true,
   },
 
   area: {
     type: Number,
-    required: true,
+    required: false,
   },
 
   /* -------- LOCATION INFO (OPTIONAL) -------- */

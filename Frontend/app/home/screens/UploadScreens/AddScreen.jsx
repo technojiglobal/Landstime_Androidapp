@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { createProperty } from "../../../../utils/propertyApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import i18n from "../../../../i18n/index";
+import { useTranslation } from "react-i18next";
 import {
   View,
   Text,
@@ -35,6 +37,8 @@ import FurnishingsModal from "./FurnishingsModal";
 import DocumentUpload from "components/Documentupload";
 import OwnerDetails from "components/OwnersDetails";
 export default function AddScreen() {
+
+  const {i18n} = useTranslation();
   const [constructionStatus, setConstructionStatus] = useState("");
   const [possessionBy, setPossessionBy] = useState("");
   const router = useRouter();
@@ -140,6 +144,12 @@ export default function AddScreen() {
     { key: "balcony", label: "Balcony", value: balcony, setValue: setBalcony },
   ];
 
+  // Inside AddScreen component, add this helper function
+ const getUserLanguage = () => {
+    const currentLang = i18n.language || 'en';
+    console.log('📝 Current app language:', currentLang);
+    return currentLang;
+  };
   const handleUpload = async () => {
     try {
       // ✅ Check authentication FIRST
@@ -290,6 +300,7 @@ const propertyData = {
   propertyTitle,
   location,
   description,
+  originalLanguage: getUserLanguage(), // Store original language
   expectedPrice: parseFloat(expectedPrice),
    ownerDetails: {
     name: ownerName,
@@ -560,9 +571,7 @@ houseDetails: {
                         placeholder="Surya Teja Apartments"
                         placeholderTextColor="#9CA3AF"
                         value={propertyTitle}
-                        onChangeText={(text) =>
-                          setPropertyTitle(text.replace(/[^a-zA-Z0-9\s]/g, ""))
-                        }
+                        onChangeText={(text) => setPropertyTitle(text)}
                         style={{
                           backgroundColor: "#f3f4f6",
                           borderRadius: 8,
@@ -991,9 +1000,7 @@ houseDetails: {
                           placeholder="Enter Property Location"
                           placeholderTextColor="#888"
                           value={location}
-                          onChangeText={(text) =>
-                            setLocation(text.replace(/[^a-zA-Z0-9\s]/g, ""))
-                          }
+                          onChangeText={(text) => setLocation(text)}
                           style={{ flex: 1, marginLeft: 8, color: "#1f2937" }}
                           onFocus={() => setFocusedField("location")}
                           onBlur={() => setFocusedField(null)}
@@ -1021,9 +1028,7 @@ houseDetails: {
                           placeholder="Describe your property ........"
                           placeholderTextColor="#888"
                           value={description}
-                          onChangeText={(text) =>
-                            setDescription(text.replace(/[^a-zA-Z0-9\s]/g, ""))
-                          }
+                          onChangeText={(text) => setDescription(text)}
                           multiline
                           numberOfLines={6} // ⬅️ increases initial rows
                           textAlignVertical="top" // ⬅️ cursor starts at top (Android fix)
@@ -1264,9 +1269,7 @@ houseDetails: {
                         placeholder="Surya Teja Apartments"
                         placeholderTextColor="#9CA3AF"
                         value={propertyTitle}
-                        onChangeText={(text) =>
-                          setPropertyTitle(text.replace(/[^a-zA-Z0-9\s]/g, ""))
-                        }
+                        onChangeText={(text) => setPropertyTitle(text)}
                         style={{
                           backgroundColor: "#f3f4f6",
                           borderRadius: 8,
@@ -1542,9 +1545,7 @@ houseDetails: {
                           placeholder="Enter Property Location"
                           placeholderTextColor="#888"
                           value={location}
-                          onChangeText={(text) =>
-                            setLocation(text.replace(/[^a-zA-Z0-9\s]/g, ""))
-                          }
+                          onChangeText={(text) => setLocation(text)}
                           style={{ flex: 1, marginLeft: 8, color: "#1f2937" }}
                           onFocus={() => setFocusedField("location")}
                           onBlur={() => setFocusedField(null)}
