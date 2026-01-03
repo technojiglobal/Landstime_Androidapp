@@ -378,40 +378,31 @@
   "language": "भाषा",
   "currency": "मुद्रा",
   "help_support": "सहायता और समर्थन",
- 
-  
-  "districts": {
-    "anantapur": "अनंतपुर",
-    "chittoor": "चित्तूर",
-    "eastgodavari": "पूर्वी गोदावरी",
-    "guntur": "गुंटूर",
-    "kadapa": "कडपा",
-    "krishna": "कृष्णा",
-    "kurnool": "कर्नूल",
-    "nellore": "नेल्लोर",
-    "srikakulam": "श्रीकाकुलम",
-    "visakhapatnam": "विशाखापत्तनम",
-    "vizianagaram": "विजयनगरम",
-    "westgodavari": "पश्चिम गोदावरी"
-  },
-  
-  "areas": {
-    "akkayapalem": "अक्कायापलेम",
-    "anandapuram": "आनंदपुरम",
-    "boyapalem": "बोयापलेम",
-    "chinnagadili": "चिन्ना गडिली",
-    "dwarkanagar": "द्वारका नगर",
-    "gajuwaka": "गाजुवाका",
-    "kommadi": "कोम्मडी"
-  },
-  
   "selectDistrict.title": "आंध्र प्रदेश में जिला चुनें",
   "selectDistrict.searchPlaceholder": "आंध्र प्रदेश में जिलों को खोजें...",
-  "selectDistrict.noResults": "\"{query}\" के लिए कोई जिला नहीं मिला",
+  "selectDistrict.noResults": "{query} के लिए कोई जिला नहीं मिला",
   "selectDistrict.propertiesAvailable": "संपत्तियां उपलब्ध हैं",
-  
+  "districts.anantapur": "अनंतपुर",
+  "districts.chittoor": "चित्तूर",
+  "districts.eastgodavari": "पूर्वी गोदावरी",
+  "districts.guntur": "गुंटूर",
+  "districts.kadapa": "कडपा",
+  "districts.krishna": "कृष्णा",
+  "districts.kurnool": "कर्नूल",
+  "districts.nellore": "नेल्लोर",
+  "districts.srikakulam": "श्रीकाकुलम",
+  "districts.visakhapatnam": "विशाखापत्तनम",
+  "districts.vizianagaram": "विजयनगरम",
+  "districts.westgodavari": "पश्चिम गोदावरी",
+  "areas.akkayapalem": "अक्कायापलेम",
+  "areas.anandapuram": "आनंदपुरम",
+  "areas.boyapalem": "बोयापलेम",
+  "areas.chinnagadili": "चिन्ना गडिली",
+  "areas.dwarkanagar": "द्वारका नगर",
+  "areas.gajuwaka": "गाजुवाका",
+  "areas.kommadi": "कोम्मडी",
   "selectSite.title": "रिसॉर्ट चुनें",
   "selectSite.searchPlaceholder": "में संपत्तियों को खोजें",
-  "selectSite.noResults": "कोई संपत्ति नहीं मिली"
-
+  "selectSite.noResults": "कोई संपत्ति नहीं मिली",
+  "sidebar_menu_my_properties": "मेरी प्रॉपर्टीज़"
 }

@@ -30,6 +30,17 @@ export default function SignIn() {
 
   const router = useRouter();
 
+  // Add this helper function at the top of your component (after line 23)
+const getLocalizedName = (nameField) => {
+  if (!nameField) return "User";
+  if (typeof nameField === 'string') return nameField;
+  const currentLang = i18n?.language || 'en';
+  return nameField[currentLang] || nameField.en || nameField.te || nameField.hi || "User";
+};
+
+
+
+
   // Helper functions for font sizing
   const getFontSize = (baseSize) => {
     const currentLang = i18n?.language || 'en';
@@ -80,21 +91,24 @@ export default function SignIn() {
     try {
       const response = await loginUser(phone);
 
-      if (response.success && response.data.success) {
-        if (response.data.data?.token) {
-          await saveToken(response.data.data.token);
-          console.log('🔐 Token saved on login:', response.data.data.token);
-        }
-        
-        await saveUserData(response.data.data.user);
+    if (response.success && response.data.success) {
+  if (response.data.data?.token) {
+    await saveToken(response.data.data.token);
+    console.log('🔐 Token saved on login:', response.data.data.token);
+  }
+  
+  await saveUserData(response.data.data.user);
 
-        Toast.show({
-          type: 'success',
-          text1: t('login_success_title'),
-          text2: `${t('login_success_desc')}, ${response.data.data.user.name}`,
-          position: 'top',
-          visibilityTime: 2500,
-        });
+  // ✅ NEW: Extract localized name first
+  const userName = getLocalizedName(response.data.data.user.name);
+
+  Toast.show({
+    type: 'success',
+    text1: t('login_success_title'),
+    text2: `${t('login_success_desc')}, ${userName}`,  // ✅ FIXED: Use userName variable
+    position: 'top',
+    visibilityTime: 2500,
+  });
 
         setTimeout(() => {
           router.replace("/(tabs)/home");

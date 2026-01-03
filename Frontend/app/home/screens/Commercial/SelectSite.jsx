@@ -1,3 +1,4 @@
+//Frontend/app/home/screens/Commercial/SelectSite.jsx
 import React, { useState, useRef } from 'react';
 import {
   View,
@@ -21,15 +22,16 @@ import {
   ChevronRight,
 } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router'; // ✅ Added useLocalSearchParams
+import { useTranslation } from 'react-i18next';
 
 const sitesData = [
-  { name: 'Akkayapalem', properties: 1247 },
-  { name: 'Anandapuram', properties: 892 },
-  { name: 'Boyapalem', properties: 2156 },
-  { name: 'Chinna Gadili', properties: 892 },
-  { name: 'Dwarka Nagar', properties: 445 },
-  { name: 'Gajuwaka', properties: 3021 },
-  { name: 'Kommadi', properties: 3021 },
+  { key: 'akkayapalem', properties: 1247 },
+  { key: 'anandapuram', properties: 892 },
+  { key: 'boyapalem', properties: 2156 },
+  { key: 'chinnagadili', properties: 892 },
+  { key: 'dwarkanagar', properties: 445 },
+  { key: 'gajuwaka', properties: 3021 },
+  { key: 'kommadi', properties: 3021 },
 ];
 
 const { width } = Dimensions.get('window');
@@ -38,7 +40,9 @@ const itemWidth = width * 0.9;
 const SelectSiteScreen = () => {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { district } = useLocalSearchParams(); // ✅ Receive district from previous screen
+  const { t } = useTranslation();
+  const { districtKey } = useLocalSearchParams();
+const districtName = districtKey ? t(`districts.${districtKey}`) : t('districts.visakhapatnam');
   const [searchQuery, setSearchQuery] = useState('');
   const [contentHeight, setContentHeight] = useState(1);
   const [scrollViewHeight, setScrollViewHeight] = useState(0);
@@ -47,9 +51,10 @@ const SelectSiteScreen = () => {
   const scrollPositionOnDragStart = useRef(0);
 
   // Filter data based on search query
-  const filteredData = sitesData.filter((site) =>
-    site.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+ const filteredData = sitesData.filter((site) => {
+  const translatedName = t(`areas.${site.key}`);
+  return translatedName.toLowerCase().includes(searchQuery.toLowerCase());
+});
 
   const scrollIndicatorHeight =
     scrollViewHeight > 0 ? ((scrollViewHeight / contentHeight) * scrollViewHeight) * 0.5 : 0;
@@ -90,7 +95,6 @@ const SelectSiteScreen = () => {
     })
   ).current;
 
-  const districtName = district || 'Vizag'; // fallback if no district is passed
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white', paddingTop: 8 }}>
@@ -160,19 +164,23 @@ const SelectSiteScreen = () => {
 
           {/* Site Items */}
           {filteredData.map((site) => (
-            <TouchableOpacity
-              key={site.name}
-              style={[styles.siteItem, { borderLeftColor: '#22C55E', width: itemWidth }]}
-              onPress={() =>
-                router.push({
-                  pathname: '/home/screens/Commercial/PropertyDetails',
-                  params: { area: site.name, district: districtName }, // ✅ Pass both
-                })
-              }
-              activeOpacity={0.85}
-            >
-              <View className="flex-col">
-                <Text className="text-lg font-semibold text-gray-800">{site.name}</Text>
+  <TouchableOpacity
+    key={site.key}
+    style={[styles.siteItem, { borderLeftColor: '#22C55E', width: itemWidth }]}
+    onPress={() =>
+      router.push({
+        pathname: '/home/screens/Commercial/PropertyDetails',
+        params: { 
+          areaKey: site.key,
+          districtKey: districtKey
+        },
+      })
+    }
+  >
+    <View className="flex-col">
+      <Text className="text-lg font-semibold text-gray-800">
+        {t(`areas.${site.key}`)}
+      </Text>
                 <View className="flex-row items-center mt-1">
                   <MapPin color="#22C55E" size={14} />
                   <Text className="text-sm text-gray-500 ml-1">
