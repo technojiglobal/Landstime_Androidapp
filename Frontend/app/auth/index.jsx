@@ -161,13 +161,21 @@ useEffect(() => {
 
     setLoading(true);
     try {
-      const response = await registerUser({
-        name: name.trim(),
-        phone: phone,
-        countryCode: countryCode,
-        email: email.toLowerCase().trim(),
-        role: role,
-      });
+    // Get current language
+const getUserLanguage = () => {
+  const currentLang = i18n.language || 'en';
+  console.log('📝 Current app language:', currentLang);
+  return currentLang;
+};
+
+const response = await registerUser({
+  name: name.trim(),
+  phone: phone,
+  countryCode: countryCode,
+  email: email.toLowerCase().trim(),
+  role: role,
+  originalLanguage: getUserLanguage() // ✅ NEW: Pass original language
+});
 
       if (response.success && response.data.success) {
         if (response.data.data?.token) {

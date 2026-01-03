@@ -3,11 +3,18 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true,
+  name : {
+    te : { type: String, trim: true },
+    hi : { type: String, trim: true },
+    en : { type: String, trim: true }   
   },
+
+  // Add this field to track original language of registration
+originalLanguage: {
+  type: String,
+  enum: ['te', 'hi', 'en'],
+  default: 'en'
+},
 
   phone: {
     type: String,
