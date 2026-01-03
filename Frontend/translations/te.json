@@ -378,38 +378,31 @@
   "language": "భాష",
   "currency": "కరెన్సీ",
   "help_support": "సహాయం & మద్దతు",
- 
-  "districts": {
-    "anantapur": "అనంతపురం",
-    "chittoor": "చిత్తూరు",
-    "eastgodavari": "తూర్పు గోదావరి",
-    "guntur": "గుంటూరు",
-    "kadapa": "కడప",
-    "krishna": "కృష్ణా",
-    "kurnool": "కర్నూలు",
-    "nellore": "నెల్లూరు",
-    "srikakulam": "శ్రీకాకుళం",
-    "visakhapatnam": "విశాఖపట్టణం",
-    "vizianagaram": "విజయనగరం",
-    "westgodavari": "పశ్చిమ గోదావరి"
-  },
-  
-  "areas": {
-    "akkayapalem": "అక్కయ్యపాలెం",
-    "anandapuram": "ఆనందపురం",
-    "boyapalem": "బోయపాలెం",
-    "chinnagadili": "చిన్న గడిలి",
-    "dwarkanagar": "ద్వారకా నగర్",
-    "gajuwaka": "గాజువాక",
-    "kommadi": "కొమ్మడి"
-  },
-  
   "selectDistrict.title": "ఆంధ్రప్రదేశ్‌లో జిల్లాను ఎంచుకోండి",
   "selectDistrict.searchPlaceholder": "ఆంధ్రప్రదేశ్‌లో జిల్లాలను శోధించండి...",
-  "selectDistrict.noResults": "\"{query}\" కోసం జిల్లాలు కనుగొనబడలేదు",
+  "selectDistrict.noResults": "{query} కోసం జిల్లాలు కనుగొనబడలేదు",
   "selectDistrict.propertiesAvailable": "ఆస్తులు అందుబాటులో ఉన్నాయి",
-  
+  "districts.anantapur": "అనంతపురం",
+  "districts.chittoor": "చిత్తూరు",
+  "districts.eastgodavari": "తూర్పు గోదావరి",
+  "districts.guntur": "గుంటూరు",
+  "districts.kadapa": "కడప",
+  "districts.krishna": "కృష్ణా",
+  "districts.kurnool": "కర్నూలు",
+  "districts.nellore": "నెల్లూరు",
+  "districts.srikakulam": "శ్రీకాకుళం",
+  "districts.visakhapatnam": "విశాఖపట్టణం",
+  "districts.vizianagaram": "విజయనగరం",
+  "districts.westgodavari": "పశ్చిమ గోదావరి",
+  "areas.akkayapalem": "అక్కయ్యపాలెం",
+  "areas.anandapuram": "ఆనందపురం",
+  "areas.boyapalem": "బోయపాలెం",
+  "areas.chinnagadili": "చిన్న గడిలి",
+  "areas.dwarkanagar": "ద్వారకా నగర్",
+  "areas.gajuwaka": "గాజువాక",
+  "areas.kommadi": "కొమ్మడి",
   "selectSite.title": "రిసార్ట్‌ను ఎంచుకోండి",
   "selectSite.searchPlaceholder": "లో ఆస్తులను శోధించండి",
-  "selectSite.noResults": "ఆస్తులు కనుగొనబడలేదు"
+  "selectSite.noResults": "ఆస్తులు కనుగొనబడలేదు",
+  "sidebar_menu_my_properties": "నా ఆస్తులు"
 }

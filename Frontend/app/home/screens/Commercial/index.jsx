@@ -25,18 +25,18 @@ import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 const districtsData = [
-  { name: "Anantapur", properties: 1725 },
-  { name: "Chittoor", properties: 1850 },
-  { name: "East Godavari", properties: 4251 },
-  { name: "Guntur", properties: 2904 },
-  { name: "Kadapa", properties: 1503 },
-  { name: "Krishna", properties: 3790 },
-  { name: "Kurnool", properties: 2048 },
-  { name: "Nellore", properties: 2210 },
-  { name: "Srikakulam", properties: 1985 },
-  { name: "Visakhapatnam", properties: 5124 },
-  { name: "Vizianagaram", properties: 2487 },
-  { name: "West Godavari", properties: 3320 },
+  { key: 'anantapur', properties: 1725 },
+  { key: 'chittoor', properties: 1850 },
+  { key: 'eastgodavari', properties: 4251 },
+  { key: 'guntur', properties: 2904 },
+  { key: 'kadapa', properties: 1503 },
+  { key: 'krishna', properties: 3790 },
+  { key: 'kurnool', properties: 2048 },
+  { key: 'nellore', properties: 2210 },
+  { key: 'srikakulam', properties: 1985 },
+  { key: 'visakhapatnam', properties: 5124 },
+  { key: 'vizianagaram', properties: 2487 },
+  { key: 'westgodavari', properties: 3320 },
 ];
 
 const ITEM_WIDTH = 339;
@@ -53,9 +53,10 @@ export default function SelectDistrictScreen() {
   const scrollViewRef = useRef(null);
   const dragStartY = useRef(0);
 
-  const filteredData = districtsData.filter((district) =>
-    district.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+ const filteredData = districtsData.filter((district) => {
+  const translatedName = t(`districts.${district.key}`);
+  return translatedName.toLowerCase().includes(searchQuery.toLowerCase());
+});
 
   const scrollIndicatorHeight =
     scrollViewHeight > 0
@@ -161,16 +162,19 @@ export default function SelectDistrictScreen() {
           )}
 
           {filteredData.map((district) => (
-            <TouchableOpacity
-              key={district.name}
-              style={[styles.item, { width: ITEM_WIDTH }]}
-              onPress={() =>
-                router.push("/home/screens/Commercial/SelectSite")
-              }
-              activeOpacity={0.85}
-            >
-              <View>
-                <Text style={styles.itemTitle}>{district.name}</Text>
+  <TouchableOpacity
+    key={district.key}
+    style={[styles.item, { width: ITEM_WIDTH }]}
+    onPress={() =>
+      router.push({
+        pathname: "/home/screens/Commercial/SelectSite",
+        params: { districtKey: district.key }
+      })
+    }
+    activeOpacity={0.85}
+  >
+    <View>
+      <Text style={styles.itemTitle}>{t(`districts.${district.key}`)}</Text>
                 <View style={styles.itemSubRow}>
                   <MapPin color="#22C55E" size={14} />
                   <Text style={styles.itemSubtitle}>
