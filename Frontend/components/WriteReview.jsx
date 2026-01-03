@@ -1,4 +1,4 @@
-///Frontend/app/home/screens/Flats/(Property)/WriteReview.jsx
+// Frontend/components/WriteReview.jsx
 import React, { useState } from "react";
 import {
   View,
@@ -10,13 +10,41 @@ import {
   StyleSheet,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons"; // ✅ correct icon set
+import { submitReview } from "../utils/reviewApi";
+
 
 const { width } = Dimensions.get("window");
 
-export default function WriteReview() {
+export default function WriteReview({ entityId, entityType }) {
   const [rating, setRating] = useState(0);
   const [title, setTitle] = useState("");
   const [review, setReview] = useState("");
+const handleSubmit = async () => {
+  if (!rating || !title || review.length < 10) {
+    alert("Please fill all fields");
+    return;
+  }
+
+  try {
+    await submitReview({
+      entityId,
+      entityType,
+      rating,
+      title,
+      comment: review,
+      userName: "Anonymous",
+    });
+
+    alert("Review submitted successfully");
+    setRating(0);
+    setTitle("");
+    setReview("");
+  } catch (err) {
+    alert(err.message);
+  }
+};
+
+
 
   return (
     <View style={styles.container}>
@@ -76,7 +104,8 @@ export default function WriteReview() {
               <Text style={styles.draftText}>Save as Draft</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.submitBtn} activeOpacity={0.8}>
+           <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
+
               <Text style={styles.submitText}>Submit Review</Text>
             </TouchableOpacity>
           </View>

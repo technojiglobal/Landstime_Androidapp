@@ -23,6 +23,18 @@ const interiorDesignSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  category: {
+  type: String,
+  required: true,
+  enum: [
+    "Living Area",
+    "Bedroom",
+    "Bathroom",
+    "Kitchen",
+    "Workspace",
+    "Storage"
+  ]
+},
   price: {
     type: String,
     required: true,
