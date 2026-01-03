@@ -2,9 +2,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
-const API_BASE_URL = 'http://10.210.66.5:8000/api/properties';
-
-
+const API_BASE_URL = 'http://10.37.92.184:8000/api/properties';
 
 // Helper function to get token
 const getToken = async () => {
@@ -129,9 +127,18 @@ export const getApprovedProperties = async (propertyType = null, page = 1, langu
 };
 
 // Get single property by ID
-export const getPropertyById = async (propertyId) => {
-  return await apiRequest(`/${propertyId}`);
+// Get single property by ID
+// export const getPropertyById = async (propertyId, language = 'en') => {
+//   return await apiRequest(`/${propertyId}?language=${language}`);
+// };
+
+export const getPropertyById = async (propertyId, language = 'en') => {
+  console.log('🔍 Fetching property with language:', language);
+  const response = await apiRequest(`/${propertyId}?language=${language}`);
+  console.log('📦 API Response:', response.data);
+  return response;
 };
+
 
 // Get user's own properties
 export const getUserProperties = async () => {

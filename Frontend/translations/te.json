@@ -378,8 +378,38 @@
   "language": "భాష",
   "currency": "కరెన్సీ",
   "help_support": "సహాయం & మద్దతు",
-  "selectDistrict.title": "ఆంధ్రప్రదేశ్ జిల్లాను ఎంచుకోండి",
-  "selectDistrict.searchPlaceholder": "ఆంధ్రా జిల్లాలను శోధించండి...",
-  "selectDistrict.noResults": "{query} కి సంబంధించిన జిల్లాలు లభించలేదు",
-  "selectDistrict.propertiesAvailable": "ప్రాపర్టీలు అందుబాటులో ఉన్నాయి"
+ 
+  "districts": {
+    "anantapur": "అనంతపురం",
+    "chittoor": "చిత్తూరు",
+    "eastgodavari": "తూర్పు గోదావరి",
+    "guntur": "గుంటూరు",
+    "kadapa": "కడప",
+    "krishna": "కృష్ణా",
+    "kurnool": "కర్నూలు",
+    "nellore": "నెల్లూరు",
+    "srikakulam": "శ్రీకాకుళం",
+    "visakhapatnam": "విశాఖపట్టణం",
+    "vizianagaram": "విజయనగరం",
+    "westgodavari": "పశ్చిమ గోదావరి"
+  },
+  
+  "areas": {
+    "akkayapalem": "అక్కయ్యపాలెం",
+    "anandapuram": "ఆనందపురం",
+    "boyapalem": "బోయపాలెం",
+    "chinnagadili": "చిన్న గడిలి",
+    "dwarkanagar": "ద్వారకా నగర్",
+    "gajuwaka": "గాజువాక",
+    "kommadi": "కొమ్మడి"
+  },
+  
+  "selectDistrict.title": "ఆంధ్రప్రదేశ్‌లో జిల్లాను ఎంచుకోండి",
+  "selectDistrict.searchPlaceholder": "ఆంధ్రప్రదేశ్‌లో జిల్లాలను శోధించండి...",
+  "selectDistrict.noResults": "\"{query}\" కోసం జిల్లాలు కనుగొనబడలేదు",
+  "selectDistrict.propertiesAvailable": "ఆస్తులు అందుబాటులో ఉన్నాయి",
+  
+  "selectSite.title": "రిసార్ట్‌ను ఎంచుకోండి",
+  "selectSite.searchPlaceholder": "లో ఆస్తులను శోధించండి",
+  "selectSite.noResults": "ఆస్తులు కనుగొనబడలేదు"
 }
