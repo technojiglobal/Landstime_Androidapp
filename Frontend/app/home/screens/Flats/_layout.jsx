@@ -1,4 +1,4 @@
-// app/home/screens/Flats/_layout.tsx
+//Frontend/app/home/screens/Flats/_layout.jsx
 import { Stack } from "expo-router";
 
 export default function FlatsLayout() {
@@ -15,12 +15,12 @@ export default function FlatsLayout() {
           presentation: 'card',
         }}
       />
-      <Stack.Screen 
+      {/* <Stack.Screen 
         name="Property"
         options={{
           presentation: 'card',
         }}
-      />
+      /> */}
     </Stack>
   );
 }

@@ -61,31 +61,6 @@ export const sendOTP = async (req, res) => {
 
     await otpDoc.save();
 
-    // Send OTP via SMS
-    // const smsResult = await sendOTPviaSMS(phone, otp, countryCode);
-
-    // if (smsResult.success) {
-    //   return res.status(200).json({
-    //     success: true,
-    //     message: 'OTP sent successfully to your phone number',
-    //     data: {
-    //       phone: phone,
-    //       expiresIn: '10 minutes'
-    //     }
-    //   });
-    // } else {
-    //   // Delete OTP from database if SMS failed
-    //   await Otp.deleteOne({ _id: otpDoc._id });
-      
-    //   return res.status(500).json({
-    //     success: false,
-    //     message: 'Failed to send OTP. Please try again',
-    //     error: smsResult.message
-    //   });
-    // }
-
-
-
      // Send OTP via SMS (or skip in development)
     let smsResult;
 
@@ -202,24 +177,6 @@ export const verifyOTP = async (req, res) => {
       });
     }
 
-    // // OTP is correct - mark as verified
-    // otpDoc.isVerified = true;
-    // await otpDoc.save();
-
-    // // Delete all other OTPs for this phone number
-    // await Otp.deleteMany({
-    //   phone: phone,
-    //   _id: { $ne: otpDoc._id }
-    // });
-
-    // return res.status(200).json({
-    //   success: true,
-    //   message: 'Phone number verified successfully',
-    //   data: {
-    //     phone: phone,
-    //     verified: true
-    //   }
-    // });
 
 // OTP is correct - mark as verified and keep for 30 minutes
 otpDoc.isVerified = true;
@@ -383,13 +340,13 @@ export const registerUser = async (req, res) => {
     }
 
     // Better email validation
-const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-if (!email || !emailRegex.test(email)) {
-  return res.status(400).json({
-    success: false,
-    message: 'Please provide a valid email address'
-  });
-}
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!email || !emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address'
+      });
+    }
 
     if (!role || !['Buyer', 'Owner'].includes(role)) {
       return res.status(400).json({
@@ -398,28 +355,26 @@ if (!email || !emailRegex.test(email)) {
       });
     }
 
- // NEW - Check if verified OTP exists and is still valid (within 30 minutes)
-// In development mode we skip strict OTP check to make testing easier.
-if (!DEVELOPMENT_MODE) {
-       
-  const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
-  const verifiedOtp = await Otp.findOne({
-    phone: phone,
-    isVerified: true,
-    createdAt: { $gte: thirtyMinutesAgo }
-  }).sort({ createdAt: -1 });
+    // Check if verified OTP exists and is still valid (within 30 minutes)
+    if (!DEVELOPMENT_MODE) {
+      const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+      const verifiedOtp = await Otp.findOne({
+        phone: phone,
+        isVerified: true,
+        createdAt: { $gte: thirtyMinutesAgo }
+      }).sort({ createdAt: -1 });
 
-  console.log('verifiedOtp:', verifiedOtp);
+      console.log('verifiedOtp:', verifiedOtp);
 
-  if (!verifiedOtp) {
-    return res.status(400).json({
-      success: false,
-      message: 'Phone verification expired or not found. Please verify your phone again'
-    });
-  }
-} else {
-  console.log('Development mode: skipping OTP verified check for', phone);
-}
+      if (!verifiedOtp) {
+        return res.status(400).json({
+          success: false,
+          message: 'Phone verification expired or not found. Please verify your phone again'
+        });
+      }
+    } else {
+      console.log('Development mode: skipping OTP verified check for', phone);
+    }
 
     // Check if user already exists with this phone
     const existingUserByPhone = await User.findOne({ phone: phone });
@@ -447,32 +402,33 @@ if (!DEVELOPMENT_MODE) {
       email: email.toLowerCase(),
       role: role,
       isPhoneVerified: true,
-      isEmailVerified: false
+      isEmailVerified: false,
+      lastLogin: new Date() // ✅ SET LAST LOGIN ON REGISTRATION
     });
 
     await newUser.save();
 
     // Delete the verified OTP
     await Otp.deleteMany({ phone: phone });
-// NEW - Add token (if needed)
-// Generate JWT token
-const token = generateToken(newUser._id);
 
-return res.status(201).json({
-  success: true,
-  message: 'User registered successfully',
-  data: {
-    token: token,
-    user: {
-      id: newUser._id,
-      name: newUser.name,
-      phone: newUser.phone,
-      email: newUser.email,
-      role: newUser.role,
-      isPhoneVerified: newUser.isPhoneVerified
-    }
-  }
-});
+    // Generate JWT token
+    const token = generateToken(newUser._id);
+
+    return res.status(201).json({
+      success: true,
+      message: 'User registered successfully',
+      data: {
+        token: token,
+        user: {
+          id: newUser._id,
+          name: newUser.name,
+          phone: newUser.phone,
+          email: newUser.email,
+          role: newUser.role,
+          isPhoneVerified: newUser.isPhoneVerified
+        }
+      }
+    });
 
   } catch (error) {
     console.error('Error in registerUser:', error);
@@ -515,25 +471,38 @@ export const loginUser = async (req, res) => {
       });
     }
 
-   // ✅ Generate JWT token
-const token = generateToken(user._id);
-
-return res.status(200).json({
-  success: true,
-  message: 'Login successful',
-  data: {
-    token: token,
-    user: {
-      id: user._id,
-      name: user.name,
-      phone: user.phone,
-      email: user.email,
-      role: user.role,
-      isPhoneVerified: user.isPhoneVerified,
-      isEmailVerified: user.isEmailVerified
+    // Check if user is blocked
+    if (user.isBlocked) {
+      return res.status(403).json({
+        success: false,
+        message: 'Your account has been blocked. Please contact support'
+      });
     }
-  }
-});
+
+    // ✅ UPDATE LAST LOGIN TIMESTAMP
+    user.lastLogin = new Date();
+    await user.save();
+
+    // Generate JWT token
+    const token = generateToken(user._id);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Login successful',
+      data: {
+        token: token,
+        user: {
+          id: user._id,
+          name: user.name,
+          phone: user.phone,
+          email: user.email,
+          role: user.role,
+          isPhoneVerified: user.isPhoneVerified,
+          isEmailVerified: user.isEmailVerified,
+          lastLogin: user.lastLogin // Include in response
+        }
+      }
+    });
 
   } catch (error) {
     console.error('Error in loginUser:', error);

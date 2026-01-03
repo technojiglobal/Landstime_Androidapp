@@ -1,7 +1,16 @@
 // Frontend/utils/propertyApi.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
+<<<<<<< HEAD
 const API_BASE_URL = 'http://10.210.66.5:8000/api/properties';
+=======
+<<<<<<< HEAD
+const API_BASE_URL = 'http://192.168.31.115:8000/api/properties';
+=======
+const API_BASE_URL = 'http://10.10.2.39:8000/api/properties';
+>>>>>>> c3691076b36c6734b34f39317e2a981569abb1a0
+>>>>>>> 468607fda34bad9c1751dcd4cd4e317e42abef50
 
 // Helper function to get token
 const getToken = async () => {
@@ -59,6 +68,7 @@ const apiRequest = async (endpoint, method = 'GET', body = null, isFormData = fa
     };
   }
 };
+
 export const createProperty = async (
   propertyData,
   imageUris = [],
@@ -70,7 +80,7 @@ export const createProperty = async (
 
     console.log("📸 Images:", imageUris);
 
-    // ✅ PROPERTY IMAGES — FIXED FIELD NAME
+    // ✅ PROPERTY IMAGES
     imageUris.forEach((uri, index) => {
       formData.append("images", {
         uri: uri.startsWith("file://") ? uri : `file://${uri}`,
@@ -98,7 +108,14 @@ export const createProperty = async (
     });
 
     // ✅ PROPERTY DATA
-    formData.append("propertyData", JSON.stringify(propertyData));
+    // ✅ PROPERTY DATA with debug logging
+console.log("📦 Property Data being sent:", {
+  originalLanguage: propertyData.originalLanguage,
+  propertyTitle: propertyData.propertyTitle,
+  location: propertyData.location?.substring(0, 30)
+});
+
+formData.append("propertyData", JSON.stringify(propertyData));
 
     return await apiRequest("/", "POST", formData, true);
   } catch (error) {
@@ -107,11 +124,10 @@ export const createProperty = async (
   }
 };
 
-
-
 // Get all approved properties
-export const getApprovedProperties = async (propertyType = null, page = 1) => {
-  let endpoint = `/approved?page=${page}`;
+// ✅ NEW CODE
+export const getApprovedProperties = async (propertyType = null, page = 1, language = 'en') => {
+  let endpoint = `/approved?page=${page}&language=${language}`;
   if (propertyType) {
     endpoint += `&propertyType=${propertyType}`;
   }
@@ -125,7 +141,15 @@ export const getPropertyById = async (propertyId) => {
 
 // Get user's own properties
 export const getUserProperties = async () => {
-  return await apiRequest('/user/my-properties');
+  const result = await apiRequest('/user/my-properties');
+  console.log('📦 getUserProperties result:', result);
+  
+  // Extract the actual properties array from nested structure
+  if (result.success && result.data) {
+    return result.data.data || result.data || [];
+  }
+  
+  return [];
 };
 
 // Update property
@@ -136,6 +160,62 @@ export const updateProperty = async (propertyId, propertyData) => {
 // Delete property
 export const deleteProperty = async (propertyId) => {
   return await apiRequest(`/${propertyId}`, 'DELETE');
+};
+
+// Delete property image by index
+export const deletePropertyImage = async (propertyId, imageIndex) => {
+  return await apiRequest(`/${propertyId}/image`, 'DELETE', { imageIndex });
+};
+
+// Upload additional images
+export const uploadAdditionalImages = async (propertyId, imageUris) => {
+  try {
+    const formData = new FormData();
+    
+    imageUris.forEach((uri, index) => {
+      formData.append("images", {
+        uri: uri.startsWith("file://") ? uri : `file://${uri}`,
+        name: `additional_${index}.jpg`,
+        type: "image/jpeg",
+      });
+    });
+
+    return await apiRequest(`/${propertyId}/images`, 'POST', formData, true);
+  } catch (error) {
+    console.error("❌ uploadAdditionalImages error:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Delete property document by index
+export const deletePropertyDocument = async (propertyId, documentIndex, documentType) => {
+  return await apiRequest(`/${propertyId}/document`, 'DELETE', { 
+    documentIndex, 
+    documentType 
+  });
+};
+
+// Upload additional documents
+export const uploadAdditionalDocuments = async (propertyId, documents, documentType) => {
+  try {
+    const formData = new FormData();
+    
+    formData.append('documentType', documentType);
+    
+    const fieldName = `${documentType}Docs`;
+    documents.forEach((file, index) => {
+      formData.append(fieldName, {
+        uri: file.uri.startsWith("file://") ? file.uri : `file://${file.uri}`,
+        name: file.name || `${documentType}_${index}.jpg`,
+        type: file.type || "image/jpeg",
+      });
+    });
+
+    return await apiRequest(`/${propertyId}/documents`, 'POST', formData, true);
+  } catch (error) {
+    console.error("❌ uploadAdditionalDocuments error:", error);
+    return { success: false, error: error.message };
+  }
 };
 
 // ADMIN APIs
@@ -160,4 +240,19 @@ export const updatePropertyStatus = async (propertyId, status, rejectionReason =
     body.rejectionReason = rejectionReason;
   }
   return await apiRequest(`/admin/${propertyId}/status`, 'PATCH', body);
+};
+
+// Soft delete property (admin)
+export const softDeleteProperty = async (propertyId) => {
+  return await apiRequest(`/admin/${propertyId}`, 'DELETE');
+};
+
+// Update property availability (admin)
+export const updatePropertyAvailability = async (propertyId, propertyStatus) => {
+  return await apiRequest(`/admin/${propertyId}/availability`, 'PATCH', { propertyStatus });
+};
+
+// Admin update property details
+export const adminUpdateProperty = async (propertyId, propertyData) => {
+  return await apiRequest(`/admin/${propertyId}`, 'PUT', propertyData);
 };

@@ -107,13 +107,16 @@ export default function PropertyFormScreen() {
 
 
   /* ---------- IMAGE HANDLERS ---------- */
-  const pickImage = (uri) => {
+ const pickImage = (uri) => {
+  // Ensure we're only adding valid URI strings
+  if (uri && typeof uri === 'string') {
     setImages((prev) => [...prev, uri]);
-  };
+  }
+};
 
-  const removeImage = (uri) => {
-    setImages((prev) => prev.filter((img) => img !== uri));
-  };
+ const removeImage = (index) => {
+  setImages((prev) => prev.filter((_, i) => i !== index));
+};
 
   /* ---------- NEXT HANDLER ---------- */
   const handleNext = () => {
