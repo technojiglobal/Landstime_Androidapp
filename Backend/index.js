@@ -119,7 +119,7 @@ import propertyRoutes from './UserRoutes/PropertyRoute.js';
 import subscriptionRoutes from './UserRoutes/SubscriptionRoute.js';
 import adminAuthRoutes from "./AdminRoutes/AdminRoute.js";
 import interiorDesignRoutes from "./AdminRoutes/InteriorDesignRoute.js"; // NEW
-
+import reviewRoutes from "./UserRoutes/ReviewRoutes.js";
 const app = express();
 const PORT = process.env.PORT || 8000;
 
@@ -143,7 +143,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
+app.use("/api/reviews", reviewRoutes);
 // MongoDB Connection
 console.log('🔍 Attempting MongoDB connection...');
 console.log('MongoDB URI:', process.env.MONGODB_URI ? 'URI exists ✅' : 'URI missing ❌');

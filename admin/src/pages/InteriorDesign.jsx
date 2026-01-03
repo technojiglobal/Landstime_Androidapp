@@ -178,6 +178,7 @@ export default function InteriorDesign() {
       formData.append('designer', design.designer);
       formData.append('phone', design.phone);
       formData.append('area', design.area);
+      formData.append('category', design.category); 
       formData.append('price', design.price);
       formData.append('duration', design.duration);
       formData.append('location', design.location);
@@ -185,11 +186,10 @@ export default function InteriorDesign() {
 
       // Append image files
       if (design.images && design.images.length > 0) {
-        design.images.forEach((image, index) => {
-          if (image instanceof File) {
-            formData.append('images', image);
-          }
-        });
+        design.images.forEach((image) => {
+  formData.append("images", image);
+});
+
       }
 
       const response = await fetch(`${API_URL}/designs`, {
