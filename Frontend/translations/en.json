@@ -382,8 +382,41 @@
   "language": "Language",
   "currency": "Currency",
   "help_support": "Help & Support",
+
+ 
   "selectDistrict.title": "Select District in Andhra",
   "selectDistrict.searchPlaceholder": "Search districts in Andhra...",
   "selectDistrict.noResults": "No districts found for \"{query}\"",
-  "selectDistrict.propertiesAvailable": "properties available"
+  "selectDistrict.propertiesAvailable": "properties available",
+  
+  "districts": {
+    "anantapur": "Anantapur",
+    "chittoor": "Chittoor",
+    "eastgodavari": "East Godavari",
+    "guntur": "Guntur",
+    "kadapa": "Kadapa",
+    "krishna": "Krishna",
+    "kurnool": "Kurnool",
+    "nellore": "Nellore",
+    "srikakulam": "Srikakulam",
+    "visakhapatnam": "Visakhapatnam",
+    "vizianagaram": "Vizianagaram",
+    "westgodavari": "West Godavari"
+  },
+  
+  "areas": {
+    "akkayapalem": "Akkayapalem",
+    "anandapuram": "Anandapuram",
+    "boyapalem": "Boyapalem",
+    "chinnagadili": "Chinna Gadili",
+    "dwarkanagar": "Dwarka Nagar",
+    "gajuwaka": "Gajuwaka",
+    "kommadi": "Kommadi"
+  },
+  
+  "selectSite.title": "Select Resort from",
+  "selectSite.searchPlaceholder": "Search properties in",
+  "selectSite.noResults": "No properties found for"
 }
+
+

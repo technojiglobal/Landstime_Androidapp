@@ -10,7 +10,7 @@ import saveBlue from "../../../../assets/save-blue.png"
 export default function RoomOverviewScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
-const BASE_URL = "http://10.10.2.39:8000";
+const BASE_URL = "http://10.37.92.184:8000";
 const [save,setSave]=useState(false)
 const [data, setData] = useState(null);
 const [loading, setLoading] = useState(true);

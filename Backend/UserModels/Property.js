@@ -54,6 +54,15 @@ area: {
   en: { type: String, trim: true }
 },
 
+areaKey: {
+  type: String,
+  lowercase: true,
+  trim: true,
+  index: true  // Add index for faster queries
+},
+
+
+
 
   // ✅ NEW CODE
 description: {

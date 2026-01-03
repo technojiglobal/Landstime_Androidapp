@@ -68,13 +68,28 @@ if (Platform.OS !== 'web') {
 /* 4️⃣ CHANGE LANGUAGE  */
 /* -------------------- */
 
+// export const changeLanguage = async (languageCode) => {
+//   if (Platform.OS === 'web') {
+//     localStorage.setItem(LANGUAGE_KEY, languageCode);
+//   } else {
+//     await AsyncStorage.setItem(LANGUAGE_KEY, languageCode);
+//   }
+//   i18n.changeLanguage(languageCode);
+// };
+
+
 export const changeLanguage = async (languageCode) => {
+  console.log('🌐 Changing language to:', languageCode);
+  
   if (Platform.OS === 'web') {
     localStorage.setItem(LANGUAGE_KEY, languageCode);
   } else {
     await AsyncStorage.setItem(LANGUAGE_KEY, languageCode);
   }
-  i18n.changeLanguage(languageCode);
+  
+  await i18n.changeLanguage(languageCode);
+  
+  // ✅ Force a small delay to ensure i18n updates
+  return new Promise(resolve => setTimeout(resolve, 100));
 };
-
 export default i18n;

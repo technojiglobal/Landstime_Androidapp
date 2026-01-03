@@ -23,19 +23,20 @@ import {
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
+// ✅ NEW: Use keys for districts
 const districtsData = [
-  { name: 'Anantapur', properties: 1725 },
-  { name: 'Chittoor', properties: 1850 },
-  { name: 'East Godavari', properties: 4251 },
-  { name: 'Guntur', properties: 2904 },
-  { name: 'Kadapa', properties: 1503 },
-  { name: 'Krishna', properties: 3790 },
-  { name: 'Kurnool', properties: 2048 },
-  { name: 'Nellore', properties: 2210 },
-  { name: 'Srikakulam', properties: 1985 },
-  { name: 'Visakhapatnam', properties: 5124 },
-  { name: 'Vizianagaram', properties: 2487 },
-  { name: 'West Godavari', properties: 3320 },
+  { key: 'anantapur', properties: 1725 },
+  { key: 'chittoor', properties: 1850 },
+  { key: 'eastgodavari', properties: 4251 },
+  { key: 'guntur', properties: 2904 },
+  { key: 'kadapa', properties: 1503 },
+  { key: 'krishna', properties: 3790 },
+  { key: 'kurnool', properties: 2048 },
+  { key: 'nellore', properties: 2210 },
+  { key: 'srikakulam', properties: 1985 },
+  { key: 'visakhapatnam', properties: 5124 },
+  { key: 'vizianagaram', properties: 2487 },
+  { key: 'westgodavari', properties: 3320 },
 ];
 
 const itemWidth = 339;
@@ -51,10 +52,11 @@ const SelectDistrictScreen = () => {
   const scrollPositionOnDragStart = useRef(0);
 
   // Filter data based on search query
-  const filteredData = districtsData.filter((district) =>
-    district.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
+ // ✅ NEW: Filter using translated names
+  const filteredData = districtsData.filter((district) => {
+    const translatedName = t(`districts.${district.key}`);
+    return translatedName.toLowerCase().includes(searchQuery.toLowerCase());
+  });
   const scrollIndicatorHeight =
     scrollViewHeight > 0 ? (scrollViewHeight / contentHeight) * scrollViewHeight : 0;
 
@@ -158,15 +160,21 @@ const SelectDistrictScreen = () => {
             </View>
           )}
 
-          {filteredData.map((district) => (
+
+         {filteredData.map((district) => (
             <TouchableOpacity
-              key={district.name}
+              key={district.key}
               style={[styles.siteItem, { borderLeftColor: '#22C55E', width: itemWidth }]}
-              onPress={() => router.push('/home/screens/Flats/SelectSite')}
+              onPress={() => router.push({
+                pathname: '/home/screens/Flats/SelectSite',
+                params: { districtKey: district.key }  // ✅ NEW: Pass key instead of name
+              })}
               activeOpacity={0.85}
             >
               <View className="flex-col">
-                <Text className="text-lg font-semibold text-gray-800">{district.name}</Text>
+                <Text className="text-lg font-semibold text-gray-800">
+                  {t(`districts.${district.key}`)}
+                </Text>
                 <View className="flex-row items-center mt-1">
                   <MapPin color="#22C55E" size={14} />
                   <Text className="text-sm text-gray-500 ml-1">

@@ -4,8 +4,20 @@ import Property from '../UserModels/Property.js';
 import User from '../UserModels/User.js'; // Import User model
 import { translatePropertyFields } from "../services/translationService.js";
 
-// Create a new property
-// Backend/controllers/propertyController.js
+
+
+// ✅ NEW HELPER FUNCTION: Normalize area name to consistent key
+const normalizeAreaKey = (areaName) => {
+  if (!areaName) return '';
+  
+  // If it's already an object with language keys, use English version
+  if (typeof areaName === 'object' && areaName.en) {
+    return areaName.en.toLowerCase().trim().replace(/\s+/g, '');
+  }
+  
+  // If it's a string, normalize it
+  return String(areaName).toLowerCase().trim().replace(/\s+/g, '');
+};
 
 export const createProperty = async (req, res) => {
   try {
@@ -37,13 +49,18 @@ if (!name || !phone || !email) {
 }
 
     // Extract uploaded files
-const images = req.files?.images?.map(file => file.path) || [];
+// const images = req.files?.images?.map(file => file.path) || [];
 
 
 
-    const ownershipDocs = req.files?.ownershipDocs?.map(file => file.path) || [];
-    const identityDocs = req.files?.identityDocs?.map(file => file.path) || [];
+//     const ownershipDocs = req.files?.ownershipDocs?.map(file => file.path) || [];
+//     const identityDocs = req.files?.identityDocs?.map(file => file.path) || [];
 
+
+// ✅ Normalize Windows backslashes to forward slashes for URLs
+const images = req.files?.images?.map(file => file.path.replace(/\\/g, '/')) || [];
+const ownershipDocs = req.files?.ownershipDocs?.map(file => file.path.replace(/\\/g, '/')) || [];
+const identityDocs = req.files?.identityDocs?.map(file => file.path.replace(/\\/g, '/')) || [];
     // 🔐 Backend validation (DO NOT SKIP)
     // ✅ NEW CODE
 if (!propertyData.propertyTitle) {
@@ -136,7 +153,6 @@ console.log('🔄 Starting translation...');
     }
 
     // Create property
-   // ✅ NEW CODE
 console.log('🔄 Translating property fields...');
 
 // Translate text fields to all 3 languages
@@ -149,13 +165,18 @@ const translatedFields = await translatePropertyFields({
 
 console.log('✅ Translation complete');
 
+// ✅ NEW: Generate areaKey for consistent filtering
+const areaKey = normalizeAreaKey(propertyData.area);
+console.log('🔑 Generated areaKey:', areaKey);
+
 const property = new Property({
   ...propertyData,
-  propertyTitle: translatedFields.propertyTitle, // Now has {te, hi, en}
-  description: translatedFields.description,     // Now has {te, hi, en}
+  propertyTitle: translatedFields.propertyTitle,
+  description: translatedFields.description,
   location: translatedFields.location,
-  area: translatedFields.area, // Add this line
-  originalLanguage,                              // Store which language user used
+  area: translatedFields.area,
+  areaKey,  // ✅ NEW FIELD
+  originalLanguage,
   ownerDetails: propertyData.ownerDetails,
   images,
   documents: {
@@ -193,6 +214,9 @@ export const getApprovedProperties = async (req, res) => {
   try {
     const { propertyType, page = 1, limit = 10, language = 'en' } = req.query;
     
+    console.log('🔍 Getting approved properties');
+    console.log('🌐 Requested language:', language);
+    
     const query = { status: 'approved' };
     if (propertyType) {
       query.propertyType = propertyType;
@@ -204,24 +228,36 @@ export const getApprovedProperties = async (req, res) => {
       .limit(limit * 1)
       .skip((page - 1) * limit);
     
-    // ✅ ADD THIS: Transform properties to return only requested language
- const transformedProperties = properties.map(prop => {
-  const propObj = prop.toObject();
-  
-  return {
-    ...propObj,
-    propertyTitle: propObj.propertyTitle?.[language] || propObj.propertyTitle?.en || '',
-    description: propObj.description?.[language] || propObj.description?.en || '',
-    location: propObj.location?.[language] || propObj.location?.en || '',
-    area: propObj.area?.[language] || propObj.area?.en || ''  // ✅ ADD THIS LINE
-  };
-});
+    // ✅ Helper function to extract language-specific text
+    const getLocalizedText = (field) => {
+      if (!field) return '';
+      if (typeof field === 'string') return field;
+      return field[language] || field.en || field.te || field.hi || '';
+    };
+    
+    const transformedProperties = properties.map(prop => {
+      const propObj = prop.toObject();
+      
+      return {
+        ...propObj,
+        propertyTitle: getLocalizedText(propObj.propertyTitle),
+        description: getLocalizedText(propObj.description),
+        location: getLocalizedText(propObj.location),
+        area: getLocalizedText(propObj.area),
+        areaKey: propObj.areaKey || ''
+      };
+    });
+    
+    console.log('✅ Transformed first property:', transformedProperties[0] ? {
+      propertyTitle: transformedProperties[0].propertyTitle,
+      location: transformedProperties[0].location
+    } : 'No properties');
     
     const count = await Property.countDocuments(query);
     
     res.status(200).json({
       success: true,
-      data: transformedProperties, // ✅ CHANGED from properties
+      data: transformedProperties,
       totalPages: Math.ceil(count / limit),
       currentPage: page
     });
@@ -239,6 +275,11 @@ export const getApprovedProperties = async (req, res) => {
 // Get single property by ID
 export const getPropertyById = async (req, res) => {
   try {
+    const { language = 'en' } = req.query;
+    
+    console.log('🔍 Getting property by ID:', req.params.id);
+    console.log('🌐 Requested language:', language);
+    
     const property = await Property.findById(req.params.id)
       .populate('userId', 'name phone email');
     
@@ -248,6 +289,12 @@ export const getPropertyById = async (req, res) => {
         message: 'Property not found'
       });
     }
+    
+    console.log('📦 Raw property data:', {
+      propertyTitle: property.propertyTitle,
+      location: property.location,
+      description: property.description
+    });
     
     // Only show approved properties to non-owners/non-admins
     if (property.status !== 'approved' && 
@@ -259,9 +306,34 @@ export const getPropertyById = async (req, res) => {
       });
     }
     
+    const propObj = property.toObject();
+    
+    // ✅ Helper function to extract language-specific text
+    const getLocalizedText = (field) => {
+      if (!field) return '';
+      if (typeof field === 'string') return field;
+      return field[language] || field.en || field.te || field.hi || '';
+    };
+    
+    // Transform to requested language
+    const transformedProperty = {
+      ...propObj,
+      propertyTitle: getLocalizedText(propObj.propertyTitle),
+      description: getLocalizedText(propObj.description),
+      location: getLocalizedText(propObj.location),
+      area: getLocalizedText(propObj.area),
+      areaKey: propObj.areaKey || ''
+    };
+    
+    console.log('✅ Transformed property:', {
+      propertyTitle: transformedProperty.propertyTitle,
+      location: transformedProperty.location,
+      description: transformedProperty.description
+    });
+    
     res.status(200).json({
       success: true,
-      data: property
+      data: transformedProperty
     });
     
   } catch (error) {
