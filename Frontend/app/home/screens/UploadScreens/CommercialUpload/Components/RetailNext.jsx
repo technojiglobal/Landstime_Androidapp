@@ -9,7 +9,7 @@ import {
   ToastAndroid,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import MorePricingDetailsModal from "../../MorePricingDetailsModal";
 
 /* ---------- UI HELPERS ---------- */
@@ -17,15 +17,11 @@ const PillButton = ({ label, selected, onPress }) => (
   <TouchableOpacity
     onPress={onPress}
     className={`px-4 py-1.5 rounded-full mr-2 mb-2 border ${
-      selected
-        ? "border-green-500 bg-green-50"
-        : "border-gray-200 bg-white"
+      selected ? "border-green-500 bg-green-50" : "border-gray-200 bg-white"
     }`}
   >
     <Text
-      className={`text-xs ${
-        selected ? "text-green-600" : "text-gray-500"
-      }`}
+      className={`text-xs ${selected ? "text-green-600" : "text-gray-500"}`}
     >
       {label}
     </Text>
@@ -36,9 +32,7 @@ const Checkbox = ({ label, checked, onPress }) => (
   <TouchableOpacity onPress={onPress} className="flex-row items-center mb-3">
     <View
       className={`w-4 h-4 mr-2 items-center justify-center border ${
-        checked
-          ? "border-green-500 bg-green-500"
-          : "border-gray-300 bg-white"
+        checked ? "border-green-500 bg-green-500" : "border-gray-300 bg-white"
       }`}
     >
       {checked && <Text className="text-white text-[10px]">✓</Text>}
@@ -49,6 +43,29 @@ const Checkbox = ({ label, checked, onPress }) => (
 
 export default function RetailNext() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+
+  const safeParse = (raw) => {
+    if (!raw) return null;
+    if (typeof raw === 'string') {
+      try { return JSON.parse(raw); } catch (e) { console.warn('parse error', e); return null; }
+    }
+    if (Array.isArray(raw)) {
+      const first = raw[0];
+      if (typeof first === 'string') {
+        try { return JSON.parse(first); } catch (e) { console.warn('parse error', e); return null; }
+      }
+      return first;
+    }
+    if (typeof raw === 'object') return raw;
+    return null;
+  };
+
+  const retailDetailsFromPrev = safeParse(params.commercialDetails);
+
+  // also capture any separately passed propertyTitle (fallback)
+  const forwardedPropertyTitle = params.propertyTitle || (retailDetailsFromPrev && retailDetailsFromPrev.propertyTitle);
+
 
   /* ---------- STATE ---------- */
   const [ownership, setOwnership] = useState("");
@@ -109,35 +126,51 @@ export default function RetailNext() {
 
   const toggleItem = (value, list, setList) => {
     setList(
-      list.includes(value)
-        ? list.filter((v) => v !== value)
-        : [...list, value]
+      list.includes(value) ? list.filter((v) => v !== value) : [...list, value]
     );
   };
 
   /* ---------- VALIDATION (OfficeNext style) ---------- */
   const handleNext = () => {
+    if (!retailDetailsFromPrev) {
+      ToastAndroid.show("Retail details missing", ToastAndroid.SHORT);
+      return;
+    }
+
     if (!expectedPrice) {
-      ToastAndroid.show(
-        "Expected price is required",
-        ToastAndroid.SHORT
-      );
+      ToastAndroid.show("Expected price is required", ToastAndroid.SHORT);
       return;
     }
 
     if (!description.trim()) {
-      ToastAndroid.show(
-        "Description is required",
-        ToastAndroid.SHORT
-      );
+      ToastAndroid.show("Description is required", ToastAndroid.SHORT);
       return;
     }
 
-    ToastAndroid.show("Details saved", ToastAndroid.SHORT);
+  const commercialDetails = {
+  ...retailDetailsFromPrev,
+  // ensure a propertyTitle exists (may be forwarded separately)
+  propertyTitle: (retailDetailsFromPrev && retailDetailsFromPrev.propertyTitle) || forwardedPropertyTitle,
+  ownership,
+  expectedPrice: Number(expectedPrice),
+  priceDetails: { allInclusive, negotiable, taxExcluded },
+  preLeased,
+  leaseDuration,
+  monthlyRent,
+  previouslyUsedFor: prevUsedFor,
+  description,
+  amenities,
+  locationAdvantages,
+};
 
-    router.push(
-      "/home/screens/UploadScreens/CommercialUpload/Components/RetailVaastu"
-    );
+
+    router.push({
+      pathname:
+        "/home/screens/UploadScreens/CommercialUpload/Components/RetailVaastu",
+      params: {
+        commercialDetails: JSON.stringify(commercialDetails),
+      },
+    });
   };
 
   return (
@@ -152,9 +185,7 @@ export default function RetailNext() {
         </TouchableOpacity>
 
         <View className="ml-2">
-          <Text className="text-base font-semibold">
-            Upload Your Property
-          </Text>
+          <Text className="text-base font-semibold">Upload Your Property</Text>
           <Text className="text-xs text-gray-500">
             Add your property details
           </Text>
@@ -187,9 +218,7 @@ export default function RetailNext() {
           <TextInput
             placeholder="₹ Expected Price"
             value={expectedPrice}
-            onChangeText={(t) =>
-              setExpectedPrice(t.replace(/[^0-9]/g, ""))
-            }
+            onChangeText={(t) => setExpectedPrice(t.replace(/[^0-9]/g, ""))}
             keyboardType="numeric"
             onFocus={() => setFocusedField("price")}
             onBlur={() => setFocusedField(null)}
@@ -216,9 +245,7 @@ export default function RetailNext() {
             onPress={() => setTaxExcluded(!taxExcluded)}
           />
 
-          <TouchableOpacity
-            onPress={() => setIsMorePricingModalVisible(true)}
-          >
+          <TouchableOpacity onPress={() => setIsMorePricingModalVisible(true)}>
             <Text className="text-[#22C55E] text-sm mt-2">
               + Add more pricing details
             </Text>
@@ -259,9 +286,7 @@ export default function RetailNext() {
               <TextInput
                 placeholder="₹ Monthly rent"
                 value={monthlyRent}
-                onChangeText={(t) =>
-                  setMonthlyRent(t.replace(/[^0-9]/g, ""))
-                }
+                onChangeText={(t) => setMonthlyRent(t.replace(/[^0-9]/g, ""))}
                 keyboardType="numeric"
                 onFocus={() => setFocusedField("rent")}
                 onBlur={() => setFocusedField(null)}
@@ -302,14 +327,14 @@ export default function RetailNext() {
             ))}
 
           {/* DESCRIPTION */}
-          <Text className="font-semibold mt-4 mb-2">Description <Text className="text-red-500">*</Text></Text>
+          <Text className="font-semibold mt-4 mb-2">
+            Description <Text className="text-red-500">*</Text>
+          </Text>
           <TextInput
             placeholder="Write here what makes your property unique"
             value={description}
             onChangeText={(t) =>
-              setDescription(
-                t.replace(/[^a-zA-Z0-9\s]/g, "")
-              )
+              setDescription(t.replace(/[^a-zA-Z0-9\s]/g, ""))
             }
             multiline
             onFocus={() => setFocusedField("desc")}
@@ -330,17 +355,13 @@ export default function RetailNext() {
                 key={item}
                 label={item}
                 selected={amenities.includes(item)}
-                onPress={() =>
-                  toggleItem(item, amenities, setAmenities)
-                }
+                onPress={() => toggleItem(item, amenities, setAmenities)}
               />
             ))}
           </View>
 
           {/* LOCATION ADVANTAGES */}
-          <Text className="font-semibold mt-6 mb-3">
-            Location Advantages
-          </Text>
+          <Text className="font-semibold mt-6 mb-3">Location Advantages</Text>
           <View className="flex-row flex-wrap">
             {locationAdvOptions.map((item) => (
               <PillButton
@@ -348,11 +369,7 @@ export default function RetailNext() {
                 label={item}
                 selected={locationAdvantages.includes(item)}
                 onPress={() =>
-                  toggleItem(
-                    item,
-                    locationAdvantages,
-                    setLocationAdvantages
-                  )
+                  toggleItem(item, locationAdvantages, setLocationAdvantages)
                 }
               />
             ))}

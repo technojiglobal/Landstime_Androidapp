@@ -1,427 +1,455 @@
 import React, { useState } from "react";
 import {
-    View,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    ScrollView,
-    Image,
-    ToastAndroid,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  Pressable,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
 import { Ionicons } from "@expo/vector-icons";
 
-import { PillButton, Checkbox } from "./Office";
 import MorePricingDetailsModal from "../../MorePricingDetailsModal";
+export const PillButton = ({ label, selected, onPress }) => (
+  <TouchableOpacity
+    onPress={onPress}
+    className="px-3 py-1 h-[23px] rounded-full mr-2 mb-4 items-center justify-center"
+    style={{
+      borderWidth: 1,
+      borderColor: selected ? "#22C55E" : "#0000001A",
+      backgroundColor: selected ? "#22C55E17" : "white",
+    }}
+  >
+    <Text
+      className="text-[10px]"
+      style={{ color: selected ? "#22C55E" : "#00000099" }}
+    >
+      {label}
+    </Text>
+  </TouchableOpacity>
+);
+
+export const Checkbox = ({ label, selected, onPress }) => (
+  <Pressable onPress={onPress} className="flex-row items-center mb-2">
+    <View
+      className="w-4 h-4 mr-2 mt-3 rounded-sm items-center justify-center"
+      style={{
+        borderWidth: 1,
+        borderColor: selected ? "#22C55E" : "#0000001A",
+        backgroundColor: selected ? "#22C55E" : "white",
+      }}
+    >
+      {selected && (
+        <Text style={{ color: "white", fontWeight: "bold" }}>✓</Text>
+      )}
+    </View>
+    <Text className="text-[11px] text-[#00000099]">{label}</Text>
+  </Pressable>
+);
+const AMENITY_OPTIONS = [
+  "+Maintenance Staff",
+  "+Water Storage",
+  "+Water Disposal",
+  "+ATM",
+  "+Shopping Center",
+  "+Wheelchair Accessibility",
+  "+Cafeteria/Foodcourt",
+  "+DG Availability",
+  "+CCTV Surveillance",
+  "+Grocery shop",
+  "+Visitor Parking",
+  "+Power Backup",
+  "+Lift(s)",
+];
+
+const LOCATION_ADVANTAGES = [
+  "+Close to Metro Station",
+  "+Close to School",
+  "+Close to Hospital",
+  "+Close to Market",
+  "+Close to Railway Station",
+  "+Close to Airport",
+  "+Close to Mall",
+  "+Close to Highway",
+];
 
 const OfficeNext = () => {
-    const router = useRouter();
+  const router = useRouter();
 
-    /* ---------------- PRICE STATES ---------------- */
-    const [expectedPrice, setExpectedPrice] = useState("");
-    const [allInclusive, setAllInclusive] = useState(false);
-    const [priceNegotiable, setPriceNegotiable] = useState(false);
-    const [taxExcluded, setTaxExcluded] = useState(false);
+  /* ---------------- PRICE STATES ---------------- */
+  const [expectedPrice, setExpectedPrice] = useState("");
+  const [allInclusive, setAllInclusive] = useState(false);
+  const [priceNegotiable, setPriceNegotiable] = useState(false);
+  const [taxExcluded, setTaxExcluded] = useState(false);
 
-    /* ---------------- YES / NO STATES ---------------- */
-    const [preLeased, setPreLeased] = useState(null);
-    const [nocCertified, setNocCertified] = useState(null);
-    const [occupancyCertified, setOccupancyCertified] = useState(null);
+  /* ---------------- YES / NO STATES ---------------- */
+  const [preLeased, setPreLeased] = useState(null);
+  const [nocCertified, setNocCertified] = useState(null);
+  const [occupancyCertified, setOccupancyCertified] = useState(null);
 
-    /* ---------------- PREVIOUS USE ---------------- */
-    const [visible, setVisible] = useState(null);
-    const [prevUsedFor, setPrevUsedFor] = useState("Commercial");
-    const prevUsedForOptions = ["Commercial", "Residential", "Warehouse"];
+  /* ---------------- PREVIOUS USE ---------------- */
+  const [visible, setVisible] = useState(null);
+  const [prevUsedFor, setPrevUsedFor] = useState("Commercial");
+  const prevUsedForOptions = ["Commercial", "Residential", "Warehouse"];
 
-    /* ---------------- DESCRIPTION ---------------- */
-    const [describeProperty, setDescribeProperty] = useState("");
+  /* ---------------- DESCRIPTION ---------------- */
+  const [describeProperty, setDescribeProperty] = useState("");
 
-    /* ---------------- AMENITIES ---------------- */
-    const amenityOptions = [
-        "+Maintenance Staff",
-        "+Water Storage",
-        "+Water Disposal",
-        "+ATM",
-        "+Shopping Center",
-        "+Wheelchair Accessibility",
-        "+Cafeteria/Foodcourt",
-        "+DG Availability",
-        "+CCTV Surveillance",
-        "+Grocery shop",
-        "+Visitor Parking",
-        "+Power Backup",
-        "+Lift(s)",
-    ];
-    const [amenities, setAmenities] = useState([]);
+  const [amenities, setAmenities] = useState([]);
 
-    /* ---------------- LOCATION ADVANTAGES ---------------- */
-    const locationAdvantages = [
-        "+Close to Metro Station",
-        "+Close to School",
-        "+Close to Hospital",
-        "+Close to Market",
-        "+Close to Railway Station",
-        "+Close to Airport",
-        "+Close to Mall",
-        "+Close to Highway",
-    ];
-    const [locAdvantages, setLocAdvantages] = useState([]);
-    const [leaseDuration, setLeaseDuration] = useState("");
-    const [monthlyRent, setMonthlyRent] = useState("");
+  const [locAdvantages, setLocAdvantages] = useState([]);
+  const [leaseDuration, setLeaseDuration] = useState("");
+  const [monthlyRent, setMonthlyRent] = useState("");
 
-    /* ---------------- MODAL AND FOCUS STATES ---------------- */
-    const [focusedField, setFocusedField] = useState(null);
-    const [isMorePricingModalVisible, setIsMorePricingModalVisible] = useState(false);
+  /* ---------------- MODAL AND FOCUS STATES ---------------- */
+  const [focusedField, setFocusedField] = useState(null);
+  const [isMorePricingModalVisible, setIsMorePricingModalVisible] =
+    useState(false);
 
-    /* ---------------- HELPERS ---------------- */
-    const toggleArrayItem = (setter, array, value) => {
-        if (array.includes(value)) {
-            setter(array.filter((item) => item !== value));
-        } else {
-            setter([...array, value]);
-        }
-    };
+  /* ---------------- HELPERS ---------------- */
+  const toggleArrayItem = (setter, array, value) => {
+    if (array.includes(value)) {
+      setter(array.filter((item) => item !== value));
+    } else {
+      setter([...array, value]);
+    }
+  };
   const params = useLocalSearchParams();
 
-const officeDetails = params.officeDetails
-  ? JSON.parse(params.officeDetails)
-  : null;
+  const officeDetails = params.officeDetails
+    ? JSON.parse(params.officeDetails)
+    : null;
   const handleNext = () => {
-  if (!officeDetails) {
-    alert("Missing office details. Please restart.");
-    return;
-  }
+    if (!officeDetails) {
+      alert("Missing office details. Please restart.");
+      return;
+    }
 
-  const commercialDetails = {
-    subType: "Office",
+    const commercialDetails = {
+      subType: "Office",
 
-    officeDetails,
+      officeDetails,
 
-    expectedPrice: Number(expectedPrice),
+      expectedPrice: Number(expectedPrice),
 
-    priceDetails: {
-      allInclusive,
-      negotiable: priceNegotiable,
-      taxExcluded,
-    },
+      priceDetails: {
+        allInclusive,
+        negotiable: priceNegotiable,
+        taxExcluded,
+      },
 
-    preLeased,
-    leaseDuration,
-    monthlyRent,
-    nocCertified,
-    occupancyCertified,
-    previouslyUsedFor: prevUsedFor,
-    description: describeProperty,
-    amenities,
-    locationAdvantages: locAdvantages,
+      preLeased,
+      leaseDuration,
+      monthlyRent,
+      nocCertified,
+      occupancyCertified,
+      previouslyUsedFor: prevUsedFor,
+      description: describeProperty,
+      amenities,
+      locationAdvantages: locAdvantages,
+    };
+
+    router.push({
+      pathname:
+        "/home/screens/UploadScreens/CommercialUpload/Components/OfficeVaastu",
+      params: {
+        commercialDetails: JSON.stringify(commercialDetails),
+      },
+    });
   };
 
-  router.push({
-    pathname:
-      "/home/screens/UploadScreens/CommercialUpload/Components/OfficeVaastu",
-    params: {
-      commercialDetails: JSON.stringify(commercialDetails),
-    },
-  });
-};
+  return (
+    <View className="flex-1 bg-gray-50">
+      <View className="flex-row items-center mt-7 mb-4">
+        <TouchableOpacity
+          onPress={() => router.push("/home/screens/UploadScreens/AddScreen")}
+          className="p-2"
+        >
+          <Image
+            source={require("../../../../../../assets/arrow.png")}
+            style={{ width: 20, height: 20 }}
+          />
+        </TouchableOpacity>
 
-    return (
-        <View className="flex-1 bg-gray-50">
-             <View className="flex-row items-center mt-7 mb-4">
-                    <TouchableOpacity
-                        onPress={() =>
-                            router.push("/home/screens/UploadScreens/AddScreen")
-                        }
-                        className="p-2"
-                    >
-                        <Image
-                            source={require("../../../../../../assets/arrow.png")}
-                            style={{ width: 20, height: 20 }}
-                        />
-                    </TouchableOpacity>
-
-                    <View className="ml-2">
-                        <Text className="text-[16px] font-semibold">
-                            Upload Your Property
-                        </Text>
-                        <Text className="text-[12px] text-[#00000066]">
-                            Add your property details
-                        </Text>
-                    </View>
-                </View>
-            <ScrollView
-                contentContainerStyle={{ padding: 16, paddingBottom: 36 }}
-                showsVerticalScrollIndicator={false}
-
-            >
-               
-                {/* ---------- PRICE DETAILS ---------- */}
-                <View
-                    className="bg-white rounded-lg p-4 mb-4"
-                    style={{ borderWidth: 1, borderColor: "#0000001A" }}
-                >
-                    <Text className="mb-2 text-[15px] font-bold text-[#00000099]">
-                        Price Details <Text className="text-red-500">*</Text>
-                    </Text>
-
-                    <TextInput
-                        placeholder="₹ Expected Price"
-                        value={expectedPrice}
-                        onChangeText={setExpectedPrice}
-                        className="rounded-md p-3 mb-3"
-                        style={{
-                            borderWidth: 2,
-                            borderColor: focusedField === "expectedPrice" ? "#22C55E" : "#0000001A",
-                            height: 52,
-                            backgroundColor: "#D9D9D91C",
-                        }}
-                        keyboardType="numeric"
-                        onFocus={() => setFocusedField("expectedPrice")}
-                        onBlur={() => setFocusedField(null)}
-                    />
-
-                    <Checkbox
-                        label="All inclusive price"
-                        selected={allInclusive}
-                        onPress={() => setAllInclusive(!allInclusive)}
-                    />
-                    <Checkbox
-                        label="Price Negotiable"
-                        selected={priceNegotiable}
-                        onPress={() => setPriceNegotiable(!priceNegotiable)}
-                    />
-                    <Checkbox
-                        label="Tax and Govt. charges excluded"
-                        selected={taxExcluded}
-                        onPress={() => setTaxExcluded(!taxExcluded)}
-                    />
-
-                    <TouchableOpacity onPress={() => setIsMorePricingModalVisible(true)}>
-                        <Text className="text-[#22C55E] text-sm mt-2">
-                            + Add more pricing details
-                        </Text>
-                    </TouchableOpacity>
-
-                    {/* ---------- PRE LEASED ---------- */}
-                    <Text className="text-[14px] font-bold text-[#00000099] mt-4 mb-2">
-                        Is it Pre-leased/Pre-Rented?
-                    </Text>
-                    <View className="flex-row mb-4">
-                        <PillButton
-                            label="Yes"
-                            selected={preLeased === "Yes"}
-                            onPress={() => setPreLeased("Yes")}
-                        />
-                        <PillButton
-                            label="No"
-                            selected={preLeased === "No"}
-                            onPress={() => setPreLeased("No")}
-                        />
-                    </View>
-                    {preLeased === "Yes" && (
-                        <View className="mb-4">
-                            {/* Lease Duration */}
-                            <Text className="text-[13px] font-semibold text-[#00000099] mb-1">
-                                Lease Duration
-                            </Text>
-                            <TextInput
-                                placeholder="Eg: 3 Years"
-                                value={leaseDuration}
-                                onChangeText={setLeaseDuration}
-                                className="rounded-md p-3 mb-3"
-                                style={{
-                                    borderWidth: 2,
-                                    borderColor: focusedField === "leaseDuration" ? "#22C55E" : "#0000001A",
-                                    backgroundColor: "#D9D9D91C",
-                                    height: 50,
-                                }}
-                                onFocus={() => setFocusedField("leaseDuration")}
-                                onBlur={() => setFocusedField(null)}
-                            />
-
-                            {/* Monthly Rent */}
-                            <Text className="text-[13px] font-semibold text-[#00000099] mb-1">
-                                Monthly Rent
-                            </Text>
-                            <TextInput
-                                placeholder="₹ Monthly Rent"
-                                value={monthlyRent}
-                                onChangeText={setMonthlyRent}
-                                keyboardType="numeric"
-                                className="rounded-md p-3"
-                                style={{
-                                    borderWidth: 2,
-                                    borderColor: focusedField === "monthlyRent" ? "#22C55E" : "#0000001A",
-                                    backgroundColor: "#D9D9D91C",
-                                    height: 50,
-                                }}
-                                onFocus={() => setFocusedField("monthlyRent")}
-                                onBlur={() => setFocusedField(null)}
-                            />
-                        </View>
-                    )}
-
-
-                    {/* ---------- FIRE NOC ---------- */}
-                    <Text className="text-[14px] font-bold text-[#00000099] mb-2">
-                        Is your office fire NOC Certified?
-                    </Text>
-                    <View className="flex-row mb-4">
-                        <PillButton
-                            label="Yes"
-                            selected={nocCertified === "Yes"}
-                            onPress={() => setNocCertified("Yes")}
-                        />
-                        <PillButton
-                            label="No"
-                            selected={nocCertified === "No"}
-                            onPress={() => setNocCertified("No")}
-                        />
-                    </View>
-
-                    {/* ---------- OCCUPANCY ---------- */}
-                    <Text className="text-[14px] font-bold text-[#00000099] mb-2">
-                        Is it Occupancy Certified?
-                    </Text>
-                    <View className="flex-row mb-4">
-                        <PillButton
-                            label="Yes"
-                            selected={occupancyCertified === "Yes"}
-                            onPress={() => setOccupancyCertified("Yes")}
-                        />
-                        <PillButton
-                            label="No"
-                            selected={occupancyCertified === "No"}
-                            onPress={() => setOccupancyCertified("No")}
-                        />
-                    </View>
-
-                    {/* ---------- PREVIOUS USE ---------- */}
-                    <Text className="text-[14px] font-bold text-[#00000099] mb-2">
-                        Office previously used for (optional)
-                    </Text>
-
-                    <TouchableOpacity
-                        onPress={() =>
-                            setVisible(visible === "prevUsedFor" ? null : "prevUsedFor")
-                        }
-                        className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 mb-3"
-                    >
-                        <Text>{prevUsedFor}</Text>
-                        <Ionicons name="chevron-down" size={22} color="#888" />
-                    </TouchableOpacity>
-
-                    {visible === "prevUsedFor" && (
-                        <View
-                            className="bg-white rounded-lg shadow-lg -mt-3 mb-4"
-                            style={{ borderWidth: 1, borderColor: "#0000001A" }}
-                        >
-                            {prevUsedForOptions.map((item) => (
-                                <TouchableOpacity
-                                    key={item}
-                                    onPress={() => {
-                                        setPrevUsedFor(item);
-                                        setVisible(null);
-                                    }}
-                                    className={`p-4 border-b ${prevUsedFor === item ? "bg-green-500" : "bg-white"
-                                        }`}
-                                >
-                                    <Text
-                                        className={
-                                            prevUsedFor === item ? "text-white" : "text-gray-800"
-                                        }
-                                    >
-                                        {item}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    )}
-
-                    {/* ---------- DESCRIPTION ---------- */}
-                    <Text className="mt-4 mb-2 font-bold text-[15px] text-[#00000099]">
-                        Describe your property <Text className="text-red-500">*</Text>
-                    </Text>
-
-                    <TextInput
-                        placeholder="Share some details about your property like spacious rooms, well maintained facilities."
-                        value={describeProperty}
-                        onChangeText={setDescribeProperty}
-                        multiline
-                        textAlignVertical="top"
-                        className="rounded-md p-3"
-                        style={{
-                            borderWidth: 2,
-                            borderColor: focusedField === "describeProperty" ? "#22C55E" : "#0000001A",
-                            height: 108,
-                        }}
-                        onFocus={() => setFocusedField("describeProperty")}
-                        onBlur={() => setFocusedField(null)}
-                    />
-
-                    {/* ---------- AMENITIES & LOCATION ---------- */}
-                    <View
-                        className="bg-white rounded-lg p-4 mt-4"
-                        style={{ borderWidth: 1, borderColor: "#0000001A" }}
-                    >
-                        <Text className="text-[15px] font-bold text-[#00000099] mb-2">
-                            Amenities
-                        </Text>
-                        <View className="flex-row flex-wrap mb-4">
-                            {amenityOptions.map((a) => (
-                                <PillButton
-                                    key={a}
-                                    label={a}
-                                    selected={amenities.includes(a)}
-                                    onPress={() =>
-                                        toggleArrayItem(setAmenities, amenities, a)
-                                    }
-                                />
-                            ))}
-                        </View>
-
-                        <Text className="text-[15px] font-bold text-[#00000099] mb-3">
-                            Location Advantages
-                        </Text>
-                        <View className="flex-row flex-wrap">
-                            {locationAdvantages.map((a) => (
-                                <PillButton
-                                    key={a}
-                                    label={a}
-                                    selected={locAdvantages.includes(a)}
-                                    onPress={() =>
-                                        toggleArrayItem(setLocAdvantages, locAdvantages, a)
-                                    }
-                                />
-                            ))}
-                        </View>
-                    </View>
-                    <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-3">
-                                <TouchableOpacity
-                                  className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
-                                >
-                                  <Text className="font-semibold">Cancel</Text>
-                                </TouchableOpacity>
-                    
-                               <TouchableOpacity
-  className="px-5 py-3 rounded-lg bg-green-500"
-  onPress={handleNext}
->
-  <Text className="text-white font-semibold">Next</Text>
-</TouchableOpacity>
-
-                    
-                              </View>
-                    
-                </View>
-            </ScrollView>
-            <MorePricingDetailsModal
-                visible={isMorePricingModalVisible}
-                onClose={() => setIsMorePricingModalVisible(false)}
-            />
+        <View className="ml-2">
+          <Text className="text-[16px] font-semibold">
+            Upload Your Property
+          </Text>
+          <Text className="text-[12px] text-[#00000066]">
+            Add your property details
+          </Text>
         </View>
-    );
+      </View>
+      <ScrollView
+        contentContainerStyle={{ padding: 16, paddingBottom: 36 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ---------- PRICE DETAILS ---------- */}
+        <View
+          className="bg-white rounded-lg p-4 mb-4"
+          style={{ borderWidth: 1, borderColor: "#0000001A" }}
+        >
+          <Text className="mb-2 text-[15px] font-bold text-[#00000099]">
+            Price Details <Text className="text-red-500">*</Text>
+          </Text>
+
+          <TextInput
+            placeholder="₹ Expected Price"
+            value={expectedPrice}
+            onChangeText={setExpectedPrice}
+            className="rounded-md p-3 mb-3"
+            style={{
+              borderWidth: 2,
+              borderColor:
+                focusedField === "expectedPrice" ? "#22C55E" : "#0000001A",
+              height: 52,
+              backgroundColor: "#D9D9D91C",
+            }}
+            keyboardType="numeric"
+            onFocus={() => setFocusedField("expectedPrice")}
+            onBlur={() => setFocusedField(null)}
+          />
+
+          <Checkbox
+            label="All inclusive price"
+            selected={allInclusive}
+            onPress={() => setAllInclusive(!allInclusive)}
+          />
+          <Checkbox
+            label="Price Negotiable"
+            selected={priceNegotiable}
+            onPress={() => setPriceNegotiable(!priceNegotiable)}
+          />
+          <Checkbox
+            label="Tax and Govt. charges excluded"
+            selected={taxExcluded}
+            onPress={() => setTaxExcluded(!taxExcluded)}
+          />
+
+          <TouchableOpacity onPress={() => setIsMorePricingModalVisible(true)}>
+            <Text className="text-[#22C55E] text-sm mt-2">
+              + Add more pricing details
+            </Text>
+          </TouchableOpacity>
+
+          {/* ---------- PRE LEASED ---------- */}
+          <Text className="text-[14px] font-bold text-[#00000099] mt-4 mb-2">
+            Is it Pre-leased/Pre-Rented?
+          </Text>
+          <View className="flex-row mb-4">
+            <PillButton
+              label="Yes"
+              selected={preLeased === "Yes"}
+              onPress={() => setPreLeased("Yes")}
+            />
+            <PillButton
+              label="No"
+              selected={preLeased === "No"}
+              onPress={() => setPreLeased("No")}
+            />
+          </View>
+          {preLeased === "Yes" && (
+            <View className="mb-4">
+              {/* Lease Duration */}
+              <Text className="text-[13px] font-semibold text-[#00000099] mb-1">
+                Lease Duration
+              </Text>
+              <TextInput
+                placeholder="Eg: 3 Years"
+                value={leaseDuration}
+                onChangeText={setLeaseDuration}
+                className="rounded-md p-3 mb-3"
+                style={{
+                  borderWidth: 2,
+                  borderColor:
+                    focusedField === "leaseDuration" ? "#22C55E" : "#0000001A",
+                  backgroundColor: "#D9D9D91C",
+                  height: 50,
+                }}
+                onFocus={() => setFocusedField("leaseDuration")}
+                onBlur={() => setFocusedField(null)}
+              />
+
+              {/* Monthly Rent */}
+              <Text className="text-[13px] font-semibold text-[#00000099] mb-1">
+                Monthly Rent
+              </Text>
+              <TextInput
+                placeholder="₹ Monthly Rent"
+                value={monthlyRent}
+                onChangeText={setMonthlyRent}
+                keyboardType="numeric"
+                className="rounded-md p-3"
+                style={{
+                  borderWidth: 2,
+                  borderColor:
+                    focusedField === "monthlyRent" ? "#22C55E" : "#0000001A",
+                  backgroundColor: "#D9D9D91C",
+                  height: 50,
+                }}
+                onFocus={() => setFocusedField("monthlyRent")}
+                onBlur={() => setFocusedField(null)}
+              />
+            </View>
+          )}
+
+          {/* ---------- FIRE NOC ---------- */}
+          <Text className="text-[14px] font-bold text-[#00000099] mb-2">
+            Is your office fire NOC Certified?
+          </Text>
+          <View className="flex-row mb-4">
+            <PillButton
+              label="Yes"
+              selected={nocCertified === "Yes"}
+              onPress={() => setNocCertified("Yes")}
+            />
+            <PillButton
+              label="No"
+              selected={nocCertified === "No"}
+              onPress={() => setNocCertified("No")}
+            />
+          </View>
+
+          {/* ---------- OCCUPANCY ---------- */}
+          <Text className="text-[14px] font-bold text-[#00000099] mb-2">
+            Is it Occupancy Certified?
+          </Text>
+          <View className="flex-row mb-4">
+            <PillButton
+              label="Yes"
+              selected={occupancyCertified === "Yes"}
+              onPress={() => setOccupancyCertified("Yes")}
+            />
+            <PillButton
+              label="No"
+              selected={occupancyCertified === "No"}
+              onPress={() => setOccupancyCertified("No")}
+            />
+          </View>
+
+          {/* ---------- PREVIOUS USE ---------- */}
+          <Text className="text-[14px] font-bold text-[#00000099] mb-2">
+            Office previously used for (optional)
+          </Text>
+
+          <TouchableOpacity
+            onPress={() =>
+              setVisible(visible === "prevUsedFor" ? null : "prevUsedFor")
+            }
+            className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 mb-3"
+          >
+            <Text>{prevUsedFor}</Text>
+            <Ionicons name="chevron-down" size={22} color="#888" />
+          </TouchableOpacity>
+
+          {visible === "prevUsedFor" && (
+            <View
+              className="bg-white rounded-lg shadow-lg -mt-3 mb-4"
+              style={{ borderWidth: 1, borderColor: "#0000001A" }}
+            >
+              {prevUsedForOptions.map((item) => (
+                <TouchableOpacity
+                  key={item}
+                  onPress={() => {
+                    setPrevUsedFor(item);
+                    setVisible(null);
+                  }}
+                  className={`p-4 border-b ${
+                    prevUsedFor === item ? "bg-green-500" : "bg-white"
+                  }`}
+                >
+                  <Text
+                    className={
+                      prevUsedFor === item ? "text-white" : "text-gray-800"
+                    }
+                  >
+                    {item}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          {/* ---------- DESCRIPTION ---------- */}
+          <Text className="mt-4 mb-2 font-bold text-[15px] text-[#00000099]">
+            Describe your property <Text className="text-red-500">*</Text>
+          </Text>
+
+          <TextInput
+            placeholder="Share some details about your property like spacious rooms, well maintained facilities."
+            value={describeProperty}
+            onChangeText={setDescribeProperty}
+            multiline
+            textAlignVertical="top"
+            className="rounded-md p-3"
+            style={{
+              borderWidth: 2,
+              borderColor:
+                focusedField === "describeProperty" ? "#22C55E" : "#0000001A",
+              height: 108,
+            }}
+            onFocus={() => setFocusedField("describeProperty")}
+            onBlur={() => setFocusedField(null)}
+          />
+
+          {/* ---------- AMENITIES & LOCATION ---------- */}
+          <View
+            className="bg-white rounded-lg p-4 mt-4"
+            style={{ borderWidth: 1, borderColor: "#0000001A" }}
+          >
+            <Text className="text-[15px] font-bold text-[#00000099] mb-2">
+              Amenities
+            </Text>
+            <View className="flex-row flex-wrap mb-4">
+              {AMENITY_OPTIONS.map((a) => (
+                <PillButton
+                  key={a}
+                  label={a}
+                  selected={amenities.includes(a)}
+                  onPress={() => toggleArrayItem(setAmenities, amenities, a)}
+                />
+              ))}
+            </View>
+
+            <Text className="text-[15px] font-bold text-[#00000099] mb-3">
+              Location Advantages
+            </Text>
+            <View className="flex-row flex-wrap">
+              {LOCATION_ADVANTAGES.map((a) => (
+                <PillButton
+                  key={a}
+                  label={a}
+                  selected={locAdvantages.includes(a)}
+                  onPress={() =>
+                    toggleArrayItem(setLocAdvantages, locAdvantages, a)
+                  }
+                />
+              ))}
+            </View>
+          </View>
+          <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-3">
+            <TouchableOpacity className="px-5 py-3 rounded-lg bg-gray-200 mx-3">
+              <Text className="font-semibold">Cancel</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="px-5 py-3 rounded-lg bg-green-500"
+              onPress={handleNext}
+            >
+              <Text className="text-white font-semibold">Next</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+      <MorePricingDetailsModal
+        visible={isMorePricingModalVisible}
+        onClose={() => setIsMorePricingModalVisible(false)}
+      />
+    </View>
+  );
 };
 
 export default OfficeNext;

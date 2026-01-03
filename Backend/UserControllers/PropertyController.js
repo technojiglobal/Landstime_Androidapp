@@ -3,6 +3,9 @@
 import Property from '../UserModels/Property.js';
 import User from '../UserModels/User.js'; // Import User model
 
+// Utility: normalize filesystem path to URL-friendly forward slashes
+const normalizePath = (p) => (p ? p.replace(/\\+/g, '/') : p);
+
 // Create a new property
 // Backend/controllers/propertyController.js
 
@@ -36,12 +39,13 @@ if (!name || !phone || !email) {
 }
 
     // Extract uploaded files
-const images = req.files?.images?.map(file => file.path) || [];
 
 
 
-    const ownershipDocs = req.files?.ownershipDocs?.map(file => file.path) || [];
-    const identityDocs = req.files?.identityDocs?.map(file => file.path) || [];
+
+    
+    const ownershipDocs = req.files?.ownershipDocs?.map(file => normalizePath(file.path)) || [];
+    const identityDocs = req.files?.identityDocs?.map(file => normalizePath(file.path)) || [];
 
     // 🔐 Backend validation (DO NOT SKIP)
     if (!propertyData.propertyTitle) {
@@ -53,60 +57,180 @@ const images = req.files?.images?.map(file => file.path) || [];
     if (!propertyData.propertyType) {
       return res.status(400).json({ success: false, message: 'Property type is required' });
     }
-   if (propertyData.propertyType === "Commercial") {
+    const images = req.files?.images?.map(file => normalizePath(file.path)) || [];
+
+    // Debug logs to help diagnose missing images
+    console.log('🖼️ Received images:', images);
+    console.log('📁 req.files keys:', Object.keys(req.files || {}));
+    console.log('🔎 ownershipDocs count:', ownershipDocs.length, 'identityDocs count:', identityDocs.length);
+
+    const finalData = {
+  propertyType: propertyData.propertyType,
+  propertyTitle: propertyData.propertyTitle,
+  ownerDetails: propertyData.ownerDetails,
+    expectedPrice: propertyData.expectedPrice,
+  description: propertyData.description || "",
+
+  images,
+  documents: {
+    ownership: ownershipDocs,
+    identity: identityDocs,
+  },
+
+  userId: req.user._id,
+  status: "pending",
+};
+
+  if (propertyData.propertyType === "Commercial") {
   const { commercialDetails } = propertyData;
 
-  if (!commercialDetails) {
-    return res.status(400).json({
-      success: false,
-      message: "Commercial details are required",
-    });
-  }
-
-  if (!commercialDetails.subType) {
+  if (!commercialDetails || !commercialDetails.subType) {
     return res.status(400).json({
       success: false,
       message: "Commercial subType is required",
     });
   }
 
-  // OFFICE
- if (commercialDetails.subType.toLowerCase().includes("office")) {
-  if (!commercialDetails.officeDetails?.location) {
-    return res.status(400).json({
-      success: false,
-      message: "Office location is required",
-    });
-  }
+  const rawSubType = commercialDetails.subType.trim();
+  const subType = rawSubType.toLowerCase();
 
-  if (!commercialDetails.officeDetails?.area) {
-    return res.status(400).json({
-      success: false,
-      message: "Office area is required",
-    });
+  // Normalize to the enum values expected by the model
+  let canonicalSubType = "Other";
+  if (subType.includes("office")) canonicalSubType = "Office";
+  else if (subType.includes("retail")) canonicalSubType = "Retail";
+  else if (subType.includes("plot")) canonicalSubType = "Plot/Land";
+  else if (subType.includes("stor")) canonicalSubType = "Storage";
+  else if (subType.includes("industry")) canonicalSubType = "Industry";
+  else if (subType.includes("hospital")) canonicalSubType = "Hospitality";
+
+  // store canonical enum value in DB
+  finalData.commercialDetails = {
+    subType: canonicalSubType,
+  };
+
+  // OFFICE
+  if (canonicalSubType === "Office") {
+    if (
+      !commercialDetails.officeDetails ||
+      !commercialDetails.officeDetails.location ||
+      !commercialDetails.officeDetails.area
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Office location and area are required",
+      });
+    }
+
+    finalData.location = commercialDetails.officeDetails.location;
+    finalData.commercialDetails.officeDetails =
+      commercialDetails.officeDetails;
   }
-}
 
   // RETAIL
-  if (commercialDetails.subType.includes("Shop") || commercialDetails.subType.includes("Showroom")) {
-    if (!commercialDetails.retailDetails) {
+  if (canonicalSubType === "Retail") {
+    if (
+      !commercialDetails.retailDetails ||
+      !commercialDetails.retailDetails.location ||
+      !commercialDetails.retailDetails.area
+    ) {
       return res.status(400).json({
         success: false,
-        message: "Retail details are required",
+        message: "Retail location and area are required",
       });
     }
+
+    finalData.location = commercialDetails.retailDetails.location;
+    finalData.commercialDetails.retailDetails =
+      commercialDetails.retailDetails;
   }
 
-  // PLOT
-  if (commercialDetails.subType.includes("Land")) {
-    if (!commercialDetails.plotDetails) {
-      return res.status(400).json({
-        success: false,
-        message: "Plot details are required",
-      });
-    }
+  // STORAGE
+  // STORAGE
+if (canonicalSubType === "Storage") {
+  if (
+    !commercialDetails.storageDetails ||
+    !commercialDetails.storageDetails.location ||
+    !commercialDetails.storageDetails.storageArea?.value
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "Storage location and storage area are required",
+    });
+  }
+
+  finalData.location = commercialDetails.storageDetails.location;
+  finalData.commercialDetails.storageDetails =
+    commercialDetails.storageDetails;
+
+  if (commercialDetails.pricingExtras) {
+    finalData.commercialDetails.pricingExtras =
+      commercialDetails.pricingExtras;
   }
 }
+// INDUSTRY
+if (canonicalSubType === "Industry") {
+  if (
+    !commercialDetails.industryDetails ||
+    !commercialDetails.industryDetails.location ||
+    !commercialDetails.industryDetails.area?.value
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "Industry location and area are required",
+    });
+  }
+
+  finalData.location = commercialDetails.industryDetails.location;
+  finalData.commercialDetails.industryDetails =
+    commercialDetails.industryDetails;
+}
+
+// HOSPITALITY
+if (canonicalSubType === "Hospitality") {
+  if (
+    !commercialDetails.hospitalityDetails ||
+    !commercialDetails.hospitalityDetails.location ||
+    !commercialDetails.hospitalityDetails.area?.value
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "Hospitality location and area are required",
+    });
+  }
+
+  finalData.location = commercialDetails.hospitalityDetails.location;
+  finalData.commercialDetails.hospitalityDetails =
+    commercialDetails.hospitalityDetails;
+}
+
+  // PLOT / LAND
+  if (canonicalSubType === "Plot/Land") {
+    if (
+      !commercialDetails.plotDetails ||
+      !commercialDetails.plotDetails.location ||
+      !commercialDetails.plotDetails.area
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Plot location and area are required",
+      });
+    }
+
+    finalData.location = commercialDetails.plotDetails.location;
+    finalData.commercialDetails.plotDetails = commercialDetails.plotDetails;
+
+    if (commercialDetails.pricingExtras) {
+      finalData.commercialDetails.pricingExtras =
+        commercialDetails.pricingExtras;
+    }
+  }
+} 
+
+
+  
+// Plot handling is normalized above with other commercial subtypes
+
+
 
 /* ✅ END OF COMMERCIAL VALIDATION */
     if (images.length === 0) {
@@ -122,19 +246,12 @@ const images = req.files?.images?.map(file => file.path) || [];
     }
 
     // Create property
-    const property = new Property({
-      ...propertyData,
-       ownerDetails: propertyData.ownerDetails,
-      images,
-      documents: {
-        ownership: ownershipDocs,
-        identity: identityDocs
-      },
-      userId: req.user._id,
-      status: 'pending'
-    });
+  
 
-    await property.save();
+
+   const property = new Property(finalData);
+await property.save();
+
    console.log("✅ PROPERTY SAVED TO DATABASE");
 console.log("🆔 Property ID:", property._id);
 console.log("🏷 Property Type:", property.propertyType);
@@ -173,9 +290,16 @@ export const getApprovedProperties = async (req, res) => {
     
     const count = await Property.countDocuments(query);
     
+    // add full image URLs
+    const host = req.protocol + '://' + req.get('host');
+    const propertiesWithUrls = properties.map((p) => ({
+      ...p.toObject(),
+      imageUrls: (p.images || []).map((img) => `${host}/${img.replace(/^\\\//, '')}`),
+    }));
+
     res.status(200).json({
       success: true,
-      data: properties,
+      data: propertiesWithUrls,
       totalPages: Math.ceil(count / limit),
       currentPage: page
     });
@@ -213,9 +337,15 @@ export const getPropertyById = async (req, res) => {
       });
     }
     
+    const host = req.protocol + '://' + req.get('host');
+    const propertyWithUrls = {
+      ...property.toObject(),
+      imageUrls: (property.images || []).map((img) => `${host}/${img.replace(/^\\\//, '')}`),
+    };
+
     res.status(200).json({
       success: true,
-      data: property
+      data: propertyWithUrls
     });
     
   } catch (error) {
@@ -234,9 +364,16 @@ export const getUserProperties = async (req, res) => {
     const properties = await Property.find({ userId: req.user._id })
       .sort({ createdAt: -1 });
     
+    // Attach full image URLs
+    const host = req.protocol + '://' + req.get('host');
+    const propertiesWithUrls = properties.map((p) => ({
+      ...p.toObject(),
+      imageUrls: (p.images || []).map((img) => `${host}/${img.replace(/^\\\//, '')}`),
+    }));
+
     res.status(200).json({
       success: true,
-      data: properties
+      data: propertiesWithUrls
     });
     
   } catch (error) {
@@ -593,7 +730,7 @@ export const uploadAdditionalImages = async (req, res) => {
       });
     }
     
-    const newImages = req.files?.images?.map(file => file.path) || [];
+    const newImages = req.files?.images?.map(file => normalizePath(file.path)) || [];
     
     if (newImages.length === 0) {
       return res.status(400).json({
@@ -637,8 +774,8 @@ export const deletePropertyImage = async (req, res) => {
       });
     }
     
-    // Remove image from array
-    property.images = property.images.filter(img => img !== imagePath);
+    // Remove image from array (normalize comparison)
+    property.images = property.images.filter(img => img !== normalizePath(imagePath));
     await property.save();
     
     // Optional: Delete file from filesystem

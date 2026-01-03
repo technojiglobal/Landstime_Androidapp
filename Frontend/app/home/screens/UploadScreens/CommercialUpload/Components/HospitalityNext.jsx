@@ -11,9 +11,44 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Toast from 'react-native-toast-message';
 
-import { PillButton, Checkbox } from "./Office";
-import MorePricingDetailsModal from "../../MorePricingDetailsModal";
 
+import MorePricingDetailsModal from "../../MorePricingDetailsModal";
+const PillButton = ({ label, selected, onPress }) => (
+  <TouchableOpacity
+    onPress={onPress}
+    style={{
+      paddingHorizontal: 14,
+      paddingVertical: 6,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: selected ? "#22C55E" : "#E5E7EB",
+      backgroundColor: selected ? "#22C55E17" : "#fff",
+      marginRight: 8,
+      marginBottom: 8,
+    }}
+  >
+    <Text style={{ fontSize: 12, color: selected ? "#22C55E" : "#6B7280" }}>
+      {label}
+    </Text>
+  </TouchableOpacity>
+);
+
+const Checkbox = ({ selected }) => (
+  <View
+    style={{
+      width: 16,
+      height: 16,
+      borderWidth: 1,
+      borderColor: selected ? "#22C55E" : "#D1D5DB",
+      backgroundColor: selected ? "#22C55E" : "#fff",
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 8,
+    }}
+  >
+    {selected && <Text style={{ color: "#fff", fontSize: 10 }}>✓</Text>}
+  </View>
+);
 const HospitalityNext = () => {
     const router = useRouter();
 

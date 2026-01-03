@@ -214,8 +214,12 @@ useEffect(() => {
         <View className="relative">
           <Image
             source={{
-              uri: property.images?.[0]
-                ? `http://YOUR_BACKEND_URL/${property.images[0]}`
+              uri: property.imageUrls?.[0]
+                ? property.imageUrls[0]
+                : property.images?.[0]
+                ? (property.images[0].startsWith('http')
+                    ? property.images[0]
+                    : `http://10.210.66.5:8000/${property.images[0].replace(/^\//, '')}`)
                 : "https://images.unsplash.com/photo-1564013799919-ab600027ffc6",
             }}
             className="w-full h-52"

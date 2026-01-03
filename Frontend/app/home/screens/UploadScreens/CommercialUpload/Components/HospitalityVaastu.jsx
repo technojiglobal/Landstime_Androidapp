@@ -1,11 +1,32 @@
 import React, { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter,useLocalSearchParams } from "expo-router";
+import Toast from 'react-native-toast-message';
 import VastuDropdown from "../../VastuDropdown";
 
 export default function VastuDetailsScreen() {
   const [form, setForm] = useState({});
   const router = useRouter();
+  const params = useLocalSearchParams();
+
+const safeParse = (raw) => {
+  if (!raw) return null;
+  try {
+    if (typeof raw === 'string') return JSON.parse(raw);
+    if (Array.isArray(raw)) {
+      const first = raw[0];
+      if (typeof first === 'string') return JSON.parse(first);
+      return first;
+    }
+    if (typeof raw === 'object') return raw;
+  } catch (e) {
+    console.warn('Failed to parse commercialDetails param', e);
+    return null;
+  }
+  return null;
+};
+
+const commercialDetailsFromPrev = safeParse(params.commercialDetails);
 
   const update = (key, value) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -17,7 +38,7 @@ export default function VastuDetailsScreen() {
         <TouchableOpacity
           onPress={() =>
             router.push(
-              "/home/screens/UploadScreens/CommercialUpload/Components/IndustryNext"
+              "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityNext"
             )
           }
         >
@@ -148,11 +169,34 @@ export default function VastuDetailsScreen() {
 
           <TouchableOpacity
             className="px-5 py-3 rounded-lg bg-green-500"
-            onPress={() =>
-              router.push(
-                "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen"
-              )
-            }
+            onPress={() => {
+  if (!commercialDetailsFromPrev) return;
+
+const updatedCommercialDetails = {
+  ...commercialDetailsFromPrev,
+  hospitalityDetails: {
+    ...(commercialDetailsFromPrev.hospitalityDetails || {}),
+    vastuDetails: form,
+  },
+};
+
+console.log("➡️ Hospitality → Owner payload:", updatedCommercialDetails);
+
+if (!commercialDetailsFromPrev) {
+  Toast.show({ type: 'error', text1: 'Missing details', text2: 'Please complete previous steps before continuing.' });
+  return;
+}
+
+router.push({
+  pathname:
+    "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
+  params: {
+    commercialDetails: JSON.stringify(updatedCommercialDetails),
+  },
+});
+
+}}
+
           >
             <Text className="text-white font-semibold">Next</Text>
           </TouchableOpacity>

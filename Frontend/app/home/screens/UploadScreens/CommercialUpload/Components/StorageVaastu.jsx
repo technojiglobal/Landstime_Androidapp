@@ -1,11 +1,26 @@
 import React, { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity,Image} from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter,useLocalSearchParams } from "expo-router";
 import VastuDropdown from "../../VastuDropdown";
 
 export default function VastuDetailsScreen() {
   const [form, setForm] = useState({});
   const router = useRouter();
+ const params = useLocalSearchParams();
+
+const safeParse = (raw) => {
+  if (!raw) return null;
+  if (typeof raw === "string") {
+    try { return JSON.parse(raw); } catch { return null; }
+  }
+  if (Array.isArray(raw)) {
+    try { return JSON.parse(raw[0]); } catch { return null; }
+  }
+  if (typeof raw === "object") return raw;
+  return null;
+};
+
+const commercialDetailsFromPrev = safeParse(params.commercialDetails);
 
   const update = (key, value) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -13,7 +28,17 @@ export default function VastuDetailsScreen() {
   return (
     <View className="flex-1 bg-white">
       <View className="flex-row  items-center ml-4 mt-12 mb-2">
-                      <TouchableOpacity onPress={() => onPress(() =>  router.push("/home/screens/UploadScreens/CommercialUpload/Components/StorageNext"))} >
+                      <TouchableOpacity onPress={() =>
+  router.push({
+    pathname:
+      "/home/screens/UploadScreens/CommercialUpload/Components/StorageNext",
+    params: {
+      commercialDetails: JSON.stringify(commercialDetailsFromPrev),
+    },
+  })
+}
+
+ >
                           <Image
                               source={require("../../../../../../assets/arrow.png")}
                               className="w-5 h-5"
@@ -113,11 +138,26 @@ export default function VastuDetailsScreen() {
 
         <TouchableOpacity
           className="px-5 py-3 rounded-lg bg-green-500"
-          onPress={() =>
-            router.push(
-              "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen"
-            )
-          }
+          onPress={() => {
+  if (!commercialDetailsFromPrev) return;
+
+  const updatedCommercialDetails = {
+    ...commercialDetailsFromPrev,
+    storageDetails: {
+      ...commercialDetailsFromPrev.storageDetails,
+      vastuDetails: form, // ✅ THIS WAS MISSING
+    },
+  };
+
+  router.push({
+    pathname:
+      "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
+    params: {
+      commercialDetails: JSON.stringify(updatedCommercialDetails),
+    },
+  });
+}}
+
         >
           <Text className="text-white font-semibold">Next</Text>
         </TouchableOpacity>
