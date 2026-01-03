@@ -4,7 +4,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // API Base URL - Change this to your backend URL
 
 
+
 const API_BASE_URL = 'http://10.37.92.184:8000/api/user';
+
 
 
 // Helper function to get token from AsyncStorage
@@ -192,56 +194,74 @@ export const checkPhoneExists = async (phone) => {
 
 // ===== PROPERTY APIs =====
 
+
 const PROPERTY_API_BASE_URL = 'http://10.37.92.184:8000/api/properties';
 
+
+
+
 // Create property with images
-export const createProperty = async (propertyData, imageUris) => {
+export const createProperty = async (propertyData, imageUris = []) => {
   try {
     const token = await getToken();
-    
+
     const formData = new FormData();
-    
-    // Append images
+
+    // Append images (if any)
     imageUris.forEach((uri, index) => {
       const filename = uri.split('/').pop();
       const match = /\.(\w+)$/.exec(filename);
       const type = match ? `image/${match[1]}` : 'image/jpeg';
-      
+
       formData.append('images', {
         uri,
         name: filename,
         type
       });
     });
-    
-    // Append all property data fields
-    Object.keys(propertyData).forEach(key => {
-      if (typeof propertyData[key] === 'object') {
-        formData.append(key, JSON.stringify(propertyData[key]));
-      } else {
-        formData.append(key, propertyData[key]);
-      }
-    });
-    
+
+    // Backend expects a single `propertyData` field with JSON string
+    formData.append('propertyData', JSON.stringify(propertyData));
+
     const response = await fetch(`${PROPERTY_API_BASE_URL}`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
-        // Don't set Content-Type for FormData - it sets boundary automatically
+        // Do not set Content-Type for FormData; the boundary will be set automatically
       },
       body: formData
     });
-    
+
     const data = await response.json();
-    
+
     return {
       success: response.ok,
       status: response.status,
       data: data
     };
-    
+
   } catch (error) {
     console.error('Create property error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Get properties belonging to the authenticated user
+export const getUserProperties = async () => {
+  try {
+    const token = await getToken();
+    const response = await fetch(`${PROPERTY_API_BASE_URL}/user/my-properties`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+    return { success: response.ok, status: response.status, data };
+  } catch (error) {
+    console.error('Get user properties error:', error);
     return { success: false, error: error.message };
   }
 };

@@ -14,7 +14,7 @@ import adminAuthRoutes from "./AdminRoutes/AdminRoute.js";
 import interiorDesignRoutes from "./AdminRoutes/InteriorDesignRoute.js";
 import notificationRoutes from "./AdminRoutes/NotificationRoute.js";
 import { startNotificationScheduler } from "./services/notificationScheduler.js"; // ✅ NEW
-
+import reviewRoutes from "./UserRoutes/ReviewRoutes.js";
 const app = express();
 const PORT = process.env.PORT || 8000;
 
@@ -26,9 +26,10 @@ const __dirname = path.dirname(__filename);
 app.use(cors({
   origin: [
     'http://localhost:8081',           // React Native/Expo
+
     'http://10.37.92.184:8081',          // React Native/Expo (network)
     'http://192.168.31.115:8081',      // React Native/Expo (network)
-    'http://localhost:5173'            // Admin Panel (Vite)
+            // Admin Panel (Vite)
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -41,7 +42,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 console.log("✅ Static middleware about to mount");
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 console.log("✅ Static middleware mounted");
-
+app.use("/api/reviews", reviewRoutes);
 // MongoDB Connection
 console.log('🔍 Attempting MongoDB connection...');
 console.log('MongoDB URI:', process.env.MONGODB_URI ? 'URI exists ✅' : 'URI missing ❌');

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router"; // read incoming base details / title
 import LocationSection from "components/LocationSection";
 import Toast from "react-native-toast-message";
 
@@ -23,6 +23,25 @@ const PillButton = ({ label, selected, onPress }) => (
 
 export default function Plot() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const safeParse = (raw) => {
+    if (!raw) return null;
+    if (typeof raw === 'string') {
+      try { return JSON.parse(raw); } catch (e) { console.warn('parse error', e); return null; }
+    }
+    if (Array.isArray(raw)) {
+      const first = raw[0];
+      if (typeof first === 'string') {
+        try { return JSON.parse(first); } catch (e) { console.warn('parse error', e); return null; }
+      }
+      return first;
+    }
+    if (typeof raw === 'object') return raw;
+    return null;
+  };
+
+  const baseDetails = safeParse(params.commercialBaseDetails);
+  const propertyTitle = baseDetails?.propertyTitle || "";
 
   /* ---------- STATE ---------- */
   const [location, setLocation] = useState("");
@@ -57,52 +76,48 @@ const toggleConstruction = (value) => {
   }
 };
 
-  const handleNext = (location, plotArea, router) => {
-    if (!location.trim()) {
-      Toast.show({
-        type: 'error',
-        text1: 'Location Required',
-        text2: 'Please enter the property location.',
-      });
-      return;
-    }
-    if (!plotArea.trim()) {
-      Toast.show({
-        type: 'error',
-        text1: 'Plot Area Required',
-        text2: 'Please enter the plot area.',
-      });
-      return;
-    }
-    if (!length.trim()) {
-      Toast.show({
-        type: 'error',
-        text1: 'Length Required',
-        text2: 'Please enter the plot length.',
-      });
-      return;
-    }
-    if (!breadth.trim()) {
-      Toast.show({
-        type: 'error',
-        text1: 'Breadth Required',
-        text2: 'Please enter the plot breadth.',
-      });
-      return;
-    }
-    if (!roadWidth.trim()) {
-      Toast.show({
-        type: 'error',
-        text1: 'Road Width Required',
-        text2: 'Please enter the road width.',
-      });
-      return;
-    }
-  
-    router.push(
-      "/home/screens/UploadScreens/CommercialUpload/Components/PlotNext"
-    );
+ const handleNext = () => {
+  if (!location.trim() || !plotArea.trim() || !length || !breadth || !roadWidth) {
+    Toast.show({
+      type: "error",
+      text1: "All required fields must be filled",
+    });
+    return;
+  }
+
+  const commercialDetails = {
+    subType: "Plot/Land",
+    propertyTitle,
+    plotDetails: {
+      location,
+      locality,
+      area: Number(plotArea),
+      dimensions: {
+        length: Number(length),
+        breadth: Number(breadth),
+      },
+      roadWidth: Number(roadWidth),
+      openSides,
+      constructionDone,
+      constructionTypes,
+      possession:
+        possessionYear.length === 4
+          ? { year: possessionYear, month: possessionMonth }
+          : null,
+    },
   };
+
+  router.push({
+    pathname:
+      "/home/screens/UploadScreens/CommercialUpload/Components/PlotNext",
+    params: {
+      commercialDetails: JSON.stringify(commercialDetails),
+      propertyTitle, // ✅ forwarded explicitly as well
+    },
+  });
+
+};
+
 
   return (
     <View className="flex-1 bg-[#F9FAFB]">
@@ -304,7 +319,7 @@ const toggleConstruction = (value) => {
       
                   <TouchableOpacity
                     className="px-5 py-3 rounded-lg bg-green-500"
-                    onPress={() => handleNext(location, plotArea, router)}
+                    onPress={handleNext}
                   >
                     <Text className="text-white font-semibold">Next</Text>
                   </TouchableOpacity>

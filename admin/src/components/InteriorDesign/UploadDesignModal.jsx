@@ -2,8 +2,15 @@
 
 import { useState } from "react";
 import { X, Image as ImageIcon } from "lucide-react";
+import Toast from "../UserManagement/Toast";
 
 export default function UploadDesignModal({ onClose, onUpload }) {
+  const onlyLetters = /^[A-Za-z\s]+$/;
+  const onlyNumbers = /^[0-9]+$/;
+  const phoneRegex = /^[0-9]{10}$/;
+
+  const [toast, setToast] = useState(null);
+
   const [form, setForm] = useState({
     designName: "",
     designerName: "",
@@ -14,6 +21,7 @@ export default function UploadDesignModal({ onClose, onUpload }) {
     duration: "",
     location: "",
     description: "",
+    category: "",
     images: [],
   });
 
@@ -34,12 +42,71 @@ export default function UploadDesignModal({ onClose, onUpload }) {
 
   /* ---------- SUBMIT ---------- */
   const handleSubmit = () => {
+    if (!form.designName.trim()) {
+      setToast({ message: "Design name is required", type: "error" });
+      return;
+    }
+
+    if (!onlyLetters.test(form.designName)) {
+      setToast({ message: "Design name must contain only letters", type: "error" });
+      return;
+    }
+
+    if (!form.designerName.trim()) {
+      setToast({ message: "Designer name is required", type: "error" });
+      return;
+    }
+
+    if (!onlyLetters.test(form.designerName)) {
+      setToast({ message: "Designer name must contain only letters", type: "error" });
+      return;
+    }
+
+    if (!phoneRegex.test(form.designerPhone)) {
+      setToast({ message: "Phone number must be exactly 10 digits", type: "error" });
+      return;
+    }
+
+    if (!onlyNumbers.test(form.area)) {
+      setToast({ message: "Area must contain only numbers", type: "error" });
+      return;
+    }
+
+    if (!form.category) {
+      setToast({ message: "Please select a category", type: "error" });
+      return;
+    }
+
+    if (
+      !onlyNumbers.test(form.priceFrom) ||
+      !onlyNumbers.test(form.priceTo)
+    ) {
+      setToast({ message: "Price must contain only numbers", type: "error" });
+      return;
+    }
+
+    if (Number(form.priceFrom) > Number(form.priceTo)) {
+      setToast({ message: "Price From cannot be greater than Price To", type: "error" });
+      return;
+    }
+
+    if (!form.duration.trim()) {
+      setToast({ message: "Duration is required", type: "error" });
+      return;
+    }
+
+    if (!form.location.trim()) {
+      setToast({ message: "Location is required", type: "error" });
+      return;
+    }
+
     onUpload({
-      name: form.designName,
-      designer: form.designerName,
+      name: form.designName.trim(),
+      designer: form.designerName.trim(),
       phone: form.designerPhone,
       area: form.area,
-      price: `$${form.priceFrom} - $${form.priceTo}`,
+      category: form.category,
+      price: `${form.priceFrom} - ${form.priceTo}`,
       duration: form.duration,
       location: form.location,
       description: form.description,
@@ -121,6 +188,26 @@ export default function UploadDesignModal({ onClose, onUpload }) {
               />
             </div>
           </div>
+          {/* CATEGORY */}
+          <div>
+            <label className="text-sm font-medium">Category / Room Type</label>
+            <select
+              className="mt-1 w-full border rounded-lg px-3 py-2 bg-white"
+              value={form.category}
+              onChange={(e) =>
+                setForm({ ...form, category: e.target.value })
+              }
+            >
+              <option value="">Select room type</option>
+              <option value="Living Area">Living Area</option>
+              <option value="Bedroom">Bedroom</option>
+              <option value="Bathroom">Bathroom</option>
+              <option value="Kitchen">Kitchen</option>
+              <option value="Workspace">Workspace</option>
+              <option value="Storage">Storage</option>
+            </select>
+          </div>
+
 
           {/* ROW 3 */}
           <div className="grid md:grid-cols-2 gap-4">
@@ -238,6 +325,16 @@ export default function UploadDesignModal({ onClose, onUpload }) {
             Upload Design
           </button>
         </div>
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
+
+
+
       </div>
     </div>
   );

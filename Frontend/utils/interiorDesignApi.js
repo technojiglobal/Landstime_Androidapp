@@ -7,7 +7,8 @@ import { Platform } from "react-native";
  * Android emulator → use local IP (NOT localhost)
  * Expo physical device → same WiFi IP
  */
-const BASE_URL = "http://10.37.92.184:8000/api/admin/interior";
+const BASE_URL = "http://10.10.2.39:8000/api/admin/interior";
+
 
 export const fetchInteriorDesigns = async ({
   page = 1,
@@ -22,8 +23,9 @@ export const fetchInteriorDesigns = async ({
 
     // Map selectedRoom → backend fields
     if (selectedRoom && selectedRoom !== "All Rooms") {
-      params.append("search", selectedRoom);
-    }
+  params.append("category", selectedRoom);
+}
+
 
     const response = await fetch(`${BASE_URL}/designs?${params.toString()}`);
 

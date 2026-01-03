@@ -15,17 +15,28 @@ import { createProperty } from "utils/propertyApi";
 
 export default function OwnerScreen() {
     const router = useRouter();
-     const params = useLocalSearchParams();
+    // Read all params once at top-level (hooks must not be called inside event handlers)
+    const params = useLocalSearchParams();
+    const rawCommercialDetails = params.commercialDetails;
+
 
 const commercialDetails = useMemo(() => {
-  if (!params.commercialDetails) return null;
-
-  if (Array.isArray(params.commercialDetails)) {
-    return JSON.parse(params.commercialDetails[0]);
+  if (!rawCommercialDetails) return null;
+  try {
+    if (typeof rawCommercialDetails === 'string') return JSON.parse(rawCommercialDetails);
+    if (Array.isArray(rawCommercialDetails)) {
+      const first = rawCommercialDetails[0];
+      if (typeof first === 'string') return JSON.parse(first);
+      return first;
+    }
+    if (typeof rawCommercialDetails === 'object') return rawCommercialDetails;
+  } catch (e) {
+    console.warn('Failed to parse commercial details', e);
+    return null;
   }
+  return null;
+}, [rawCommercialDetails]);
 
-  return JSON.parse(params.commercialDetails);
-}, [params.commercialDetails]);
     // State for documents and images
     const [propertyImages, setPropertyImages] = useState([]);
     const [ownershipDocs, setOwnershipDocs] = useState([]);
@@ -73,10 +84,15 @@ const commercialDetails = useMemo(() => {
 
 const { expectedPrice, ...restOfCommercialDetails } = commercialDetails;
 
+// also read any separately passed propertyTitle param as a fallback
+const passedTitle = params.propertyTitle;
+
 const propertyData = {
-  propertyTitle: restOfCommercialDetails.propertyTitle || "Commercial Office",
+  propertyTitle:
+    restOfCommercialDetails.propertyTitle || passedTitle || `Commercial ${restOfCommercialDetails.subType || "Office"}`,
   propertyType: "Commercial",
-  location: restOfCommercialDetails.officeDetails?.location,
+  // include Plot location as a fallback too
+  location: restOfCommercialDetails.officeDetails?.location || restOfCommercialDetails.retailDetails?.location || restOfCommercialDetails.plotDetails?.location,
   expectedPrice: expectedPrice,
 
   commercialDetails: restOfCommercialDetails,

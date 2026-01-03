@@ -11,7 +11,7 @@ import {
   Modal,
   FlatList,
 } from 'react-native';
-import { useRouter } from "expo-router";
+import { useRouter,useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
@@ -109,28 +109,9 @@ const Counter = ({ value, setValue }) => (
   </View>
 );
 
-const handleNext = (location, plotArea, router) => {
-  if (!location.trim()) {
-    Toast.show({
-      type: 'error',
-      text1: 'Location Required',
-      text2: 'Please enter the property location.',
-    });
-    return;
-  }
-  if (!plotArea.trim()) {
-    Toast.show({
-      type: 'error',
-      text1: 'Plot Area Required',
-      text2: 'Please enter the plot area.',
-    });
-    return;
-  }
 
-  router.push(
-    "/home/screens/UploadScreens/CommercialUpload/Components/StorageNext"
-  );
-};
+
+
 
 export default function PropertyFormScreen() {
   const [visible, setVisible] = useState(null);
@@ -155,6 +136,69 @@ export default function PropertyFormScreen() {
   const [possessionBy, setPossessionBy] = useState("");
 
   const router = useRouter();
+  const params = useLocalSearchParams();
+
+const safeParse = (raw) => {
+  if (!raw) return null;
+  if (typeof raw === "string") {
+    try { return JSON.parse(raw); } catch { return null; }
+  }
+  if (Array.isArray(raw)) {
+    try { return JSON.parse(raw[0]); } catch { return null; }
+  }
+  if (typeof raw === "object") return raw;
+  return null;
+};
+
+const baseDetails = safeParse(params.commercialBaseDetails);
+const handleNext = () => {
+  if (!location.trim()) {
+    Toast.show({ type: "error", text1: "Location Required" });
+    return;
+  }
+
+  if (!plotArea.trim()) {
+    Toast.show({ type: "error", text1: "Area Required" });
+    return;
+  }
+
+  const commercialDetails = {
+    subType: "Storage",
+    propertyTitle: baseDetails?.propertyTitle,
+
+    storageDetails: {
+      location, // ✅ REQUIRED & MATCHES SCHEMA
+
+      storageArea: {
+        value: Number(plotArea),
+        unit,
+      },
+
+      dimensions: {
+        length: length ? Number(length) : null,
+        breadth: breadth ? Number(breadth) : null,
+      },
+
+      washroomType,
+      availability,
+      ageOfProperty,
+
+      possession:
+        availability === "UnderConstruction"
+          ? { expectedBy: possessionBy }
+          : null,
+    },
+  };
+
+  router.push({
+    pathname:
+      "/home/screens/UploadScreens/CommercialUpload/Components/StorageNext",
+    params: {
+      commercialDetails: JSON.stringify(commercialDetails),
+    },
+  });
+};
+
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -414,7 +458,7 @@ export default function PropertyFormScreen() {
 
             <TouchableOpacity
               className="px-5 py-3 rounded-lg bg-green-500"
-              onPress={() => handleNext(location, plotArea, router)}
+              onPress={ handleNext}
             >
               <Text className="text-white font-semibold">Next</Text>
             </TouchableOpacity>

@@ -9,7 +9,7 @@ import {
   ScrollView,Image
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter,useLocalSearchParams } from "expo-router";
 import Toast from "react-native-toast-message";
 import MorePricingDetailsModal from "../../MorePricingDetailsModal";
 /* ---------- UI HELPERS ---------- */
@@ -51,7 +51,26 @@ const Checkbox = ({ label, checked, onPress }) => (
 /* ---------- MAIN SCREEN ---------- */
 export default function PlotNext() {
   const router = useRouter();
+  const params = useLocalSearchParams();
 
+const safeParse = (raw) => {
+  if (!raw) return null;
+  if (typeof raw === 'string') {
+    try { return JSON.parse(raw); } catch (e) { console.warn('parse error', e); return null; }
+  }
+  if (Array.isArray(raw)) {
+    const first = raw[0];
+    if (typeof first === 'string') {
+      try { return JSON.parse(first); } catch (e) { console.warn('parse error', e); return null; }
+    }
+    return first;
+  }
+  if (typeof raw === 'object') return raw;
+  return null;
+};
+
+const propertyTitle = params.propertyTitle || "";
+const plotDetailsFromPrev = safeParse(params.commercialDetails);
   /* ---------- STATE ---------- */
   const [ownership, setOwnership] = useState("");
   const [authority, setAuthority] = useState("");
@@ -134,14 +153,55 @@ export default function PlotNext() {
       });
       return;
     }
-
+ if (!propertyTitle) {
+  Toast.show({
+    type: "error",
+    text1: "Property title missing",
+  });
+  return;
+}
     Toast.show({
       type: 'success',
       text1: 'Details Saved',
       text2: 'Moving to next step...',
     });
 
-    router.push("/home/screens/UploadScreens/CommercialUpload/Components/PlotVaastu");
+ router.push({
+  pathname:
+    "/home/screens/UploadScreens/CommercialUpload/Components/PlotVaastu",
+  params: {
+    commercialDetails: JSON.stringify({
+      ...plotDetailsFromPrev,
+
+      // ✅ MUST be at ROOT
+      propertyTitle,
+      expectedPrice: Number(expectedPrice),
+      description,
+
+      // ✅ price flags only
+      priceDetails: {
+        allInclusive,
+        negotiable,
+        taxExcluded,
+      },
+
+      // ✅ optional extras (custom object)
+      pricingExtras: {
+        ownership,
+        authority,
+        industryType,
+        preLeased,
+        leaseDuration,
+        monthlyRent,
+        cornerProperty,
+        amenities,
+        locationAdvantages,
+      },
+    }),
+  },
+});
+
+
   };
 
   return (

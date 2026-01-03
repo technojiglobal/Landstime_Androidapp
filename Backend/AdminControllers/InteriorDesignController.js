@@ -1,6 +1,8 @@
 // Backend/AdminControllers/InteriorDesignController.js
 
 import InteriorDesign from '../AdminModels/InteriorDesign.js';
+import Review from "../UserModels/Review.js"; // adjust path if needed
+
 
 // Get all interior designs (with pagination, search, and filters)
 export const getAllDesigns = async (req, res) => {
@@ -9,11 +11,13 @@ export const getAllDesigns = async (req, res) => {
       page = 1,
       limit = 10,
       search = '',
+      category,               // ✅ ADD
       sortBy = 'createdAt',
       sortOrder = 'desc',
       minRating,
       location
     } = req.query;
+
 
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
@@ -41,6 +45,10 @@ export const getAllDesigns = async (req, res) => {
     if (location) {
       query.location = { $regex: location, $options: 'i' };
     }
+    if (category && category !== "All Rooms") {
+      query.category = category;
+    }
+
 
     // Sort options
     const sortOptions = {};
@@ -56,17 +64,44 @@ export const getAllDesigns = async (req, res) => {
         .lean(),
       InteriorDesign.countDocuments(query)
     ]);
+  const designsWithRatings = await Promise.all(
+  designs.map(async (design) => {
+    const stats = await Review.aggregate([
+      {
+        $match: {
+          entityId: design._id,
+          entityType: "interior",
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          avgRating: { $avg: "$rating" },
+          reviewCount: { $sum: 1 },
+        },
+      },
+    ]);
+
+    return {
+      ...design,
+      avgRating: Number(stats[0]?.avgRating?.toFixed(1)) || 0,
+      reviewCount: stats[0]?.reviewCount || 0,
+    };
+  })
+);
+
 
     res.status(200).json({
-      success: true,
-      data: designs,
-      pagination: {
-        currentPage: pageNum,
-        totalPages: Math.ceil(total / limitNum),
-        totalItems: total,
-        itemsPerPage: limitNum
-      }
-    });
+  success: true,
+  data: designsWithRatings,
+  pagination: {
+    currentPage: pageNum,
+    totalPages: Math.ceil(total / limitNum),
+    totalItems: total,
+    itemsPerPage: limitNum
+  }
+});
+
   } catch (error) {
     console.error('Get all designs error:', error);
     res.status(500).json({
@@ -110,12 +145,15 @@ export const getDesignById = async (req, res) => {
 // Create new design (Admin only)
 export const createDesign = async (req, res) => {
   try {
+
+
     const {
       name,
       designer,
       phone,
       area,
       price,
+      category,
       duration,
       location,
       rating,
@@ -123,12 +161,34 @@ export const createDesign = async (req, res) => {
     } = req.body;
 
     // Validation
-    if (!name || !designer || !phone || !area || !price || !duration || !location) {
+    if (
+      !name ||
+      !designer ||
+      !phone ||
+      !area ||
+      !category ||   // ✅ ADD THIS
+      !price ||
+      !duration ||
+      !location
+    ) {
+
       return res.status(400).json({
         success: false,
         message: 'Please provide all required fields'
       });
     }
+    if (!/^[A-Za-z\s]+$/.test(name))
+      return res.status(400).json({ success: false, message: "Invalid design name" });
+
+    if (!/^[A-Za-z\s]+$/.test(designer))
+      return res.status(400).json({ success: false, message: "Invalid designer name" });
+
+    if (!/^[0-9]{10}$/.test(phone))
+      return res.status(400).json({ success: false, message: "Invalid phone number" });
+
+    if (!category)
+      return res.status(400).json({ success: false, message: "Category is required" });
+
 
     // Handle uploaded images
     let imageUrls = [];
@@ -142,6 +202,7 @@ export const createDesign = async (req, res) => {
       designer,
       phone,
       area,
+      category,
       price,
       duration,
       location,
