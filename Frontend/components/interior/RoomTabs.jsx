@@ -1,3 +1,4 @@
+// Frontend/components/interior/RoomTabs.jsx
 import { ScrollView, TouchableOpacity, Text, View, Image } from "react-native";
 import { useResponsive } from "../../utils/responsive";
 
@@ -10,8 +11,8 @@ export default function RoomTabs({ selectedRoom, setSelectedRoom }) {
     { name: "Living Area", icon: require("../../assets/living-icon.png") },
     { name: "Bedroom", icon: require("../../assets/bedroom.png") },
     { name: "Kitchen", icon: require("../../assets/kitchen-icon.png") },
-    { name: "Bathrooms", icon: require("../../assets/bath.png") },
-    { name: "Workspaces", icon: require("../../assets/work.png") },
+    { name: "Bathroom", icon: require("../../assets/bath.png") },
+    { name: "Workspace", icon: require("../../assets/work.png") },
     { name: "Storage", icon: require("../../assets/storage-icon.png") },
   ];
 

@@ -14,7 +14,7 @@ import adminAuthRoutes from "./AdminRoutes/AdminRoute.js";
 import interiorDesignRoutes from "./AdminRoutes/InteriorDesignRoute.js";
 import notificationRoutes from "./AdminRoutes/NotificationRoute.js";
 import { startNotificationScheduler } from "./services/notificationScheduler.js"; // ✅ NEW
-
+import reviewRoutes from "./UserRoutes/ReviewRoutes.js";
 const app = express();
 const PORT = process.env.PORT || 8000;
 
@@ -41,7 +41,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 console.log("✅ Static middleware about to mount");
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 console.log("✅ Static middleware mounted");
-
+app.use("/api/reviews", reviewRoutes);
 // MongoDB Connection
 console.log('🔍 Attempting MongoDB connection...');
 console.log('MongoDB URI:', process.env.MONGODB_URI ? 'URI exists ✅' : 'URI missing ❌');
