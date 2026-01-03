@@ -71,32 +71,12 @@ const RoundOption = ({ label, selected, onPress }) => (
 
 
 
-const handleNext = (location, plotArea, router) => {
-  if (!location.trim()) {
-    Toast.show({
-      type: 'error',
-      text1: 'Location Required',
-      text2: 'Please enter the property location.',
-    });
-    return;
-  }
-  if (!plotArea.trim()) {
-    Toast.show({
-      type: 'error',
-      text1: 'Plot Area Required',
-      text2: 'Please enter the plot area.',
-    });
-    return;
-  }
 
-  router.push(
-    "/home/screens/UploadScreens/CommercialUpload/Components/IndustryNext"
-  );
-};
 
 export default function PropertyFormScreen() {
   const [visible, setVisible] = useState(null);
   const [focusedField, setFocusedField] = useState(null);
+
 
   // Location
   const [location, setLocation] = useState('');
@@ -117,6 +97,49 @@ export default function PropertyFormScreen() {
   const [possessionBy, setPossessionBy] = useState("");
 
   const router = useRouter();
+   const handleNext = () => {
+  if (!location.trim()) {
+    Toast.show({
+      type: "error",
+      text1: "Location Required",
+      text2: "Please enter the property location",
+    });
+    return;
+  }
+
+  if (!plotArea.trim()) {
+    Toast.show({
+      type: "error",
+      text1: "Area Required",
+      text2: "Please enter the area",
+    });
+    return;
+  }
+
+  const commercialDetails = {
+    subType: "Industry",
+    
+    industryDetails: {
+      location,
+      area: {
+        value: Number(plotArea),
+        unit,
+      },
+      washroomType,
+      availability,
+      ageOfProperty,
+      possessionBy,
+    },
+  };
+
+  router.push({
+    pathname:
+      "/home/screens/UploadScreens/CommercialUpload/Components/IndustryNext",
+    params: {
+      commercialDetails: JSON.stringify(commercialDetails),
+    },
+  });
+};
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -368,7 +391,7 @@ export default function PropertyFormScreen() {
 
             <TouchableOpacity
               className="px-10 py-3 rounded-lg bg-green-500"
-              onPress={() => handleNext(location, plotArea, router)}
+              onPress={ handleNext}
             >
               <Text className="text-white font-semibold">Next</Text>
             </TouchableOpacity>

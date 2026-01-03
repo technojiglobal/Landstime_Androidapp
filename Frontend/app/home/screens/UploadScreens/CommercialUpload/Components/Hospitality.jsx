@@ -53,33 +53,49 @@ const RoundOption = ({ label, selected, onPress }) => (
     </TouchableOpacity>
 );
 
-/* ---------- VALIDATION ---------- */
-const handleNext = (location, plotArea, router) => {
-    if (!location.trim()) {
-        Toast.show({
-            type: 'error',
-            text1: 'Location Required',
-            text2: 'Please enter the property location.',
-        });
-        return;
-    }
-    if (!plotArea.trim()) {
-        Toast.show({
-            type: 'error',
-            text1: 'Area Required',
-            text2: 'Please enter the area.',
-        });
-        return;
-    }
 
-    router.push(
-        "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityNext"
-    );
-};
+
 
 export default function Hospitality() {
     const router = useRouter();
+    /* ---------- VALIDATION ---------- */
+const handleNext = (location, plotArea, router) => {
+  if (!location.trim()) {
+    Toast.show({ type: "error", text1: "Location Required" });
+    return;
+  }
+  if (!plotArea.trim()) {
+    Toast.show({ type: "error", text1: "Area Required" });
+    return;
+  }
 
+  const commercialDetails = {
+    subType: "Hospitality",
+    hospitalityDetails: {
+      location,
+      rooms,
+      washroomType,
+      balconies,
+      otherRooms,
+      furnishingType,
+      furnishingDetails,
+      area: Number(plotArea),
+      areaUnit: unit,
+      availability,
+      ageOfProperty,
+      possessionBy,
+      expectedMonth,
+    },
+  };
+
+  router.push({
+    pathname:
+      "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityNext",
+    params: {
+      commercialDetails: JSON.stringify(commercialDetails),
+    },
+  });
+};
     const [focusedField, setFocusedField] = useState(null);
     const [visible, setVisible] = useState(null);
 
@@ -128,28 +144,7 @@ export default function Hospitality() {
         "July", "August", "September", "October", "November", "December"
     ];
 
-    const handleValidation = () => {
-        if (!location.trim()) {
-            Toast.show({
-                type: 'error',
-                text1: 'Location Required',
-                text2: 'Please enter the property location.',
-            });
-            return;
-        }
-        if (!plotArea.trim()) {
-            Toast.show({
-                type: 'error',
-                text1: 'Area Required',
-                text2: 'Please enter the area.',
-            });
-            return;
-        }
-
-        router.push(
-            "/home/screens/UploadScreens/CommercialUpload/Components/IndustryNext"
-        );
-    };
+   
 
     return (
         
@@ -172,7 +167,8 @@ export default function Hospitality() {
                 {/* HEADER */}
                 <View className="flex-row items-center mt-7 mb-4">
                     <TouchableOpacity
-                        onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload/Components/index")}
+                        onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload")
+}
                         className="p-2"
                     >
                         <Image
@@ -480,7 +476,7 @@ export default function Hospitality() {
                     </TouchableOpacity>
                     <TouchableOpacity
                         className="px-10 py-3 rounded-lg bg-green-500"
-                        onPress={handleNext(location, plotArea, router)}
+                        onPress={() => handleNext(location, plotArea, router)}
                     >
                         <Text className="text-white font-semibold">Next</Text>
                     </TouchableOpacity>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import {
     View,
     Text,
@@ -7,15 +7,72 @@ import {
     ScrollView,
     Image,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter,useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Toast from 'react-native-toast-message';
 
-import { PillButton, Checkbox } from "./Office";
-import MorePricingDetailsModal from "../../MorePricingDetailsModal";
 
-const OfficeNext = () => {
+import MorePricingDetailsModal from "../../MorePricingDetailsModal";
+ const PillButton = ({ label, selected, onPress }) => (
+   <TouchableOpacity
+     onPress={onPress}
+     style={{
+       paddingHorizontal: 14,
+       paddingVertical: 6,
+       borderRadius: 20,
+       borderWidth: 1,
+       borderColor: selected ? "#22C55E" : "#E5E7EB",
+       backgroundColor: selected ? "#22C55E17" : "#fff",
+       marginRight: 8,
+       marginBottom: 8,
+     }}
+   >
+     <Text style={{ fontSize: 12, color: selected ? "#22C55E" : "#6B7280" }}>
+       {label}
+     </Text>
+   </TouchableOpacity>
+ );
+ 
+ const Checkbox = ({ selected }) => (
+   <View
+     style={{
+       width: 16,
+       height: 16,
+       borderWidth: 1,
+       borderColor: selected ? "#22C55E" : "#D1D5DB",
+       backgroundColor: selected ? "#22C55E" : "#fff",
+       justifyContent: "center",
+       alignItems: "center",
+       marginRight: 8,
+     }}
+   >
+     {selected && <Text style={{ color: "#fff", fontSize: 10 }}>✓</Text>}
+   </View>
+ );
+const StorageNext = () => {
     const router = useRouter();
+    const params = useLocalSearchParams();
+
+const safeParse = (raw) => {
+  if (!raw) return null;
+  if (typeof raw === "string") {
+    try { return JSON.parse(raw); } catch { return null; }
+  }
+  if (Array.isArray(raw)) {
+    try { return JSON.parse(raw[0]); } catch { return null; }
+  }
+  if (typeof raw === "object") return raw;
+  return null;
+};
+
+const [storageDetailsFromPrev, setStorageDetailsFromPrev] = useState(null);
+
+useEffect(() => {
+  const parsed = safeParse(params.commercialDetails);
+  setStorageDetailsFromPrev(parsed);
+}, [params.commercialDetails]);
+
+
 
     /* ---------------- PRICE STATES ---------------- */
     const ownershipOptions = ['Freehold', 'Leasehold', 'Company Owned', 'Other'];
@@ -78,33 +135,57 @@ const OfficeNext = () => {
     };
 
     const handleNext = () => {
-        if (!expectedPrice.trim()) {
-            Toast.show({
-                type: 'error',
-                text1: 'Price Required',
-                text2: 'Please enter the expected price.',
-            });
-            return;
-        }
-        if (!describeProperty.trim()) {
-            Toast.show({
-                type: 'error',
-                text1: 'Description Required',
-                text2: 'Please describe your property.',
-            });
-            return;
-        }
-        Toast.show({
-            type: 'success',
-            text1: 'Details Saved',
-            text2: 'Moving to next step...',
-        });
-        router.push(
-            "/home/screens/UploadScreens/CommercialUpload/Components/StorageVaastu"
-        );
-        // Navigate to next screen or submit
-        // router.push("/next-screen");
-    };
+  if (!storageDetailsFromPrev) {
+    Toast.show({ type: "error", text1: "Storage details missing" });
+    return;
+  }
+
+  if (!expectedPrice.trim()) {
+    Toast.show({ type: "error", text1: "Expected price required" });
+    return;
+  }
+
+  if (!describeProperty.trim()) {
+    Toast.show({ type: "error", text1: "Description required" });
+    return;
+  }
+
+  const commercialDetails = {
+    ...storageDetailsFromPrev,
+
+    expectedPrice: Number(expectedPrice),
+    description: describeProperty,
+
+    priceDetails: {
+      allInclusive,
+      negotiable: priceNegotiable,
+      taxExcluded,
+    },
+
+    pricingExtras: {
+      ownership,
+      authority: IndustryApprovedBy,
+      approvedIndustryType,
+
+      preLeased,
+      leaseDuration,
+      monthlyRent: monthlyRent ? Number(monthlyRent) : null,
+
+      amenities,
+      locationAdvantages: locAdvantages,
+    },
+  };
+
+  router.push({
+    pathname:
+      "/home/screens/UploadScreens/CommercialUpload/Components/StorageVaastu",
+    params: {
+      commercialDetails: JSON.stringify(commercialDetails),
+    },
+  });
+};
+
+
 
     return (
         <View className="flex-1 bg-gray-50">
@@ -372,4 +453,4 @@ const OfficeNext = () => {
     );
 };
 
-export default OfficeNext;
+export default StorageNext;

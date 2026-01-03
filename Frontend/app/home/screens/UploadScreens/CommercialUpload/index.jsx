@@ -58,6 +58,8 @@ export default function PropertyFormScreen() {
   const [officeKinds, setOfficeKinds] = useState([]);
   const [images, setImages] = useState([]);
   const [selectedType, setSelectedType] = useState(null);
+  const [retailKinds, setRetailKinds] = useState([]);
+
   const [storageKinds, setStorageKinds] = useState([]);
   const [industryKinds, setIndustryKinds] = useState([]);
   const [HospitalityKinds, setHospitalityKinds] = useState([]);
@@ -127,23 +129,99 @@ export default function PropertyFormScreen() {
 
     switch (selectedType) {
       case "Office":
-        router.push(`${base}/Office`);
-        break;
+  if (!officeKinds.length) {
+    Alert.alert(
+      "Office Type Required",
+      "Please select what kind of office it is"
+    );
+    return;
+  }
+
+  router.push({
+  pathname: `${base}/Office`,
+  params: {
+    commercialBaseDetails: JSON.stringify({
+      subType: "Office",            // ✅ FIXED
+      officeKind: officeKinds[0],   // ✅ move kind here
+      propertyTitle,
+    }),
+  },
+});
+
+  break;
+
       case "Retail":
-        router.push(`${base}/Retail`);
+        router.push({
+  pathname: `${base}/Retail`,
+  params: {
+    commercialBaseDetails: JSON.stringify({
+      subType: "Retail",          // ✅ THIS IS CRITICAL
+      retailKind: retailKinds[0], // optional, if needed later
+      propertyTitle,
+    }),
+  },
+});
+
+
         break;
-      case "Plot/Land":
-        router.push(`${base}/Plot`);
+     case "Plot/Land":
+  router.push({
+    pathname: `${base}/Plot`,
+    params: {
+      commercialBaseDetails: JSON.stringify({
+        subType: "Plot",
+        propertyTitle,
+      }),
+    },
+  });
+  break;
+
         break;
       case "Industry":
         router.push(`${base}/Industry`);
         break;
-      case "Storage":
-        router.push(`${base}/Storage`);
-        break;
+case "Storage":
+  if (!storageKinds.length) {
+    Alert.alert(
+      "Storage Type Required",
+      "Please select what kind of storage it is"
+    );
+    return;
+  }
+
+  router.push({
+    pathname: `${base}/Storage`,
+    params: {
+      commercialBaseDetails: JSON.stringify({
+        subType: "Storage",          
+        storageType: storageKinds[0],// optional but useful
+        propertyTitle,
+      }),
+    },
+  });
+  break;
+
       case "Hospitality":
-        router.push(`${base}/Hospitality`);
-        break;
+  if (!HospitalityKinds.length) {
+    Alert.alert(
+      "Hospitality Type Required",
+      "Please select what kind of hospitality it is"
+    );
+    return;
+  }
+
+  router.push({
+    pathname: `${base}/Hospitality`,
+    params: {
+      commercialBaseDetails: JSON.stringify({
+        subType: "Hospitality",
+        hospitalityType: HospitalityKinds[0], // Hotel / Guest House
+        propertyTitle,
+      }),
+    },
+  });
+  break;
+
       case "Other":
         router.push(`${base}/Other`);
         break;
@@ -294,8 +372,9 @@ export default function PropertyFormScreen() {
                   <PillButton
                     key={type}
                     label={type}
-                    selected={officeKinds.includes(type)}
-                    onPress={() => setOfficeKinds([type])}
+                    selected={retailKinds.includes(type)}
+onPress={() => setRetailKinds([type])}
+
                   />
                 ))}
               </View>
