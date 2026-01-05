@@ -4,11 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // API Base URL - Change this to your backend URL
 
 
-<<<<<<< HEAD
-const API_BASE_URL = 'http://10.210.66.5:8000/api/user';
-=======
-const API_BASE_URL = 'http://10.10.2.39:8000/api/user';
->>>>>>> 468607fda34bad9c1751dcd4cd4e317e42abef50
+const API_BASE_URL = 'http://10.14.107.5:8000/api/user';
 
 
 // Helper function to get token from AsyncStorage
@@ -196,11 +192,7 @@ export const checkPhoneExists = async (phone) => {
 
 // ===== PROPERTY APIs =====
 
-<<<<<<< HEAD
-const PROPERTY_API_BASE_URL = 'http://10.210.66.5:8000/api/properties';
-=======
-const PROPERTY_API_BASE_URL = 'http://10.10.2.39:8000/api/properties';
->>>>>>> 468607fda34bad9c1751dcd4cd4e317e42abef50
+const PROPERTY_API_BASE_URL = 'http://10.14.107.5:8000/api/properties';
 
 // Create property with images
 export const createProperty = async (propertyData, imageUris = []) => {
