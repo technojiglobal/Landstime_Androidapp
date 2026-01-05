@@ -147,21 +147,31 @@ export default function RetailNext() {
       return;
     }
 
-  const commercialDetails = {
+const commercialDetails = {
   ...retailDetailsFromPrev,
-  // ensure a propertyTitle exists (may be forwarded separately)
-  propertyTitle: (retailDetailsFromPrev && retailDetailsFromPrev.propertyTitle) || forwardedPropertyTitle,
-  ownership,
-  expectedPrice: Number(expectedPrice),
-  priceDetails: { allInclusive, negotiable, taxExcluded },
-  preLeased,
-  leaseDuration,
-  monthlyRent,
-  previouslyUsedFor: prevUsedFor,
-  description,
-  amenities,
-  locationAdvantages,
+
+  retailDetails: {
+    ...retailDetailsFromPrev.retailDetails,
+
+    pricing: {
+      ownership,
+      expectedPrice: Number(expectedPrice),
+      allInclusive,
+      negotiable,
+      taxExcluded,
+      preLeased,
+      leaseDuration: preLeased === "Yes" ? leaseDuration : undefined,
+      monthlyRent: preLeased === "Yes" ? Number(monthlyRent) : undefined,
+    },
+
+    previouslyUsedFor: prevUsedFor,
+    description,
+    amenities,
+    locationAdvantages,
+  },
 };
+
+
 
 
     router.push({

@@ -114,7 +114,7 @@ siteDetails: {
   area: {
     type: Number,
     required: function () {
-       return this.propertyType === "Site/Plot/Land" && this.siteDetails != null;
+       return this.propertyType === "Site/Plot/Land";
     },
   },
 
@@ -127,14 +127,14 @@ siteDetails: {
   length: {
     type: Number,
     required: function () {
-       return this.propertyType === "Site/Plot/Land" && this.siteDetails != null;
+       return this.propertyType === "Site/Plot/Land";
     },
   },
 
   breadth: {
     type: Number,
     required: function () {
-       return this.propertyType === "Site/Plot/Land" && this.siteDetails != null;
+       return this.propertyType === "Site/Plot/Land";
     },
   },
 
@@ -742,7 +742,7 @@ retailDetails: {
     },
     trim: true,
   },
-
+area: Number,
   rooms: {
     type: Number,
     default: 0,
@@ -781,7 +781,7 @@ retailDetails: {
   expectedPrice: {
     type: Number,
     required: function () {
-      return this.propertyType === "Resort";
+      return this.propertyType !== "Resort";
     },
   },
 

@@ -59,11 +59,14 @@ export default function PropertyFormScreen() {
   const [floors, setFloors] = useState("");
   const [buildArea, setBuildArea] = useState("");
   const [area, setArea] = useState("");
+  // separate state for textual area/neighborhood to avoid clashing with numeric land area
+  const [neighborhood, setNeighborhood] = useState("");
   const [price, setPrice] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [locAdvantages, setLocAdvantages] = useState([]);
   const [images, setImages] = useState([]);
+   const [isSubmitting, setIsSubmitting] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
 const [propertyFacing, setPropertyFacing] = useState("Select");
 const [masterSuitroom, setMasterSuitroom] = useState("Select");
@@ -111,7 +114,7 @@ const showToast = (message) => {
 
 
 /* ---------- Validation ---------- */
-const handleSubmit = async () => {
+const handleUpload = async () => {
   try {
     if (images.length === 0) {
       showToast("Please upload at least one property image");
@@ -148,6 +151,11 @@ if (!location.trim()) {
 
 if (!price || Number(price) <= 0) {
   showToast("Valid price is required");
+  return;
+}
+
+if (!neighborhood || !neighborhood.trim()) {
+  showToast("Area/Neighborhood is required");
   return;
 }
 
@@ -204,6 +212,7 @@ if (!resortType) {
     email: email.trim(),
   },
       resortDetails: {
+        neighborhood: neighborhood || "",
         rooms: Number(rooms),
         floors: Number(floors),
         landArea: Number(area),
@@ -233,6 +242,7 @@ if (!resortType) {
       },
     };
 
+    console.log('📡 Sending propertyData for Resort:', JSON.stringify(propertyData, null, 2));
     const result = await createProperty(
       propertyData,
       images,
@@ -685,6 +695,36 @@ const handleOpenPlayStore = () => {
             />
            </View>
         </View>
+
+                      {/* Area */}
+        <View className="border border-gray-300 rounded-lg bg-white ml-5 mt-5 mr-4 mb-3 p-5">
+          <Text className="text-gray-500 font-semibold mb-2 text-left">
+            Area <Text className="text-red-500">*</Text>
+          </Text>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: "#f3f4f6",
+              borderRadius: 8,
+              padding: 12,
+              marginBottom: 16,
+              borderColor: focusedField === "neighborhood" ? "#22C55E" : "#d1d5db",
+              borderWidth: 2,
+            }}
+          >
+            <Ionicons name="location-outline" size={20} color="#22C55E" />
+            <TextInput
+              placeholder="Enter Area/Neighborhood (e.g., Akkayapalem)"
+              placeholderTextColor="#888"
+              value={neighborhood}
+              onChangeText={(text) => setNeighborhood(text)}
+              style={{ flex: 1, marginLeft: 8, color: "#1f2937" }}
+              onFocus={() => setFocusedField("neighborhood")}
+              onBlur={() => setFocusedField(null)}
+            />
+          </View>
+        </View>
          {/* ---------- Description ---------- */}
         <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
           <Text className="text-[15px] font-bold text-gray-600 mb-3 ">
@@ -825,14 +865,22 @@ const handleOpenPlayStore = () => {
             <Text className="font-semibold">Cancel</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            className="bg-green-500 px-5 py-3 rounded-lg"
-            onPress={handleSubmit}
-          >
-            <Text className="text-white font-semibold">
-              Upload Property
-            </Text>
-          </TouchableOpacity>
+        {/* Upload Property Button */}
+         <TouchableOpacity
+          style={{
+            backgroundColor: "#22C55E",
+            paddingVertical: 12,
+            paddingHorizontal: 20,
+            borderRadius: 10,
+          }}
+          onPress={handleUpload}
+          disabled={isSubmitting}
+        >
+          <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
+            {isSubmitting ? "Uploading..." : "Upload Property"}
+          </Text>
+        </TouchableOpacity>
+
         </View>
       </View>
     </SafeAreaView>
