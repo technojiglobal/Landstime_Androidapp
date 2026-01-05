@@ -7,6 +7,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const API_BASE_URL = 'http://10.14.107.5:8000/api/user';
 
 
+
+
 // Helper function to get token from AsyncStorage
 const getToken = async () => {
   try {
@@ -152,6 +154,37 @@ export const getUserData = async () => {
   }
 };
 
+// ✅ NEW FUNCTION - Get user profile from backend with language
+export const getUserProfileWithLanguage = async () => {
+  try {
+    const token = await getToken();
+    const language = await AsyncStorage.getItem('selectedLanguage') || 'en';
+    
+    const response = await fetch(`${API_BASE_URL}/profile?language=${language}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    const data = await response.json();
+    
+    // Update local storage with latest data
+    if (data.success && data.data) {
+      await saveUserData(data.data);
+    }
+    
+    return { 
+      success: response.ok, 
+      status: response.status, 
+      data: data.data 
+    };
+  } catch (error) {
+    console.error('Get user profile error:', error);
+    return { success: false, error: error.message };
+  }
+};
 // Clear all user data
 export const clearUserData = async () => {
   try {
@@ -192,7 +225,10 @@ export const checkPhoneExists = async (phone) => {
 
 // ===== PROPERTY APIs =====
 
-const PROPERTY_API_BASE_URL = 'http://10.14.107.5:8000/api/properties';
+
+
+const PROPERTY_API_BASE_URL = 'http://10.210.66.5:8000/api/properties';
+
 
 // Create property with images
 export const createProperty = async (propertyData, imageUris = []) => {

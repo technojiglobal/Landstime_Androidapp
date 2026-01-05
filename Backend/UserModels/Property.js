@@ -8,37 +8,68 @@ const propertySchema = new mongoose.Schema({
     enum: ['House', 'Site/Plot/Land', 'Commercial', 'Resort'],
     required: true
   },
-  propertyTitle: {
-    type: String,
-    required: true,
-    trim: true
-  },
+ propertyTitle: {
+  te: { type: String, trim: true },
+  hi: { type: String, trim: true },
+  en: { type: String, trim: true }
+},
   images: [{
-    type: String // Base64 encoded images
+    type: String // URLs of uploaded images
   }],
   documents: {
-    ownership: [String], // Base64 encoded documents
-    identity: [String]   // Base64 encoded documents
+  ownership: [String], // Sale deed, conveyance
+  identity: [String]   // PAN, Aadhaar, etc
+},
+ownerDetails: {
+  name: {
+    type: String,
+    required: [true, "Owner name is required"],
+    trim: true,
   },
-  ownerDetails: {
-    name: {
-      type: String,
-      required: [true, "Owner name is required"],
-      trim: true,
-    },
-    phone: {
-      type: String,
-      required: [true, "Owner phone is required"],
-    },
-    email: {
-      type: String,
-      required: [true, "Owner email is required"],
-      lowercase: true,
-    },
+  // ✅ NEW CODE - Add this new field
+originalLanguage: {
+  type: String,
+  enum: ['te', 'hi', 'en'],
+  default: 'en'
+},
+  phone: {
+    type: String,
+    required: [true, "Owner phone is required"],
   },
+  email: {
+    type: String,
+    required: [true, "Owner email is required"],
+    lowercase: true,
+  },
+},
 
- 
-  description: String,
+  location: {
+  te: { type: String, trim: true },
+  hi: { type: String, trim: true },
+  en: { type: String, trim: true }
+},
+area: {
+  te: { type: String, trim: true },
+  hi: { type: String, trim: true },
+  en: { type: String, trim: true }
+},
+
+areaKey: {
+  type: String,
+  lowercase: true,
+  trim: true,
+  index: true  // Add index for faster queries
+},
+
+
+
+
+  // ✅ NEW CODE
+description: {
+  te: { type: String },
+  hi: { type: String },
+  en: { type: String }
+},
   expectedPrice: {
     type: Number,
     required: true
@@ -909,5 +940,6 @@ propertySchema.index({ userId: 1 });
 propertySchema.index({ propertyType: 1 });
 propertySchema.index({ 'commercialDetails.subType': 1 });
 
+// NEW CODE at the end
 const Property = mongoose.model('Property', propertySchema);
 export default Property;

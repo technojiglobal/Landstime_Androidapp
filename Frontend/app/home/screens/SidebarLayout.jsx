@@ -14,7 +14,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useTranslation } from 'react-i18next';
 import LogoutModal from 'components/LogoutModal';
-import { clearUserData, getUserData } from "utils/api";
+import { clearUserData, getUserData, getUserProfileWithLanguage } from "utils/api";
+
+
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -24,6 +26,12 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
   const [userData, setUserData] = useState(null);
   const router = useRouter();
   const { t, i18n } = useTranslation();
+
+   const getLocalizedName = (nameField) => {
+  if (!nameField) return "Guest User";
+  if (typeof nameField === 'string') return nameField;
+  return nameField[i18n.language] || nameField.en || nameField.te || nameField.hi || "Guest User";
+};
 
   // Helper functions for font sizing (consistent with other screens)
   const getFontSize = (baseSize) => {
@@ -36,6 +44,9 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
     }
   };
 
+ 
+
+
   const getLineHeight = () => {
     const currentLang = i18n?.language || 'en';
     if (currentLang === 'te') return 22;
@@ -44,28 +55,39 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
   };
 
   // Load user data on mount
-  useEffect(() => {
-    const loadUserData = async () => {
-      const data = await getUserData();
-      if (data) {
-        setUserData(data);
-      }
-    };
-    loadUserData();
-  }, []);
+ // Load user data on mount
+useEffect(() => {
+  const loadUserData = async () => {
+    // First try local storage for immediate display
+    const localData = await getUserData();
+    if (localData) {
+      setUserData(localData);
+    }
+    
+    // Then fetch from backend with current language
+    const { success, data } = await getUserProfileWithLanguage();
+    if (success && data) {
+      setUserData(data);
+    }
+  };
+  loadUserData();
+}, []);
 
-  // Force re-render when language changes
-  useEffect(() => {
-    const handleLanguageChange = () => {
-      // Component will re-render automatically
-    };
-    
-    i18n.on('languageChanged', handleLanguageChange);
-    
-    return () => {
-      i18n.off('languageChanged', handleLanguageChange);
-    };
-  }, []);
+// ✅ ALSO reload when language changes
+useEffect(() => {
+  const handleLanguageChange = async () => {
+    const { success, data } = await getUserProfileWithLanguage();
+    if (success && data) {
+      setUserData(data);
+    }
+  };
+  
+  i18n.on('languageChanged', handleLanguageChange);
+  
+  return () => {
+    i18n.off('languageChanged', handleLanguageChange);
+  };
+}, []);
 
   const handleLogout = async () => {
     await clearUserData();
@@ -173,12 +195,15 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
             style={{ width: 50, height: 50, borderRadius: 25, marginRight: 12 }}
           />
           <View>
+          
+
             <Text 
-              className="text-white font-semibold"
-              style={{ fontSize: getFontSize(16), lineHeight: getLineHeight() }}
-            >
-              {userData?.name || "Guest User"}
-            </Text>
+  className="text-white font-semibold"
+  style={{ fontSize: getFontSize(16), lineHeight: getLineHeight() }}
+>
+  {getLocalizedName(userData?.name)}
+</Text>
+
             <Text 
               className="text-white opacity-90"
               style={{ fontSize: getFontSize(12), lineHeight: getLineHeight() - 2 }}
