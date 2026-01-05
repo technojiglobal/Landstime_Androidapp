@@ -22,7 +22,7 @@ import TopAlert from "../TopAlert";
 import { useLocalSearchParams } from "expo-router";
 import { createProperty } from "utils/propertyApi";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-//import CustomPickerAlert from "../../../../components/CustomPickerAlert";
+
 import CustomPickerAlert from "components/CustomPickerAlert";
 import PropertyImageUpload from "components/PropertyImageUpload";
 import Toast from 'react-native-toast-message';
@@ -82,6 +82,8 @@ const [email, setEmail] = useState("");
   
   const [location, setLocation] = useState('');
   const [area, setArea] = useState('');
+  // separate state for textual area/neighborhood to avoid clashing with numeric area (sqft)
+  const [neighborhood, setNeighborhood] = useState('');
   const [length, setLength] = useState('');
   const [breadth, setBreadth] = useState('');
   const [floorsAllowed, setFloorsAllowed] = useState('');
@@ -215,12 +217,12 @@ const [email, setEmail] = useState("");
         return;
       }
 
-      if (!area?.trim()) {
-        Toast.show({ type: 'error', text1: 'Error', text2: 'Area is required.' });
+      if (!neighborhood?.trim()) {
+        Toast.show({ type: 'error', text1: 'Error', text2: 'Area/Neighborhood is required.' });
         setIsSubmitting(false);
         return;
       }
-
+      
       if (!length?.trim()) {
         Toast.show({ type: 'error', text1: 'Error', text2: 'Length is required.' });
         setIsSubmitting(false);
@@ -272,7 +274,16 @@ const [email, setEmail] = useState("");
    setIsSubmitting(false);
    return;
  }
- 
+ if (!area?.trim()) {
+  Toast.show({
+    type: 'error',
+    text1: 'Error',
+    text2: 'Area (numeric) is required.',
+  });
+  setIsSubmitting(false);
+  return;
+}
+
  if (!phone?.trim()) {
    Toast.show({
      type: "error",
@@ -326,40 +337,42 @@ const [email, setEmail] = useState("");
     negotiable: selectedPrices.includes("Price Negotiable"),
     taxExcluded: selectedPrices.includes("Tax and Govt.charges excluded")
   },
-  siteDetails: {
-    area: parseFloat(area) || 0,
-    areaUnit: unit,
-    length: parseFloat(length) || 0,
-    breadth: parseFloat(breadth) || 0,
-    floorsAllowed: parseInt(floorsAllowed) || 0,
-    boundaryWall: boundaryWall === "Yes",
-    openSides: parseInt(openSides) || 0,
-    constructionDone: constructionDone === "yes",
-    constructionType,
-    possessionBy,
-    ownership: ownership || "Freehold",
-    approvedBy,
-    amenities,
-    propertyFacing: propertyFacing || "East",
-    overlooking,
-    inGatedSociety: selectedOverlooking.includes("In a Gated Society"),
-    cornerProperty: selectedOverlooking.includes("Corner Property"),
-    locationAdvantages,
-    roadWidth: parseFloat(roadWidth) || 0,
-    roadWidthUnit: roadUnit,
-    vaasthuDetails: {
-      plotFacing,
-      mainEntryDirection,
-      plotSlope,
-      openSpace,
-      plotShape,
-      roadPosition,
-      waterSource,
-      drainageDirection,
-      compoundWallHeight,
-      existingStructures
-    }
+siteDetails: {
+  neighborhood,              // UI-only, mongoose will ignore
+  area: area !== "" ? Number(area) : undefined,
+  areaUnit: unit,
+  length: length !== "" ? Number(length) : undefined,
+  breadth: breadth !== "" ? Number(breadth) : undefined,
+  floorsAllowed: floorsAllowed ? Number(floorsAllowed) : 0,
+  boundaryWall: boundaryWall === "Yes",
+  openSides: openSides ? Number(openSides) : 0,
+  constructionDone: constructionDone === "yes",
+  constructionType,
+  possessionBy,
+  ownership: ownership || "Freehold",
+  approvedBy,
+  amenities,
+  propertyFacing: propertyFacing || "East",
+  overlooking,
+  inGatedSociety: selectedOverlooking.includes("In a Gated Society"),
+  cornerProperty: selectedOverlooking.includes("Corner Property"),
+  locationAdvantages,
+  roadWidth: roadWidth ? Number(roadWidth) : 0,
+  roadWidthUnit: roadUnit,
+  vaasthuDetails: {
+    plotFacing,
+    mainEntryDirection,
+    plotSlope,
+    openSpace,
+    plotShape,
+    roadPosition,
+    waterSource,
+    drainageDirection,
+    compoundWallHeight,
+    existingStructures
   }
+}
+
 };
 
 console.log('📡 Calling createProperty API...');
@@ -370,11 +383,12 @@ console.log('🔍 First image URI:', uploadImages[0]);
        // Prepare FormData for upload (web-compatible)
     // Call the API the same way as AddScreen.jsx (House upload)
       const result = await createProperty(
-        propertyData,
-        uploadImages,
-        ownershipDocs,
-        identityDocs
-      );
+  propertyData,
+  uploadImages,
+  ownershipDocs,
+  identityDocs
+);
+
       
       console.log('📥 API Result:', result);
       console.log('📥 API Result Data:', JSON.stringify(result.data, null, 2));
@@ -579,7 +593,35 @@ console.log('🔍 First image URI:', uploadImages[0]);
             />
           </View>
         </View>
-
+                     {/* Area */}
+       <View className="border border-gray-300 rounded-lg bg-white ml-5 mt-5 mr-4 mb-2  p-5">
+         <Text className="text-gray-500 font-semibold mb-2 text-left">
+           Area <Text className="text-red-500">*</Text>
+         </Text>
+         <View
+           style={{
+             flexDirection: "row",
+             alignItems: "center",
+             backgroundColor: "#f3f4f6",
+             borderRadius: 8,
+             padding: 12,
+             marginBottom: 16,
+             borderColor: focusedField === "neighborhood" ? "#22C55E" : "#d1d5db",
+             borderWidth: 2,
+           }}
+         >
+           <Ionicons name="location-outline" size={20} color="#22C55E" />
+           <TextInput
+             placeholder="Enter Area/Neighborhood (e.g., Akkayapalem)"
+             placeholderTextColor="#888"
+             value={neighborhood}
+             onChangeText={(text) => setNeighborhood(text)}
+             style={{ flex: 1, marginLeft: 8, color: "#1f2937" }}
+             onFocus={() => setFocusedField("neighborhood")}
+             onBlur={() => setFocusedField(null)}
+           />
+         </View>
+       </View>
         {/* Area + Length/Breadth */}
         <View
           className="bg-white rounded-lg p-4 mb-6"

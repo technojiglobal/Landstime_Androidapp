@@ -215,25 +215,32 @@ const handleRetailNext = () => {
     subType: "Retail", // 🔒 HARD FIX
     // include propertyTitle so subsequent screens always have it
     propertyTitle: baseDetails?.propertyTitle,
-    retailDetails: {
-      location,
-      locality,
-      area: Number(area),
-      areaUnit: "sqft",
-      entranceWidth: entranceWidth ? Number(entranceWidth) : null,
-      ceilingHeight: ceilingHeight ? Number(ceilingHeight) : null,
-      washroom,
-      floorDetails,
-      locatedNear,
-      parkingType,
-      availability,
-      propertyAge,
-      possession:
-        availability === "Under Construction"
-          ? { year: possessionYear, month: possessionMonth }
-          : null,
-      suitableFor: businessTypes,
-    },
+  retailDetails: {
+  location,
+  locality,
+
+  area: {
+    value: Number(area),
+    unit: "sqft",
+  },
+
+  entranceWidth: entranceWidth ? Number(entranceWidth) : undefined,
+  ceilingHeight: ceilingHeight ? Number(ceilingHeight) : undefined,
+  washroom,
+  floorDetails,
+  locatedNear,
+  parkingType,
+  availability,
+  propertyAge,
+  possession:
+    availability === "Under Construction"
+      ? { year: possessionYear, month: possessionMonth }
+      : undefined,
+
+  suitableFor: businessTypes,
+},
+
+
   };
 
   router.push({

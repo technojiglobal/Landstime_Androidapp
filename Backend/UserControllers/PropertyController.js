@@ -1,71 +1,103 @@
 // Backend/controllers/propertyController.js
+
 import Property from '../UserModels/Property.js';
-import User from '../UserModels/User.js';
+import User from '../UserModels/User.js'; // Import User model
 
 // Utility: normalize filesystem path to URL-friendly forward slashes
 const normalizePath = (p) => (p ? p.replace(/\\+/g, '/') : p);
 
 // Create a new property
 // Backend/controllers/propertyController.js
-const bufferToBase64 = (buffer, mimetype) => {
-  return `data:${mimetype};base64,${buffer.toString('base64')}`;
-};
+
 export const createProperty = async (req, res) => {
   try {
     console.log('📥 Property upload request');
+
     if (!req.body.propertyData) {
       return res.status(400).json({
         success: false,
         message: 'Property data missing'
       });
     }
+
     const propertyData = JSON.parse(req.body.propertyData);
-   
-    console.log('📋 Property Data:', JSON.stringify(propertyData, null, 2));
-   
-    // Owner details validation
-    if (!propertyData.ownerDetails) {
-      return res.status(400).json({
-        success: false,
-        message: "Owner details are required",
-      });
+
+    // Debug incoming payload
+    console.log('📦 req.body keys:', Object.keys(req.body || {}));
+    console.log('📜 raw propertyData type:', typeof req.body.propertyData, 'length:', req.body.propertyData ? req.body.propertyData.length : 0);
+
+    // 🔍 Verify authenticated user from token
+    const authUserId = req.user?._id;
+    console.log('🔐 Authenticated user id from token:', authUserId);
+    const authUser = await User.findById(authUserId).select('-password -__v');
+
+    if (!authUser) {
+      console.error('🔒 Authenticated user not found in DB');
+      return res.status(404).json({ success: false, message: 'Authenticated user not found' });
     }
-    const { name, phone, email } = propertyData.ownerDetails;
+
+    if (authUser.isBlocked) {
+      console.error('🚫 User is blocked:', authUserId);
+      return res.status(403).json({ success: false, message: 'User is blocked' });
+    }
+
+    // Fill missing or incomplete ownerDetails from authenticated user
+    if (!propertyData.ownerDetails) {
+      console.warn('⚠️ ownerDetails missing in payload, auto-filling from authenticated user');
+      propertyData.ownerDetails = {
+        name: authUser.name?.en || authUser.name?.te || authUser.name?.hi || "",
+        phone: authUser.phone || "",
+        email: authUser.email || "",
+      };
+    } else {
+      const { name, phone, email } = propertyData.ownerDetails;
+      if (!name || !phone || !email) {
+        console.warn('⚠️ ownerDetails incomplete in payload, filling missing fields from authenticated user');
+        propertyData.ownerDetails.name = name || (authUser.name?.en || authUser.name?.te || authUser.name?.hi || "");
+        propertyData.ownerDetails.phone = phone || authUser.phone || "";
+        propertyData.ownerDetails.email = email || authUser.email || "";
+      }
+    }
+
+    // Final check: ensure ownerDetails now exist
+    if (!propertyData.ownerDetails || !propertyData.ownerDetails.name || !propertyData.ownerDetails.phone || !propertyData.ownerDetails.email) {
+      console.error('❌ ownerDetails still missing after fill:', propertyData.ownerDetails);
+      return res.status(400).json({ success: false, message: 'Owner name, phone and email are mandatory' });
+    }
+
+    console.log('✅ Owner details present:', propertyData.ownerDetails);
+
+    console.log('📋 Parsed propertyData summary:', {
+      propertyTitle: propertyData.propertyTitle,
+      propertyType: propertyData.propertyType,
+      ownerDetails: propertyData.ownerDetails
+    });
 
     // Extract uploaded files
-    if (!name || !phone || !email) {
-      return res.status(400).json({
-        success: false,
-        message: "Owner name, phone and email are mandatory",
-      });
-    }
-    // Convert uploaded files to base64
-    const images = req.files?.images?.map(file =>
-      bufferToBase64(file.buffer, file.mimetype)
-    ) || [];
 
-    const ownershipDocs = req.files?.ownershipDocs?.map(file => 
-      bufferToBase64(file.buffer, file.mimetype)
-    ) || [];
+
 
 
     
-   
- const identityDocs = req.files?.identityDocs?.map(file =>
-  bufferToBase64(file.buffer, file.mimetype)
-) || [];
+    const ownershipDocs = req.files?.ownershipDocs?.map(file => normalizePath(file.path)) || [];
+    const identityDocs = req.files?.identityDocs?.map(file => normalizePath(file.path)) || [];
 
-
-    // Backend validation
+    // 🔐 Backend validation (DO NOT SKIP)
     if (!propertyData.propertyTitle) {
       return res.status(400).json({ success: false, message: 'Property title is required' });
     }
-    if (!propertyData.propertyType) {
-      return res.status(400).json({ success: false, message: 'Property type is required' });
-    }
 
     
 
+    if (!propertyData.propertyType) {
+      return res.status(400).json({ success: false, message: 'Property type is required' });
+    }
+    const images = req.files?.images?.map(file => normalizePath(file.path)) || [];
+
+    // Debug logs to help diagnose missing images
+    console.log('🖼️ Received images:', images);
+    console.log('📁 req.files keys:', Object.keys(req.files || {}));
+    console.log('🔎 ownershipDocs count:', ownershipDocs.length, 'identityDocs count:', identityDocs.length);
 
     const finalData = {
   propertyType: propertyData.propertyType,
@@ -73,25 +105,31 @@ export const createProperty = async (req, res) => {
   ownerDetails: propertyData.ownerDetails,
     expectedPrice: propertyData.expectedPrice,
   description: propertyData.description || "",
+
   images,
   documents: {
     ownership: ownershipDocs,
     identity: identityDocs,
   },
+
   userId: req.user._id,
   status: "pending",
 };
+
   if (propertyData.propertyType === "Commercial") {
   const { commercialDetails } = propertyData;
+
   if (!commercialDetails || !commercialDetails.subType) {
     return res.status(400).json({
       success: false,
       message: "Commercial subType is required",
     });
   }
+
   const rawSubType = commercialDetails.subType.trim();
   const subType = rawSubType.toLowerCase();
-  // f to the enum values expected by the model
+
+  // Normalize to the enum values expected by the model
   let canonicalSubType = "Other";
   if (subType.includes("office")) canonicalSubType = "Office";
   else if (subType.includes("retail")) canonicalSubType = "Retail";
@@ -99,10 +137,12 @@ export const createProperty = async (req, res) => {
   else if (subType.includes("stor")) canonicalSubType = "Storage";
   else if (subType.includes("industry")) canonicalSubType = "Industry";
   else if (subType.includes("hospital")) canonicalSubType = "Hospitality";
+
   // store canonical enum value in DB
   finalData.commercialDetails = {
     subType: canonicalSubType,
   };
+
   // OFFICE
   if (canonicalSubType === "Office") {
     if (
@@ -115,10 +155,12 @@ export const createProperty = async (req, res) => {
         message: "Office location and area are required",
       });
     }
+
     finalData.location = commercialDetails.officeDetails.location;
     finalData.commercialDetails.officeDetails =
       commercialDetails.officeDetails;
   }
+
   // RETAIL
   if (canonicalSubType === "Retail") {
     if (
@@ -131,13 +173,14 @@ export const createProperty = async (req, res) => {
         message: "Retail location and area are required",
       });
     }
+
     finalData.location = commercialDetails.retailDetails.location;
     finalData.commercialDetails.retailDetails =
       commercialDetails.retailDetails;
   }
 
   // STORAGE
- 
+  // STORAGE
 if (canonicalSubType === "Storage") {
   if (
     !commercialDetails.storageDetails ||
@@ -149,9 +192,11 @@ if (canonicalSubType === "Storage") {
       message: "Storage location and storage area are required",
     });
   }
+
   finalData.location = commercialDetails.storageDetails.location;
   finalData.commercialDetails.storageDetails =
     commercialDetails.storageDetails;
+
   if (commercialDetails.pricingExtras) {
     finalData.commercialDetails.pricingExtras =
       commercialDetails.pricingExtras;
@@ -169,10 +214,12 @@ if (canonicalSubType === "Industry") {
       message: "Industry location and area are required",
     });
   }
+
   finalData.location = commercialDetails.industryDetails.location;
   finalData.commercialDetails.industryDetails =
     commercialDetails.industryDetails;
 }
+
 // HOSPITALITY
 if (canonicalSubType === "Hospitality") {
   if (
@@ -185,10 +232,12 @@ if (canonicalSubType === "Hospitality") {
       message: "Hospitality location and area are required",
     });
   }
+
   finalData.location = commercialDetails.hospitalityDetails.location;
   finalData.commercialDetails.hospitalityDetails =
     commercialDetails.hospitalityDetails;
 }
+
   // PLOT / LAND
   if (canonicalSubType === "Plot/Land") {
     if (
@@ -201,71 +250,135 @@ if (canonicalSubType === "Hospitality") {
         message: "Plot location and area are required",
       });
     }
+
     finalData.location = commercialDetails.plotDetails.location;
     finalData.commercialDetails.plotDetails = commercialDetails.plotDetails;
+
     if (commercialDetails.pricingExtras) {
       finalData.commercialDetails.pricingExtras =
         commercialDetails.pricingExtras;
     }
   }
-}
- 
-// Plot handling is normalized above with other commercial subtypes
-   
+} 
+
+
   
+// Plot handling is normalized above with other commercial subtypes
+// ✅ SITE / PLOT / LAND HANDLING
+if (propertyData.propertyType === "Site/Plot/Land") {
+  if (!propertyData.siteDetails) {
+    return res.status(400).json({
+      success: false,
+      message: "Site details are required",
+    });
+  }
+
+  const { area, length, breadth } = propertyData.siteDetails;
+
+  if (!area || !length || !breadth) {
+    return res.status(400).json({
+      success: false,
+      message: "Site area, length and breadth are mandatory",
+    });
+  }
+
+  finalData.siteDetails = propertyData.siteDetails;
+}
+
+// ================= RESORT =================
+if (propertyData.propertyType === "Resort") {
+  const { resortDetails } = propertyData;
+
+  if (!resortDetails) {
+    return res.status(400).json({
+      success: false,
+      message: "Resort details are required",
+    });
+  }
+
+  const {
+    resortType,
+    location,
+    landArea,
+    buildArea,
+    expectedPrice,
+    description,
+    vaasthuDetails,
+  } = resortDetails;
+
+  if (
+    !resortType ||
+    !location ||
+    !landArea ||
+    !buildArea ||
+    !expectedPrice ||
+    !description ||
+    !vaasthuDetails
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "Required resort fields are missing",
+    });
+  }
+
+  // 🔒 FORCE correct type
+  finalData.propertyType = "Resort";
+
+  // 🔒 TOP LEVEL REQUIRED FIELDS
+  finalData.expectedPrice = Number(expectedPrice);
+  finalData.description = description;
+  finalData.location = location;
+
+  // 🔒 RESORT DETAILS
+  finalData.resortDetails = {
+    ...resortDetails,
+    landArea: Number(landArea),
+    buildArea: Number(buildArea),
+  };
+}
+
+
+
+
+
+/* ✅ END OF COMMERCIAL VALIDATION */
     if (images.length === 0) {
       return res.status(400).json({ success: false, message: 'At least one image is required' });
     }
+
     if (ownershipDocs.length === 0) {
       return res.status(400).json({ success: false, message: 'Ownership document is required' });
     }
+
     if (identityDocs.length === 0) {
       return res.status(400).json({ success: false, message: 'Identity document is required' });
     }
+
     // Create property
-console.log('🔄 Translating property fields...');
-// Translate text fields to all 3 languages
-const originalLanguage = propertyData.originalLanguage || 'en';
-const translatedFields = await translatePropertyFields({
-  propertyTitle: propertyData.propertyTitle,
-  description: propertyData.description,
-  location: finalData.location || propertyData.location,
-  area: propertyData.area
-}, originalLanguage);
-console.log('✅ Translation complete');
-// ✅ NEW: Generate areaKey for consistent filtering
-const areaKey = normalizeAreaKey(propertyData.area);
-console.log('🔑 Generated areaKey:', areaKey);
-finalData.propertyTitle = translatedFields.propertyTitle;
-finalData.description = translatedFields.description;
-finalData.location = translatedFields.location;
-finalData.area = translatedFields.area;
-finalData.areaKey = areaKey; // ✅ NEW FIELD
-finalData.originalLanguage = originalLanguage;
- 
+  
+
+
+   console.log('💾 About to save finalData (propertyType, title):', {
+     propertyType: finalData.propertyType,
+     propertyTitle: finalData.propertyTitle,
+     hasResortDetails: !!finalData.resortDetails
+   });
+
    const property = new Property(finalData);
 await property.save();
+
    console.log("✅ PROPERTY SAVED TO DATABASE");
 console.log("🆔 Property ID:", property._id);
 console.log("🏷 Property Type:", property.propertyType);
+
     res.status(201).json({
       success: true,
       message: 'Property submitted successfully and pending approval',
       data: property
     });
+
   } catch (error) {
     console.error('❌ Property creation error:', error);
-   
-    // Handle Mongoose validation errors
-    if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(err => err.message);
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: messages
-      });
-    }
-   
     res.status(500).json({
       success: false,
       message: 'Failed to create property',
@@ -273,251 +386,39 @@ console.log("🏷 Property Type:", property.propertyType);
     });
   }
 };
-// Upload additional images to existing property
-export const uploadAdditionalImages = async (req, res) => {
-  try {
-    const property = await Property.findById(req.params.id);
-   
-    if (!property) {
-      return res.status(404).json({
-        success: false,
-        message: 'Property not found'
-      });
-    }
-   
-    const newImages = req.files?.images?.map(file =>
-      bufferToBase64(file.buffer, file.mimetype)
-    ) || [];
-   
-    if (newImages.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'No images provided'
-      });
-    }
-   
-    // Add new images to existing ones
-    property.images = [...property.images, ...newImages];
-    await property.save();
-   
-    res.status(200).json({
-      success: true,
-      message: 'Images uploaded successfully',
-      data: property
-    });
-   
-  } catch (error) {
-    console.error('Upload additional images error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to upload images',
-      error: error.message
-    });
-  }
-};
-// Delete specific image from property
-export const deletePropertyImage = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { imageIndex } = req.body; // Use index instead of path
-   
-    const property = await Property.findById(id);
-   
-    if (!property) {
-      return res.status(404).json({
-        success: false,
-        message: 'Property not found'
-      });
-    }
-   
-    // Remove image by index
-    if (imageIndex >= 0 && imageIndex < property.images.length) {
-      property.images.splice(imageIndex, 1);
-      await property.save();
-     
-      res.status(200).json({
-        success: true,
-        message: 'Image deleted successfully',
-        data: property
-      });
-    } else {
-      res.status(400).json({
-        success: false,
-        message: 'Invalid image index'
-      });
-    }
-   
-  } catch (error) {
-    console.error('Delete image error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to delete image',
-      error: error.message
-    });
-  }
-};
-// Upload additional documents to existing property
-export const uploadAdditionalDocuments = async (req, res) => {
-  try {
-    const { documentType } = req.body; // 'ownership' or 'identity'
-   
-    if (!['ownership', 'identity'].includes(documentType)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid document type'
-      });
-    }
-   
-    const property = await Property.findById(req.params.id);
-   
-    if (!property) {
-      return res.status(404).json({
-        success: false,
-        message: 'Property not found'
-      });
-    }
-   
-    const fieldName = `${documentType}Docs`;
-    const newDocs = req.files?.[fieldName]?.map(file =>
-      bufferToBase64(file.buffer, file.mimetype)
-    ) || [];
-   
-    if (newDocs.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'No documents provided'
-      });
-    }
-   
-    // Add new documents to existing ones
-    if (documentType === 'ownership') {
-      property.documents.ownership = [...property.documents.ownership, ...newDocs];
-    } else {
-      property.documents.identity = [...property.documents.identity, ...newDocs];
-    }
-   
-    await property.save();
-   
-    res.status(200).json({
-      success: true,
-      message: 'Documents uploaded successfully',
-      data: property
-    });
-   
-  } catch (error) {
-    console.error('Upload additional documents error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to upload documents',
-      error: error.message
-    });
-  }
-};
-// Delete specific document from property
-export const deletePropertyDocument = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { documentIndex, documentType } = req.body; // Use index instead of path
-   
-    if (!['ownership', 'identity'].includes(documentType)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid document type'
-      });
-    }
-   
-    const property = await Property.findById(id);
-   
-    if (!property) {
-      return res.status(404).json({
-        success: false,
-        message: 'Property not found'
-      });
-    }
-   
-    // Remove document by index
-    const docsArray = documentType === 'ownership'
-      ? property.documents.ownership
-      : property.documents.identity;
-   
-    if (documentIndex >= 0 && documentIndex < docsArray.length) {
-      docsArray.splice(documentIndex, 1);
-      await property.save();
-     
-      res.status(200).json({
-        success: true,
-        message: 'Document deleted successfully',
-        data: property
-      });
-    } else {
-      res.status(400).json({
-        success: false,
-        message: 'Invalid document index'
-      });
-    }
-   
-  } catch (error) {
-    console.error('Delete document error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to delete document',
-      error: error.message
-    });
-  }
-};
-// Keep all other existing functions unchanged
+
+// Get all approved properties (for public viewing)
 export const getApprovedProperties = async (req, res) => {
   try {
-    const { propertyType, page = 1, limit = 10, language = 'en' } = req.query;
-   
-    console.log('🔍 Getting approved properties');
-    console.log('🌐 Requested language:', language);
-   
+    const { propertyType, page = 1, limit = 10 } = req.query;
+    
     const query = { status: 'approved' };
     if (propertyType) {
       query.propertyType = propertyType;
     }
-   
+    
     const properties = await Property.find(query)
       .populate('userId', 'name phone email')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
-   
-    // ✅ Helper function to extract language-specific text
-    const getLocalizedText = (field) => {
-      if (!field) return '';
-      if (typeof field === 'string') return field;
-      return field[language] || field.en || field.te || field.hi || '';
-    };
-   
-    const transformedProperties = properties.map(prop => {
-      const propObj = prop.toObject();
-     
-      return {
-        ...propObj,
-        propertyTitle: getLocalizedText(propObj.propertyTitle),
-        description: getLocalizedText(propObj.description),
-        location: getLocalizedText(propObj.location),
-        area: getLocalizedText(propObj.area),
-        areaKey: propObj.areaKey || ''
-      };
-    });
-   
-    console.log('✅ Transformed first property:', transformedProperties[0] ? {
-      propertyTitle: transformedProperties[0].propertyTitle,
-      location: transformedProperties[0].location
-    } : 'No properties');
-   
+    
     const count = await Property.countDocuments(query);
-   
+    
+    // add full image URLs
+    const host = req.protocol + '://' + req.get('host');
+    const propertiesWithUrls = properties.map((p) => ({
+      ...p.toObject(),
+      imageUrls: (p.images || []).map((img) => `${host}/${img.replace(/^\\\//, '')}`),
+    }));
+
     res.status(200).json({
       success: true,
-      data: transformedProperties,
+      data: propertiesWithUrls,
       totalPages: Math.ceil(count / limit),
       currentPage: page
     });
-   
+    
   } catch (error) {
     console.error('Get properties error:', error);
     res.status(500).json({
@@ -527,31 +428,22 @@ export const getApprovedProperties = async (req, res) => {
     });
   }
 };
+
+// Get single property by ID
 export const getPropertyById = async (req, res) => {
   try {
-    const { language = 'en' } = req.query;
-   
-    console.log('🔍 Getting property by ID:', req.params.id);
-    console.log('🌐 Requested language:', language);
-   
     const property = await Property.findById(req.params.id)
       .populate('userId', 'name phone email');
-   
+    
     if (!property) {
       return res.status(404).json({
         success: false,
         message: 'Property not found'
       });
     }
-   
-    console.log('📦 Raw property data:', {
-      propertyTitle: property.propertyTitle,
-      location: property.location,
-      description: property.description
-    });
-   
+    
     // Only show approved properties to non-owners/non-admins
-    if (property.status !== 'approved' &&
+    if (property.status !== 'approved' && 
         property.userId._id.toString() !== req.user._id.toString() &&
         req.user.role !== 'admin') {
       return res.status(403).json({
@@ -559,37 +451,18 @@ export const getPropertyById = async (req, res) => {
         message: 'Property not available'
       });
     }
-   
-    const propObj = property.toObject();
-   
-    // ✅ Helper function to extract language-specific text
-    const getLocalizedText = (field) => {
-      if (!field) return '';
-      if (typeof field === 'string') return field;
-      return field[language] || field.en || field.te || field.hi || '';
+    
+    const host = req.protocol + '://' + req.get('host');
+    const propertyWithUrls = {
+      ...property.toObject(),
+      imageUrls: (property.images || []).map((img) => `${host}/${img.replace(/^\\\//, '')}`),
     };
-   
-    // Transform to requested language
-    const transformedProperty = {
-      ...propObj,
-      propertyTitle: getLocalizedText(propObj.propertyTitle),
-      description: getLocalizedText(propObj.description),
-      location: getLocalizedText(propObj.location),
-      area: getLocalizedText(propObj.area),
-      areaKey: propObj.areaKey || ''
-    };
-   
-    console.log('✅ Transformed property:', {
-      propertyTitle: transformedProperty.propertyTitle,
-      location: transformedProperty.location,
-      description: transformedProperty.description
-    });
-   
+
     res.status(200).json({
       success: true,
-      data: transformedProperty
+      data: propertyWithUrls
     });
-   
+    
   } catch (error) {
     console.error('Get property error:', error);
     res.status(500).json({
@@ -599,11 +472,10 @@ export const getPropertyById = async (req, res) => {
     });
   }
 };
+
+// Get user's own properties
 export const getUserProperties = async (req, res) => {
   try {
-    console.log('🔍 getUserProperties called');
-    console.log('👤 User ID:', req.user._id);
-   
     const properties = await Property.find({ userId: req.user._id })
       .sort({ createdAt: -1 });
     
@@ -611,15 +483,16 @@ export const getUserProperties = async (req, res) => {
     const host = req.protocol + '://' + req.get('host');
     const propertiesWithUrls = properties.map((p) => ({
       ...p.toObject(),
-      images: p.images || [],
+      imageUrls: (p.images || []).map((img) => `${host}/${img.replace(/^\\\//, '')}`),
     }));
+
     res.status(200).json({
       success: true,
       data: propertiesWithUrls
     });
-   
+    
   } catch (error) {
-    console.error('❌ Get user properties error:', error);
+    console.error('Get user properties error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch properties',
@@ -627,38 +500,42 @@ export const getUserProperties = async (req, res) => {
     });
   }
 };
+
+// Update property (only owner can update)
 export const updateProperty = async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
-   
+    
     if (!property) {
       return res.status(404).json({
         success: false,
         message: 'Property not found'
       });
     }
-   
+    
+    // Check ownership
     if (property.userId.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update this property'
       });
     }
-   
+    
+    // If updating, reset status to pending
     req.body.status = 'pending';
-   
+    
     const updatedProperty = await Property.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true, runValidators: true }
     );
-   
+    
     res.status(200).json({
       success: true,
       message: 'Property updated successfully',
       data: updatedProperty
     });
-   
+    
   } catch (error) {
     console.error('Update property error:', error);
     res.status(500).json({
@@ -668,31 +545,34 @@ export const updateProperty = async (req, res) => {
     });
   }
 };
+
+// Delete property (only owner can delete)
 export const deleteProperty = async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
-   
+    
     if (!property) {
       return res.status(404).json({
         success: false,
         message: 'Property not found'
       });
     }
-   
+    
+    // Check ownership
     if (property.userId.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this property'
       });
     }
-   
+    
     await property.deleteOne();
-   
+    
     res.status(200).json({
       success: true,
       message: 'Property deleted successfully'
     });
-   
+    
   } catch (error) {
     console.error('Delete property error:', error);
     res.status(500).json({
@@ -702,17 +582,21 @@ export const deleteProperty = async (req, res) => {
     });
   }
 };
+
+// ADMIN CONTROLLERS
+
+// Get all pending properties (Admin only)
 export const getPendingProperties = async (req, res) => {
   try {
     const properties = await Property.find({ status: 'pending' })
       .populate('userId', 'name phone email')
       .sort({ createdAt: -1 });
-   
+    
     res.status(200).json({
       success: true,
       data: properties
     });
-   
+    
   } catch (error) {
     console.error('Get pending properties error:', error);
     res.status(500).json({
@@ -722,41 +606,43 @@ export const getPendingProperties = async (req, res) => {
     });
   }
 };
+
+// Update property status (Admin only)
 export const updatePropertyStatus = async (req, res) => {
   try {
     const { status, rejectionReason } = req.body;
-   
+    
     if (!['approved', 'rejected'].includes(status)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid status'
       });
     }
-   
+    
     const updateData = { status };
     if (status === 'rejected' && rejectionReason) {
       updateData.rejectionReason = rejectionReason;
     }
-   
+    
     const property = await Property.findByIdAndUpdate(
       req.params.id,
       updateData,
       { new: true }
     ).populate('userId', 'name phone email');
-   
+    
     if (!property) {
       return res.status(404).json({
         success: false,
         message: 'Property not found'
       });
     }
-   
+    
     res.status(200).json({
       success: true,
       message: `Property ${status} successfully`,
       data: property
     });
-   
+    
   } catch (error) {
     console.error('Update status error:', error);
     res.status(500).json({
@@ -766,13 +652,17 @@ export const updatePropertyStatus = async (req, res) => {
     });
   }
 };
+
+// Get all properties (Admin only)
+// ✅ NEW CODE
 export const getAllProperties = async (req, res) => {
   try {
     console.log("📥 Admin fetching all properties");
-   
+    
     const { status, propertyType, page = 1, limit = 10 } = req.query;
-   
-    const query = {
+    
+    // Fetch properties that are NOT deleted (including old properties without the field)
+    const query = { 
       $or: [
         { adminDeletedStatus: 'active' },
         { adminDeletedStatus: { $exists: false } }
@@ -780,25 +670,25 @@ export const getAllProperties = async (req, res) => {
     };
     if (status) query.status = status;
     if (propertyType) query.propertyType = propertyType;
-   
-    const properties = await Property.find(query)
-      .populate({
-        path: 'userId',
-        select: 'name phone email currentSubscription'
-      })
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-   
+    
+   const properties = await Property.find(query)
+  .populate({
+    path: 'userId',
+    select: 'name phone email currentSubscription'
+  })
+  .sort({ createdAt: -1 })
+  .limit(limit * 1)
+  .skip((page - 1) * limit);
+    
     const count = await Property.countDocuments(query);
-   
+    
     res.status(200).json({
       success: true,
       data: properties,
       totalPages: Math.ceil(count / limit),
       currentPage: page
     });
-   
+    
   } catch (error) {
     console.error('Get all properties error:', error);
     res.status(500).json({
@@ -808,12 +698,14 @@ export const getAllProperties = async (req, res) => {
     });
   }
 };
+
+// Add this AFTER the getAllProperties function
 export const debugProperties = async (req, res) => {
   try {
     const allProps = await Property.find({}).select('propertyTitle adminDeletedStatus status');
     const activeProps = await Property.find({ adminDeletedStatus: 'active' });
     const withoutDeleteStatus = await Property.find({ adminDeletedStatus: { $exists: false } });
-   
+    
     res.json({
       total: allProps.length,
       allProperties: allProps,
@@ -824,6 +716,8 @@ export const debugProperties = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Soft delete property (Admin only)
 export const softDeleteProperty = async (req, res) => {
   try {
     const property = await Property.findByIdAndUpdate(
@@ -831,19 +725,19 @@ export const softDeleteProperty = async (req, res) => {
       { adminDeletedStatus: 'deleted' },
       { new: true }
     );
-   
+    
     if (!property) {
       return res.status(404).json({
         success: false,
         message: 'Property not found'
       });
     }
-   
+    
     res.status(200).json({
       success: true,
       message: 'Property deleted successfully'
     });
-   
+    
   } catch (error) {
     console.error('Soft delete error:', error);
     res.status(500).json({
@@ -853,36 +747,38 @@ export const softDeleteProperty = async (req, res) => {
     });
   }
 };
+
+// Update property status (Available/Sold) - Admin only
 export const updatePropertyAvailability = async (req, res) => {
   try {
     const { propertyStatus } = req.body;
-   
+    
     if (!['Available', 'Sold'].includes(propertyStatus)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid property status'
       });
     }
-   
+    
     const property = await Property.findByIdAndUpdate(
       req.params.id,
       { propertyStatus },
       { new: true }
     );
-   
+    
     if (!property) {
       return res.status(404).json({
         success: false,
         message: 'Property not found'
       });
     }
-   
+    
     res.status(200).json({
       success: true,
       message: 'Property status updated successfully',
       data: property
     });
-   
+    
   } catch (error) {
     console.error('Update property status error:', error);
     res.status(500).json({
@@ -892,39 +788,233 @@ export const updatePropertyAvailability = async (req, res) => {
     });
   }
 };
+
+// Admin update property details - Admin only
+// Admin update property details - Admin only
 export const adminUpdateProperty = async (req, res) => {
   try {
     console.log('📝 Admin updating property:', req.params.id);
     console.log('📦 Update data:', req.body);
-   
+    
     const property = await Property.findById(req.params.id);
-   
+    
     if (!property) {
       return res.status(404).json({
         success: false,
         message: 'Property not found'
       });
     }
-   
+    
+    // Admin can update without changing status
     const updatedProperty = await Property.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true, runValidators: true }
     ).populate('userId', 'name phone email currentSubscription');
-   
+    
     console.log('✅ Property updated successfully');
-   
+    
     res.status(200).json({
       success: true,
       message: 'Property updated successfully',
       data: updatedProperty
     });
-   
+    
   } catch (error) {
     console.error('❌ Admin update property error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to update property',
+      error: error.message
+    });
+  }
+};
+
+
+// Add at the end of the file, before the export statements
+
+// Upload additional images to existing property
+export const uploadAdditionalImages = async (req, res) => {
+  try {
+    const property = await Property.findById(req.params.id);
+    
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found'
+      });
+    }
+    
+    const newImages = req.files?.images?.map(file => normalizePath(file.path)) || [];
+    
+    if (newImages.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No images provided'
+      });
+    }
+    
+    // Add new images to existing ones
+    property.images = [...property.images, ...newImages];
+    await property.save();
+    
+    res.status(200).json({
+      success: true,
+      message: 'Images uploaded successfully',
+      data: property
+    });
+    
+  } catch (error) {
+    console.error('Upload additional images error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upload images',
+      error: error.message
+    });
+  }
+};
+
+// Delete specific image from property
+export const deletePropertyImage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { imagePath } = req.body;
+    
+    const property = await Property.findById(id);
+    
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found'
+      });
+    }
+    
+    // Remove image from array (normalize comparison)
+    property.images = property.images.filter(img => img !== normalizePath(imagePath));
+    await property.save();
+    
+    // Optional: Delete file from filesystem
+    // import fs from 'fs';
+    // import path from 'path';
+    // try {
+    //   fs.unlinkSync(path.join(__dirname, '..', imagePath));
+    // } catch (err) {
+    //   console.error('Failed to delete file:', err);
+    // }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Image deleted successfully',
+      data: property
+    });
+    
+  } catch (error) {
+    console.error('Delete image error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete image',
+      error: error.message
+    });
+  }
+};
+
+// Upload additional documents to existing property
+export const uploadAdditionalDocuments = async (req, res) => {
+  try {
+    const { documentType } = req.body; // 'ownership' or 'identity'
+    
+    if (!['ownership', 'identity'].includes(documentType)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid document type'
+      });
+    }
+    
+    const property = await Property.findById(req.params.id);
+    
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found'
+      });
+    }
+    
+    const newDocs = req.files?.[`${documentType}Docs`]?.map(file => file.path) || [];
+    
+    if (newDocs.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No documents provided'
+      });
+    }
+    
+    // Add new documents to existing ones
+    if (documentType === 'ownership') {
+      property.documents.ownership = [...property.documents.ownership, ...newDocs];
+    } else {
+      property.documents.identity = [...property.documents.identity, ...newDocs];
+    }
+    
+    await property.save();
+    
+    res.status(200).json({
+      success: true,
+      message: 'Documents uploaded successfully',
+      data: property
+    });
+    
+  } catch (error) {
+    console.error('Upload additional documents error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upload documents',
+      error: error.message
+    });
+  }
+};
+
+// Delete specific document from property
+export const deletePropertyDocument = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { documentPath, documentType } = req.body;
+    
+    if (!['ownership', 'identity'].includes(documentType)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid document type'
+      });
+    }
+    
+    const property = await Property.findById(id);
+    
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found'
+      });
+    }
+    
+    // Remove document from array
+    if (documentType === 'ownership') {
+      property.documents.ownership = property.documents.ownership.filter(doc => doc !== documentPath);
+    } else {
+      property.documents.identity = property.documents.identity.filter(doc => doc !== documentPath);
+    }
+    
+    await property.save();
+    
+    res.status(200).json({
+      success: true,
+      message: 'Document deleted successfully',
+      data: property
+    });
+    
+  } catch (error) {
+    console.error('Delete document error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete document',
       error: error.message
     });
   }

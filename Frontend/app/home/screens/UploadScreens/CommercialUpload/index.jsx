@@ -154,11 +154,13 @@ export default function PropertyFormScreen() {
         router.push({
   pathname: `${base}/Retail`,
   params: {
-    commercialBaseDetails: JSON.stringify({
-      subType: "Retail",          // ✅ THIS IS CRITICAL
-      retailKind: retailKinds[0], // optional, if needed later
-      propertyTitle,
-    }),
+   commercialBaseDetails: JSON.stringify({
+  subType: "Retail",
+  retailKind: retailKinds[0],
+  locatedInside,          // ✅ ADD THIS
+  propertyTitle,
+}),
+
   },
 });
 
