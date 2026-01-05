@@ -203,10 +203,17 @@ const filteredProperties = properties.filter((property) => {
                 }}
               >
                 {/* ✅ REAL IMAGE with fallback */}
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => router.push(`/home/screens/Flats/(Property)?propertyId=${item._id}`)}  // ✅ CHANGED
-                >
+              <TouchableOpacity
+  activeOpacity={0.8}
+  onPress={() => router.push({
+    pathname: '/home/screens/Flats/(Property)',
+    params: { propertyId: item._id }
+  })}
+>
+
+                
+
+
                   <Image
                     source={
                       item.images && item.images.length > 0
@@ -240,10 +247,13 @@ const filteredProperties = properties.filter((property) => {
                 {/* Card Content */}
                 <View style={{ paddingHorizontal: 12, paddingTop: 10 }}>
                   {/* ✅ REAL TITLE */}
-                  <TouchableOpacity
-                    activeOpacity={0.6}
-                    onPress={() => router.push(`/home/screens/Flats/(Property)?propertyId=${item._id}`)}  // ✅ CHANGED
-                  >
+                 <TouchableOpacity
+  activeOpacity={0.6}
+  onPress={() => router.push({
+    pathname: '/home/screens/Flats/(Property)',
+    params: { propertyId: item._id }
+  })}
+>
                     <Text
                       style={{
                         fontFamily: "Poppins-Medium",

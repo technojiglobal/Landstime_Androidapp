@@ -19,46 +19,35 @@ export default function OverviewScreen() {
   const [loading, setLoading] = useState(true);
  // const [language, setLanguage] = useState('en');
 
-  //  useEffect(() => {
-  //   loadLanguage();
-  //   if (propertyId) {
-  //     fetchPropertyDetails();
-  //   }
-  // }, [propertyId]);
+ 
 
-//   // Add this inside the component, after other useEffects
+
+//   // ✅ ADD THIS: Fetch property on mount
 // useEffect(() => {
 //   if (propertyId) {
 //     fetchPropertyDetails();
 //   }
-// }, [propertyId, language]); // ← Add language as dependency
+// }, [propertyId]);
+
+// // ✅ ADD THIS: Refetch when language changes
+// useEffect(() => {
+//   if (propertyId) {
+//     fetchPropertyDetails();
+//   }
+// }, [i18n.language]);
 
 
-  // const loadLanguage = async () => {
-  //   try {
-  //     const savedLanguage = await AsyncStorage.getItem('appLanguage');
-  //     if (savedLanguage) {
-  //       setLanguage(savedLanguage);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error loading language:', error);
-  //   }
-  // };
-
-
-  // ✅ ADD THIS: Fetch property on mount
+// ✅ Fetch property on mount and when propertyId or language changes
 useEffect(() => {
+  console.log('🔄 Effect triggered - propertyId:', propertyId, 'language:', i18n.language);
   if (propertyId) {
     fetchPropertyDetails();
+  } else {
+    console.error('❌ No propertyId available');
+    setLoading(false);
   }
-}, [propertyId]);
+}, [propertyId, i18n.language]);
 
-// ✅ ADD THIS: Refetch when language changes
-useEffect(() => {
-  if (propertyId) {
-    fetchPropertyDetails();
-  }
-}, [i18n.language]);
 
 const fetchPropertyDetails = async () => {
   try {
