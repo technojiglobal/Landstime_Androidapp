@@ -724,36 +724,44 @@ retailDetails: {
     }
   },
   
-  // Resort specific fields
 resortDetails: {
   resortType: {
     type: String,
-    required: true,
-    trim: true,
+    required: function () {
+      return this.propertyType === "Resort";
+    },
+  },
+
+  location: {
+    type: String,
+    required: function () {
+      return this.propertyType === "Resort";
+    },
   },
 
   landArea: {
     type: Number,
-    required: true,
-  },
-
-  landAreaUnit: {
-    type: String,
-    default: "sqft",
+    required: function () {
+      return this.propertyType === "Resort";
+    },
   },
 
   buildArea: {
     type: Number,
-    required: true,
-  },
-
-  buildAreaUnit: {
-    type: String,
-    default: "sqft",
+    required: function () {
+      return this.propertyType === "Resort";
+    },
   },
 
   rooms: { type: Number, default: 0 },
   floors: { type: Number, default: 0 },
+
+  description: {
+    type: String,
+    required: function () {
+      return this.propertyType === "Resort";
+    },
+  },
 
   locationAdvantages: {
     type: [String],
@@ -761,26 +769,117 @@ resortDetails: {
   },
 
   vaasthuDetails: {
-    propertyFacing: { type: String, required: true },
-    entranceDirection: { type: String, required: true },
-    receptionAreaFacing: { type: String, required: true },
-    mainLobbyDirection: { type: String, required: true },
-    masterSuitroom: { type: String, required: true },
-    guestRoom: { type: String, required: true },
-    restaurantDirection: { type: String, required: true },
-    vipSuite: { type: String, required: true },
-    conferenceDirection: { type: String, required: true },
-    spaRoom: { type: String, required: true },
-    swimmingPool: { type: String, required: true },
-    yoga: { type: String, required: true },
-    kitchenRoom: { type: String, required: true },
-    poojaRoom: { type: String, required: true },
-    office: { type: String, required: true },
-    recreation: { type: String, required: true },
-    balcony: { type: String, required: true },
-    garden: { type: String, required: true },
+    propertyFacing: {
+      type: String,
+      required: function () {
+        return this.parent().parent().propertyType === "Resort";
+      },
+    },
+    entranceDirection: {
+      type: String,
+      required: function () {
+        return this.parent().parent().propertyType === "Resort";
+      },
+    },
+    receptionAreaFacing: {
+      type: String,
+      required: function () {
+        return this.parent().parent().propertyType === "Resort";
+      },
+    },
+    mainLobbyDirection: {
+      type: String,
+      required: function () {
+        return this.parent().parent().propertyType === "Resort";
+      },
+    },
+    masterSuitroom: {
+      type: String,
+      required: function () {
+        return this.parent().parent().propertyType === "Resort";
+      },
+    },
+    guestRoom: {
+      type: String,
+      required: function () {
+        return this.parent().parent().propertyType === "Resort";
+      },
+    },
+    restaurantDirection: {
+      type: String,
+      required: function () {
+        return this.parent().parent().propertyType === "Resort";
+      },
+    },
+    vipSuite: {
+      type: String,
+      required: function () {
+        return this.parent().parent().propertyType === "Resort";
+      },
+    },
+    conferenceDirection: {
+      type: String,
+      required: function () {
+        return this.parent().parent().propertyType === "Resort";
+      },
+    },
+    spaRoom: {
+      type: String,
+      required: function () {
+        return this.parent().parent().propertyType === "Resort";
+      },
+    },
+    swimmingPool: {
+      type: String,
+      required: function () {
+        return this.parent().parent().propertyType === "Resort";
+      },
+    },
+    yoga: {
+      type: String,
+      required: function () {
+        return this.parent().parent().propertyType === "Resort";
+      },
+    },
+    kitchenRoom: {
+      type: String,
+      required: function () {
+        return this.parent().parent().propertyType === "Resort";
+      },
+    },
+    poojaRoom: {
+      type: String,
+      required: function () {
+        return this.parent().parent().propertyType === "Resort";
+      },
+    },
+    office: {
+      type: String,
+      required: function () {
+        return this.parent().parent().propertyType === "Resort";
+      },
+    },
+    recreation: {
+      type: String,
+      required: function () {
+        return this.parent().parent().propertyType === "Resort";
+      },
+    },
+    balcony: {
+      type: String,
+      required: function () {
+        return this.parent().parent().propertyType === "Resort";
+      },
+    },
+    garden: {
+      type: String,
+      required: function () {
+        return this.parent().parent().propertyType === "Resort";
+      },
+    },
   },
 },
+
 
 
 

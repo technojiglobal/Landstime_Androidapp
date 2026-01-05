@@ -145,7 +145,15 @@ const commercialDetailsFromPrev = safeParse(params.commercialDetails);
     return;
   }
 
-  if (!commercialDetailsFromPrev) return;
+ if (!commercialDetailsFromPrev) {
+  Toast.show({
+    type: "error",
+    text1: "Something went wrong",
+    text2: "Please go back and try again",
+  });
+  return;
+}
+
   const industryPricingDetails = {
   ownership,
   expectedPrice: Number(expectedPrice),
@@ -166,10 +174,11 @@ const commercialDetailsFromPrev = safeParse(params.commercialDetails);
 
   const updatedCommercialDetails = {
     ...commercialDetailsFromPrev,
-    industryDetails: {
-      ...commercialDetailsFromPrev.industryDetails,
-      pricing: industryPricingDetails,
-    },
+   industryDetails: {
+  ...(commercialDetailsFromPrev.industryDetails || {}),
+  pricing: industryPricingDetails,
+},
+
   };
 
   router.push({
@@ -443,7 +452,7 @@ const commercialDetailsFromPrev = safeParse(params.commercialDetails);
             <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-12">
                 <TouchableOpacity
                     className="px-10 py-3 rounded-lg bg-gray-200 mx-3"
-                    onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload/Components/Industry")}
+                    onPress={() => router.back()}
                 >
                     <Text className="font-semibold">Cancel</Text>
                 </TouchableOpacity>

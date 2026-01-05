@@ -33,21 +33,20 @@ const PillButton = ({ label, selected, onPress }) => (
   </TouchableOpacity>
 );
 
-const Checkbox = ({ selected }) => (
-  <View
-    style={{
-      width: 16,
-      height: 16,
-      borderWidth: 1,
-      borderColor: selected ? "#22C55E" : "#D1D5DB",
-      backgroundColor: selected ? "#22C55E" : "#fff",
-      justifyContent: "center",
-      alignItems: "center",
-      marginRight: 8,
-    }}
+const Checkbox = ({ label, selected, onPress }) => (
+  <TouchableOpacity
+    onPress={onPress}
+    className="flex-row items-center mb-2"
   >
-    {selected && <Text style={{ color: "#fff", fontSize: 10 }}>✓</Text>}
-  </View>
+    <View
+      className={`w-4 h-4 mr-2 border items-center justify-center ${
+        selected ? "bg-green-500 border-green-500" : "border-gray-300"
+      }`}
+    >
+      {selected && <Text className="text-white text-[10px]">✓</Text>}
+    </View>
+    <Text className="text-sm text-gray-600">{label}</Text>
+  </TouchableOpacity>
 );
 const HospitalityNext = () => {
     const router = useRouter();
@@ -138,9 +137,35 @@ const HospitalityNext = () => {
             text1: 'Details Saved',
             text2: 'Moving to next step...',
         });
-        router.push(
-            "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityVaastu"
-        );
+        const hospitalityDetails = {
+  ownership,
+  expectedPrice: Number(expectedPrice),
+
+  priceDetails: {
+    allInclusive,
+    negotiable: priceNegotiable,
+    taxExcluded,
+  },
+
+  preLeased,
+  leaseDuration: preLeased === "Yes" ? leaseDuration : null,
+  monthlyRent: preLeased === "Yes" ? Number(monthlyRent) : null,
+
+  description: describeProperty,
+  amenities,
+  locationAdvantages: locAdvantages,
+  wheelchairFriendly,
+  flooringType,
+};
+
+        router.push({
+  pathname:
+    "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityVaastu",
+  params: {
+    hospitalityDetails: JSON.stringify(hospitalityDetails),
+  },
+});
+
         // Navigate to next screen or submit
         // router.push("/next-screen");
     };
@@ -150,7 +175,7 @@ const HospitalityNext = () => {
             <View className="flex-row items-center mt-7 mt-4 mb-3 ml-4">
                     <TouchableOpacity
                         onPress={() =>
-                            router.push("/home/screens/UploadScreens/CommercialUpload/Components/Hospitality")
+                            router.back()
                         }
                         className="p-2"
                     >
@@ -454,7 +479,7 @@ const HospitalityNext = () => {
             <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-12">
                 <TouchableOpacity
                     className="px-10 py-3 rounded-lg bg-gray-200 mx-3"
-                    onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload/Components/HospitalityVaastu")}
+                    onPress={() => router.back()}
                 >
                     <Text className="font-semibold">Cancel</Text>
                 </TouchableOpacity>

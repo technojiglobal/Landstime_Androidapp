@@ -175,7 +175,7 @@ const toggleConstruction = (value) => {
 
           {/* DIMENSIONS */}
           <Text className="text-[13px] font-semibold text-[#374151] mb-1">
-            Property Dimensions (optional)
+            Property Dimensions (optional) <Text className="text-red-500">*</Text>
           </Text>
           <TextInput
             placeholder="Length of plot (ft)"
