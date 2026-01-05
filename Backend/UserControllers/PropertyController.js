@@ -298,44 +298,53 @@ if (propertyData.propertyType === "Resort") {
 
   const {
     resortType,
-    location,
     landArea,
     buildArea,
-    expectedPrice,
-    description,
     vaasthuDetails,
   } = resortDetails;
 
+  // ✅ ROOT-LEVEL fields
+  const { location, expectedPrice, description } = propertyData;
+
   if (
     !resortType ||
-    !location ||
+    !location ||          // ✅ ROOT
     !landArea ||
     !buildArea ||
-    !expectedPrice ||
-    !description ||
+    !expectedPrice ||     // ✅ ROOT
+    !description ||       // ✅ ROOT
     !vaasthuDetails
   ) {
+    console.error("❌ Resort validation failed:", {
+      resortType,
+      location,
+      landArea,
+      buildArea,
+      expectedPrice,
+      description,
+      vaasthuDetailsPresent: !!vaasthuDetails,
+    });
+
     return res.status(400).json({
       success: false,
       message: "Required resort fields are missing",
     });
   }
 
-  // 🔒 FORCE correct type
+  // ✅ Normalize finalData
   finalData.propertyType = "Resort";
-
-  // 🔒 TOP LEVEL REQUIRED FIELDS
+  finalData.location = location;
   finalData.expectedPrice = Number(expectedPrice);
   finalData.description = description;
-  finalData.location = location;
 
-  // 🔒 RESORT DETAILS
   finalData.resortDetails = {
     ...resortDetails,
     landArea: Number(landArea),
     buildArea: Number(buildArea),
   };
 }
+
+
 
 
 
