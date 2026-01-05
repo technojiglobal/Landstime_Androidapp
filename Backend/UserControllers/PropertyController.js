@@ -21,6 +21,17 @@ export const createProperty = async (req, res) => {
     }
 
     const propertyData = JSON.parse(req.body.propertyData);
+  // 🔹 Normalize property title (IMPORTANT)
+const normalizedTitle =
+  typeof propertyData.propertyTitle === "string"
+    ? { en: propertyData.propertyTitle }
+    : propertyData.propertyTitle;
+
+// 🔹 Normalize description (recommended)
+const normalizedDescription =
+  typeof propertyData.description === "string"
+    ? { en: propertyData.description }
+    : propertyData.description;
 
     // Debug incoming payload
     console.log('📦 req.body keys:', Object.keys(req.body || {}));
@@ -98,13 +109,15 @@ export const createProperty = async (req, res) => {
     console.log('🖼️ Received images:', images);
     console.log('📁 req.files keys:', Object.keys(req.files || {}));
     console.log('🔎 ownershipDocs count:', ownershipDocs.length, 'identityDocs count:', identityDocs.length);
-
+     
     const finalData = {
   propertyType: propertyData.propertyType,
-  propertyTitle: propertyData.propertyTitle,
+  propertyTitle: normalizedTitle,
+
   ownerDetails: propertyData.ownerDetails,
     expectedPrice: propertyData.expectedPrice,
-  description: propertyData.description || "",
+  description: normalizedDescription,
+
 
   images,
   documents: {
@@ -115,6 +128,51 @@ export const createProperty = async (req, res) => {
   userId: req.user._id,
   status: "pending",
 };
+    // ================= PRICE NORMALIZATION =================
+
+// If expectedPrice already exists (House / Plot / Resort)
+if (propertyData.expectedPrice) {
+  finalData.expectedPrice = Number(propertyData.expectedPrice);
+}
+
+// Commercial → Retail
+if (
+  propertyData.propertyType === "Commercial" &&
+  propertyData.commercialDetails?.retailDetails?.pricing?.expectedPrice
+) {
+  finalData.expectedPrice = Number(
+    propertyData.commercialDetails.retailDetails.pricing.expectedPrice
+  );
+}
+
+// Commercial → Office
+if (
+  propertyData.propertyType === "Commercial" &&
+  propertyData.commercialDetails?.officeDetails?.expectedPrice
+) {
+  finalData.expectedPrice = Number(
+    propertyData.commercialDetails.officeDetails.expectedPrice
+  );
+}
+
+// Commercial → Industry
+if (
+  propertyData.propertyType === "Commercial" &&
+  propertyData.commercialDetails?.industryDetails?.pricing?.expectedPrice
+) {
+  finalData.expectedPrice = Number(
+    propertyData.commercialDetails.industryDetails.pricing.expectedPrice
+  );
+}
+
+// FINAL SAFETY CHECK
+if (!finalData.expectedPrice) {
+  return res.status(400).json({
+    success: false,
+    message: "Expected price is required",
+  });
+}
+
 
   if (propertyData.propertyType === "Commercial") {
   const { commercialDetails } = propertyData;
