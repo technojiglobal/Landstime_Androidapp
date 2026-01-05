@@ -2,7 +2,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
-const API_BASE_URL = 'http://10.14.107.5:8000/api/properties';
+const API_BASE_URL = 'http://10.10.7.124:8000/api/properties';
 
 
 
