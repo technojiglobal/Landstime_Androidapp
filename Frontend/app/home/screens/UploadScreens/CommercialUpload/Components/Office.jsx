@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+
+=======
+>>>>>>> 25c90195813f66daede1f64d9e7273a1050716d3
 //Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/Office.jsx
 
 import React, { useState } from 'react';

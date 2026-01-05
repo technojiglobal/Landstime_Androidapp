@@ -655,7 +655,17 @@ houseDetails: {
                                           propertyTitle: propertyTitle,
                                         },
                                       });
-                                    } else {
+                                    }  else if (type === "Site/Plot/Land") {
+                                      router.push({
+                                        pathname:
+                                          "/home/screens/UploadScreens/SiteUpload",
+                                        params: {
+                                          images: JSON.stringify(images),
+                                          propertyTitle: propertyTitle,
+                                        },
+                                      }); 
+                                    }
+                                    else {
                                       router.push({
                                         pathname:
                                           "/home/screens/UploadScreens/ResortUpload",

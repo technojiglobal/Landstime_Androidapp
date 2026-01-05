@@ -1,6 +1,12 @@
 // Backend/controllers/propertyController.js
 import Property from '../UserModels/Property.js';
 import User from '../UserModels/User.js';
+<<<<<<< HEAD
+
+// Utility: normalize filesystem path to URL-friendly forward slashes
+const normalizePath = (p) => (p ? p.replace(/\\+/g, '/') : p);
+
+=======
 // Utility: normalize filesystem path to URL-friendly forward slashes
 const normalizePath = (p) => (p ? p.replace(/\\+/g, '/') : p);
 // ✅ NEW HELPER FUNCTION: Normalize area name to consistent key
@@ -15,11 +21,16 @@ const normalizeAreaKey = (areaName) => {
   // If it's a string, normalize it
   return String(areaName).toLowerCase().trim().replace(/\s+/g, '');
 };
+>>>>>>> 25c90195813f66daede1f64d9e7273a1050716d3
 // Create a new property
 // Backend/controllers/propertyController.js
 const bufferToBase64 = (buffer, mimetype) => {
   return `data:${mimetype};base64,${buffer.toString('base64')}`;
 };
+<<<<<<< HEAD
+
+=======
+>>>>>>> 25c90195813f66daede1f64d9e7273a1050716d3
 export const createProperty = async (req, res) => {
   try {
     console.log('📥 Property upload request');
@@ -41,16 +52,40 @@ export const createProperty = async (req, res) => {
       });
     }
     const { name, phone, email } = propertyData.ownerDetails;
+<<<<<<< HEAD
+
+    // Extract uploaded files
+=======
+>>>>>>> 25c90195813f66daede1f64d9e7273a1050716d3
     if (!name || !phone || !email) {
       return res.status(400).json({
         success: false,
         message: "Owner name, phone and email are mandatory",
       });
     }
+<<<<<<< HEAD
+
+=======
+>>>>>>> 25c90195813f66daede1f64d9e7273a1050716d3
     // Convert uploaded files to base64
     const images = req.files?.images?.map(file =>
       bufferToBase64(file.buffer, file.mimetype)
     ) || [];
+<<<<<<< HEAD
+
+    const ownershipDocs = req.files?.ownershipDocs?.map(file => 
+      bufferToBase64(file.buffer, file.mimetype)
+    ) || [];
+
+
+    
+   
+ const identityDocs = req.files?.identityDocs?.map(file =>
+  bufferToBase64(file.buffer, file.mimetype)
+) || [];
+
+
+=======
     const ownershipDocs = req.files?.ownershipDocs?.map(file =>
       bufferToBase64(file.buffer, file.mimetype)
     ) || [];
@@ -58,6 +93,7 @@ export const createProperty = async (req, res) => {
  const identityDocs = req.files?.identityDocs?.map(file =>
   bufferToBase64(file.buffer, file.mimetype)
 ) || [];
+>>>>>>> 25c90195813f66daede1f64d9e7273a1050716d3
     // Backend validation
     if (!propertyData.propertyTitle) {
       return res.status(400).json({ success: false, message: 'Property title is required' });
@@ -65,7 +101,14 @@ export const createProperty = async (req, res) => {
     if (!propertyData.propertyType) {
       return res.status(400).json({ success: false, message: 'Property type is required' });
     }
+<<<<<<< HEAD
+
+    
+
+
+=======
    
+>>>>>>> 25c90195813f66daede1f64d9e7273a1050716d3
     const finalData = {
   propertyType: propertyData.propertyType,
   propertyTitle: propertyData.propertyTitle,
@@ -90,6 +133,10 @@ export const createProperty = async (req, res) => {
   }
   const rawSubType = commercialDetails.subType.trim();
   const subType = rawSubType.toLowerCase();
+<<<<<<< HEAD
+
+=======
+>>>>>>> 25c90195813f66daede1f64d9e7273a1050716d3
   // f to the enum values expected by the model
   let canonicalSubType = "Other";
   if (subType.includes("office")) canonicalSubType = "Office";
@@ -134,7 +181,13 @@ export const createProperty = async (req, res) => {
     finalData.commercialDetails.retailDetails =
       commercialDetails.retailDetails;
   }
+<<<<<<< HEAD
+
   // STORAGE
+ 
+=======
+  // STORAGE
+>>>>>>> 25c90195813f66daede1f64d9e7273a1050716d3
 if (canonicalSubType === "Storage") {
   if (
     !commercialDetails.storageDetails ||
@@ -208,8 +261,16 @@ if (canonicalSubType === "Hospitality") {
 }
  
 // Plot handling is normalized above with other commercial subtypes
+<<<<<<< HEAD
+
+
+
+    
+   
+=======
    
   
+>>>>>>> 25c90195813f66daede1f64d9e7273a1050716d3
     if (images.length === 0) {
       return res.status(400).json({ success: false, message: 'At least one image is required' });
     }
@@ -219,6 +280,10 @@ if (canonicalSubType === "Hospitality") {
     if (identityDocs.length === 0) {
       return res.status(400).json({ success: false, message: 'Identity document is required' });
     }
+<<<<<<< HEAD
+
+=======
+>>>>>>> 25c90195813f66daede1f64d9e7273a1050716d3
     // Create property
 console.log('🔄 Translating property fields...');
 // Translate text fields to all 3 languages
@@ -245,6 +310,10 @@ await property.save();
    console.log("✅ PROPERTY SAVED TO DATABASE");
 console.log("🆔 Property ID:", property._id);
 console.log("🏷 Property Type:", property.propertyType);
+<<<<<<< HEAD
+
+=======
+>>>>>>> 25c90195813f66daede1f64d9e7273a1050716d3
     res.status(201).json({
       success: true,
       message: 'Property submitted successfully and pending approval',
@@ -603,13 +672,21 @@ export const getUserProperties = async (req, res) => {
    
     const properties = await Property.find({ userId: req.user._id })
       .sort({ createdAt: -1 });
+<<<<<<< HEAD
+    
+=======
    
+>>>>>>> 25c90195813f66daede1f64d9e7273a1050716d3
     // Attach full image URLs
     const host = req.protocol + '://' + req.get('host');
     const propertiesWithUrls = properties.map((p) => ({
       ...p.toObject(),
       images: p.images || [],
     }));
+<<<<<<< HEAD
+
+=======
+>>>>>>> 25c90195813f66daede1f64d9e7273a1050716d3
     res.status(200).json({
       success: true,
       data: propertiesWithUrls

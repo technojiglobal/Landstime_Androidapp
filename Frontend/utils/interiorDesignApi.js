@@ -9,7 +9,6 @@ import { Platform } from "react-native";
  */
 const BASE_URL = "http://10.10.2.39:8000/api/admin/interior";
 
-
 export const fetchInteriorDesigns = async ({
   page = 1,
   limit = 10,

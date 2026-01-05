@@ -364,14 +364,14 @@ const [email, setEmail] = useState("");
 
 console.log('📡 Calling createProperty API...');
 console.log('📋 Final property data:', JSON.stringify(propertyData, null, 2));
-console.log('📸 Images to upload:', images.length, 'images');
-console.log('🔍 First image URI:', images[0]);
+console.log('📸 Images to upload:', uploadImages.length, 'images');
+console.log('🔍 First image URI:', uploadImages[0]);
       
        // Prepare FormData for upload (web-compatible)
     // Call the API the same way as AddScreen.jsx (House upload)
       const result = await createProperty(
         propertyData,
-        images,
+        uploadImages,
         ownershipDocs,
         identityDocs
       );

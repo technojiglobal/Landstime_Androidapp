@@ -108,7 +108,132 @@ description: {
     default: 'Available'
   },
 
-  
+   // Site / Plot / Land specific fields
+siteDetails: {
+  /* ---------- AREA & DIMENSIONS ---------- */
+  area: {
+    type: Number,
+    required: function () {
+       return this.propertyType === "Site/Plot/Land" && this.siteDetails != null;
+    },
+  },
+
+  areaUnit: {
+    type: String,
+    enum: ["sqft", "sqm", "acre"],
+    default: "sqft",
+  },
+
+  length: {
+    type: Number,
+    required: function () {
+       return this.propertyType === "Site/Plot/Land" && this.siteDetails != null;
+    },
+  },
+
+  breadth: {
+    type: Number,
+    required: function () {
+       return this.propertyType === "Site/Plot/Land" && this.siteDetails != null;
+    },
+  },
+
+  floorsAllowed: {
+    type: Number,
+    default: 0,
+  },
+
+  /* ---------- BOUNDARY & ACCESS ---------- */
+  boundaryWall: {
+    type: Boolean,
+    default: false,
+  },
+
+  openSides: {
+    type: Number, // 1,2,3,3+
+  },
+
+  roadWidth: {
+    type: Number,
+  },
+
+  roadWidthUnit: {
+    type: String,
+    enum: ["sqft", "sqm", "acre"],
+    default: "sqft",
+  },
+
+  /* ---------- CONSTRUCTION ---------- */
+  constructionDone: {
+    type: Boolean,
+    default: false,
+  },
+
+  constructionType: {
+    type: [String], // Shed, Room, Washroom, Other
+    default: [],
+  },
+
+  /* ---------- POSSESSION & OWNERSHIP ---------- */
+  possessionBy: {
+    type: String, // Immediate / 1-3 months / etc
+  },
+
+  ownership: {
+    type: String,
+    default: "Freehold",
+  },
+
+  approvedBy: {
+    type: [String], // GHMC, HMDA, DTCP
+    default: [],
+  },
+
+  /* ---------- FEATURES ---------- */
+  amenities: {
+    type: [String],
+    default: [],
+  },
+
+  propertyFacing: {
+    type: String,
+  },
+
+  overlooking: {
+    type: [String], // park, pool, mainroad
+    default: [],
+  },
+
+  inGatedSociety: {
+    type: Boolean,
+    default: false,
+  },
+
+  cornerProperty: {
+    type: Boolean,
+    default: false,
+  },
+
+  locationAdvantages: {
+    type: [String],
+    default: [],
+  },
+
+  /* ---------- VASTU DETAILS ---------- */
+  vaasthuDetails: {
+    plotFacing: String,
+    mainEntryDirection: String,
+    plotSlope: String,
+    openSpace: String,
+    plotShape: String,
+    roadPosition: String,
+    waterSource: String,
+    drainageDirection: String,
+    compoundWallHeight: String,
+    existingStructures: String,
+  },
+},
+
   // House specific fields
   houseDetails: {
     floors: Number,
@@ -147,29 +272,7 @@ description: {
   },
   
   // Site/Plot/Land specific fields
-  siteDetails: {
-    area: Number,
-    areaUnit: { type: String, default: 'sqft' },
-    length: Number,
-    breadth: Number,
-    floorsAllowed: Number,
-    boundaryWall: String,
-    openSides: String,
-    constructionDone: String,
-    constructionType: [String],
-    possessionBy: String,
-    ownership: [String],
-    approvedBy: [String],
-    amenities: [String],
-    overlooking: [String],
-    overlookingAdditional: [String],
-    propertyFacing: [String],
-    roadWidth: Number,
-    roadWidthUnit: String,
-    locationAdvantages: [String],
-    inGatedSociety: Boolean,
-    cornerProperty: Boolean
-  },
+ 
   
   // Commercial specific fields
   commercialDetails: {
@@ -178,215 +281,654 @@ description: {
       enum: ['Office', 'Retail', 'Plot/Land', 'Storage', 'Industry', 'Hospitality', 'Other']
     },
     
-    // Office specific
-   officeDetails: {
-  /* -------- BASIC (OPTIONAL) -------- */
-  officeKind: {
-    type: String,          // IT / Co-working / Business Center / etc
-    default: null,
+    // Office specific - REMOVED required: true from schema level
+    officeDetails: {
+  area: {
+    type: Number,
+    required: function() {
+      return this.commercialDetails.subType === 'Office';
+    },
   },
 
-  /* -------- REQUIRED -------- */
+  areaUnit: {
+    type: String,
+    enum: ["sqft", "sqm"],
+    default: "sqft",
+  },
+
+  officeKind: String,
+
+  expectedPrice: Number,
+
+  priceDetails: {
+    allInclusive: { type: Boolean, default: false },
+    negotiable: { type: Boolean, default: false },
+    taxExcluded: { type: Boolean, default: false },
+  },
+
+  preLeased: String,
+  leaseDuration: String,
+  monthlyRent: Number,
+
+  nocCertified: String,
+  occupancyCertified: String,
+
+  previouslyUsedFor: String,
+
+  description: String,
+
+  amenities: {
+    type: [String],
+    default: [],
+  },
+
+  locationAdvantages: {
+    type: [String],
+    default: [],
+  },
+
+  vaasthuDetails: {
+    officeFacing: String,
+    entrance: String,
+    cabin: String,
+    workstations: String,
+    conference: String,
+    reception: String,
+    accounts: String,
+    pantry: String,
+    server: String,
+    washrooms: String,
+    staircase: String,
+    storage: String,
+    cashLocker: String,
+  },
+},
+
+
+retailDetails: {
+  /* ---------- BASIC DETAILS ---------- */
+  shopType: String, // Shop / Showroom / Mall Shop / Food Outlet
+
   location: {
     type: String,
-    required: false,
+    required: function () {
+      return this.commercialDetails?.subType === "Retail";
+    },
+  },
+
+  area: {
+    value: {
+      type: Number,
+      required:function () {
+        return this.commercialDetails?.subType === "Retail";
+      },
+    },
+    unit: {
+      type: String,
+      default: "sqft",
+    },
+  },
+
+  floors: Number,
+  washrooms: Number,
+
+  parking: {
+    available: { type: Boolean, default: false },
+    count: { type: Number, default: 0 },
+  },
+
+  frontage: Number,
+  ceilingHeight: Number,
+  entrances: Number,
+
+  cornerShop: { type: Boolean, default: false },
+  mainRoadFacing: { type: Boolean, default: false },
+
+  furnishing: String, // Furnished / Semi / Unfurnished
+
+  availability: String, // Ready | UnderConstruction
+  ageOfProperty: String,
+
+  /* ---------- PRICING ---------- */
+  pricing: {
+    ownership: String, // Freehold / Leasehold
+
+    expectedPrice: {
+      type: Number,
+      required:function () {
+        return this.commercialDetails?.subType === "Retail";
+      },
+    },
+
+    allInclusive: Boolean,
+    negotiable: Boolean,
+    taxExcluded: Boolean,
+
+    preLeased: String, // Yes / No
+    leaseDuration: String,
+    monthlyRent: Number,
+  },
+
+  /* ---------- FEATURES ---------- */
+  amenities: {
+    type: [String],
+    default: [],
+  },
+
+  locationAdvantages: {
+    type: [String],
+    default: [],
+  },
+
+  /* ---------- VAASTU ---------- */
+  vastuDetails: {
+    shopFacing: String,
+    entrance: String,
+    cashCounter: String,
+    storage: String,
+    displayArea: String,
+    billingArea: String,
+    washroom: String,
+    staircase: String,
+    electrical: String,
+    waterSource: String,
+  },
+},
+
+    
+    // Plot/Land specific for commercial
+    plotDetails: {
+  plotType: {
+    type: String, // Residential / Commercial / Industrial
+  },
+
+  location: {
+    type: String,
+    required: function () {
+      return this.commercialDetails?.subType === "Plot/Land";
+    },
     trim: true,
   },
 
   area: {
     type: Number,
-    required: false,
+    required: function () {
+      return this.commercialDetails?.subType === "Plot/Land";
+    },
   },
 
-  /* -------- LOCATION INFO (OPTIONAL) -------- */
-  locatedInside: {
+  areaUnit: {
     type: String,
-    default: null,
+    enum: ["sqft", "sqm", "acre"],
+    default: "sqft",
   },
 
-  zoneType: {
+  dimensions: {
+    length: Number,
+    breadth: Number,
+  },
+
+  roadWidth: Number,
+  roadWidthUnit: {
     type: String,
-    default: null,
+    default: "ft",
   },
 
-  /* -------- AREA DETAILS (OPTIONAL) -------- */
+  openSides: String,
+  boundaryWall: String,
+  floorsAllowed: Number,
+  zoneType: String,
+
+  constructionDone: String,
+  constructionTypes: [String],
+
+  possession: {
+    year: String,
+    month: String,
+  },
+
+  ownership: String,
+  approvedBy: String,
+
+  amenities: {
+    type: [String],
+    default: [],
+  },
+
+  locationAdvantages: {
+    type: [String],
+    default: [],
+  },
+
+  cornerProperty: {
+    type: Boolean,
+    default: false,
+  },
+
+  /* ✅ PLOT VASTU DETAILS */
+  vastuDetails: {
+    plotFacing: String,
+    mainEntry: String,
+    plotSlope: String,
+    openSpace: String,
+    shape: String,
+    roadPosition: String,
+    waterSource: String,
+    drainage: String,
+    compoundWall: String,
+    structures: String,
+  },
+},
+
+    
+    // Industry specific
+   industryDetails: {
+  location: {
+    type: String,
+    required: function() {
+      return this.commercialDetails.subType === 'Industry';
+    },
+  },
+
+  area: {
+    value: {
+      type: Number,
+      required: function() {
+        return this.commercialDetails.subType === 'Industry';
+      },
+    },
+    unit: {
+      type: String,
+      enum: ["sqft", "sqm", "acre"],
+      default: "sqft",
+    },
+  },
+
+  washroomType: String,
+  availability: String,
+  ageOfProperty: String,
+  possessionBy: String,
+
+  pricing: {
+    ownership: String,
+    expectedPrice: {
+      type: Number,
+      required: function() {
+        return this.commercialDetails.subType === 'Industry';
+      },
+    },
+
+    priceDetails: {
+      allInclusive: Boolean,
+      negotiable: Boolean,
+      taxExcluded: Boolean,
+    },
+
+    approvedBy: String,
+    approvedIndustryType: String,
+
+    preLeased: String,
+    leaseDuration: String,
+    monthlyRent: Number,
+
+    amenities: [String],
+    locationAdvantages: [String],
+    wheelchairFriendly: Boolean,
+  },
+
+  vastuDetails: {
+    buildingFacing: String,
+    entrance: String,
+    machinery: String,
+    production: String,
+    rawMaterial: String,
+    finishedGoods: String,
+    office: String,
+    electrical: String,
+    water: String,
+    waste: String,
+    washroom: String,
+  },
+}
+,
+    
+    // Storage specific
+    storageDetails: {
+  storageType: {
+    type: String,
+  },
+
+  area: {
+    type: Number,
+  },
+
   areaUnit: {
     type: String,
     default: "sqft",
   },
 
-  carpetArea: {
-    type: Number,
-    default: null,
-  },
-
-  carpetAreaUnit: {
-    type: String,
-    default: "sqft",
-  },
-
-  /* -------- OFFICE SETUP (OPTIONAL) -------- */
-  cabins: {
-    type: Number,
-    default: null,
-  },
-
-  meetingRooms: {
-    type: Number,
-    default: null,
-  },
-
-  seats: {
-    type: Number,
-    default: null,
-  },
-
-  maxSeats: {
-    type: Number,
-    default: null,
-  },
-
-  conferenceRooms: {
-    type: String,          // "1", "2", "3", "4+"
-    default: null,
-  },
-
-  /* -------- WASHROOMS (OPTIONAL) -------- */
-  washrooms: {
-    public: {
-      type: Number,
-      default: null,
-    },
-    private: {
-      type: Number,
-      default: null,
-    },
-  },
-
-  /* -------- FEATURES (OPTIONAL) -------- */
-  receptionArea: {
+  covered: {
     type: Boolean,
     default: false,
   },
 
-  furnishing: {
+  ceilingHeight: {
+    type: Number,
+  },
+
+  flooring: {
+    type: String,
+  },
+
+  ventilation: {
+    type: String,
+  },
+
+  security: {
+    type: [String],
+    default: [],
+  },
+
+  temperatureControl: {
     type: Boolean,
     default: false,
   },
 
-  additionalFeatures: {
-    type: [String],
-    default: [],
-  },
-
-  fireSafetyMeasures: {
-    type: [String],
-    default: [],
-  },
-
-  /* -------- FLOORS & LIFTS (OPTIONAL) -------- */
-  totalFloors: {
-    type: Number,
-    default: null,
-  },
-
-  staircases: {
+  accessibility: {
     type: String,
-    default: null,
   },
 
-  lift: {
-    type: String,          // "Available" | "Not-Available"
-    default: null,
-  },
-
-  passengerLifts: {
-    type: Number,
-    default: null,
-  },
-
-  serviceLifts: {
-    type: Number,
-    default: null,
-  },
-
-  /* -------- PARKING (OPTIONAL, FIXED) -------- */
-  parking: {
-    parkingType: {
-      type: String,        // "Available" | "Not-Available"
-      default: null,
-    },
-    options: {
-      basement: { type: Boolean, default: false },
-      outside: { type: Boolean, default: false },
-      private: { type: Boolean, default: false },
-    },
-    count: {
-      type: Number,
-      default: null,
-    },
-  },
-
-  /* -------- AVAILABILITY (OPTIONAL) -------- */
-  availability: {
-    type: String,          // "Ready" | "UnderConstruction"
-    default: null,
-  },
-
-  ageOfProperty: {
-    type: String,
-    default: null,
-  },
-
-  possessionBy: {
-    type: String,
-    default: null,
-  },
-
-  ownership: {
-    type: String,          // Freehold / Leasehold / etc
-    default: null,
+  /* ✅ STORAGE VASTU DETAILS (THIS IS REQUIRED) */
+  vastuDetails: {
+    buildingFacing: { type: String },
+    entrance: { type: String },
+    storageArea: { type: String },
+    lightGoods: { type: String },
+    loading: { type: String },
+    office: { type: String },
+    electrical: { type: String },
+    water: { type: String },
+    washroom: { type: String },
+    height: { type: String },
   },
 },
 
-
-    
-    // Plot/Land specific for commercial
-    plotDetails: {
-      plotType: String,
-      // Add plot specific fields
-    },
-    
-    // Industry specific
-    industryDetails: {
-      // Add industry specific fields
-    },
-    
-    // Storage specific
-    storageDetails: {
-      // Add storage specific fields
-    },
     
     // Hospitality specific
     hospitalityDetails: {
-      // Add hospitality specific fields
+  location: {
+    type: String,
+    required: function() {
+      return this.commercialDetails.subType === 'Hospitality';
     },
+  },
+
+  area: {
+    value: {
+      type: Number,
+      required: function() {
+        return this.commercialDetails.subType === 'Hospitality';
+      },
+    },
+    unit: {
+      type: String,
+      enum: ["sqft", "sqm", "acre"],
+      default: "sqft",
+    },
+  },
+
+  hospitalityType: String,
+  rooms: Number,
+  halls: Number,
+  kitchens: Number,
+  parking: Number,
+  starRating: Number,
+  licensesAvailable: [String],
+
+  availability: String,
+  ageOfProperty: String,
+  possessionBy: String,
+
+  pricing: {
+    ownership: String,
+    expectedPrice: Number,
+    negotiable: Boolean,
+    amenities: [String],
+    locationAdvantages: [String],
+  },
+
+  vastuDetails: {
+    buildingFacing: String,
+    entrance: String,
+    reception: String,
+    adminOffice: String,
+    guestRooms: String,
+    banquet: String,
+    kitchen: String,
+    dining: String,
+    cashCounter: String,
+    electrical: String,
+    waterStructure: String,
+    washroom: String,
+    storage: String,
+  },
+}
+,
     
     // Other specific
     otherDetails: {
-      // Add other specific fields
+      description: String,
+      area: Number,
+      areaUnit: { type: String, default: 'sqft' },
+      features: [String]
     }
   },
   
   // Resort specific fields
-  resortDetails: {
-    // Add resort specific fields
-    area: Number,
-    areaUnit: String,
-    rooms: Number,
-    amenities: [String],
-    // Add more resort fields as needed
-  }
+ resortDetails: {
+  /* ---------- BASIC DETAILS ---------- */
+  resortType: {
+    type: String,
+    required: function () {
+     return this.propertyType === "Resort";
+    },
+    enum: ["Resort"]// selected from RESORT_TYPES
+  },
+
+  location: {
+    type: String,
+    required: function () {
+      return this.propertyType === "Resort";
+    },
+    trim: true,
+  },
+
+  rooms: {
+    type: Number,
+    default: 0,
+  },
+
+  floors: {
+    type: Number,
+    default: 0,
+  },
+
+  landArea: {
+    type: Number,
+    required: function () {
+      return this.propertyType === "Resort";
+    },
+  },
+
+  landAreaUnit: {
+    type: String,
+    default: "sqft",
+  },
+
+  buildArea: {
+    type: Number,
+    required: function () {
+      return this.propertyType === "Resort";
+    },
+  },
+
+  buildAreaUnit: {
+    type: String,
+    default: "sqft",
+  },
+
+  /* ---------- PRICE ---------- */
+  expectedPrice: {
+    type: Number,
+    required: function () {
+      return this.propertyType === "Resort";
+    },
+  },
+
+  /* ---------- DESCRIPTION ---------- */
+  description: {
+    type: String,
+    required: function () {
+      return this.propertyType === "Resort";
+    },
+  },
+
+  /* ---------- LOCATION ADVANTAGES ---------- */
+  locationAdvantages: {
+    type: [String],
+    default: [],
+  },
+
+  /* ---------- VAASTU DETAILS (IMPORTANT) ---------- */
+  vaasthuDetails: {
+    propertyFacing: {
+      type: String,
+      required: function () {
+        return this.propertyType === "Resort";
+      },
+    },
+
+    entranceDirection: {
+      type: String,
+      required: function () {
+        return this.propertyType === "Resort";
+      },
+    },
+
+    receptionAreaFacing: {
+      type: String,
+      required: function () {
+        return this.propertyType === "Resort";
+      },
+    },
+
+    mainLobbyDirection: {
+      type: String,
+      required: function () {
+        return this.propertyType === "Resort";
+      },
+    },
+
+    masterSuitroom: {
+      type: String,
+      required: function () {
+        return this.propertyType === "Resort";
+      },
+    },
+
+    guestRoom: {
+      type: String,
+      required: function () {
+        return this.propertyType === "Resort";
+      },
+    },
+
+    restaurantDirection: {
+      type: String,
+      required:function () {
+        return this.propertyType === "Resort";
+      },
+    },
+
+    vipSuite: {
+      type: String,
+      required: function () {
+        return this.propertyType === "Resort";
+      },
+    },
+
+    conferenceDirection: {
+      type: String,
+      required: function () {
+        return this.propertyType === "Resort";
+      },
+    },
+
+    spaRoom: {
+      type: String,
+      required: function () {
+        return this.propertyType === "Resort";
+      },
+    },
+
+    swimmingPool: {
+      type: String,
+      required: function () {
+        return this.propertyType === "Resort";
+      },
+    },
+
+    yoga: {
+      type: String,
+      required: function () {
+        return this.propertyType === "Resort";
+      },
+    },
+
+    kitchenRoom: {
+      type: String,
+      required: function () {
+        return this.propertyType === "Resort";
+      },
+    },
+
+    poojaRoom: {
+      type: String,
+      required: function () {
+        return this.propertyType === "Resort";
+      },
+    },
+
+    office: {
+      type: String,
+      required:function () {
+        return this.propertyType === "Resort";
+      },
+    },
+
+    recreation: {
+      type: String,
+      required: function () {
+        return this.propertyType === "Resort";
+      },
+    },
+
+    balcony: {
+      type: String,
+      required:function () {
+        return this.propertyType === "Resort";
+      },
+    },
+
+    garden: {
+      type: String,
+      required: function () {
+        return this.propertyType === "Resort";
+      },
+    },
+  },
+},
+
   
 }, {
   timestamps: true // Adds createdAt and updatedAt

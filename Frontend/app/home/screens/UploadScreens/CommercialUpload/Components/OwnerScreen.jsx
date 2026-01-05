@@ -92,7 +92,13 @@ const propertyData = {
     restOfCommercialDetails.propertyTitle || passedTitle || `Commercial ${restOfCommercialDetails.subType || "Office"}`,
   propertyType: "Commercial",
   // include Plot location as a fallback too
-  location: restOfCommercialDetails.officeDetails?.location || restOfCommercialDetails.retailDetails?.location || restOfCommercialDetails.plotDetails?.location,
+ location:
+  restOfCommercialDetails.officeDetails?.location ||
+  restOfCommercialDetails.industryDetails?.location ||
+  restOfCommercialDetails.hospitalityDetails?.location ||
+  restOfCommercialDetails.retailDetails?.location ||
+  restOfCommercialDetails.plotDetails?.location,
+
   expectedPrice: expectedPrice,
 
   commercialDetails: restOfCommercialDetails,

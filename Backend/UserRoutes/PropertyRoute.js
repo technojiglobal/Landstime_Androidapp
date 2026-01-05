@@ -6,6 +6,8 @@ import * as propertyController from '../UserControllers/PropertyController.js';
 // ✅ NEW CODE
 import { verifyToken, checkAdmin } from '../UserMiddleware/UserMiddleware.js';
 import { verifyAdmin } from '../AdminMiddleware/AdminMiddleware.js';
+import Property from '../UserModels/Property.js';
+
 import { uploadImages,handleUploadError } from '../UserMiddleware/uploadMiddleware.js';
 
 // Public routes

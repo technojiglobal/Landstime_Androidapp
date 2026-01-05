@@ -17,7 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import Toast from 'react-native-toast-message';
 
-export const PillButton = ({ label, selected, onPress }) => (
+const PillButton = ({ label, selected, onPress }) => (
   <TouchableOpacity
     onPress={onPress}
     className="px-3 py-1 h-[23px] rounded-full mr-2 mb-4 items-center justify-center"
@@ -36,7 +36,7 @@ export const PillButton = ({ label, selected, onPress }) => (
   </TouchableOpacity>
 );
 
-export const Checkbox = ({ label, selected, onPress }) => (
+ const Checkbox = ({ label, selected, onPress }) => (
   <Pressable onPress={onPress} className="flex-row items-center mb-2">
     <View
       className="w-4 h-4 mr-2 mt-3 rounded-sm items-center justify-center"
