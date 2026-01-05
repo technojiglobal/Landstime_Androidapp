@@ -29,7 +29,15 @@ const commercialDetailsFromPrev = safeParse(params.commercialDetails);
       <View className="flex-row items-center ml-4 mt-12 mb-2">
         <TouchableOpacity
           onPress={() => {
-  if (!commercialDetailsFromPrev) return;
+if (!commercialDetailsFromPrev) {
+  return (
+    <View className="flex-1 items-center justify-center">
+      <Text>Loading...</Text>
+    </View>
+  );
+}
+
+
 
   router.push({
     pathname:
@@ -230,10 +238,11 @@ const commercialDetailsFromPrev = safeParse(params.commercialDetails);
 
   const updatedCommercialDetails = {
     ...commercialDetailsFromPrev,
-    industryDetails: {
-      ...(commercialDetailsFromPrev.industryDetails || {}),
-      vastuDetails: form,
-    },
+   industryDetails: {
+  ...(commercialDetailsFromPrev.industryDetails || {}),
+  vastuDetails: form,
+},
+
   };
 
   console.log("➡️ Industry Vastu → Owner payload:", updatedCommercialDetails);
