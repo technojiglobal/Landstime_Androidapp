@@ -196,6 +196,38 @@ export const clearUserData = async () => {
   }
 };
 
+// 🔽 ADD
+
+// 🔽 ADD
+export const updateUserProfile = async (formData) => {
+  try {
+    const token = await AsyncStorage.getItem("userToken");
+
+    console.log("📤 Updating profile...");
+    console.log("FormData:", formData);
+
+    const response = await fetch(`${API_BASE_URL}/profile`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        // ❌ DO NOT set Content-Type
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    console.log("📥 Profile update response:", data);
+
+    return {
+      success: response.ok,
+      data,
+    };
+  } catch (error) {
+    console.error("❌ updateUserProfile error:", error);
+    return { success: false, error: error.message };
+  }
+};
 
 
 // export const checkPhoneExists = async (phone) => {
@@ -225,10 +257,7 @@ export const checkPhoneExists = async (phone) => {
 
 // ===== PROPERTY APIs =====
 
-
-
-const PROPERTY_API_BASE_URL = 'http://10.10.7.123:8000/api/properties';
-
+const PROPERTY_API_BASE_URL = 'http://10.10.7.127:8000/api/properties';
 
 // Create property with images
 export const createProperty = async (propertyData, imageUris = []) => {

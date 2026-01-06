@@ -1,6 +1,5 @@
-// Landstime_Androidapp/admin/src/routes/AdminRoutes.jsx
-
-import { Routes, Route,Navigate } from "react-router-dom";
+// admin/src/routes/AdminRoutes.jsx
+import { Route, Navigate } from "react-router-dom";
 import AdminLayout from "../layouts/AdminLayout";
 
 import Dashboard from "../pages/Dashboard";
@@ -9,20 +8,16 @@ import Properties from "../pages/Properties";
 import Notifications from "../pages/Notifications";
 import Banners from "../pages/Banners";
 import InteriorDesign from "../pages/InteriorDesign";
-import AdminLogin from "../pages/AdminLogin";
 import AdminProtectedRoute from "./AdminProtectedRoute";
-
 
 const AdminRoutes = () => {
   return (
-    <Routes>
-      {/* 🔓 PUBLIC ADMIN LOGIN */}
-      <Route path="login" element={<AdminLogin />} />
-
-      {/* 🔐 PROTECTED ADMIN ROUTES */}
+    <>
+      {/* 🔐 ADMIN ROUTES */}
       <Route element={<AdminProtectedRoute />}>
-        <Route element={<AdminLayout />}>
-          {/* ✅ DEFAULT REDIRECT */}
+        {/* ✅ BASE PATH IS REQUIRED */}
+        <Route path="/admin" element={<AdminLayout />}>
+          {/* ✅ DEFAULT PAGE */}
           <Route index element={<Navigate to="dashboard" replace />} />
 
           <Route path="dashboard" element={<Dashboard />} />
@@ -33,7 +28,7 @@ const AdminRoutes = () => {
           <Route path="interior-design" element={<InteriorDesign />} />
         </Route>
       </Route>
-    </Routes>
+    </>
   );
 };
 

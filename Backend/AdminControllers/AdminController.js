@@ -1,19 +1,17 @@
-// Landstime_Androidapp/Backend/AdminControllers/AdminController.js
-
 import Admin from "../AdminModels/Admin.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../UserModels/User.js";
 import Subscription from "../UserModels/Subscription.js";
 
+/* ==================== ADMIN LOGIN ==================== */
 export const adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Add debug logs
     console.log("📧 Login attempt for:", email);
 
-    // 1️⃣ Validate
+    // 1️⃣ Validate input
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -21,48 +19,51 @@ export const adminLogin = async (req, res) => {
       });
     }
 
-    // 2️⃣ Find admin
+    // 2️⃣ Find admin (admin or superadmin)
     const admin = await Admin.findOne({ email });
     console.log("👤 Admin found:", admin ? "YES" : "NO");
-    
+
     if (!admin) {
       return res.status(401).json({
         success: false,
-        message: "Admin not found with this email", // More specific
+        message: "Admin not found with this email",
       });
     }
 
     // 3️⃣ Compare password
-    console.log("🔐 Comparing passwords...");
     const isMatch = await bcrypt.compare(password, admin.password);
     console.log("🔐 Password match:", isMatch ? "YES" : "NO");
-    
+
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: "Incorrect password", // More specific
+        message: "Incorrect password",
       });
     }
 
-    // 4️⃣ Generate JWT
- const token = jwt.sign(
-  {
-    adminId: admin._id,  // ✅ must be adminId
-    role: "admin",       // ✅ must be lowercase
-  },
-  process.env.JWT_SECRET,
-  { expiresIn: "1d" }
-);
+    // 4️⃣ Get role from DB (admin / superadmin)
+    const role = admin.role || "admin";
+    console.log("👑 Admin role:", role);
 
+    // 5️⃣ Generate JWT
+    const token = jwt.sign(
+      {
+        adminId: admin._id, // ✅ consistent key
+        role: role,         // ✅ dynamic role
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
     return res.status(200).json({
       success: true,
-      message: "Admin login successful",
+      message: `${role === "superadmin" ? "SuperAdmin" : "Admin"} login successful`,
       token,
       admin: {
         id: admin._id,
         name: admin.name,
         email: admin.email,
+        role: role,
       },
     });
   } catch (error) {
@@ -74,128 +75,110 @@ export const adminLogin = async (req, res) => {
   }
 };
 
-
-
-// OLD CODE: (none - this is new)
-
-// NEW CODE:
-// ==================== ADMIN LOGOUT ====================
+/* ==================== ADMIN LOGOUT ==================== */
 export const adminLogout = async (req, res) => {
   try {
-    // Since we're using JWT, logout is handled client-side
-    // This endpoint can be used for logging purposes or token blacklisting if needed
+    // JWT logout is handled client-side
     return res.status(200).json({
       success: true,
-      message: 'Admin logged out successfully'
+      message: "Admin logged out successfully",
     });
   } catch (error) {
-    console.error('Error in adminLogout:', error);
+    console.error("Error in adminLogout:", error);
     return res.status(500).json({
       success: false,
-      message: 'Internal server error',
-      error: error.message
+      message: "Internal server error",
     });
   }
 };
 
-
-
-// ==================== GET ALL USERS FOR ADMIN ====================
+/* ==================== GET ALL USERS ==================== */
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({ role: { $ne: 'Admin' } })
-      .select('-password')
+    const users = await User.find({ role: { $ne: "Admin" } })
+      .select("-password")
       .sort({ createdAt: -1 });
 
-    // Fetch subscription details for each user
     const usersWithSubscriptions = await Promise.all(
       users.map(async (user) => {
         const userObj = user.toObject();
-        
+
         if (userObj.currentSubscription?.subscriptionId) {
           const subscription = await Subscription.findById(
             userObj.currentSubscription.subscriptionId
           );
-          
+
           if (subscription) {
             userObj.subscriptionDetails = subscription;
           }
         }
-        
+
         return userObj;
       })
     );
 
     return res.status(200).json({
       success: true,
-      data: usersWithSubscriptions
+      data: usersWithSubscriptions,
     });
   } catch (error) {
-    console.error('Error in getAllUsers:', error);
+    console.error("Error in getAllUsers:", error);
     return res.status(500).json({
       success: false,
-      message: 'Internal server error',
-      error: error.message
+      message: "Internal server error",
     });
   }
 };
 
-// ==================== BLOCK/UNBLOCK USER ====================
+/* ==================== BLOCK / UNBLOCK USER ==================== */
 export const toggleUserBlock = async (req, res) => {
   try {
     const { userId } = req.params;
-    
+
     const user = await User.findById(userId);
-    
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: "User not found",
       });
     }
 
-    // Determine new blocked status
-    const isBlocked = user.isBlocked || false;
-    const newBlockedStatus = !isBlocked;
+    const newBlockedStatus = !user.isBlocked;
 
-    // If blocking the user, expire their subscription immediately
+    // If blocking → cancel subscription immediately
     if (newBlockedStatus && user.currentSubscription?.subscriptionId) {
       const now = new Date();
-      
-      // Update subscription in Subscription collection
+
       await Subscription.findByIdAndUpdate(
         user.currentSubscription.subscriptionId,
         {
-          status: 'cancelled',
-          endDate: now // Expire immediately
+          status: "cancelled",
+          endDate: now,
         }
       );
 
-      // Update user's current subscription status
-      user.currentSubscription.status = 'blocked';
-      user.currentSubscription.endDate = now; // Expire immediately
+      user.currentSubscription.status = "blocked";
+      user.currentSubscription.endDate = now;
     }
 
-    // If unblocking and they had a subscription, just mark as expired (don't restore)
+    // If unblocking → mark subscription expired
     if (!newBlockedStatus && user.currentSubscription?.planId) {
-      user.currentSubscription.status = 'expired';
+      user.currentSubscription.status = "expired";
     }
 
-    // Update user blocked status
     user.isBlocked = newBlockedStatus;
     await user.save();
 
     return res.status(200).json({
       success: true,
-      message: `User ${newBlockedStatus ? 'blocked' : 'unblocked'} successfully`,
-      data: user
+      message: `User ${newBlockedStatus ? "blocked" : "unblocked"} successfully`,
+      data: user,
     });
   } catch (error) {
-    console.error('Error in toggleUserBlock:', error);
+    console.error("Error in toggleUserBlock:", error);
     return res.status(500).json({
       success: false,
-      message: 'Internal server error',
-      error: error.message
+      message: "Internal server error",
     });
   }
 };

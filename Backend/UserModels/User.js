@@ -34,6 +34,24 @@ originalLanguage: {
     unique: true,
     lowercase: true,
   },
+  // 🔽 ADD
+address: {
+  type: String,
+  default: "",
+  trim: true,
+},
+
+about: {
+  type: String,
+  default: "",
+  trim: true,
+},
+
+profileImage: {
+  type: String, // stores image URL/path
+  default: "",
+},
+
 
   password: {
     type: String,
