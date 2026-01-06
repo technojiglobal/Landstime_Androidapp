@@ -4,13 +4,18 @@ import axiosInstance from "../utils/axiosInstance";
 
 // Fetch ALL properties (admin)
 export const fetchAllProperties = async () => {
-  const res = await axiosInstance.get("/admin/all");
-  return res.data.data; // backend sends { success, data }
+  try {
+    const res = await axiosInstance.get("/properties/admin/all");
+    return res.data.data; // backend sends { success, data }
+  } catch (err) {
+    console.error('fetchAllProperties error:', err.response?.status, err.response?.data || err.message);
+    throw err;
+  }
 };
 
 // Update property status (approve / reject)
 export const updatePropertyStatus = async (id, status) => {
-  const res = await axiosInstance.patch(`/admin/${id}/status`, {
+  const res = await axiosInstance.patch(`/properties/admin/${id}/status`, {
     status,
   });
   return res.data.data;
@@ -19,13 +24,13 @@ export const updatePropertyStatus = async (id, status) => {
 
 // Soft delete property
 export const softDeleteProperty = async (id) => {
-  const res = await axiosInstance.patch(`/admin/${id}/soft-delete`);
+  const res = await axiosInstance.patch(`/properties/admin/${id}/soft-delete`);
   return res.data;
 };
 
 // Update property availability
 export const updatePropertyAvailability = async (id, propertyStatus) => {
-  const res = await axiosInstance.patch(`/admin/${id}/property-status`, {
+  const res = await axiosInstance.patch(`/properties/admin/${id}/property-status`, {
     propertyStatus
   });
   return res.data;
@@ -34,7 +39,7 @@ export const updatePropertyAvailability = async (id, propertyStatus) => {
 // Update property details
 // Update property details
 export const updatePropertyDetails = async (id, updatedData) => {
-  const res = await axiosInstance.put(`/admin/${id}/update`, updatedData);
+  const res = await axiosInstance.put(`/properties/admin/${id}/update`, updatedData);
   return res.data.data;
 };
 
@@ -55,7 +60,7 @@ export const uploadPropertyImages = async (propertyId, imageFiles) => {
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('adminToken')}`
         },
         body: formData
       }
@@ -77,7 +82,7 @@ export const deletePropertyImage = async (propertyId, imagePath) => {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('adminToken')}`
         },
         body: JSON.stringify({ imagePath })
       }
@@ -105,7 +110,7 @@ export const uploadPropertyDocuments = async (propertyId, documentFiles, documen
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('adminToken')}`
         },
         body: formData
       }
@@ -127,7 +132,7 @@ export const deletePropertyDocument = async (propertyId, documentPath, documentT
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('adminToken')}`
         },
         body: JSON.stringify({ documentPath, documentType })
       }

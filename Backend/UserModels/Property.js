@@ -13,6 +13,7 @@ const propertySchema = new mongoose.Schema({
   hi: { type: String, trim: true },
   en: { type: String, trim: true }
 },
+
   images: [{
     type: String // URLs of uploaded images
   }],
