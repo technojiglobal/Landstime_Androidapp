@@ -28,7 +28,8 @@ app.use(cors({
   origin: [
     'http://localhost:8081',           // React Native/Expo
     'http://10.10.7.124:8081',      // React Native/Expo (network)
-    'http://localhost:5173'            // Admin Panel (Vite)
+    'http://localhost:5173',        // Admin Panel (Vite)
+    'http://10.10.7.43:8000'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
