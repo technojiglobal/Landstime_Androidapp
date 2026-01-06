@@ -7,6 +7,8 @@ import TopAlert from "../../../../../components/TopAlert";
 import VastuModal from "../../../../../components/VastuModal";
 import { getPropertyById } from "../../../../../utils/propertyApi";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from "react-i18next";
+import i18n  from "../../../../../i18n/index"
 
 export default function OverviewScreen() {
   const router = useRouter();
@@ -15,45 +17,59 @@ export default function OverviewScreen() {
   const [showVastuModal, setShowVastuModal] = useState(false);
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [language, setLanguage] = useState('en');
+ // const [language, setLanguage] = useState('en');
 
-   useEffect(() => {
-    loadLanguage();
-    if (propertyId) {
-      fetchPropertyDetails();
-    }
-  }, [propertyId]);
+ 
 
-  const loadLanguage = async () => {
-    try {
-      const savedLanguage = await AsyncStorage.getItem('appLanguage');
-      if (savedLanguage) {
-        setLanguage(savedLanguage);
-      }
-    } catch (error) {
-      console.error('Error loading language:', error);
-    }
-  };
 
-  const fetchPropertyDetails = async () => {
-    try {
-      setLoading(true);
-      console.log('🔍 Fetching property:', propertyId);
-      
-      const response = await getPropertyById(propertyId);
-      
-      if (response.success) {
-        console.log('✅ Property fetched:', response.data);
-        setProperty(response.data.data);
-      } else {
-        console.error('❌ Failed to fetch property:', response.error);
-      }
-    } catch (error) {
-      console.error('❌ Error fetching property:', error);
-    } finally {
-      setLoading(false);
+//   // ✅ ADD THIS: Fetch property on mount
+// useEffect(() => {
+//   if (propertyId) {
+//     fetchPropertyDetails();
+//   }
+// }, [propertyId]);
+
+// // ✅ ADD THIS: Refetch when language changes
+// useEffect(() => {
+//   if (propertyId) {
+//     fetchPropertyDetails();
+//   }
+// }, [i18n.language]);
+
+
+// ✅ Fetch property on mount and when propertyId or language changes
+useEffect(() => {
+  console.log('🔄 Effect triggered - propertyId:', propertyId, 'language:', i18n.language);
+  if (propertyId) {
+    fetchPropertyDetails();
+  } else {
+    console.error('❌ No propertyId available');
+    setLoading(false);
+  }
+}, [propertyId, i18n.language]);
+
+
+const fetchPropertyDetails = async () => {
+  try {
+    setLoading(true);
+    const currentLang = i18n.language || 'en'; // ✅ Get from i18n directly
+    console.log('🔍 Fetching property:', propertyId);
+    console.log('🌐 Current language:', currentLang);
+    
+    const response = await getPropertyById(propertyId, currentLang);
+    
+    if (response.success) {
+      console.log('✅ Property fetched:', response.data);
+      setProperty(response.data.data);
+    } else {
+      console.error('❌ Failed to fetch property:', response.error);
     }
-  };
+  } catch (error) {
+    console.error('❌ Error fetching property:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleBrochurePress = () => setShowAlert(true);
 
@@ -86,11 +102,11 @@ export default function OverviewScreen() {
   }
 
   // Get translated text based on current language
-  const getTranslatedText = (field) => {
-    if (!field) return '';
-    if (typeof field === 'string') return field;
-    return field[language] || field.en || field.te || field.hi || '';
-  };
+  // const getTranslatedText = (field) => {
+  //   if (!field) return '';
+  //   if (typeof field === 'string') return field;
+  //   return field[language] || field.en || field.te || field.hi || '';
+  // };
 
   // Get property-specific details based on type
   const getPropertyDetails = () => {
@@ -218,8 +234,10 @@ export default function OverviewScreen() {
           {/* Name + Location + Rating */}
           <View className="flex-row items-start justify-between">
             <View>
-             <Text className="text-[20px] text-green-500 font-semibold" style={{ fontFamily: "Poppins",fontWeight:"bold" }}>
-  {getTranslatedText(property.propertyTitle)}
+            <Text className="text-[20px] text-green-500 font-semibold" style={{ fontFamily: "Poppins",fontWeight:"bold" }}>
+ {typeof property.propertyTitle === 'string' 
+   ? property.propertyTitle 
+   : (property.propertyTitle?.en || property.propertyTitle?.te || property.propertyTitle?.hi || 'Property')}
 </Text>
 <View className="flex-row items-center mt-1">
   <Image
@@ -227,7 +245,9 @@ export default function OverviewScreen() {
     style={{ width: 12, height: 12, resizeMode: "contain" }}
   />
   <Text className="text-[12px] text-[#72707090] ml-1" style={{ fontFamily: "Poppins" }}>
-    {getTranslatedText(property.location)}
+    {typeof property.location === 'string' 
+      ? property.location 
+      : (property.location?.en || property.location?.te || property.location?.hi || 'Location')}
   </Text>
 </View>
 
@@ -292,8 +312,10 @@ export default function OverviewScreen() {
             <Text className="text-[20px] font-semibold mb-1" style={{ fontFamily: "Poppins" }}>
               Description
             </Text>
-            <Text className="text-[14px] text-[#00000091]" style={{ fontFamily: "Poppins" }}>
-  {getTranslatedText(property.description) || 'No description available'}
+        <Text className="text-[14px] text-[#00000091]" style={{ fontFamily: "Poppins" }}>
+ {typeof property.description === 'string' 
+   ? property.description 
+   : (property.description?.en || property.description?.te || property.description?.hi || 'No description available')}
 </Text>
           </View>
 

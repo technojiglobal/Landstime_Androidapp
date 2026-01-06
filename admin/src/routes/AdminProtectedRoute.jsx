@@ -2,8 +2,8 @@
 
 import { Navigate, Outlet } from "react-router-dom";
 
-// ✅ NEW CODE
 const AdminProtectedRoute = () => {
+  // ✅ Use unified token key
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
 
@@ -15,3 +15,4 @@ const AdminProtectedRoute = () => {
 };
 
 export default AdminProtectedRoute;
+

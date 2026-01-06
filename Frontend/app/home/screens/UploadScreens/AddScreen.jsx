@@ -54,6 +54,8 @@ export default function AddScreen() {
   const [propertyTitle, setPropertyTitle] = useState("");
   const [floors, setFloors] = useState("");
   const [area, setArea] = useState("");
+  // separate state for textual area/neighborhood to avoid clashing with numeric area (sqft)
+  const [neighborhood, setNeighborhood] = useState("");
   const [bedrooms, setBedrooms] = useState("");
   const [bathrooms, setBathrooms] = useState("");
   const [balconies, setBalconies] = useState("");
@@ -655,16 +657,26 @@ houseDetails: {
                                           propertyTitle: propertyTitle,
                                         },
                                       });
-                                    } else {
+                                    }  else if (type === "Site/Plot/Land") {
                                       router.push({
                                         pathname:
-                                          "/home/screens/UploadScreens/ResortUpload",
+                                          "/home/screens/UploadScreens/SiteUpload",
                                         params: {
                                           images: JSON.stringify(images),
                                           propertyTitle: propertyTitle,
                                         },
-                                      });
+                                      }); 
                                     }
+                                     else if (type === "Resort") {
+  router.push({
+    pathname: "/home/screens/UploadScreens/ResortUpload",
+    params: {
+      images: JSON.stringify(images),
+      propertyTitle,
+    },
+  });
+}
+
                                   }}
                                   className={`p-4 border-b border-gray-200 ${propertyType === type ? "bg-green-500" : "bg-white"}`}
                                 >
@@ -1033,7 +1045,7 @@ houseDetails: {
       borderRadius: 8,
       padding: 12,
       marginBottom: 16,
-      borderColor: focusedField === "area" ? "#22C55E" : "#d1d5db",
+      borderColor: focusedField === "neighborhood" ? "#22C55E" : "#d1d5db",
       borderWidth: 2,
     }}
   >
@@ -1041,10 +1053,10 @@ houseDetails: {
     <TextInput
       placeholder="Enter Area/Neighborhood (e.g., Akkayapalem)"
       placeholderTextColor="#888"
-      value={area}
-      onChangeText={(text) => setArea(text)}
+      value={neighborhood}
+      onChangeText={(text) => setNeighborhood(text)}
       style={{ flex: 1, marginLeft: 8, color: "#1f2937" }}
-      onFocus={() => setFocusedField("area")}
+      onFocus={() => setFocusedField("neighborhood")}
       onBlur={() => setFocusedField(null)}
     />
   </View>

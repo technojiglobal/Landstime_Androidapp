@@ -1,6 +1,6 @@
 //Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/OfficeVaastu.jsx
 
-import React, { useState } from "react";
+import React, { useState,useMemo } from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import VastuDropdown from "../../VastuDropdown";
@@ -8,15 +8,32 @@ import { useRouter,useLocalSearchParams } from "expo-router";
 /* ---------------- MAIN SCREEN ---------------- */
 
 export default function VastuDetailsScreen() {
-    const [form, setForm] = useState({});
+   const [form, setForm] = useState(() => ({
+  officeFacing: "",
+  entrance: "",
+  cabin: "",
+  workstations: "",
+  conference: "",
+  reception: "",
+  accounts: "",
+  pantry: "",
+  server: "",
+  washrooms: "",
+  staircase: "",
+  storage: "",
+  cashLocker: "",
+}));
+
     const router = useRouter();
     const update = (key, value) =>
         setForm((prev) => ({ ...prev, [key]: value }));
-    const params = useLocalSearchParams();
+   const params = useLocalSearchParams();
 
-const commercialDetails = params.commercialDetails
-  ? JSON.parse(params.commercialDetails)
-  : null;
+const commercialDetails = useMemo(() => {
+  return params.commercialDetails
+    ? JSON.parse(params.commercialDetails)
+    : null;
+}, [params.commercialDetails]);
  const handleNext = () => {
   if (!commercialDetails) {
     alert("Missing property details. Please restart.");

@@ -17,7 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import Toast from 'react-native-toast-message';
 
-export const PillButton = ({ label, selected, onPress }) => (
+const PillButton = ({ label, selected, onPress }) => (
   <TouchableOpacity
     onPress={onPress}
     className="px-3 py-1 h-[23px] rounded-full mr-2 mb-4 items-center justify-center"
@@ -36,7 +36,7 @@ export const PillButton = ({ label, selected, onPress }) => (
   </TouchableOpacity>
 );
 
-export const Checkbox = ({ label, selected, onPress }) => (
+ const Checkbox = ({ label, selected, onPress }) => (
   <Pressable onPress={onPress} className="flex-row items-center mb-2">
     <View
       className="w-4 h-4 mr-2 mt-3 rounded-sm items-center justify-center"
@@ -71,32 +71,12 @@ const RoundOption = ({ label, selected, onPress }) => (
 
 
 
-const handleNext = (location, plotArea, router) => {
-  if (!location.trim()) {
-    Toast.show({
-      type: 'error',
-      text1: 'Location Required',
-      text2: 'Please enter the property location.',
-    });
-    return;
-  }
-  if (!plotArea.trim()) {
-    Toast.show({
-      type: 'error',
-      text1: 'Plot Area Required',
-      text2: 'Please enter the plot area.',
-    });
-    return;
-  }
 
-  router.push(
-    "/home/screens/UploadScreens/CommercialUpload/Components/IndustryNext"
-  );
-};
 
 export default function PropertyFormScreen() {
   const [visible, setVisible] = useState(null);
   const [focusedField, setFocusedField] = useState(null);
+
 
   // Location
   const [location, setLocation] = useState('');
@@ -117,6 +97,49 @@ export default function PropertyFormScreen() {
   const [possessionBy, setPossessionBy] = useState("");
 
   const router = useRouter();
+   const handleNext = () => {
+  if (!location.trim()) {
+    Toast.show({
+      type: "error",
+      text1: "Location Required",
+      text2: "Please enter the property location",
+    });
+    return;
+  }
+
+  if (!plotArea.trim()) {
+    Toast.show({
+      type: "error",
+      text1: "Area Required",
+      text2: "Please enter the area",
+    });
+    return;
+  }
+
+  const commercialDetails = {
+    subType: "Industry",
+    
+    industryDetails: {
+      location,
+      area: {
+        value: Number(plotArea),
+        unit,
+      },
+      washroomType,
+      availability,
+      ageOfProperty,
+      possessionBy,
+    },
+  };
+
+  router.push({
+    pathname:
+      "/home/screens/UploadScreens/CommercialUpload/Components/IndustryNext",
+    params: {
+      commercialDetails: JSON.stringify(commercialDetails),
+    },
+  });
+};
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -362,13 +385,14 @@ export default function PropertyFormScreen() {
       <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-12">
             <TouchableOpacity
               className="px-8 py-3 rounded-lg bg-gray-200 mx-3"
+              onPress={() => router.back()}
             >
               <Text className="font-semibold">Cancel</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               className="px-10 py-3 rounded-lg bg-green-500"
-              onPress={() => handleNext(location, plotArea, router)}
+              onPress={ handleNext}
             >
               <Text className="text-white font-semibold">Next</Text>
             </TouchableOpacity>

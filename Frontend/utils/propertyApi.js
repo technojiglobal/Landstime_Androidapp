@@ -2,7 +2,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
-const API_BASE_URL = 'http://192.168.31.115:8000/api/properties';
+const API_BASE_URL = `${process.env.EXPO_PUBLIC_IP_ADDRESS}/api/properties`;
+export default API_BASE_URL;
+
 
 // Helper function to get token
 const getToken = async () => {
@@ -72,42 +74,74 @@ export const createProperty = async (
 
     console.log("📸 Images:", imageUris);
 
-    // ✅ PROPERTY IMAGES
-    imageUris.forEach((uri, index) => {
-      formData.append("images", {
-        uri: uri.startsWith("file://") ? uri : `file://${uri}`,
-        name: `property_${index}.jpg`,
-        type: "image/jpeg",
-      });
-    });
+    // Helper to append files in a web/native-compatible way
+    const appendFile = async (fieldName, fileOrUri, index, defaultPrefix) => {
+      // Web: convert blob/data URIs to File objects
+      if (Platform.OS === 'web') {
+        try {
+          if (fileOrUri instanceof File || fileOrUri instanceof Blob) {
+            const filename = fileOrUri.name || `${defaultPrefix}_${index}.jpg`;
+            formData.append(fieldName, fileOrUri, filename);
+            return;
+          }
 
-    // ✅ OWNERSHIP DOCS
-    ownershipDocs.forEach((file, index) => {
-      formData.append("ownershipDocs", {
-        uri: file.uri.startsWith("file://") ? file.uri : `file://${file.uri}`,
-        name: file.name || `ownership_${index}.jpg`,
-        type: file.type || "image/jpeg",
-      });
-    });
+          if (typeof fileOrUri === 'string' && (fileOrUri.startsWith('blob:') || fileOrUri.startsWith('data:'))) {
+            const response = await fetch(fileOrUri);
+            const blob = await response.blob();
+            const ext = (blob.type && blob.type.split('/')[1]) || 'jpg';
+            const filename = `${defaultPrefix}_${index}.${ext}`;
+            const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+            formData.append(fieldName, file, filename);
+            return;
+          }
 
-    // ✅ IDENTITY DOCS
-    identityDocs.forEach((file, index) => {
-      formData.append("identityDocs", {
-        uri: file.uri.startsWith("file://") ? file.uri : `file://${file.uri}`,
-        name: file.name || `identity_${index}.jpg`,
-        type: file.type || "image/jpeg",
-      });
-    });
+          // Sometimes objects come with a uri property on web
+          if (fileOrUri && fileOrUri.uri && (fileOrUri.uri instanceof File || fileOrUri.uri instanceof Blob)) {
+            const f = fileOrUri.uri;
+            const filename = f.name || `${defaultPrefix}_${index}.jpg`;
+            formData.append(fieldName, f, filename);
+            return;
+          }
 
-    // ✅ PROPERTY DATA
+          console.warn(`Unsupported web file for ${fieldName}:`, fileOrUri);
+        } catch (err) {
+          console.error('Error preparing web file for upload:', err);
+        }
+      } else {
+        // Native platforms (iOS/Android): append as {uri,name,type}
+        const uri = typeof fileOrUri === 'string' ? fileOrUri : (fileOrUri.uri || fileOrUri);
+        formData.append(fieldName, {
+          uri: uri.startsWith('file://') ? uri : `file://${uri}`,
+          name: fileOrUri.name || `${defaultPrefix}_${index}.jpg`,
+          type: fileOrUri.type || 'image/jpeg',
+        });
+      }
+    };
+
+    // Append property images
+    for (let i = 0; i < imageUris.length; i += 1) {
+      // support either string URIs or objects
+      await appendFile('images', imageUris[i], i, `property_${i}`);
+    }
+
+    // Append ownership docs
+    for (let i = 0; i < ownershipDocs.length; i += 1) {
+      await appendFile('ownershipDocs', ownershipDocs[i], i, `ownership_${i}`);
+    }
+
+    // Append identity docs
+    for (let i = 0; i < identityDocs.length; i += 1) {
+      await appendFile('identityDocs', identityDocs[i], i, `identity_${i}`);
+    }
+
     // ✅ PROPERTY DATA with debug logging
-console.log("📦 Property Data being sent:", {
-  originalLanguage: propertyData.originalLanguage,
-  propertyTitle: propertyData.propertyTitle,
-  location: propertyData.location?.substring(0, 30)
-});
+    console.log("📦 Property Data being sent:", {
+      originalLanguage: propertyData.originalLanguage,
+      propertyTitle: propertyData.propertyTitle,
+      location: propertyData.location?.substring(0, 30)
+    });
 
-formData.append("propertyData", JSON.stringify(propertyData));
+    formData.append("propertyData", JSON.stringify(propertyData));
 
     return await apiRequest("/", "POST", formData, true);
   } catch (error) {
@@ -127,9 +161,18 @@ export const getApprovedProperties = async (propertyType = null, page = 1, langu
 };
 
 // Get single property by ID
-export const getPropertyById = async (propertyId) => {
-  return await apiRequest(`/${propertyId}`);
+// Get single property by ID
+// export const getPropertyById = async (propertyId, language = 'en') => {
+//   return await apiRequest(`/${propertyId}?language=${language}`);
+// };
+
+export const getPropertyById = async (propertyId, language = 'en') => {
+  console.log('🔍 Fetching property with language:', language);
+  const response = await apiRequest(`/${propertyId}?language=${language}`);
+  console.log('📦 API Response:', response.data);
+  return response;
 };
+
 
 // Get user's own properties
 export const getUserProperties = async () => {

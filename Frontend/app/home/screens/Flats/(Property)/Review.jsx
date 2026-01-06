@@ -2,7 +2,7 @@
 import React from "react";
 import { View, Text, FlatList, TouchableOpacity, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter , useLocalSearchParams} from "expo-router";
 
 // Import assets
 import starImg from "../../../../../assets/star-3d.png";        // ⭐ single star image
@@ -54,6 +54,9 @@ const renderStars = (count) => (
 
 const Review = () => {
   const router = useRouter();
+  const { propertyId } = useLocalSearchParams();
+
+  console.log('📋 Review screen - propertyId:', propertyId);
 
   return (
     <View className="flex-1 bg-white px-4 pt-2">

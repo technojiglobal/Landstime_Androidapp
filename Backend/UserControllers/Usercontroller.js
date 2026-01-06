@@ -5,6 +5,8 @@ import { generateOTP, sendOTPviaSMS, isValidPhone, isValidOTP } from '../utils/o
 import { generateToken } from '../utils/jwtUtils.js';
 // 🔽 ADD
 import jwt from "jsonwebtoken";
+//import { translatePropertyFields } from '../utils/translationService.js';
+import { translatePropertyFields } from '../services/translationService.js';
 
 
 // Add at the top after imports
@@ -377,18 +379,26 @@ export const registerUser = async (req, res) => {
     }
 
     // Create new user
-    const newUser = new User({
-      name: name.trim(),
-      phone: phone,
-      countryCode: countryCode,
-      email: email.toLowerCase(),
-      role: role,
-      isPhoneVerified: true,
-      isEmailVerified: false,
-      lastLogin: new Date() // ✅ SET LAST LOGIN ON REGISTRATION
-    });
+  // Translate name to all 3 languages
+const originalLanguage = req.body.originalLanguage || 'en';
+const translatedName = await translatePropertyFields({
+  name: name.trim()
+}, originalLanguage);
 
-    await newUser.save();
+// Create new user
+const newUser = new User({
+  name: translatedName.name, // Now contains {te, hi, en}
+  originalLanguage: originalLanguage,
+  phone: phone,
+  countryCode: countryCode,
+  email: email.toLowerCase(),
+  role: role,
+  isPhoneVerified: true,
+  isEmailVerified: false,
+  lastLogin: new Date()
+});
+
+await newUser.save();
 
     // Delete the verified OTP
     await Otp.deleteMany({ phone: phone });

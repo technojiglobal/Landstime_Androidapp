@@ -98,10 +98,6 @@
   "sidebar_menu_saved": "Saved",
   "sidebar_menu_chat": "Chat",
   "sidebar_menu_notifications": "Notifications",
-"sidebar_menu_my_properties": "My Properties",
-
-
-
   "sidebar_menu_settings": "Settings",
   "sidebar_menu_logout": "Logout",
   "sidebar_logout_confirm_title": "Logout",
@@ -385,5 +381,28 @@
   "selectDistrict.title": "Select District in Andhra",
   "selectDistrict.searchPlaceholder": "Search districts in Andhra...",
   "selectDistrict.noResults": "No districts found for \"{query}\"",
-  "selectDistrict.propertiesAvailable": "properties available"
+  "selectDistrict.propertiesAvailable": "properties available",
+  "districts.anantapur": "Anantapur",
+  "districts.chittoor": "Chittoor",
+  "districts.eastgodavari": "East Godavari",
+  "districts.guntur": "Guntur",
+  "districts.kadapa": "Kadapa",
+  "districts.krishna": "Krishna",
+  "districts.kurnool": "Kurnool",
+  "districts.nellore": "Nellore",
+  "districts.srikakulam": "Srikakulam",
+  "districts.visakhapatnam": "Visakhapatnam",
+  "districts.vizianagaram": "Vizianagaram",
+  "districts.westgodavari": "West Godavari",
+  "areas.akkayapalem": "Akkayapalem",
+  "areas.anandapuram": "Anandapuram",
+  "areas.boyapalem": "Boyapalem",
+  "areas.chinnagadili": "Chinna Gadili",
+  "areas.dwarkanagar": "Dwarka Nagar",
+  "areas.gajuwaka": "Gajuwaka",
+  "areas.kommadi": "Kommadi",
+  "selectSite.title": "Select Resort",
+  "selectSite.searchPlaceholder": "Search properties in",
+  "selectSite.noResults": "No properties found",
+  "sidebar_menu_my_properties": "My Properties"
 }

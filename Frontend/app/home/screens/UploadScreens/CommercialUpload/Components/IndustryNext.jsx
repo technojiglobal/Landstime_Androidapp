@@ -7,15 +7,60 @@ import {
     ScrollView,
     Image,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter,useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Toast from 'react-native-toast-message';
 
-import { PillButton, Checkbox } from "./Office";
-import MorePricingDetailsModal from "../../MorePricingDetailsModal";
 
+import MorePricingDetailsModal from "../../MorePricingDetailsModal";
+const PillButton = ({ label, selected, onPress }) => (
+  <TouchableOpacity
+    onPress={onPress}
+    className={`px-3 py-1 rounded-full mr-2 mb-2 border ${
+      selected
+        ? "border-green-500 bg-green-50"
+        : "border-gray-300 bg-white"
+    }`}
+  >
+    <Text
+      className={`text-xs ${
+        selected ? "text-green-600" : "text-gray-600"
+      }`}
+    >
+      {label}
+    </Text>
+  </TouchableOpacity>
+);
+
+const Checkbox = ({ label, checked, onPress }) => (
+  <TouchableOpacity
+    onPress={onPress}
+    className="flex-row items-center mb-2"
+  >
+    <View
+      className={`w-4 h-4 mr-2 border items-center justify-center ${
+        checked ? "bg-green-500 border-green-500" : "border-gray-300"
+      }`}
+    >
+      {checked && <Text className="text-white text-[10px]">✓</Text>}
+    </View>
+    <Text className="text-sm text-gray-600">{label}</Text>
+  </TouchableOpacity>
+);
 const IndustryNext = () => {
     const router = useRouter();
+      const params = useLocalSearchParams();
+
+const safeParse = (raw) => {
+  if (!raw) return null;
+  try {
+    return typeof raw === "string" ? JSON.parse(raw) : raw;
+  } catch {
+    return null;
+  }
+};
+
+const commercialDetailsFromPrev = safeParse(params.commercialDetails);
 
     /* ---------------- PRICE STATES ---------------- */
     const ownershipOptions = ['Freehold', 'Leasehold', 'Company Owned', 'Other'];
@@ -82,33 +127,69 @@ const IndustryNext = () => {
     };
 
     const handleNext = () => {
-        if (!expectedPrice.trim()) {
-            Toast.show({
-                type: 'error',
-                text1: 'Price Required',
-                text2: 'Please enter the expected price.',
-            });
-            return;
-        }
-        if (!describeProperty.trim()) {
-            Toast.show({
-                type: 'error',
-                text1: 'Description Required',
-                text2: 'Please describe your property.',
-            });
-            return;
-        }
-        Toast.show({
-            type: 'success',
-            text1: 'Details Saved',
-            text2: 'Moving to next step...',
-        });
-        router.push(
-            "/home/screens/UploadScreens/CommercialUpload/Components/IndustryVaastu"
-        );
-        // Navigate to next screen or submit
-        // router.push("/next-screen");
-    };
+  if (!expectedPrice.trim()) {
+    Toast.show({
+      type: "error",
+      text1: "Price Required",
+      text2: "Please enter expected price",
+    });
+    return;
+  }
+
+  if (!describeProperty.trim()) {
+    Toast.show({
+      type: "error",
+      text1: "Description Required",
+      text2: "Please describe your property",
+    });
+    return;
+  }
+
+ if (!commercialDetailsFromPrev) {
+  Toast.show({
+    type: "error",
+    text1: "Something went wrong",
+    text2: "Please go back and try again",
+  });
+  return;
+}
+
+  const industryPricingDetails = {
+  ownership,
+  expectedPrice: Number(expectedPrice),
+  priceDetails: {
+    allInclusive,
+    negotiable: priceNegotiable,
+    taxExcluded,
+  },
+  approvedBy: IndustryApprovedBy,
+  approvedIndustryType,
+  preLeased,
+  leaseDuration: preLeased === "Yes" ? leaseDuration : null,
+  monthlyRent: preLeased === "Yes" ? Number(monthlyRent) : null,
+  amenities,
+  locationAdvantages: locAdvantages,
+  wheelchairFriendly,
+};
+
+  const updatedCommercialDetails = {
+    ...commercialDetailsFromPrev,
+   industryDetails: {
+  ...(commercialDetailsFromPrev.industryDetails || {}),
+  pricing: industryPricingDetails,
+},
+
+  };
+
+  router.push({
+    pathname:
+      "/home/screens/UploadScreens/CommercialUpload/Components/IndustryVaastu",
+    params: {
+      commercialDetails: JSON.stringify(updatedCommercialDetails),
+    },
+  });
+};
+
 
     return (
         <View className="flex-1 bg-white">
@@ -371,7 +452,7 @@ const IndustryNext = () => {
             <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-12">
                 <TouchableOpacity
                     className="px-10 py-3 rounded-lg bg-gray-200 mx-3"
-                    onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload/Components/Industry")}
+                    onPress={() => router.back()}
                 >
                     <Text className="font-semibold">Cancel</Text>
                 </TouchableOpacity>

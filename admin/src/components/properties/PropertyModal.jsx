@@ -12,13 +12,22 @@ import {
 
 
 export default function PropertyModal({ property, onClose, onUpdate }) {
+  const safeDescription =
+  typeof property.description === "string"
+    ? property.description
+    : property.description?.en || "";
+
   const [showImages, setShowImages] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
  const [editData, setEditData] = useState({
   propertyTitle: property.title,
-  description: property.description,
-  expectedPrice: property.price.replace('₹', ''),
+  description: safeDescription,
+  expectedPrice:
+  typeof property.price === "string"
+    ? property.price.replace("₹", "")
+    : property.price || "",
+
   location: property.location,
 
    // Owner details
@@ -355,14 +364,14 @@ const getPropertyDetails = () => {
           <p className="text-gray-500 mb-2 font-medium">Description</p>
           {isEditing ? (
             <textarea
-              value={editData.description}
+              value={editData.description || ""}
               onChange={(e) => setEditData({...editData, description: e.target.value})}
               className="w-full border rounded p-2 focus:outline-none focus:border-blue-500"
               rows="3"
             />
           ) : (
             <p className="text-gray-700">
-              {property.description || "No description provided"}
+              {safeDescription || "No description provided"}
             </p>
           )}
         </div>

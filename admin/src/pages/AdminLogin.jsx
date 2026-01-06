@@ -10,7 +10,7 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // ✅ SINGLE LOGIN - Backend determines role based on credentials
+  // ✅ SINGLE LOGIN — backend decides role
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -22,18 +22,21 @@ export default function AdminLogin() {
     try {
       setLoading(true);
 
-      // Always call backend API - it will determine role based on credentials
+      // Call backend login API
       const res = await adminLogin(email, password);
 
-      // ✅ Save auth data from backend response
+      // ✅ Store auth data
       localStorage.setItem("token", res.token);
-      localStorage.setItem("role", res.admin.role); // Backend returns the role
+      localStorage.setItem("adminToken", res.token);
+      localStorage.setItem("role", res.admin.role); // admin | superadmin
 
       // ✅ Redirect based on role
-      const redirectPath = res.admin.role === "superadmin" ? "/superadmin" : "/admin";
+      const redirectPath =
+        res.admin.role === "superadmin" ? "/superadmin" : "/admin";
+
       navigate(redirectPath);
     } catch (err) {
-      console.error("Login failed:", err);
+      console.error("Admin login failed:", err);
       alert(err.response?.data?.message || "Invalid credentials");
     } finally {
       setLoading(false);
@@ -57,8 +60,7 @@ export default function AdminLogin() {
           </h2>
 
           <p className="text-gray-400 leading-relaxed">
-            Manage properties, users, and content all in one powerful
-            dashboard.
+            Manage properties, users, and content all in one powerful dashboard.
           </p>
         </div>
       </div>
@@ -103,7 +105,7 @@ export default function AdminLogin() {
             />
           </div>
 
-          {/* SINGLE SIGN IN BUTTON */}
+          {/* SIGN IN BUTTON */}
           <button
             onClick={handleLogin}
             disabled={loading}
@@ -112,11 +114,13 @@ export default function AdminLogin() {
             {loading ? "Signing in..." : "Sign In"}
           </button>
 
-          {/* Demo creds */}
+          {/* Demo credentials */}
           <p className="text-center text-sm text-gray-500 mt-5">
-            Demo credentials:<br />
+            Demo credentials:
+            <br />
             <span className="font-medium">
-              Admin: admin@gmail.com / admin123<br />
+              Admin: admin@gmail.com / admin123
+              <br />
               SuperAdmin: superadmin@gmail.com / super123
             </span>
           </p>

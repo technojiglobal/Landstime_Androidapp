@@ -10,13 +10,17 @@ import {
   StyleSheet,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons"; // ✅ correct icon set
+import { useLocalSearchParams } from "expo-router";
 
 const { width } = Dimensions.get("window");
 
 export default function WriteReview() {
+  const { propertyId } = useLocalSearchParams();
   const [rating, setRating] = useState(0);
   const [title, setTitle] = useState("");
   const [review, setReview] = useState("");
+
+   console.log('✍️ WriteReview screen - propertyId:', propertyId);
 
   return (
     <View style={styles.container}>

@@ -1,11 +1,24 @@
 import React, { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter,useLocalSearchParams } from "expo-router";
 import VastuDropdown from "../../VastuDropdown";
 
 export default function VastuDetailsScreen() {
   const [form, setForm] = useState({});
   const router = useRouter();
+const params = useLocalSearchParams();
+
+const safeParse = (raw) => {
+  if (!raw) return null;
+  try {
+    return typeof raw === "string" ? JSON.parse(raw) : raw;
+  } catch {
+    return null;
+  }
+};
+
+const commercialDetailsFromPrev = safeParse(params.commercialDetails);
+
 
   const update = (key, value) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -15,11 +28,26 @@ export default function VastuDetailsScreen() {
       {/* HEADER */}
       <View className="flex-row items-center ml-4 mt-12 mb-2">
         <TouchableOpacity
-          onPress={() =>
-            router.push(
-              "/home/screens/UploadScreens/CommercialUpload/Components/StorageNext"
-            )
-          }
+          onPress={() => {
+if (!commercialDetailsFromPrev) {
+  return (
+    <View className="flex-1 items-center justify-center">
+      <Text>Loading...</Text>
+    </View>
+  );
+}
+
+
+
+  router.push({
+    pathname:
+      "/home/screens/UploadScreens/CommercialUpload/Components/IndustryNext",
+    params: {
+      commercialDetails: JSON.stringify(commercialDetailsFromPrev),
+    },
+  });
+}}
+
         >
           <Image
             source={require("../../../../../../assets/arrow.png")}
@@ -184,7 +212,18 @@ export default function VastuDetailsScreen() {
        <View className="bg-white border-t border-gray-200">
       <View className="flex-row bg-white rounded-lg p-4 justify-end mx-3 mb-12 space-x-3">
         <TouchableOpacity className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
-        onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload/Components/IndustryNext")}
+        onPress={() => {
+  if (!commercialDetailsFromPrev) return;
+
+  router.push({
+    pathname:
+      "/home/screens/UploadScreens/CommercialUpload/Components/IndustryNext",
+    params: {
+      commercialDetails: JSON.stringify(commercialDetailsFromPrev),
+    },
+  });
+}}
+
         >
           <Text className="font-semibold"
           
@@ -194,11 +233,29 @@ export default function VastuDetailsScreen() {
 
         <TouchableOpacity
           className="px-5 py-3 rounded-lg bg-green-500"
-          onPress={() =>
-            router.push(
-              "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen"
-            )
-          }
+         onPress={() => {
+  if (!commercialDetailsFromPrev) return;
+
+  const updatedCommercialDetails = {
+    ...commercialDetailsFromPrev,
+   industryDetails: {
+  ...(commercialDetailsFromPrev.industryDetails || {}),
+  vastuDetails: form,
+},
+
+  };
+
+  console.log("➡️ Industry Vastu → Owner payload:", updatedCommercialDetails);
+
+  router.push({
+    pathname:
+      "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
+    params: {
+      commercialDetails: JSON.stringify(updatedCommercialDetails),
+    },
+  });
+}}
+
         >
           <Text className="text-white font-semibold">Next</Text>
         </TouchableOpacity>

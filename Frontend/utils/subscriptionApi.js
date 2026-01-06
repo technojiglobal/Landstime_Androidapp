@@ -2,7 +2,9 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE_URL = 'http://192.168.31.115:8000/api/subscriptions';
+const API_BASE_URL = `${process.env.EXPO_PUBLIC_IP_ADDRESS}/api/subscriptions`;
+
+
 
 // Helper function to get token
 const getToken = async () => {

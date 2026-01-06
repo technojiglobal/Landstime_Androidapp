@@ -2,17 +2,19 @@
 
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Slot, useRouter, usePathname } from "expo-router";
+import { Slot, useRouter, usePathname,useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PropertyLayout() {
   const router = useRouter();
   const pathname = usePathname() ?? "";
+   const { propertyId } = useLocalSearchParams(); // ✅ Get propertyId from params
+
 
   const tabs = [
-    { label: "Overview", route: "/home/screens/Flats/(Property)" },
-    { label: "Reviews(27)", route: "/home/screens/Flats/(Property)/Review" },
-    { label: "Write Review", route: "/home/screens/Flats/(Property)/WriteReview" },
+    { label: "Overview", route: "/home/screens/Flats/(Property)", params: { propertyId } },
+    { label: "Reviews(27)", route: "/home/screens/Flats/(Property)/Review", params: { propertyId } },
+    { label: "Write Review", route: "/home/screens/Flats/(Property)/WriteReview", params: { propertyId } },
   ];
 
   // ✅ Tab detection logic
@@ -32,9 +34,9 @@ export default function PropertyLayout() {
           marginBottom: 8,
         }}
       >
-        <TouchableOpacity onPress={() => router.push("/home/screens/Flats/SelectSite")}>
-          <Ionicons name="chevron-back-outline" size={22} color="black" />
-        </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.back()}>
+  <Ionicons name="chevron-back-outline" size={22} color="black" />
+</TouchableOpacity>
 
         <Text
           style={{
@@ -66,15 +68,18 @@ export default function PropertyLayout() {
 
           return (
             <TouchableOpacity
-              key={idx}
-              onPress={() => !isActive && router.push(tab.route)}
-              activeOpacity={0.7}
-              style={{
-                alignItems: "center",
-                paddingVertical: 10,
-                paddingHorizontal: 8,
-              }}
-            >
+  key={idx}
+  onPress={() => !isActive && router.push({
+    pathname: tab.route,
+    params: tab.params
+  })}
+  activeOpacity={0.7}
+  style={{
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+  }}
+>
               <Text
                 style={{
                   fontSize: 13,

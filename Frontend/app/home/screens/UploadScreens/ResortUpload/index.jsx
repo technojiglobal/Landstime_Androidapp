@@ -27,6 +27,7 @@ import HowTo360Modal from "../HowTo360Modal";
 import PhotoUploadGuide from "../PhotoUploadGuide";
 //import PropertyImageUpload from "../../../../components/PropertyImageUpload";
 import PropertyImageUpload from "../../../../../components/PropertyImageUpload";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Linking, Platform } from "react-native";
 /* ---------- Reusable Components ---------- */
 const PillButton = ({ label, selected, onPress }) => (
@@ -59,11 +60,14 @@ export default function PropertyFormScreen() {
   const [floors, setFloors] = useState("");
   const [buildArea, setBuildArea] = useState("");
   const [area, setArea] = useState("");
+  // separate state for textual area/neighborhood to avoid clashing with numeric land area
+  const [neighborhood, setNeighborhood] = useState("");
   const [price, setPrice] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [locAdvantages, setLocAdvantages] = useState([]);
   const [images, setImages] = useState([]);
+   const [isSubmitting, setIsSubmitting] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
 const [propertyFacing, setPropertyFacing] = useState("Select");
 const [masterSuitroom, setMasterSuitroom] = useState("Select");
@@ -111,61 +115,117 @@ const showToast = (message) => {
 
 
 /* ---------- Validation ---------- */
-const handleSubmit = async () => {
+const handleUpload = async () => {
   try {
+    // 1. Check authentication first
+    const token = await AsyncStorage.getItem('userToken');
+    console.log('🔐 Current token before upload:', token);
+    
+    if (!token) {
+      Alert.alert(
+        "Login Required",
+        "Please login to upload properties",
+        [
+          {
+            text: "Go to Login",
+            onPress: () => router.push('/(tabs)/profile')
+          },
+          { text: "Cancel", style: "cancel" }
+        ]
+      );
+      return;
+    }
+    
+    console.log('🎬 Starting upload process...');
+    setIsSubmitting(true);
+
+    // 2. Validate images first
     if (images.length === 0) {
+      console.log('❌ No images selected');
       showToast("Please upload at least one property image");
+      setIsSubmitting(false);
       return;
     }
 
+    // 3. Validate documents
     if (ownershipDocs.length === 0 || identityDocs.length === 0) {
       showToast("Please upload required documents");
+      setIsSubmitting(false);
       return;
     }
-  if (!ownerName.trim()) {
-  showToast("Owner name is required");
-  return;
-}
 
-if (!phone.trim()) {
-  showToast("Owner phone number is required");
-  return;
-}
+    // 4. Validate owner details
+    if (!ownerName?.trim()) {
+      showToast("Owner name is required");
+      setIsSubmitting(false);
+      return;
+    }
 
-if (!email.trim()) {
-  showToast("Owner email is required");
-  return;
-}
-if (!title.trim()) {
-  showToast("Resort title is required");
-  return;
-}
+    if (!phone?.trim()) {
+      showToast("Owner phone number is required");
+      setIsSubmitting(false);
+      return;
+    }
 
-if (!location.trim()) {
-  showToast("Location is required");
-  return;
-}
+    if (!email?.trim()) {
+      showToast("Owner email is required");
+      setIsSubmitting(false);
+      return;
+    }
 
-if (!price || Number(price) <= 0) {
-  showToast("Valid price is required");
-  return;
-}
+    // 5. Validate property details
+    if (!title?.trim()) {
+      showToast("Resort title is required");
+      setIsSubmitting(false);
+      return;
+    }
 
-if (!area || Number(area) <= 0) {
-  showToast("Land area is required");
-  return;
-}
+    if (!location?.trim()) {
+      showToast("Location is required");
+      setIsSubmitting(false);
+      return;
+    }
 
-if (!buildArea || Number(buildArea) <= 0) {
-  showToast("Build area is required");
-  return;
-}
+    const priceValue = parseFloat(price);
+    console.log('💰 Price validation:', { price, priceValue, isValid: !isNaN(priceValue) && priceValue > 0 });
 
-if (!resortType) {
-  showToast("Please select resort type");
-  return;
-}
+    if (!price || isNaN(priceValue) || priceValue <= 0) {
+      showToast("Valid price is required");
+      setIsSubmitting(false);
+      return;
+    }
 
+    if (!neighborhood?.trim()) {
+      showToast("Area/Neighborhood is required");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!area || Number(area) <= 0) {
+      showToast("Land area is required");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!buildArea || Number(buildArea) <= 0) {
+      showToast("Build area is required");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!resortType) {
+      showToast("Please select resort type");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!description?.trim()) {
+      showToast("Description is required");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // 6. Validate Vaasthu details
     const vaasthuFields = [
       propertyFacing,
       entranceDirection,
@@ -189,23 +249,43 @@ if (!resortType) {
 
     if (vaasthuFields.includes("Select")) {
       showToast("Please fill all Vaasthu Details");
+      setIsSubmitting(false);
       return;
     }
 
+    console.log('✅ Validation passed');
+
+    // 7. Handle web-specific image conversion (if needed)
+    let uploadImages = images;
+    if (Platform.OS === 'web') {
+      uploadImages = await Promise.all(
+        images.map(async (uri) => {
+          if (uri.startsWith('blob:')) {
+            const response = await fetch(uri);
+            const blob = await response.blob();
+            return new File([blob], `image-${Date.now()}.jpg`, { type: 'image/jpeg' });
+          }
+          return uri;
+        })
+      );
+    }
+
+    // 8. Prepare property data
     const propertyData = {
       propertyType: "Resort",
       propertyTitle: title,
       location,
       description,
-      expectedPrice: Number(price),
+      expectedPrice: priceValue,
       ownerDetails: {
-    name: ownerName.trim(),
-    phone: phone.trim(),
-    email: email.trim(),
-  },
+        name: ownerName.trim(),
+        phone: phone.trim(),
+        email: email.trim(),
+      },
       resortDetails: {
-        rooms: Number(rooms),
-        floors: Number(floors),
+        neighborhood: neighborhood || "",
+        rooms: Number(rooms) || 0,
+        floors: Number(floors) || 0,
         landArea: Number(area),
         buildArea: Number(buildArea),
         resortType,
@@ -233,26 +313,45 @@ if (!resortType) {
       },
     };
 
+    console.log('📡 Calling createProperty API...');
+    console.log('📋 Final property data:', JSON.stringify(propertyData, null, 2));
+    console.log('📸 Images to upload:', uploadImages.length, 'images');
+    
+    // 9. Call API
     const result = await createProperty(
       propertyData,
-      images,
+      uploadImages,
       ownershipDocs,
       identityDocs
     );
 
-    if (result.success) {
-  setAlertVisible(true);
+    console.log('📥 API Result:', result);
+    console.log('📥 API Result Data:', JSON.stringify(result.data, null, 2));
 
-  // navigate AFTER alert animation
-  setTimeout(() => {
-    setAlertVisible(false);
-    router.replace("/(tabs)/home");
-  }, 2000); // same duration as TopAlert
-}
+    // 10. Handle response
+   if (result?.data?.success) {
+  Alert.alert(
+    "Success",
+    "Property uploaded successfully and sent for approval",
+    [
+      {
+        text: "OK",
+        onPress: () => {
+          router.replace("/(tabs)/home");
+        },
+      },
+    ]
+  );
+}else {
+      console.error('❌ Upload failed:', result);
+      showToast(result.data?.message || result.error || "Failed to upload property");
+    }
 
-  } catch (err) {
-    console.error(err);
-    showToast("Something went wrong");
+  } catch (error) {
+    console.error("❌ Upload error:", error);
+    showToast(error.message || "Something went wrong. Please try again.");
+  } finally {
+    setIsSubmitting(false); // ✅ Always reset loading state
   }
 };
 
@@ -685,6 +784,36 @@ const handleOpenPlayStore = () => {
             />
            </View>
         </View>
+
+                      {/* Area */}
+        <View className="border border-gray-300 rounded-lg bg-white ml-5 mt-5 mr-4 mb-3 p-5">
+          <Text className="text-gray-500 font-semibold mb-2 text-left">
+            Area <Text className="text-red-500">*</Text>
+          </Text>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: "#f3f4f6",
+              borderRadius: 8,
+              padding: 12,
+              marginBottom: 16,
+              borderColor: focusedField === "neighborhood" ? "#22C55E" : "#d1d5db",
+              borderWidth: 2,
+            }}
+          >
+            <Ionicons name="location-outline" size={20} color="#22C55E" />
+            <TextInput
+              placeholder="Enter Area/Neighborhood (e.g., Akkayapalem)"
+              placeholderTextColor="#888"
+              value={neighborhood}
+              onChangeText={(text) => setNeighborhood(text)}
+              style={{ flex: 1, marginLeft: 8, color: "#1f2937" }}
+              onFocus={() => setFocusedField("neighborhood")}
+              onBlur={() => setFocusedField(null)}
+            />
+          </View>
+        </View>
          {/* ---------- Description ---------- */}
         <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
           <Text className="text-[15px] font-bold text-gray-600 mb-3 ">
@@ -825,14 +954,22 @@ const handleOpenPlayStore = () => {
             <Text className="font-semibold">Cancel</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            className="bg-green-500 px-5 py-3 rounded-lg"
-            onPress={handleSubmit}
-          >
-            <Text className="text-white font-semibold">
-              Upload Property
-            </Text>
-          </TouchableOpacity>
+        {/* Upload Property Button */}
+         <TouchableOpacity
+          style={{
+            backgroundColor: "#22C55E",
+            paddingVertical: 12,
+            paddingHorizontal: 20,
+            borderRadius: 10,
+          }}
+          onPress={handleUpload}
+          disabled={isSubmitting}
+        >
+          <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
+            {isSubmitting ? "Uploading..." : "Upload Property"}
+          </Text>
+        </TouchableOpacity>
+
         </View>
       </View>
     </SafeAreaView>
