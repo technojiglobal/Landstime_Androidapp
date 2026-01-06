@@ -21,14 +21,14 @@ export const adminLogin = async (req, res) => {
       });
     }
 
-    // 2️⃣ Find admin
+    // 2️⃣ Find admin in database (both admin and superadmin are stored in DB)
     const admin = await Admin.findOne({ email });
     console.log("👤 Admin found:", admin ? "YES" : "NO");
-    
+
     if (!admin) {
       return res.status(401).json({
         success: false,
-        message: "Admin not found with this email", // More specific
+        message: "Admin not found with this email",
       });
     }
 
@@ -36,29 +36,34 @@ export const adminLogin = async (req, res) => {
     console.log("🔐 Comparing passwords...");
     const isMatch = await bcrypt.compare(password, admin.password);
     console.log("🔐 Password match:", isMatch ? "YES" : "NO");
-    
+
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: "Incorrect password", // More specific
+        message: "Incorrect password",
       });
     }
 
-    // 4️⃣ Generate JWT
+    // 4️⃣ Get role from database (should be "admin" or "superadmin")
+    const role = admin.role || "admin"; // Default to "admin" if not set
+    console.log("👑 Admin role:", role);
+
+    // 5️⃣ Generate JWT with role from database
     const token = jwt.sign(
-      { id: admin._id, role: "Admin" },
+      { id: admin._id, role: role },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
     return res.status(200).json({
       success: true,
-      message: "Admin login successful",
+      message: `${role === "superadmin" ? "SuperAdmin" : "Admin"} login successful`,
       token,
       admin: {
         id: admin._id,
         name: admin.name,
         email: admin.email,
+        role: role
       },
     });
   } catch (error) {

@@ -1,17 +1,15 @@
-// Landstime_Androidapp/admin/src/routes/AdminProtectedRoute.jsx
-
+// admin/src/routes/SuperAdminProtectedRoute.jsx
 import { Navigate, Outlet } from "react-router-dom";
 
-// ✅ NEW CODE
-const AdminProtectedRoute = () => {
+const SuperAdminProtectedRoute = () => {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
 
-  if (!token || role !== "admin") {  // Changed "admin" to "Admin"
+  if (!token || role !== "superadmin") {
     return <Navigate to="/login" replace />;
   }
 
   return <Outlet />;
 };
 
-export default AdminProtectedRoute;
+export default SuperAdminProtectedRoute;

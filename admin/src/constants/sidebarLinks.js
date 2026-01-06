@@ -1,5 +1,3 @@
-//admin/src/constants/sidebarLinks.js
-
 import {
   LayoutDashboard,
   Users,
@@ -7,49 +5,135 @@ import {
   Bell,
   Image,
   Palette,
+  Wallet,
+  UserPlus,
+  FileText,
+  Settings,
 } from "lucide-react";
 
-export const sidebarLinks = [
-  {
-    label: "Dashboard",
-    path: "/",
-    icon: LayoutDashboard,
-    title: "Dashboard",
-    subtitle: "Welcome back! Here's what's happening today.",
-  },
-  {
-    label: "User Management",
-    path: "/users",
-    icon: Users,
-    title: "User Management",
-    subtitle: "Manage platform users and roles.",
-  },
-  {
-    label: "Properties",
-    path: "/properties",
-    icon: Building2,
-    title: "Properties",
-    subtitle: "Review, approve or reject properties.",
-  },
-  {
-    label: "Notifications",
-    path: "/notifications",
-    icon: Bell,
-    title: "Notifications",
-    subtitle: "View system and user notifications.",
-  },
-  {
-    label: "Banners",
-    path: "/banners",
-    icon: Image,
-    title: "Banners",
-    subtitle: "Manage homepage banners.",
-  },
-  {
-    label: "Interior Design",
-    path: "/interior-design",
-    icon: Palette,
-    title: "Interior Design",
-    subtitle: "Interior design requests and assets.",
-  },
-];
+export const sidebarLinks = {
+  admin: [
+    {
+      label: "Dashboard",
+      path: "/admin",
+      icon: LayoutDashboard,
+      title: "Dashboard",
+      subtitle: "Welcome back! Here's what's happening today.",
+    },
+    {
+      label: "User Management",
+      path: "/admin/users",
+      icon: Users,
+      title: "User Management",
+      subtitle: "Manage platform users and roles.",
+    },
+    {
+      label: "Properties",
+      path: "/admin/properties",
+      icon: Building2,
+      title: "Properties",
+      subtitle: "Review, approve or reject properties.",
+    },
+    {
+      label: "Notifications",
+      path: "/admin/notifications",
+      icon: Bell,
+      title: "Notifications",
+      subtitle: "View system and user notifications.",
+    },
+    {
+      label: "Banners",
+      path: "/admin/banners",
+      icon: Image,
+      title: "Banners",
+      subtitle: "Manage homepage banners.",
+    },
+    {
+      label: "Interior Design",
+      path: "/admin/interior-design",
+      icon: Palette,
+      title: "Interior Design",
+      subtitle: "Interior design requests and assets.",
+    },
+  ],
+
+  superadmin: [
+    {
+      label: "Dashboard",
+      path: "/superadmin",
+      icon: LayoutDashboard,
+      title: "Dashboard",
+      subtitle: "Full system control",
+    },
+    {
+      label: "User Management",
+      path: "/superadmin/users",
+      icon: Users,
+      title: "User Management",
+      subtitle: "Manage platform users and roles.",
+    },
+    {
+      label: "Properties",
+      path: "/superadmin/properties",
+      icon: Building2,
+      title: "Properties",
+      subtitle: "Review, approve or reject properties.",
+    },
+    {
+      label: "Notifications",
+      path: "/superadmin/notifications",
+      icon: Bell,
+      title: "Notifications",
+      subtitle: "View system and user notifications.",
+    },
+    {
+      label: "Banners",
+      path: "/superadmin/banners",
+      icon: Image,
+      title: "Banners",
+      subtitle: "Manage homepage banners.",
+    },
+    {
+      label: "Interior Design",
+      path: "/superadmin/interior-design",
+      icon: Palette,
+      title: "Interior Design",
+      subtitle: "Interior design requests and assets.",
+    },
+    {
+      label: "My Finance",
+      path: "/superadmin/finance",
+      icon: Wallet,
+      title: "My Finance",
+      subtitle: "Every rupee should count here",
+    },
+    {
+      label: "Create Account",
+      path: "/superadmin/create-account",
+      icon: UserPlus,
+      title: "Create Account",
+      subtitle: "Create admins and roles",
+    },
+    // {
+    //   label: "Reports",
+    //   path: "/superadmin/reports",
+    //   icon: FileText,
+    //   title: "Reports",
+    //   subtitle: "System-wide reports",
+    // },
+    // {
+    //   label: "People",
+    //   path: "/superadmin/people",
+    //   icon: Users,
+    //   title: "People",
+    //   subtitle: "Admin options",
+    // },
+    // {
+    //   label: "Company Details",
+    //   path: "/superadmin/company",
+    //   icon: Settings,
+    //   title: "Company Details",
+    //   subtitle: "Organization information",
+    // },
+  ],
+};

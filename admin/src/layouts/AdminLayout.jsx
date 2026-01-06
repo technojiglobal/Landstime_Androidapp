@@ -142,10 +142,8 @@
 //   );
 // };
 
-// export default AdminLayout;
-
-
-import React, { useState } from "react";
+// admin/src/layouts/AdminLayout.jsx
+import { useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
@@ -155,21 +153,23 @@ const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 
+  // ✅ FIX: get admin links correctly
+  const links = sidebarLinks.admin;
+
   const active =
-    sidebarLinks.find((item) => item.path === location.pathname) ||
-    sidebarLinks[0];
+    links.find((item) => item.path === location.pathname) || links[0];
 
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      
+
       <div className="flex-1 flex flex-col min-w-0">
-        <Header 
-          title={active.title} 
+        <Header
+          title={active.title}
           subtitle={active.subtitle}
-          onMenuClick={() => setSidebarOpen(true)} 
+          onMenuClick={() => setSidebarOpen(true)}
         />
-        
+
         <main className="flex-1 overflow-y-auto">
           <div className="p-4 sm:p-6 lg:p-8">
             <Outlet />

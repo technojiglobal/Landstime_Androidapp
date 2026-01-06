@@ -1,6 +1,5 @@
 //Frontend/app/home/screens/Sidebar/RoomOverview.jsx
 
-<<<<<<< HEAD
 // import {React,useState,useEffect} from "react";
 // import { View, Text, Image, ScrollView, TouchableOpacity,StatusBar } from "react-native";
 // import { Ionicons } from "@expo/vector-icons";
@@ -15,22 +14,6 @@
 // const [save,setSave]=useState(false)
 // const [data, setData] = useState(null);
 // const [loading, setLoading] = useState(true);
-=======
-import {React,useState,useEffect} from "react";
-import { View, Text, Image, ScrollView, TouchableOpacity,StatusBar } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import starImg from "../../../../assets/star-3d.png";
-import saveIcon from "../../../../assets/save-icon.png" ;
-import saveBlue from "../../../../assets/save-blue.png"
-export default function RoomOverviewScreen() {
-  const router = useRouter();
-  const { id } = useLocalSearchParams();
-const BASE_URL = "http://10.10.2.39:8000";
-const [save,setSave]=useState(false)
-const [data, setData] = useState(null);
-const [loading, setLoading] = useState(true);
->>>>>>> c3691076b36c6734b34f39317e2a981569abb1a0
 
 
 // useEffect(() => {

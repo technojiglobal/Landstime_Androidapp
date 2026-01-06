@@ -10,38 +10,38 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // ✅ SINGLE LOGIN - Backend determines role based on credentials
+  const handleLogin = async (e) => {
+    e.preventDefault();
 
-// ✅ NEW CODE
-const handleLogin = async (e) => {
-  e.preventDefault(); // Prevent form submission if wrapped in form
-  
-  // Validate inputs
-  if (!email || !password) {
-    alert("Please enter both email and password");
-    return;
-  }
+    if (!email || !password) {
+      alert("Please enter both email and password");
+      return;
+    }
 
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const res = await adminLogin(email, password);
+      // Always call backend API - it will determine role based on credentials
+      const res = await adminLogin(email, password);
 
-    // Save token
-    localStorage.setItem("token", res.token);
-    localStorage.setItem("role", "Admin");
+      // ✅ Save auth data from backend response
+      localStorage.setItem("token", res.token);
+      localStorage.setItem("role", res.admin.role); // Backend returns the role
 
-    // ✅ Navigate to admin dashboard / properties
-    navigate("/dashboard");
-  } catch (err) {
-    console.error("Admin login failed:", err);
-    alert(err.response?.data?.message || "Invalid admin credentials");
-  } finally {
-    setLoading(false);
-  }
-};
+      // ✅ Redirect based on role
+      const redirectPath = res.admin.role === "superadmin" ? "/superadmin" : "/admin";
+      navigate(redirectPath);
+    } catch (err) {
+      console.error("Login failed:", err);
+      alert(err.response?.data?.message || "Invalid credentials");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex">
-
       {/* LEFT PANEL */}
       <div className="hidden md:flex w-1/2 bg-gradient-to-br from-[#0B1220] to-[#020617] text-white items-center justify-center px-12">
         <div className="max-w-md">
@@ -66,7 +66,6 @@ const handleLogin = async (e) => {
       {/* RIGHT PANEL */}
       <div className="w-full md:w-1/2 flex items-center justify-center bg-gray-50 px-6">
         <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
-
           <h2 className="text-2xl font-bold mb-1">Welcome back</h2>
           <p className="text-gray-500 mb-6">
             Sign in to access your admin dashboard
@@ -81,7 +80,7 @@ const handleLogin = async (e) => {
             />
             <input
               type="email"
-              placeholder="admin@realestate.com"
+              placeholder="admin@gmail.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -104,7 +103,7 @@ const handleLogin = async (e) => {
             />
           </div>
 
-          {/* Button */}
+          {/* SINGLE SIGN IN BUTTON */}
           <button
             onClick={handleLogin}
             disabled={loading}
@@ -115,9 +114,10 @@ const handleLogin = async (e) => {
 
           {/* Demo creds */}
           <p className="text-center text-sm text-gray-500 mt-5">
-            Demo credentials:{" "}
+            Demo credentials:<br />
             <span className="font-medium">
-              admin@realestate.com / admin123
+              Admin: admin@gmail.com / admin123<br />
+              SuperAdmin: superadmin@gmail.com / super123
             </span>
           </p>
         </div>

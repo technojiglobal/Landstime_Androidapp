@@ -26,8 +26,7 @@ const __dirname = path.dirname(__filename);
 app.use(cors({
   origin: [
     'http://localhost:8081',           // React Native/Expo
-    'http://10.10.2.39:8081',          // React Native/Expo (network)
-    'http://192.168.31.115:8081',      // React Native/Expo (network)
+    'http://10.10.7.127:8081',          // React Native/Expo (network)
     'http://localhost:5173'            // Admin Panel (Vite)
   ],
   credentials: true,
@@ -100,6 +99,11 @@ app.use('/api/admin', adminAuthRoutes);
 app.use('/api/admin/interior', interiorDesignRoutes);
 app.use('/api/admin/notifications', notificationRoutes); // NEW
 app.use('/api/user/notifications', userNotificationRoutes); // ✅ NEW
+// 🔽 ADD
+
+// 🔽 ADD
+app.use("/uploads", express.static("uploads"));
+
 
 // 404 Handler
 app.use('*', (req, res) => {

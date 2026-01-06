@@ -14,11 +14,12 @@ export const verifyAdmin = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (decoded.role !== "Admin") {
+    if (decoded.role !== "admin" && decoded.role !== "superadmin") {
       return res.status(403).json({ message: "Forbidden" });
     }
 
     req.adminId = decoded.id;
+    req.adminRole = decoded.role; // Store role for potential use in controllers
     next();
   } catch (err) {
     return res.status(401).json({ message: "Invalid token" });

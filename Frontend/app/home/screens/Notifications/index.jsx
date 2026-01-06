@@ -19,7 +19,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useNotifications } from "../../../../context/NotificationContext";
 
-const API_URL = "http://10.10.2.39:8000/api";
+const API_URL = "http://192.168.31.115:8000/api";
 
 export default function Notifications() {
   const router = useRouter();
