@@ -148,7 +148,7 @@ const formatted = data.map((p) => {
 
  return {
     id: p._id,
-    title: p.propertyTitle,
+    title: typeof p.propertyTitle === 'string' ? p.propertyTitle : (p.propertyTitle?.en || p.propertyTitle),
     location: p.location,
     type: p.propertyType,
     price: `₹${p.expectedPrice}`,
@@ -161,22 +161,42 @@ const formatted = data.map((p) => {
     phone: p.ownerDetails?.phone,
     email: p.ownerDetails?.email,
     description: p.description,
-    images: (p.images || []).map(img => img.replace(/\\/g, '/')),
-    documents: {
-      ownership: (p.documents?.ownership || []).map(doc => doc.replace(/\\/g, '/')),
-      identity: (p.documents?.identity || []).map(doc => doc.replace(/\\/g, '/'))
-    },
-    raw: p, // Keep the entire raw object - this is the key fix
+    // Prefer absolute URLs from backend if available, else normalize local paths
+   images: (p.imageUrls && p.imageUrls.length > 0)
+  ? p.imageUrls
+      .filter(v => typeof v === "string")
+      .map(v => v.replace(/\\/g, "/"))
+  : (p.images || [])
+      .filter(v => typeof v === "string")
+      .map(v => v.replace(/\\/g, "/")),
+
+documents: {
+  ownership: (p.documentUrls?.ownership && p.documentUrls.ownership.length > 0)
+    ? p.documentUrls.ownership
+        .filter(v => typeof v === "string")
+        .map(v => v.replace(/\\/g, "/"))
+    : (p.documents?.ownership || [])
+        .filter(v => typeof v === "string")
+        .map(v => v.replace(/\\/g, "/")),
+
+  identity: (p.documentUrls?.identity && p.documentUrls.identity.length > 0)
+    ? p.documentUrls.identity
+        .filter(v => typeof v === "string")
+        .map(v => v.replace(/\\/g, "/"))
+    : (p.documents?.identity || [])
+        .filter(v => typeof v === "string")
+        .map(v => v.replace(/\\/g, "/"))
+}
+,
+    raw: p, // Keep the entire raw object
   };
 });
-
-console.log('🔍 First property raw data:', data[0]); // Add this
-console.log('🔍 First property formatted:', formatted[0]); // Add this
 
 
       setProperties(formatted);
     } catch (err) {
       console.error("Failed to fetch properties", err);
+      setToast('Failed to fetch properties');
     }
   };
 

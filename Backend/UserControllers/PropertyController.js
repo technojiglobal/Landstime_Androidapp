@@ -749,9 +749,34 @@ export const getAllProperties = async (req, res) => {
     
     const count = await Property.countDocuments(query);
     
+    // add full image URLs (admin view)
+    const host = req.protocol + '://' + req.get('host');
+const propertiesWithUrls = properties.map((p) => {
+  const obj = p.toObject();
+
+  return {
+    ...obj,
+
+    imageUrls: (obj.images || [])
+      .filter((img) => typeof img === "string")
+      .map((img) => `${host}/${img.replace(/^\\\//, "")}`),
+
+    documentUrls: {
+      ownership: (obj.documents?.ownership || [])
+        .filter((doc) => typeof doc === "string")
+        .map((doc) => `${host}/${doc.replace(/^\\\//, "")}`),
+
+      identity: (obj.documents?.identity || [])
+        .filter((doc) => typeof doc === "string")
+        .map((doc) => `${host}/${doc.replace(/^\\\//, "")}`),
+    },
+  };
+});
+
+
     res.status(200).json({
       success: true,
-      data: properties,
+      data: propertiesWithUrls,
       totalPages: Math.ceil(count / limit),
       currentPage: page
     });

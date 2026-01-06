@@ -10,38 +10,36 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const handleLogin = async (e) => {
+    e.preventDefault();
 
-// ✅ NEW CODE
-const handleLogin = async (e) => {
-  e.preventDefault(); // Prevent form submission if wrapped in form
-  
-  // Validate inputs
-  if (!email || !password) {
-    alert("Please enter both email and password");
-    return;
-  }
+    if (!email || !password) {
+      alert("Please enter both email and password");
+      return;
+    }
 
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const res = await adminLogin(email, password);
+      const res = await adminLogin(email, password);
 
-    // Save token
-    localStorage.setItem("token", res.token);
-    localStorage.setItem("role", "Admin");
+      // ✅ FIXED: Store token and role from backend response
+      localStorage.setItem("token", res.token);
+      localStorage.setItem("adminToken", res.token);
+      // ✅ Store the role from the admin object, OR default to "admin" (lowercase)
+      localStorage.setItem("role", res.admin?.role || "admin");
 
-    // ✅ Navigate to admin dashboard / properties
-    navigate("/dashboard");
-  } catch (err) {
-    console.error("Admin login failed:", err);
-    alert(err.response?.data?.message || "Invalid admin credentials");
-  } finally {
-    setLoading(false);
-  }
-};
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Admin login failed:", err);
+      alert(err.response?.data?.message || "Invalid admin credentials");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex">
-
       {/* LEFT PANEL */}
       <div className="hidden md:flex w-1/2 bg-gradient-to-br from-[#0B1220] to-[#020617] text-white items-center justify-center px-12">
         <div className="max-w-md">
@@ -66,7 +64,6 @@ const handleLogin = async (e) => {
       {/* RIGHT PANEL */}
       <div className="w-full md:w-1/2 flex items-center justify-center bg-gray-50 px-6">
         <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
-
           <h2 className="text-2xl font-bold mb-1">Welcome back</h2>
           <p className="text-gray-500 mb-6">
             Sign in to access your admin dashboard
