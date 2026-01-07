@@ -70,62 +70,73 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
   }),
 });
 
+// Replace the handleSave function in PropertyModal.jsx (around line 103)
+
 const handleSave = async () => {
-  // Convert flat editData to nested structure for backend
-  const formattedData = {
-    propertyTitle: editData.propertyTitle,
-    description: editData.description,
-    expectedPrice: parseFloat(editData.expectedPrice),
-    location: editData.location,
-    ownerDetails: {
-      name: editData['ownerDetails.name'],
-      email: editData['ownerDetails.email'],
-      phone: editData['ownerDetails.phone'],
-    },
-  };
+  try {
+    // Convert flat editData to nested structure for backend
+    const formattedData = {
+      propertyTitle: editData.propertyTitle,
+      description: editData.description,
+      location: editData.location,
+      expectedPrice: parseFloat(editData.expectedPrice) || 0,
+      ownerDetails: {
+        name: editData['ownerDetails.name'],
+        email: editData['ownerDetails.email'],
+        phone: editData['ownerDetails.phone'],
+      },
+    };
 
-  // Add nested structures based on property type
-if (property.type === 'House') {
-  formattedData.houseDetails = {
-    floors: parseInt(editData['houseDetails.floors']) || 0,
-    area: parseFloat(editData['houseDetails.area']) || 0,
-    bedrooms: parseInt(editData['houseDetails.bedrooms']) || 0,
-    bathrooms: parseInt(editData['houseDetails.bathrooms']) || 0,
-    balconies: parseInt(editData['houseDetails.balconies']) || 0,
-    ageOfProperty: editData['houseDetails.ageOfProperty'],
-    ownership: editData['houseDetails.ownership'],
-    furnishing: editData['houseDetails.furnishing'],
-    availabilityStatus: editData['houseDetails.availabilityStatus'],
-    parking: {
-      covered: parseInt(editData['houseDetails.parking.covered']) || 0,
-      open: parseInt(editData['houseDetails.parking.open']) || 0,
+    // Add nested structures based on property type
+    if (property.type === 'House' || property.raw.propertyType === 'House') {
+      formattedData.houseDetails = {
+        floors: parseInt(editData['houseDetails.floors']) || 0,
+        area: parseFloat(editData['houseDetails.area']) || 0,
+        bedrooms: parseInt(editData['houseDetails.bedrooms']) || 0,
+        bathrooms: parseInt(editData['houseDetails.bathrooms']) || 0,
+        balconies: parseInt(editData['houseDetails.balconies']) || 0,
+        ageOfProperty: editData['houseDetails.ageOfProperty'] || '',
+        ownership: editData['houseDetails.ownership'] || '',
+        furnishing: editData['houseDetails.furnishing'] || '',
+        availabilityStatus: editData['houseDetails.availabilityStatus'] || '',
+        parking: {
+          covered: parseInt(editData['houseDetails.parking.covered']) || 0,
+          open: parseInt(editData['houseDetails.parking.open']) || 0,
+        }
+      };
     }
-  };
-}
-  else if (property.type === 'Site/Plot/Land') {
-    formattedData.siteDetails = {
-      area: parseFloat(editData['siteDetails.area']) || 0,
-      length: parseFloat(editData['siteDetails.length']) || 0,
-      breadth: parseFloat(editData['siteDetails.breadth']) || 0,
-      floorsAllowed: parseInt(editData['siteDetails.floorsAllowed']) || 0,
-    };
-  } else if (property.type === 'Commercial') {
-    formattedData.commercialDetails = {
-      officeDetails: {
-        area: parseFloat(editData['commercialDetails.officeDetails.area']) || 0,
-        cabins: parseInt(editData['commercialDetails.officeDetails.cabins']) || 0,
-        meetingRooms: parseInt(editData['commercialDetails.officeDetails.meetingRooms']) || 0,
-      }
-    };
-  } else if (property.type === 'Resort') {
-    formattedData.resortDetails = {
-      area: parseFloat(editData['resortDetails.area']) || 0,
-      rooms: parseInt(editData['resortDetails.rooms']) || 0,
-    };
-  }
+    else if (property.type === 'Site/Plot/Land' || property.raw.propertyType === 'Site/Plot/Land') {
+      formattedData.siteDetails = {
+        area: parseFloat(editData['siteDetails.area']) || 0,
+        length: parseFloat(editData['siteDetails.length']) || 0,
+        breadth: parseFloat(editData['siteDetails.breadth']) || 0,
+        floorsAllowed: parseInt(editData['siteDetails.floorsAllowed']) || 0,
+      };
+    } 
+    else if (property.type === 'Commercial' || property.raw.propertyType === 'Commercial') {
+      formattedData.commercialDetails = {
+        officeDetails: {
+          area: parseFloat(editData['commercialDetails.officeDetails.area']) || 0,
+          cabins: parseInt(editData['commercialDetails.officeDetails.cabins']) || 0,
+          meetingRooms: parseInt(editData['commercialDetails.officeDetails.meetingRooms']) || 0,
+        }
+      };
+    } 
+    else if (property.type === 'Resort' || property.raw.propertyType === 'Resort') {
+      formattedData.resortDetails = {
+        area: parseFloat(editData['resortDetails.area']) || 0,
+        rooms: parseInt(editData['resortDetails.rooms']) || 0,
+      };
+    }
 
-  await onUpdate(property.id, formattedData);
-  setIsEditing(false);
+    console.log('💾 Sending update data:', formattedData);
+
+    await onUpdate(property.id, formattedData);
+    setIsEditing(false);
+  } catch (error) {
+    console.error('❌ Save error:', error);
+    alert('Failed to update property: ' + (error.response?.data?.message || error.message));
+  }
 };
 
   // Helper to get property type specific details
