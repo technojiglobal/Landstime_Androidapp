@@ -227,7 +227,7 @@ export const checkPhoneExists = async (phone) => {
 
 
 
-const PROPERTY_API_BASE_URL = 'http://10.10.7.123:8000/api/properties';
+const PROPERTY_API_BASE_URL = 'http://10.10.7.161:8000/api/properties';
 
 
 // Create property with images

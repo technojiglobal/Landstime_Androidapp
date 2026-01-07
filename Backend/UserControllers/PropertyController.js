@@ -457,7 +457,7 @@ console.log("🏷 Property Type:", property.propertyType);
 // Get all approved properties (for public viewing)
 export const getApprovedProperties = async (req, res) => {
   try {
-    const { propertyType, page = 1, limit = 10 } = req.query;
+    const { propertyType, page = 1, limit = 3000 } = req.query;
     
     const query = { status: 'approved' };
     if (propertyType) {
@@ -605,10 +605,26 @@ export const updateProperty = async (req, res) => {
     
   } catch (error) {
     console.error('Update property error:', error);
+
+    const responseError = {
+      message: error.message,
+      name: error.name,
+    };
+
+    // If it's a Mongoose validation error, include the field errors and return 400
+    if (error.name === 'ValidationError') {
+      responseError.validation = Object.values(error.errors).map((e) => e.message);
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed while updating property',
+        error: responseError
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Failed to update property',
-      error: error.message
+      error: responseError
     });
   }
 };
@@ -651,6 +667,13 @@ export const deleteProperty = async (req, res) => {
 };
 
 // ADMIN CONTROLLERS
+
+// Replace ONLY the admin section (from "// ADMIN CONTROLLERS" onwards) in PropertyController.js
+// Keep everything above this unchanged
+
+// ============================================================================
+// ADMIN CONTROLLERS
+// ============================================================================
 
 // Get all pending properties (Admin only)
 export const getPendingProperties = async (req, res) => {
@@ -721,14 +744,12 @@ export const updatePropertyStatus = async (req, res) => {
 };
 
 // Get all properties (Admin only)
-// ✅ NEW CODE
 export const getAllProperties = async (req, res) => {
   try {
     console.log("📥 Admin fetching all properties");
     
-    const { status, propertyType, page = 1, limit = 10 } = req.query;
+    const { status, propertyType, page = 1, limit = 300 } = req.query;
     
-    // Fetch properties that are NOT deleted (including old properties without the field)
     const query = { 
       $or: [
         { adminDeletedStatus: 'active' },
@@ -738,41 +759,35 @@ export const getAllProperties = async (req, res) => {
     if (status) query.status = status;
     if (propertyType) query.propertyType = propertyType;
     
-   const properties = await Property.find(query)
-  .populate({
-    path: 'userId',
-    select: 'name phone email currentSubscription'
-  })
-  .sort({ createdAt: -1 })
-  .limit(limit * 1)
-  .skip((page - 1) * limit);
+    const properties = await Property.find(query)
+      .populate({
+        path: 'userId',
+        select: 'name phone email currentSubscription'
+      })
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
     
     const count = await Property.countDocuments(query);
     
-    // add full image URLs (admin view)
     const host = req.protocol + '://' + req.get('host');
-const propertiesWithUrls = properties.map((p) => {
-  const obj = p.toObject();
-
-  return {
-    ...obj,
-
-    imageUrls: (obj.images || [])
-      .filter((img) => typeof img === "string")
-      .map((img) => `${host}/${img.replace(/^\\\//, "")}`),
-
-    documentUrls: {
-      ownership: (obj.documents?.ownership || [])
-        .filter((doc) => typeof doc === "string")
-        .map((doc) => `${host}/${doc.replace(/^\\\//, "")}`),
-
-      identity: (obj.documents?.identity || [])
-        .filter((doc) => typeof doc === "string")
-        .map((doc) => `${host}/${doc.replace(/^\\\//, "")}`),
-    },
-  };
-});
-
+    const propertiesWithUrls = properties.map((p) => {
+      const obj = p.toObject();
+      return {
+        ...obj,
+        imageUrls: (obj.images || [])
+          .filter((img) => typeof img === "string")
+          .map((img) => `${host}/${img.replace(/^\\\//, "")}`),
+        documentUrls: {
+          ownership: (obj.documents?.ownership || [])
+            .filter((doc) => typeof doc === "string")
+            .map((doc) => `${host}/${doc.replace(/^\\\//, "")}`),
+          identity: (obj.documents?.identity || [])
+            .filter((doc) => typeof doc === "string")
+            .map((doc) => `${host}/${doc.replace(/^\\\//, "")}`),
+        },
+      };
+    });
 
     res.status(200).json({
       success: true,
@@ -791,7 +806,7 @@ const propertiesWithUrls = properties.map((p) => {
   }
 };
 
-// Add this AFTER the getAllProperties function
+// Debug properties
 export const debugProperties = async (req, res) => {
   try {
     const allProps = await Property.find({}).select('propertyTitle adminDeletedStatus status');
@@ -840,7 +855,7 @@ export const softDeleteProperty = async (req, res) => {
   }
 };
 
-// Update property status (Available/Sold) - Admin only
+// Update property availability status (Available/Sold) - Admin only
 export const updatePropertyAvailability = async (req, res) => {
   try {
     const { propertyStatus } = req.body;
@@ -882,11 +897,10 @@ export const updatePropertyAvailability = async (req, res) => {
 };
 
 // Admin update property details - Admin only
-// Admin update property details - Admin only
 export const adminUpdateProperty = async (req, res) => {
   try {
     console.log('📝 Admin updating property:', req.params.id);
-    console.log('📦 Update data:', req.body);
+    console.log('📦 Update data:', JSON.stringify(req.body, null, 2));
     
     const property = await Property.findById(req.params.id);
     
@@ -897,10 +911,68 @@ export const adminUpdateProperty = async (req, res) => {
       });
     }
     
-    // Admin can update without changing status
+    const updateData = {};
+    
+    // Handle basic fields
+    if (req.body.propertyTitle) {
+      updateData.propertyTitle = typeof req.body.propertyTitle === 'string' 
+        ? { en: req.body.propertyTitle }
+        : req.body.propertyTitle;
+    }
+    
+    if (req.body.description) {
+      updateData.description = typeof req.body.description === 'string'
+        ? { en: req.body.description }
+        : req.body.description;
+    }
+    
+    if (req.body.location) {
+      updateData.location = typeof req.body.location === 'string'
+        ? { en: req.body.location }
+        : req.body.location;
+    }
+    
+    if (req.body.expectedPrice !== undefined) {
+      updateData.expectedPrice = Number(req.body.expectedPrice);
+    }
+    
+    if (req.body.ownerDetails) {
+      updateData.ownerDetails = req.body.ownerDetails;
+    }
+    
+    if (req.body.houseDetails) {
+      updateData.houseDetails = {
+        ...property.houseDetails?.toObject?.() || property.houseDetails || {},
+        ...req.body.houseDetails
+      };
+    }
+    
+    if (req.body.siteDetails) {
+      updateData.siteDetails = {
+        ...property.siteDetails?.toObject?.() || property.siteDetails || {},
+        ...req.body.siteDetails
+      };
+    }
+    
+    if (req.body.commercialDetails) {
+      updateData.commercialDetails = {
+        ...property.commercialDetails?.toObject?.() || property.commercialDetails || {},
+        ...req.body.commercialDetails
+      };
+    }
+    
+    if (req.body.resortDetails) {
+      updateData.resortDetails = {
+        ...property.resortDetails?.toObject?.() || property.resortDetails || {},
+        ...req.body.resortDetails
+      };
+    }
+    
+    console.log('📤 Formatted update data:', JSON.stringify(updateData, null, 2));
+    
     const updatedProperty = await Property.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      { $set: updateData },
       { new: true, runValidators: true }
     ).populate('userId', 'name phone email currentSubscription');
     
@@ -914,16 +986,29 @@ export const adminUpdateProperty = async (req, res) => {
     
   } catch (error) {
     console.error('❌ Admin update property error:', error);
+    console.error('Error details:', error.message);
+
+    const responseError = {
+      message: error.message,
+      name: error.name,
+    };
+
+    if (error.name === 'ValidationError') {
+      responseError.validation = Object.values(error.errors).map((e) => e.message);
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed while updating property',
+        error: responseError
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Failed to update property',
-      error: error.message
+      error: responseError
     });
   }
 };
-
-
-// Add at the end of the file, before the export statements
 
 // Upload additional images to existing property
 export const uploadAdditionalImages = async (req, res) => {
@@ -946,7 +1031,6 @@ export const uploadAdditionalImages = async (req, res) => {
       });
     }
     
-    // Add new images to existing ones
     property.images = [...property.images, ...newImages];
     await property.save();
     
@@ -981,18 +1065,8 @@ export const deletePropertyImage = async (req, res) => {
       });
     }
     
-    // Remove image from array (normalize comparison)
     property.images = property.images.filter(img => img !== normalizePath(imagePath));
     await property.save();
-    
-    // Optional: Delete file from filesystem
-    // import fs from 'fs';
-    // import path from 'path';
-    // try {
-    //   fs.unlinkSync(path.join(__dirname, '..', imagePath));
-    // } catch (err) {
-    //   console.error('Failed to delete file:', err);
-    // }
     
     res.status(200).json({
       success: true,
@@ -1013,7 +1087,7 @@ export const deletePropertyImage = async (req, res) => {
 // Upload additional documents to existing property
 export const uploadAdditionalDocuments = async (req, res) => {
   try {
-    const { documentType } = req.body; // 'ownership' or 'identity'
+    const { documentType } = req.body;
     
     if (!['ownership', 'identity'].includes(documentType)) {
       return res.status(400).json({
@@ -1031,7 +1105,7 @@ export const uploadAdditionalDocuments = async (req, res) => {
       });
     }
     
-    const newDocs = req.files?.[`${documentType}Docs`]?.map(file => file.path) || [];
+    const newDocs = req.files?.[`${documentType}Docs`]?.map(file => normalizePath(file.path)) || [];
     
     if (newDocs.length === 0) {
       return res.status(400).json({
@@ -1040,7 +1114,6 @@ export const uploadAdditionalDocuments = async (req, res) => {
       });
     }
     
-    // Add new documents to existing ones
     if (documentType === 'ownership') {
       property.documents.ownership = [...property.documents.ownership, ...newDocs];
     } else {
@@ -1087,7 +1160,6 @@ export const deletePropertyDocument = async (req, res) => {
       });
     }
     
-    // Remove document from array
     if (documentType === 'ownership') {
       property.documents.ownership = property.documents.ownership.filter(doc => doc !== documentPath);
     } else {

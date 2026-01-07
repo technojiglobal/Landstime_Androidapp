@@ -27,7 +27,7 @@ const __dirname = path.dirname(__filename);
 app.use(cors({
   origin: [
     'http://localhost:8081',           // React Native/Expo
-    'http://10.10.7.124:8081',      // React Native/Expo (network)
+    'http://10.10.7.123:8000',      // React Native/Expo (network)
     'http://localhost:5173',        // Admin Panel (Vite)
     'http://10.10.7.43:8000'
   ],
@@ -41,6 +41,8 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // Serve static files
 console.log("✅ Static middleware about to mount");
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/properties', express.static(path.join(__dirname, 'uploads/properties')));
+
 console.log("✅ Static middleware mounted");
 app.use("/api/reviews", reviewRoutes);
 // MongoDB Connection
@@ -119,7 +121,15 @@ app.use((err, req, res, next) => {
     error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
-
+// Temporary debug route
+app.get('/api/debug/images', async (req, res) => {
+  const Property = (await import('./UserModels/Property.js')).default;
+  const prop = await Property.findOne({ images: { $exists: true, $ne: [] } });
+  res.json({
+    sampleImagePath: prop?.images[0],
+    fullUrl: `http://localhost:8000/${prop?.images[0]}`
+  });
+});
 // Start Server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);

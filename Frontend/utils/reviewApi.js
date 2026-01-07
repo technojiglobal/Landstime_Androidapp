@@ -1,4 +1,4 @@
-const BASE_URL = "http://192.168.31.115:8000/api/reviews";
+const BASE_URL = `${process.env.EXPO_PUBLIC_IP_ADDRESS}/api/reviews`;
 
 /**
  * Fetch reviews for an entity
