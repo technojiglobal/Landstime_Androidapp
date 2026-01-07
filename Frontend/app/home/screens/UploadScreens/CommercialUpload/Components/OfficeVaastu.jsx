@@ -1,10 +1,13 @@
 //Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/OfficeVaastu.jsx
 
 import React, { useState,useMemo ,useEffect} from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage'; // ✅ ADD THIS LINE
 import { View, Text, ScrollView, TouchableOpacity,Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import VastuDropdown from "../../VastuDropdown";
 import { useRouter,useLocalSearchParams } from "expo-router";
+
+
 /* ---------------- MAIN SCREEN ---------------- */
 
 export default function VastuDetailsScreen() {
@@ -79,18 +82,51 @@ export default function VastuDetailsScreen() {
   }, [params.commercialDetails]);
 
   // ✅ STEP 4: Then useEffect that restores data
-  useEffect(() => {
+useEffect(() => {
+  // ✅ PRIORITY 1: Load from AsyncStorage
+  const loadDraft = async () => {
+    try {
+      const draft = await AsyncStorage.getItem('draft_office_vaastu');
+      if (draft) {
+        const savedForm = JSON.parse(draft);
+        console.log('📦 Loading Vaastu draft from AsyncStorage');
+        setForm(savedForm);
+        return;
+      }
+    } catch (e) {
+      console.log('⚠️ Failed to load Vaastu draft:', e);
+    }
+
+    // ✅ FALLBACK: Load from params
     if (commercialDetails?.officeDetails?.vaasthuDetails) {
       const vastu = commercialDetails.officeDetails.vaasthuDetails;
-      console.log('🔄 Restoring Vaastu data:', vastu);
+      console.log('🔄 Restoring Vaastu data from params:', vastu);
       setForm(vastu);
     }
-  }, [commercialDetails]); // ✅ Depend on commercialDetails, not params
+  };
+
+  loadDraft();
+}, [commercialDetails]);
 
   // ✅ STEP 5: Add the update function
-  const update = (key, value) => {
-    setForm(prev => ({ ...prev, [key]: value }));
+ const update = (key, value) => {
+  setForm(prev => ({ ...prev, [key]: value }));
+};
+
+// ✅ NEW - Auto-save Vaastu draft
+useEffect(() => {
+  const saveDraft = async () => {
+    try {
+      await AsyncStorage.setItem('draft_office_vaastu', JSON.stringify(form));
+      console.log('💾 Vaastu draft auto-saved');
+    } catch (e) {
+      console.log('⚠️ Failed to save Vaastu draft:', e);
+    }
   };
+
+  const timer = setTimeout(saveDraft, 1000);
+  return () => clearTimeout(timer);
+}, [form]);
 
   // ADD THIS NEW FUNCTION after the update function (around line ~106):
 
@@ -178,8 +214,8 @@ router.push({
     images: JSON.stringify(images),
     area: params.area,
     propertyTitle: commercialDetails.officeDetails?.propertyTitle || params.propertyTitle,
-    // ✅ ADD THIS - Pass original base details forward
     commercialBaseDetails: params.commercialBaseDetails,
+    officeDetails: JSON.stringify(commercialDetails.officeDetails), // ✅ ADD THIS LINE
   },
 });
 };

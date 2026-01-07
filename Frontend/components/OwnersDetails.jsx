@@ -1,3 +1,5 @@
+// Landstime_Androidapp/Frontend/components/OwnersDetails.jsx
+
 import React from "react";
 import { View, Text, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,6 +13,7 @@ export default function OwnerDetails({
   setEmail,
   focusedField,
   setFocusedField,
+  phoneError // ✅ Add this prop
 }) {
   return (
     <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200 w-full">
@@ -47,33 +50,41 @@ export default function OwnerDetails({
         />
       </View>
 
-      {/* Phone */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          backgroundColor: "#F3F4F6",
-          borderWidth: 2,
-          borderColor:
-            focusedField === "phone" ? "#22C55E" : "#D1D5DB",
-          borderRadius: 8,
-          paddingHorizontal: 12,
-          height: 52,
-          marginBottom: 12,
-          width: "100%",
-        }}
-      >
-        <Ionicons name="call-outline" size={20} color="#9CA3AF" />
-        <TextInput
-          value={phone}
-          onChangeText={setPhone}
-          placeholder="Phone Number"
-          placeholderTextColor="#9CA3AF"
-          keyboardType="phone-pad"
-          style={{ flex: 1, marginLeft: 10, color: "#111827" }}
-          onFocus={() => setFocusedField("phone")}
-          onBlur={() => setFocusedField(null)}
-        />
+      {/* Phone - ✅ UPDATED SECTION */}
+      <View style={{ marginBottom: 12, width: "100%" }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: "#F3F4F6",
+            borderWidth: 2,
+            borderColor: phoneError 
+              ? "#EF4444" 
+              : (focusedField === "phone" ? "#22C55E" : "#D1D5DB"), // ✅ Red border on error
+            borderRadius: 8,
+            paddingHorizontal: 12,
+            height: 52,
+          }}
+        >
+          <Ionicons name="call-outline" size={20} color="#9CA3AF" />
+          <TextInput
+            value={phone}
+            onChangeText={setPhone}
+            placeholder="Phone Number"
+            placeholderTextColor="#9CA3AF"
+            keyboardType="number-pad" // ✅ Changed from phone-pad
+            maxLength={10} // ✅ Limit to 10 digits
+            style={{ flex: 1, marginLeft: 10, color: "#111827" }}
+            onFocus={() => setFocusedField("phone")}
+            onBlur={() => setFocusedField(null)}
+          />
+        </View>
+        {/* ✅ Error message display */}
+        {phoneError ? (
+          <Text style={{ color: "#EF4444", fontSize: 12, marginTop: 4, marginLeft: 4 }}>
+            {phoneError}
+          </Text>
+        ) : null}
       </View>
 
       {/* Email */}

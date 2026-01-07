@@ -288,6 +288,8 @@ officeDetails: {
   location: String,
   locatedInside: String,
   zoneType: String,
+  
+  // ✅ CRITICAL: This must be here
   neighborhoodArea: String,
   
   carpetArea: Number,
