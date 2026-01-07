@@ -1,6 +1,7 @@
 //Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/OfficeNext.jsx
 
 import React, { useState,useEffect,useMemo } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -118,37 +119,95 @@ const OfficeNext = () => {
 
   // ✅ ADD THIS useEffect
 useEffect(() => {
-  const officeDetails = params.officeDetails ? JSON.parse(params.officeDetails) : null;
-  
-  if (officeDetails) {
-    console.log('🔄 Restoring OfficeNext data:', officeDetails);
+  // ✅ PRIORITY 1: Load from AsyncStorage
+  const loadDraft = async () => {
+    try {
+      const draft = await AsyncStorage.getItem('draft_office_pricing');
+      if (draft) {
+        const savedData = JSON.parse(draft);
+        console.log('📦 Loading pricing draft from AsyncStorage');
+        
+        setExpectedPrice(savedData.expectedPrice?.toString() || '');
+        setAllInclusive(savedData.allInclusive || false);
+        setPriceNegotiable(savedData.priceNegotiable || false);
+        setTaxExcluded(savedData.taxExcluded || false);
+        setPreLeased(savedData.preLeased || null);
+        setLeaseDuration(savedData.leaseDuration || '');
+        setMonthlyRent(savedData.monthlyRent?.toString() || '');
+        setNocCertified(savedData.nocCertified || null);
+        setOccupancyCertified(savedData.occupancyCertified || null);
+        setPrevUsedFor(savedData.prevUsedFor || 'Commercial');
+        setDescribeProperty(savedData.describeProperty || '');
+        setAmenities(savedData.amenities || []);
+        setLocAdvantages(savedData.locAdvantages || []);
+        
+        console.log('✅ Pricing draft loaded');
+        return;
+      }
+    } catch (e) {
+      console.log('⚠️ Failed to load pricing draft:', e);
+    }
+
+    // ✅ FALLBACK: Load from params
+    const officeDetails = params.officeDetails ? JSON.parse(params.officeDetails) : null;
     
-    // Price details
-    setExpectedPrice(officeDetails.expectedPrice?.toString() || '');
-    setAllInclusive(officeDetails.priceDetails?.allInclusive || false);
-    setPriceNegotiable(officeDetails.priceDetails?.negotiable || false);
-    setTaxExcluded(officeDetails.priceDetails?.taxExcluded || false);
-    
-    // Pre-leased
-    setPreLeased(officeDetails.preLeased || null);
-    setLeaseDuration(officeDetails.leaseDuration || '');
-    setMonthlyRent(officeDetails.monthlyRent?.toString() || '');
-    
-    // Certificates
-    setNocCertified(officeDetails.nocCertified || null);
-    setOccupancyCertified(officeDetails.occupancyCertified || null);
-    
-    // Previous use
-    setPrevUsedFor(officeDetails.previouslyUsedFor || 'Commercial');
-    
-    // Description
-    setDescribeProperty(officeDetails.description || '');
-    
-    // Amenities & Location
-    setAmenities(officeDetails.amenities || []);
-    setLocAdvantages(officeDetails.locationAdvantages || []);
-  }
+    if (officeDetails) {
+      console.log('🔄 Restoring OfficeNext data from params');
+      
+      setExpectedPrice(officeDetails.expectedPrice?.toString() || '');
+      setAllInclusive(officeDetails.priceDetails?.allInclusive || false);
+      setPriceNegotiable(officeDetails.priceDetails?.negotiable || false);
+      setTaxExcluded(officeDetails.priceDetails?.taxExcluded || false);
+      setPreLeased(officeDetails.preLeased || null);
+      setLeaseDuration(officeDetails.leaseDuration || '');
+      setMonthlyRent(officeDetails.monthlyRent?.toString() || '');
+      setNocCertified(officeDetails.nocCertified || null);
+      setOccupancyCertified(officeDetails.occupancyCertified || null);
+      setPrevUsedFor(officeDetails.previouslyUsedFor || 'Commercial');
+      setDescribeProperty(officeDetails.description || '');
+      setAmenities(officeDetails.amenities || []);
+      setLocAdvantages(officeDetails.locationAdvantages || []);
+    }
+  };
+
+  loadDraft();
 }, [params.officeDetails]);
+
+// ✅ NEW - Auto-save pricing draft
+useEffect(() => {
+  const saveDraft = async () => {
+    const pricingDraft = {
+      expectedPrice,
+      allInclusive,
+      priceNegotiable,
+      taxExcluded,
+      preLeased,
+      leaseDuration,
+      monthlyRent,
+      nocCertified,
+      occupancyCertified,
+      prevUsedFor,
+      describeProperty,
+      amenities,
+      locAdvantages,
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      await AsyncStorage.setItem('draft_office_pricing', JSON.stringify(pricingDraft));
+      console.log('💾 Pricing draft auto-saved');
+    } catch (e) {
+      console.log('⚠️ Failed to save pricing draft:', e);
+    }
+  };
+
+  const timer = setTimeout(saveDraft, 1000);
+  return () => clearTimeout(timer);
+
+}, [expectedPrice, allInclusive, priceNegotiable, taxExcluded, preLeased, 
+    leaseDuration, monthlyRent, nocCertified, occupancyCertified, prevUsedFor,
+    describeProperty, amenities, locAdvantages]);
+
 
   /* ---------------- HELPERS ---------------- */
   const toggleArrayItem = (setter, array, value) => {
@@ -172,6 +231,21 @@ useEffect(() => {
 }, [params.officeDetails]);
 
 const handleNext = () => {
+  // ✅ Extract officeKind from multiple sources
+  const officeKind = officeDetails?.officeKind || 
+                     baseDetails?.officeKind || 
+                     params.commercialBaseDetails?.officeKind;
+
+  if (!officeKind) {
+    console.error('❌ Office kind missing:', { officeDetails, baseDetails });
+    Alert.alert(
+      "Office Type Missing",
+      "Please go back and select the office type",
+      [{ text: "Go Back", onPress: () => router.back() }]
+    );
+    return;
+  }
+
   if (!officeDetails) {
     Alert.alert(
       "Missing Data",

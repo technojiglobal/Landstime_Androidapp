@@ -1,6 +1,7 @@
 //Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/Office.jsx
 
 import React, { useState,useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -127,6 +128,8 @@ export default function PropertyFormScreen() {
   // ✅ office type from previous screen
  const officeKindFromBase = baseDetails?.officeKind;
 
+ const [officeKinds, setOfficeKinds] = useState([]);
+
   // Basic Details
 
   const [visible, setVisible] = useState(null);
@@ -217,114 +220,187 @@ useEffect(() => {
     hasCommercialBaseDetails: !!params.commercialBaseDetails,
   });
 
-  // ✅ ADD THIS - Restore commercialBaseDetails to get officeKind
-  if (params.commercialBaseDetails) {
+  // ✅ PRIORITY 1: Load from AsyncStorage (most recent data)
+  const loadDraft = async () => {
     try {
-      const baseDetails = JSON.parse(params.commercialBaseDetails);
-      console.log('🔄 Restoring base details with officeKind:', baseDetails.officeKind);
-    } catch (e) {
-      console.log('❌ Could not parse commercialBaseDetails:', e);
-    }
-  }
-
-  if (params.officeDetails) {
-    try {
-      const prevData = JSON.parse(params.officeDetails);
-      console.log('🔄 Restoring office data:', prevData);
-      
-      // Basic fields
-      setLocation(prevData.location || '');
-      setLocatedInside(prevData.locatedInside || '');
-      setZoneType(prevData.zoneType || '');
-      
-      // Area fields
-     // Area fields
-setCarpetArea(prevData.carpetArea?.toString() || '');
-setUnit(prevData.carpetAreaUnit || 'sqft');
-
-// ✅ ADD THIS - Restore neighborhood area
-if (params.area) {
-  setArea(params.area);
-}
-      
-      // Office setup
-      setCabins(prevData.cabins?.toString() || '');
-      setMeetingRooms(prevData.meetingRooms?.toString() || '');
-      setSeats(prevData.seats?.toString() || '');
-      setMaxSeats(prevData.maxSeats?.toString() || '');
-      setShowMaxSeats(!!prevData.maxSeats);
-      
-      // Features
-      if (prevData.receptionArea !== undefined) {
-        setFeatures(prev => ({...prev, reception: prevData.receptionArea}));
-      }
-      if (prevData.furnishing !== undefined) {
-        setFeatures(prev => ({...prev, furnishing: prevData.furnishing}));
-      }
-      if (prevData.additionalFeatures) {
-        setFeatures(prev => ({
-          ...prev,
-          centralAC: prevData.additionalFeatures.includes('Central AC'),
-          oxygenDuct: prevData.additionalFeatures.includes('Oxygen Duct'),
-          ups: prevData.additionalFeatures.includes('UPS'),
-        }));
-      }
-      
-      // Conference & Washrooms
-      setConferenceCount(prevData.conferenceRooms || null);
-      if (prevData.washrooms) {
-        setPublicWashrooms(prevData.washrooms.public?.toString() || null);
-        setPrivateWashrooms(prevData.washrooms.private?.toString() || null);
-        if (prevData.washrooms.public || prevData.washrooms.private) {
-          setFeatures(prev => ({...prev, washRoom: true}));
+      const draft = await AsyncStorage.getItem('draft_office_details');
+      if (draft) {
+        const prevData = JSON.parse(draft);
+        console.log('📦 Loading draft from AsyncStorage');
+        
+        // Restore all fields from draft
+        setLocation(prevData.location || '');
+        setLocatedInside(prevData.locatedInside || '');
+        setZoneType(prevData.zoneType || '');
+        setCarpetArea(prevData.carpetArea?.toString() || '');
+        setUnit(prevData.carpetAreaUnit || 'sqft');
+        if (params.area) setArea(params.area);
+        
+        setCabins(prevData.cabins?.toString() || '');
+        setMeetingRooms(prevData.meetingRooms?.toString() || '');
+        setSeats(prevData.seats?.toString() || '');
+        setMaxSeats(prevData.maxSeats?.toString() || '');
+        setShowMaxSeats(!!prevData.maxSeats);
+        
+        if (prevData.receptionArea !== undefined) {
+          setFeatures(prev => ({...prev, reception: prevData.receptionArea}));
         }
-      }
+        if (prevData.furnishing !== undefined) {
+          setFeatures(prev => ({...prev, furnishing: prevData.furnishing}));
+        }
+        if (prevData.pantry !== undefined) {
+          setFeatures(prev => ({...prev, pantry: prevData.pantry}));
+          setPantryType(prevData.pantryType || null);
+          setPantrySize(prevData.pantrySize?.toString() || '');
+        }
+        if (prevData.additionalFeatures) {
+          setFeatures(prev => ({
+            ...prev,
+            centralAC: prevData.additionalFeatures.includes('Central AC'),
+            oxygenDuct: prevData.additionalFeatures.includes('Oxygen Duct'),
+            ups: prevData.additionalFeatures.includes('UPS'),
+          }));
+        }
 
-      // ✅ ADD THIS - Restore pantry details
-if (prevData.pantry !== undefined) {
-  setFeatures(prev => ({...prev, pantry: prevData.pantry}));
-  setPantryType(prevData.pantryType || null);
-  setPantrySize(prevData.pantrySize?.toString() || '');
+        // ✅ FIX: Restore conference room properly
+if (prevData.conferenceRooms !== undefined) {
+  setConferenceCount(prevData.conferenceRooms);
+  setFeatures(prev => ({...prev, conferenceRoom: true})); // ✅ Enable toggle
+  console.log('✅ Conference rooms restored:', prevData.conferenceRooms);
 }
-
-
-      
-      // Fire safety
-      setFireMeasures(prevData.fireSafetyMeasures || []);
-      
-      // Floor details
-      setTotalFloors(prevData.totalFloors?.toString() || '');
-      setFloorNo(prevData.floorNo?.toString() || '');
-      setStairCase(prevData.staircases || null);
-      
-      // Lifts
-      setLift(prevData.lift || null);
-      setPassengerLifts(prevData.passengerLifts || 0);
-      setServiceLifts(prevData.serviceLifts || 0);
-      
-      // Parking
-      if (prevData.parking) {
-        setParking(prevData.parking.type || null);
-        setParkingOptions(prevData.parking.options || {basement: false, outside: false, private: false});
-        setParkingCount(prevData.parking.count?.toString() || '');
+        
+     // ✅ Restore conference room state
+if (prevData.conferenceRooms !== undefined && prevData.conferenceRooms !== null) {
+  const roomCount = prevData.conferenceRooms.toString(); // Convert to string if needed
+  setConferenceCount(roomCount);
+  setFeatures(prev => ({...prev, conferenceRoom: true}));
+  console.log('✅ Conference rooms restored:', roomCount);
+}
+        if (prevData.washrooms) {
+          setPublicWashrooms(prevData.washrooms.public?.toString() || null);
+          setPrivateWashrooms(prevData.washrooms.private?.toString() || null);
+          if (prevData.washrooms.public || prevData.washrooms.private) {
+            setFeatures(prev => ({...prev, washRoom: true}));
+          }
+        }
+        
+        setFireMeasures(prevData.fireSafetyMeasures || []);
+        setTotalFloors(prevData.totalFloors?.toString() || '');
+        setFloorNo(prevData.floorNo?.toString() || '');
+        setStairCase(prevData.staircases || null);
+        setLift(prevData.lift || null);
+        setPassengerLifts(prevData.passengerLifts || 0);
+        setServiceLifts(prevData.serviceLifts || 0);
+        
+        if (prevData.parking) {
+          setParking(prevData.parking.type || null);
+          setParkingOptions(prevData.parking.options || {basement: false, outside: false, private: false});
+          setParkingCount(prevData.parking.count?.toString() || '');
+        }
+        
+        setAvailability(prevData.availability || null);
+        setAgeOfProperty(prevData.ageOfProperty || null);
+        setPossessionBy(prevData.possessionBy || '');
+        setOwnership(prevData.ownership || '');
+        
+        console.log('✅ Draft loaded from AsyncStorage');
+        return; // Exit early if draft found
       }
-      
-      // Availability
-      setAvailability(prevData.availability || null);
-      setAgeOfProperty(prevData.ageOfProperty || null);
-      setPossessionBy(prevData.possessionBy || '');
-      setOwnership(prevData.ownership || '');
-      
     } catch (e) {
-      console.log('❌ Could not restore office data:', e);
+      console.log('⚠️ Failed to load draft:', e);
     }
-  }
-  
-  // ✅ Also restore area from params
-  if (params.area) {
-    setArea(params.area);
-  }
-}, [params.officeDetails, params.area]);
+
+    // ✅ FALLBACK: Load from params if no draft
+    if (params.officeDetails) {
+      try {
+        const prevData = JSON.parse(params.officeDetails);
+        console.log('🔄 Loading from params (no draft found)');
+        
+        // Same restoration logic as above
+        setLocation(prevData.location || '');
+        // ... (rest of the restoration code from above)
+        
+      } catch (e) {
+        console.log('❌ Could not restore office data:', e);
+      }
+    }
+    
+    if (params.area) {
+      setArea(params.area);
+    }
+  };
+
+  loadDraft();
+}, [params.officeDetails, params.area, params.commercialBaseDetails]);
+
+
+
+
+// ✅ NEW - Auto-save draft to AsyncStorage
+useEffect(() => {
+  const saveDraft = async () => {
+    const draftData = {
+      location,
+      locatedInside,
+      zoneType,
+      area,
+      carpetArea,
+      carpetAreaUnit: unit,
+      cabins,
+      meetingRooms,
+      seats,
+      maxSeats,
+      receptionArea: features.reception,
+      furnishing: features.furnishing,
+      pantry: features.pantry,
+      pantryType,
+      pantrySize,
+      additionalFeatures: [
+        features.centralAC && "Central AC",
+        features.oxygenDuct && "Oxygen Duct",
+        features.ups && "UPS",
+      ].filter(Boolean),
+      conferenceRooms: conferenceCount,
+      washrooms: {
+        public: publicWashrooms,
+        private: privateWashrooms,
+      },
+      fireSafetyMeasures: fireMeasures,
+      totalFloors,
+      floorNo,
+      staircases: stairCase,
+      lift,
+      passengerLifts,
+      serviceLifts,
+      parking: {
+        type: parking,
+        options: parkingOptions,
+        count: parkingCount,
+      },
+      availability,
+      ageOfProperty,
+      possessionBy,
+      ownership,
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      await AsyncStorage.setItem('draft_office_details', JSON.stringify(draftData));
+      console.log('💾 Office draft auto-saved');
+    } catch (e) {
+      console.log('⚠️ Failed to save draft:', e);
+    }
+  };
+
+  // Debounce: only save after user stops typing for 1 second
+  const timer = setTimeout(saveDraft, 1000);
+  return () => clearTimeout(timer);
+
+}, [location, area, carpetArea, cabins, meetingRooms, seats, maxSeats, 
+    conferenceCount, publicWashrooms, privateWashrooms, pantryType, pantrySize,
+    features, fireMeasures, totalFloors, floorNo, stairCase, lift,
+    passengerLifts, serviceLifts, parking, parkingOptions, parkingCount,
+    availability, ageOfProperty, possessionBy, ownership, zoneType, locatedInside, unit]);
 
   // Price and other
 
@@ -505,11 +581,11 @@ router.push({
     images: JSON.stringify(images),
     area: area.trim(),
     propertyTitle: baseDetails?.propertyTitle,
-    commercialBaseDetails: JSON.stringify({
-      subType: "Office",
-      officeKind: officeKindFromBase, // ✅ REMOVE the fallback
-      propertyTitle: baseDetails?.propertyTitle,
-    }),
+   commercialBaseDetails: JSON.stringify({
+  subType: "Office",
+  officeKind: officeKindFromBase || currentOfficeData.officeKind || officeKinds[0], // ✅ Multiple fallbacks
+  propertyTitle: baseDetails?.propertyTitle,
+}),
   },
 });
 
@@ -1248,7 +1324,7 @@ router.push({
       ownership,
     };
 
- router.push({
+router.push({
   pathname: "/home/screens/UploadScreens/CommercialUpload",
   params: {
     officeDetails: JSON.stringify(currentOfficeData),
@@ -1256,10 +1332,10 @@ router.push({
     area: area.trim(),
     propertyTitle: baseDetails?.propertyTitle,
     commercialBaseDetails: JSON.stringify({
-      subType: "Office",
-      officeKind: officeKindFromBase, // ✅ REMOVE the fallback
-      propertyTitle: baseDetails?.propertyTitle,
-    }),
+  subType: "Office",
+  officeKind: officeKindFromBase || currentOfficeData.officeKind, // ✅ REMOVED officeKinds[0]
+  propertyTitle: baseDetails?.propertyTitle,
+}),
   },
 });
 

@@ -113,6 +113,7 @@ console.log('📄 Files received:', {
   };
   // OFFICE
 // OFFICE
+// OFFICE
 if (canonicalSubType === "Office") {
   if (
     !commercialDetails.officeDetails ||
@@ -124,12 +125,24 @@ if (canonicalSubType === "Office") {
     });
   }
   
-  // ✅ Store ALL office details (don't lose any fields)
+  console.log('🏢 Processing Office details:', {
+    hasNeighborhoodArea: !!commercialDetails.officeDetails.neighborhoodArea,
+    propertyDataArea: propertyData.area,
+    commercialArea: commercialDetails.area,
+  });
+  
+  // ✅ CRITICAL FIX: Store location and area properly
   finalData.location = commercialDetails.officeDetails.location;
-  finalData.area = propertyData.area || 
-                   commercialDetails.officeDetails.neighborhoodArea || 
-                   commercialDetails.area || 
-                   '';
+  
+  // ✅ Priority order for area
+  const neighborhoodArea = commercialDetails.officeDetails.neighborhoodArea || 
+                           propertyData.area || 
+                           commercialDetails.area || 
+                           '';
+  
+  finalData.area = neighborhoodArea;
+  
+  console.log('✅ Office area set to:', finalData.area);
   
   // ✅ IMPORTANT: Store complete office details without filtering
   finalData.commercialDetails.officeDetails = {

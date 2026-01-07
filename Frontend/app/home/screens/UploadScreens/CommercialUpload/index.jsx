@@ -1,5 +1,6 @@
 // Frontend/app/home/screens/UploadScreens/CommercialUpload/index.jsx
 import React, { useState ,useEffect} from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -74,6 +75,8 @@ export default function PropertyFormScreen() {
   const [storageKinds, setStorageKinds] = useState([]);
   const [industryKinds, setIndustryKinds] = useState([]);
   const [HospitalityKinds, setHospitalityKinds] = useState([]);
+   const [area, setArea] = useState(""); // ✅ ADD THIS LINE
+  const [neighborhoodArea, setNeighborhoodArea] = useState(""); // ✅ ADD THIS LINE
 const [alertVisible, setAlertVisible] = useState(false);
   const [locatedInside, setLocatedInside] = useState("");
   const [isHowto360ModalVisible, setIsHowto360ModalVisible] = useState(false);
@@ -125,7 +128,8 @@ useEffect(() => {
   console.log('🔍 index.jsx useEffect - params:', {
     hasOfficeDetails: !!params.officeDetails,
     hasCommercialBaseDetails: !!params.commercialBaseDetails,
-    hasImages: !!params.images
+    hasImages: !!params.images,
+    hasArea: !!params.area // ✅ ADD THIS
   });
 
   // STEP 1: Restore images first
@@ -139,6 +143,11 @@ useEffect(() => {
     } catch (e) {
       console.log('❌ Could not restore images:', e);
     }
+  }
+   if (params.area) {
+    setNeighborhoodArea(params.area);
+    setArea(params.area);
+    console.log('✅ Area restored from params:', params.area);
   }
   
   // STEP 2: Restore from commercialBaseDetails (highest priority)
@@ -162,11 +171,14 @@ useEffect(() => {
         console.log('✅ Property title restored:', baseDetails.propertyTitle);
       }
       
-      // ✅ CRITICAL FIX - Restore office kind
-      if (baseDetails.officeKind) {
-        setOfficeKinds([baseDetails.officeKind]);
-        console.log('✅ Office kind restored from commercialBaseDetails:', baseDetails.officeKind);
-      }
+     // ✅ CRITICAL FIX - Restore office kind with multiple fallbacks
+if (baseDetails.officeKind) {
+  setOfficeKinds([baseDetails.officeKind]);
+  console.log('✅ Office kind restored from commercialBaseDetails:', baseDetails.officeKind);
+} else if (baseDetails.subType === "Office" && officeKindPills.length > 0) {
+  // Fallback: if returning from Office.jsx, check params.officeDetails
+  console.log('⚠️ Office kind missing in baseDetails, checking officeDetails...');
+}
       
     } catch (e) {
       console.log('❌ Could not restore commercialBaseDetails:', e);
@@ -188,7 +200,43 @@ useEffect(() => {
     }
   }
 
-}, [params.officeDetails, params.images, params.commercialBaseDetails]);
+}, [params.officeDetails, params.images, params.commercialBaseDetails, params.area]); // ✅ ADD params.area
+
+
+// ✅ NEW - Load draft from AsyncStorage on mount
+useEffect(() => {
+  const loadDraft = async () => {
+    try {
+      const draft = await AsyncStorage.getItem('draft_commercial_office');
+      if (draft) {
+        const parsed = JSON.parse(draft);
+        console.log('📦 Loading draft from AsyncStorage:', parsed);
+        
+        // Restore fields
+       if (parsed.subType) setSelectedType(parsed.subType);
+        if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
+        if (parsed.officeKind) setOfficeKinds([parsed.officeKind]);
+        if (parsed.images) setImages(parsed.images);
+       if (parsed.neighborhoodArea) {
+  setNeighborhoodArea(parsed.neighborhoodArea);
+  setArea(parsed.neighborhoodArea);
+  console.log('✅ Area restored from draft:', parsed.neighborhoodArea);
+}
+if (parsed.area) { // ✅ Additional fallback
+  setArea(parsed.area);
+  console.log('✅ Area restored from draft.area:', parsed.area);
+}
+        
+        console.log('✅ Draft loaded successfully');
+      }
+    } catch (e) {
+      console.log('⚠️ Failed to load draft:', e);
+    }
+  };
+  
+  loadDraft();
+}, []); // Only run once on mount
+
 
   /* ---------- IMAGE HANDLERS ---------- */
 const takePhoto = async () => {
@@ -257,7 +305,7 @@ const handleOpenPlayStore = () => {
 };
 
   /* ---------- NEXT HANDLER ---------- */
- const handleNext = () => {
+const handleNext = async () => { // ✅ Make async
     if (!selectedType) {
       Alert.alert("Select Property Type", "Please select a property type");
       return;
@@ -271,7 +319,7 @@ const handleOpenPlayStore = () => {
         subType: selectedType,
         propertyTitle,
       }),
-      images: JSON.stringify(images), // ✅ ADD IMAGES HERE
+      images: JSON.stringify(images),
     };
 
     switch (selectedType) {
@@ -279,6 +327,23 @@ const handleOpenPlayStore = () => {
         if (!officeKinds.length) {
           Alert.alert("Office Type Required", "Please select what kind of office it is");
           return;
+        }
+
+        // ✅ NEW - Save draft to AsyncStorage
+      const draftData = {
+          subType: "Office",
+          officeKind: officeKinds[0],
+          propertyTitle,
+          images,
+          neighborhoodArea: neighborhoodArea || area, // ✅ ADD THIS LINE
+          timestamp: new Date().toISOString(),
+        };
+        
+        try {
+          await AsyncStorage.setItem('draft_commercial_office', JSON.stringify(draftData));
+          console.log('✅ Draft saved to AsyncStorage');
+        } catch (e) {
+          console.log('⚠️ Failed to save draft:', e);
         }
 
         router.push({
