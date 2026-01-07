@@ -13,6 +13,7 @@ const propertySchema = new mongoose.Schema({
   hi: { type: String, trim: true },
   en: { type: String, trim: true }
 },
+
   images: [{
     type: String // URLs of uploaded images
   }],
@@ -114,7 +115,7 @@ siteDetails: {
   area: {
     type: Number,
     required: function () {
-       return this.propertyType === "Site/Plot/Land" && this.siteDetails != null;
+       return this.propertyType === "Site/Plot/Land";
     },
   },
 
@@ -127,14 +128,14 @@ siteDetails: {
   length: {
     type: Number,
     required: function () {
-       return this.propertyType === "Site/Plot/Land" && this.siteDetails != null;
+       return this.propertyType === "Site/Plot/Land";
     },
   },
 
   breadth: {
     type: Number,
     required: function () {
-       return this.propertyType === "Site/Plot/Land" && this.siteDetails != null;
+       return this.propertyType === "Site/Plot/Land";
     },
   },
 
@@ -766,15 +767,12 @@ retailDetails: {
     }
   },
   
-  // Resort specific fields
- resortDetails: {
-  /* ---------- BASIC DETAILS ---------- */
+resortDetails: {
   resortType: {
     type: String,
     required: function () {
-     return this.propertyType === "Resort";
+      return this.propertyType === "Resort";
     },
-    enum: ["Resort"]// selected from RESORT_TYPES
   },
 
   location: {
@@ -782,17 +780,6 @@ retailDetails: {
     required: function () {
       return this.propertyType === "Resort";
     },
-    trim: true,
-  },
-
-  rooms: {
-    type: Number,
-    default: 0,
-  },
-
-  floors: {
-    type: Number,
-    default: 0,
   },
 
   landArea: {
@@ -802,11 +789,6 @@ retailDetails: {
     },
   },
 
-  landAreaUnit: {
-    type: String,
-    default: "sqft",
-  },
-
   buildArea: {
     type: Number,
     required: function () {
@@ -814,20 +796,9 @@ retailDetails: {
     },
   },
 
-  buildAreaUnit: {
-    type: String,
-    default: "sqft",
-  },
+  rooms: { type: Number, default: 0 },
+  floors: { type: Number, default: 0 },
 
-  /* ---------- PRICE ---------- */
-  expectedPrice: {
-    type: Number,
-    required: function () {
-      return this.propertyType === "Resort";
-    },
-  },
-
-  /* ---------- DESCRIPTION ---------- */
   description: {
     type: String,
     required: function () {
@@ -835,141 +806,125 @@ retailDetails: {
     },
   },
 
-  /* ---------- LOCATION ADVANTAGES ---------- */
   locationAdvantages: {
     type: [String],
     default: [],
   },
 
-  /* ---------- VAASTU DETAILS (IMPORTANT) ---------- */
   vaasthuDetails: {
     propertyFacing: {
       type: String,
       required: function () {
-        return this.propertyType === "Resort";
+        return this.parent().parent().propertyType === "Resort";
       },
     },
-
     entranceDirection: {
       type: String,
       required: function () {
-        return this.propertyType === "Resort";
+        return this.parent().parent().propertyType === "Resort";
       },
     },
-
     receptionAreaFacing: {
       type: String,
       required: function () {
-        return this.propertyType === "Resort";
+        return this.parent().parent().propertyType === "Resort";
       },
     },
-
     mainLobbyDirection: {
       type: String,
       required: function () {
-        return this.propertyType === "Resort";
+        return this.parent().parent().propertyType === "Resort";
       },
     },
-
     masterSuitroom: {
       type: String,
       required: function () {
-        return this.propertyType === "Resort";
+        return this.parent().parent().propertyType === "Resort";
       },
     },
-
     guestRoom: {
       type: String,
       required: function () {
-        return this.propertyType === "Resort";
+        return this.parent().parent().propertyType === "Resort";
       },
     },
-
     restaurantDirection: {
       type: String,
-      required:function () {
-        return this.propertyType === "Resort";
+      required: function () {
+        return this.parent().parent().propertyType === "Resort";
       },
     },
-
     vipSuite: {
       type: String,
       required: function () {
-        return this.propertyType === "Resort";
+        return this.parent().parent().propertyType === "Resort";
       },
     },
-
     conferenceDirection: {
       type: String,
       required: function () {
-        return this.propertyType === "Resort";
+        return this.parent().parent().propertyType === "Resort";
       },
     },
-
     spaRoom: {
       type: String,
       required: function () {
-        return this.propertyType === "Resort";
+        return this.parent().parent().propertyType === "Resort";
       },
     },
-
     swimmingPool: {
       type: String,
       required: function () {
-        return this.propertyType === "Resort";
+        return this.parent().parent().propertyType === "Resort";
       },
     },
-
     yoga: {
       type: String,
       required: function () {
-        return this.propertyType === "Resort";
+        return this.parent().parent().propertyType === "Resort";
       },
     },
-
     kitchenRoom: {
       type: String,
       required: function () {
-        return this.propertyType === "Resort";
+        return this.parent().parent().propertyType === "Resort";
       },
     },
-
     poojaRoom: {
       type: String,
       required: function () {
-        return this.propertyType === "Resort";
+        return this.parent().parent().propertyType === "Resort";
       },
     },
-
     office: {
       type: String,
-      required:function () {
-        return this.propertyType === "Resort";
+      required: function () {
+        return this.parent().parent().propertyType === "Resort";
       },
     },
-
     recreation: {
       type: String,
       required: function () {
-        return this.propertyType === "Resort";
+        return this.parent().parent().propertyType === "Resort";
       },
     },
-
     balcony: {
       type: String,
-      required:function () {
-        return this.propertyType === "Resort";
+      required: function () {
+        return this.parent().parent().propertyType === "Resort";
       },
     },
-
     garden: {
       type: String,
       required: function () {
-        return this.propertyType === "Resort";
+        return this.parent().parent().propertyType === "Resort";
       },
     },
   },
 },
+
+
+
 
   
 }, {

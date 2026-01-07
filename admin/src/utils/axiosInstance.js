@@ -1,21 +1,21 @@
-// Landstime_Androidapp/admin/src/utils/axiosInstance.js
-
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:8000/api/properties",
+  baseURL: "http://localhost:8000/api",
 });
 
+axiosInstance.interceptors.request.use(
+  (config) => {
+    // Support both new and legacy storage keys
+    const token = localStorage.getItem("token") || localStorage.getItem("adminToken");
 
-// Attach admin JWT token
-axiosInstance.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token"); // admin token
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 export default axiosInstance;
-
-

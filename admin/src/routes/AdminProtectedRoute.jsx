@@ -2,12 +2,12 @@
 
 import { Navigate, Outlet } from "react-router-dom";
 
-// ✅ NEW CODE
 const AdminProtectedRoute = () => {
+  // ✅ Use unified token key
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
 
-  if (!token || role !== "Admin") {  // Changed "admin" to "Admin"
+  if (!token || role !== "admin") {  // Changed "admin" to "Admin"
     return <Navigate to="/login" replace />;
   }
 
@@ -15,3 +15,4 @@ const AdminProtectedRoute = () => {
 };
 
 export default AdminProtectedRoute;
+

@@ -9,6 +9,42 @@ import {
   checkPhoneExists,
   testFast2SMS
 } from '../UserControllers/Usercontroller.js';
+// 🔽 ADD
+import multer from "multer";
+import path from "path";
+import { verifyToken } from "../UserMiddleware/UserMiddleware.js";
+import {
+  getUserProfile,
+  updateUserProfile,
+} from "../UserControllers/Usercontroller.js";
+import fs from "fs";
+
+if (!fs.existsSync("uploads/profile")) {
+  fs.mkdirSync("uploads/profile", { recursive: true });
+}
+
+// 🔽 ADD (inline multer config)
+const storage = multer.diskStorage({
+  destination(req, file, cb) {
+    cb(null, "uploads/profile");
+  },
+  filename(req, file, cb) {
+    cb(
+      null,
+      `${req.userId}-${Date.now()}${path.extname(file.originalname)}`
+    );
+  },
+});
+
+const upload = multer({
+  storage,
+  fileFilter(req, file, cb) {
+    if (file.mimetype.startsWith("image")) cb(null, true);
+    else cb(new Error("Only images allowed"));
+  },
+});
+
+
 
 const router = express.Router();
 
@@ -22,5 +58,17 @@ router.post('/test-fast2sms', testFast2SMS);
 // Auth Routes
 router.post('/register', registerUser);
 router.post('/login', loginUser);
+// 🔽 ADD
+
+// 🔽 ADD
+router.get("/profile", verifyToken, getUserProfile);
+
+router.put(
+  "/profile",
+  verifyToken,
+  upload.single("profileImage"),
+  updateUserProfile
+);
+
 
 export default router;

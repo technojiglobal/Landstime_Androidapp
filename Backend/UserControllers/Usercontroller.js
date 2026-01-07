@@ -3,6 +3,8 @@ import Otp from '../UserModels/Otp.js';
 import User from '../UserModels/User.js';
 import { generateOTP, sendOTPviaSMS, isValidPhone, isValidOTP } from '../utils/otpService.js';
 import { generateToken } from '../utils/jwtUtils.js';
+// 🔽 ADD
+import jwt from "jsonwebtoken";
 //import { translatePropertyFields } from '../utils/translationService.js';
 import { translatePropertyFields } from '../services/translationService.js';
 
@@ -255,26 +257,6 @@ export const resendOTP = async (req, res) => {
 
     await otpDoc.save();
 
-    // Send OTP via SMS
-    // const smsResult = await sendOTPviaSMS(phone, otp, countryCode);
-
-    // if (smsResult.success) {
-    //   return res.status(200).json({
-    //     success: true,
-    //     message: 'New OTP sent successfully',
-    //     data: {
-    //       phone: phone,
-    //       expiresIn: '10 minutes'
-    //     }
-    //   });
-    // } else {
-    //   await Otp.deleteOne({ _id: otpDoc._id });
-      
-    //   return res.status(500).json({
-    //     success: false,
-    //     message: 'Failed to send OTP. Please try again'
-    //   });
-    // }
 
 
     // NEW
@@ -520,6 +502,65 @@ export const loginUser = async (req, res) => {
       success: false,
       message: 'Internal server error',
       error: error.message
+    });
+  }
+};
+// ==================== GET USER PROFILE ====================
+export const getUserProfile = async (req, res) => {
+  try {
+    const user = req.user;
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        name: user.name,
+        phone: user.phone,
+        email: user.email,
+        address: user.address,
+        about: user.about,
+        profileImage: user.profileImage,
+        role: user.role,
+        lastLogin: user.lastLogin,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch profile",
+      error: error.message,
+    });
+  }
+};
+// ==================== UPDATE USER PROFILE ====================
+export const updateUserProfile = async (req, res) => {
+  try {
+    const user = req.user;
+
+    const { name, phone, email, address, about } = req.body;
+
+    if (name) user.name = name;
+    if (phone) user.phone = phone;
+    if (email) user.email = email.toLowerCase();
+    if (address) user.address = address;
+    if (about) user.about = about;
+
+    // 🔽 Profile image
+    if (req.file) {
+      user.profileImage = `/uploads/profile/${req.file.filename}`;
+    }
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: user,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Profile update failed",
+      error: error.message,
     });
   }
 };

@@ -1,4 +1,5 @@
-const BASE_URL = "http://10.37.92.184:8000/api/reviews";
+// Frontend/utils/reviewApi.js
+const BASE_URL = "http://192.168.31.115:8000/api/reviews";
 
 /**
  * Fetch reviews for an entity

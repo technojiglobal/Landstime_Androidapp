@@ -395,6 +395,7 @@ export default function PropertyFormScreen() {
       <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-12">
             <TouchableOpacity
               className="px-8 py-3 rounded-lg bg-gray-200 mx-3"
+              onPress={() => router.back()}
             >
               <Text className="font-semibold">Cancel</Text>
             </TouchableOpacity>
