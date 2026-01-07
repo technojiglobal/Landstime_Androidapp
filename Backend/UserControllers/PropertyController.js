@@ -160,21 +160,50 @@ if (canonicalSubType === "Office") {
 
 
   // RETAIL
-  if (canonicalSubType === "Retail") {
-    if (
-      !commercialDetails.retailDetails ||
-      !commercialDetails.retailDetails.location ||
-      !commercialDetails.retailDetails.area
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Retail location and area are required",
-      });
-    }
-    finalData.location = commercialDetails.retailDetails.location;
-    finalData.commercialDetails.retailDetails =
-      commercialDetails.retailDetails;
+ // RETAIL
+if (canonicalSubType === "Retail") {
+  if (
+    !commercialDetails.retailDetails ||
+    !commercialDetails.retailDetails.location
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "Retail location is required",
+    });
   }
+  
+  console.log('🏪 Processing Retail details:', {
+    hasNeighborhoodArea: !!commercialDetails.retailDetails.neighborhoodArea,
+    propertyDataArea: propertyData.area,
+    commercialArea: commercialDetails.area,
+  });
+  
+  // ✅ CRITICAL FIX: Store location properly
+  finalData.location = commercialDetails.retailDetails.location;
+  
+  // ✅ Priority order for neighborhoodArea
+  const neighborhoodArea = commercialDetails.retailDetails.neighborhoodArea || 
+                           propertyData.area || 
+                           commercialDetails.area || 
+                           '';
+  
+  finalData.area = neighborhoodArea;
+  
+  console.log('✅ Retail area set to:', finalData.area);
+  
+  // ✅ IMPORTANT: Store complete retail details without filtering
+  finalData.commercialDetails.retailDetails = {
+    ...commercialDetails.retailDetails,
+    neighborhoodArea: neighborhoodArea,
+  };
+  
+  console.log('✅ Retail details stored:', {
+    location: finalData.location,
+    area: finalData.area,
+    carpetArea: finalData.commercialDetails.retailDetails.carpetArea,
+    allFields: Object.keys(finalData.commercialDetails.retailDetails),
+  });
+}
 
   // STORAGE
  

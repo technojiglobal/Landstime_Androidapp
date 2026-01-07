@@ -1,6 +1,8 @@
 //CommericialUpload//Components//RetailNext.jsx
 
-import React, { useState } from "react";
+import React, { useState,useEffect,useMemo } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Toast from "react-native-toast-message";
 import {
   View,
   Text,
@@ -8,6 +10,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  Alert,
   ToastAndroid,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -47,27 +50,44 @@ export default function RetailNext() {
   const router = useRouter();
   const params = useLocalSearchParams();
 
-  const images = params.images ? JSON.parse(params.images) : [];
-  const safeParse = (raw) => {
-    if (!raw) return null;
-    if (typeof raw === 'string') {
-      try { return JSON.parse(raw); } catch (e) { console.warn('parse error', e); return null; }
-    }
-    if (Array.isArray(raw)) {
-      const first = raw[0];
-      if (typeof first === 'string') {
-        try { return JSON.parse(first); } catch (e) { console.warn('parse error', e); return null; }
-      }
-      return first;
-    }
-    if (typeof raw === 'object') return raw;
+  const [area, setArea] = useState("");
+
+ // ✅ Use useMemo to prevent infinite re-renders
+const images = useMemo(() => {
+  try {
+    if (!params.images) return [];
+    if (Array.isArray(params.images)) return params.images;
+    return JSON.parse(params.images);
+  } catch (e) {
+    console.error('❌ Error parsing images:', e);
+    return [];
+  }
+}, [params.images]);
+
+const commercialDetails = useMemo(() => {
+  try {
+    if (!params.commercialDetails) return null;
+    if (typeof params.commercialDetails === 'object') return params.commercialDetails;
+    return JSON.parse(params.commercialDetails);
+  } catch (e) {
+    console.error('❌ Error parsing commercialDetails:', e);
     return null;
-  };
+  }
+}, [params.commercialDetails]);
+const forwardedPropertyTitle = params.propertyTitle ||  (commercialDetails && commercialDetails.propertyTitle);
 
-  const retailDetailsFromPrev = safeParse(params.commercialDetails);
+// ✅ NEW - Add missing baseDetails extraction
+const baseDetails = useMemo(() => {
+  try {
+    if (!params.commercialBaseDetails) return null;
+    if (typeof params.commercialBaseDetails === 'object') return params.commercialBaseDetails;
+    return JSON.parse(params.commercialBaseDetails);
+  } catch (e) {
+    console.error('❌ Error parsing commercialBaseDetails:', e);
+    return null;
+  }
+}, [params.commercialBaseDetails]);
 
-  // also capture any separately passed propertyTitle (fallback)
-  const forwardedPropertyTitle = params.propertyTitle || (retailDetailsFromPrev && retailDetailsFromPrev.propertyTitle);
 
 
   /* ---------- STATE ---------- */
@@ -91,6 +111,130 @@ export default function RetailNext() {
   const [focusedField, setFocusedField] = useState(null);
   const [isMorePricingModalVisible, setIsMorePricingModalVisible] =
     useState(false);
+
+  // ✅ NEW - Add handleBack function (matching OfficeNext pattern)
+const handleBack = () => {
+  if (!commercialDetails || !commercialDetails.retailDetails) {
+    router.back();
+    return;
+  }
+
+  // Save current state before going back
+  const currentData = {
+    ...commercialDetails.retailDetails,
+    ownership,
+    expectedPrice: Number(expectedPrice) || undefined,
+    priceDetails: {
+      allInclusive,
+      negotiable,
+      taxExcluded,
+    },
+    preLeased,
+    leaseDuration: leaseDuration || undefined,
+    monthlyRent: monthlyRent ? Number(monthlyRent) : undefined,
+    previouslyUsedFor: prevUsedFor,
+    description,
+    amenities,
+    locationAdvantages,
+  };
+
+  router.push({
+    pathname: "/home/screens/UploadScreens/CommercialUpload/Components/Retail",
+    params: {
+      retailDetails: JSON.stringify(currentData),
+      images: JSON.stringify(images),
+      area: params.area || area,
+      commercialBaseDetails: params.commercialBaseDetails,
+    },
+  });
+};
+
+
+  // ✅ NEW - Load draft from AsyncStorage
+useEffect(() => {
+  const loadDraft = async () => {
+    try {
+      const draft = await AsyncStorage.getItem('draft_retail_pricing');
+      if (draft) {
+        const savedData = JSON.parse(draft);
+        console.log('📦 Loading Retail pricing draft from AsyncStorage');
+        
+        setOwnership(savedData.ownership || '');
+        setExpectedPrice(savedData.expectedPrice?.toString() || '');
+        setAllInclusive(savedData.allInclusive || false);
+        setNegotiable(savedData.negotiable || false);
+        setTaxExcluded(savedData.taxExcluded || false);
+        setPreLeased(savedData.preLeased || null);
+        setLeaseDuration(savedData.leaseDuration || '');
+        setMonthlyRent(savedData.monthlyRent?.toString() || '');
+        setPrevUsedFor(savedData.previouslyUsedFor || 'Commercial');
+        setDescription(savedData.description || '');
+        setAmenities(savedData.amenities || []);
+        setLocationAdvantages(savedData.locationAdvantages || []);
+        
+        console.log('✅ Retail pricing draft loaded');
+        return;
+      }
+    } catch (e) {
+      console.log('⚠️ Failed to load Retail pricing draft:', e);
+    }
+
+    // ✅ FALLBACK: Load from params
+    if (commercialDetails?.retailDetails) {
+      const retail = commercialDetails.retailDetails;
+      console.log('🔄 Restoring RetailNext data from params');
+      
+      setOwnership(retail.ownership || '');
+      setExpectedPrice(retail.expectedPrice?.toString() || '');
+      setAllInclusive(retail.priceDetails?.allInclusive || false);
+      setNegotiable(retail.priceDetails?.negotiable || false);
+      setTaxExcluded(retail.priceDetails?.taxExcluded || false);
+      setPreLeased(retail.preLeased || null);
+      setLeaseDuration(retail.leaseDuration || '');
+      setMonthlyRent(retail.monthlyRent?.toString() || '');
+      setPrevUsedFor(retail.previouslyUsedFor || 'Commercial');
+      setDescription(retail.description || '');
+      setAmenities(retail.amenities || []);
+      setLocationAdvantages(retail.locationAdvantages || []);
+    }
+  };
+
+  loadDraft();
+}, [commercialDetails]);
+
+// ✅ NEW - Auto-save pricing draft
+useEffect(() => {
+  const saveDraft = async () => {
+    const pricingDraft = {
+      ownership,
+      expectedPrice,
+      allInclusive,
+      negotiable,
+      taxExcluded,
+      preLeased,
+      leaseDuration,
+      monthlyRent,
+      previouslyUsedFor: prevUsedFor,
+      description,
+      amenities,
+      locationAdvantages,
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      await AsyncStorage.setItem('draft_retail_pricing', JSON.stringify(pricingDraft));
+      console.log('💾 Retail pricing draft auto-saved');
+    } catch (e) {
+      console.log('⚠️ Failed to save Retail pricing draft:', e);
+    }
+  };
+
+  const timer = setTimeout(saveDraft, 1000);
+  return () => clearTimeout(timer);
+}, [ownership, expectedPrice, allInclusive, negotiable, taxExcluded, 
+    preLeased, leaseDuration, monthlyRent, prevUsedFor, description, 
+    amenities, locationAdvantages]);
+
 
   /* ---------- OPTIONS ---------- */
   const ownershipOptions = [
@@ -134,61 +278,94 @@ export default function RetailNext() {
   };
 
   /* ---------- VALIDATION (OfficeNext style) ---------- */
-  const handleNext = () => {
-    if (!retailDetailsFromPrev) {
-      ToastAndroid.show("Retail details missing", ToastAndroid.SHORT);
-      return;
-    }
+ const handleNext = () => {
+  if (!commercialDetails) {
+    Alert.alert(
+      "Missing Data",
+      "Retail details are missing. Please go back and complete the previous step.",
+      [{ text: "Go Back", onPress: () => router.back() }]
+    );
+    return;
+  }
 
-    if (!expectedPrice) {
-      ToastAndroid.show("Expected price is required", ToastAndroid.SHORT);
-      return;
-    }
+  if (!expectedPrice) {
+    Toast.show({
+      type: "error",
+      text1: "Expected price is required",
+    });
+    return;
+  }
 
-    if (!description.trim()) {
-      ToastAndroid.show("Description is required", ToastAndroid.SHORT);
-      return;
-    }
+  if (!description.trim()) {
+    Toast.show({
+      type: "error",
+      text1: "Description is required",
+    });
+    return;
+  }
 
-  const commercialDetails = {
-  ...retailDetailsFromPrev,
-  // ensure a propertyTitle exists (may be forwarded separately)
-  propertyTitle: (retailDetailsFromPrev && retailDetailsFromPrev.propertyTitle) || forwardedPropertyTitle,
-  ownership,
-  expectedPrice: Number(expectedPrice),
-  priceDetails: { allInclusive, negotiable, taxExcluded },
-  preLeased,
-  leaseDuration,
-  monthlyRent,
-  previouslyUsedFor: prevUsedFor,
-  description,
-  amenities,
-  locationAdvantages,
+  // ✅ BUILD COMPLETE commercialDetails OBJECT (matching Office structure)
+  const updatedCommercialDetails = {
+    subType: "Retail",
+    
+    retailDetails: {
+      ...commercialDetails.retailDetails, // ✅ Preserve all fields from Retail.jsx
+      
+      // ✅ ADD NEW FIELDS from this screen
+      ownership,
+      expectedPrice: Number(expectedPrice),
+      
+      priceDetails: {
+        allInclusive,
+        negotiable,
+        taxExcluded,
+      },
+      
+      preLeased,
+      leaseDuration: leaseDuration || undefined,
+      monthlyRent: monthlyRent ? Number(monthlyRent) : undefined,
+      
+      previouslyUsedFor: prevUsedFor,
+      
+      description,
+      
+      amenities,
+      locationAdvantages,
+    },
+
+    propertyTitle: commercialDetails.retailDetails?.propertyTitle || 
+                   baseDetails?.propertyTitle || 
+                   forwardedPropertyTitle,
+    area: params.area || area, // ✅ Neighborhood area
+  };
+
+  console.log('🔄 Passing to RetailVaastu:', {
+    hasCommercialDetails: !!updatedCommercialDetails,
+    hasRetailDetails: !!updatedCommercialDetails.retailDetails,
+    propertyTitle: updatedCommercialDetails.propertyTitle,
+  });
+
+  router.push({
+    pathname: "/home/screens/UploadScreens/CommercialUpload/Components/RetailVaastu",
+    params: {
+      commercialDetails: JSON.stringify(updatedCommercialDetails),
+      images: JSON.stringify(images),
+      area: params.area || area,
+      propertyTitle: updatedCommercialDetails.propertyTitle,
+    },
+  });
 };
 
-
-    // NEW
-router.push({
-  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/RetailVaastu",
-  params: {
-    commercialDetails: JSON.stringify(commercialDetails),
-    images: JSON.stringify(images), // ✅ ADD THIS
-  },
-});
-  };
+  
 
   return (
     <View className="flex-1 bg-gray-50">
       {/* HEADER */}
       <View className="flex-row items-center mt-6 mb-4">
-        <TouchableOpacity // NEW
-onPress={() => router.push({
-  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/Retail",
-  params: {
-    images: JSON.stringify(images),
-    commercialDetails: params.commercialDetails,
-  }
-})} className="p-2">
+      <TouchableOpacity 
+  onPress={handleBack}
+  className="p-2"
+>
           <Image
             source={require("../../../../../../assets/arrow.png")}
             className="w-5 h-5"
@@ -393,9 +570,12 @@ onPress={() => router.push({
         style={{ flexDirection: "row", padding: 16, backgroundColor: "#fff" }}
         className="mb-8 justify-end mt-4 space-x-5 mx-3"
       >
-        <TouchableOpacity className="px-5 py-3 rounded-lg bg-gray-200 mx-3">
-          <Text className="font-semibold">Cancel</Text>
-        </TouchableOpacity>
+        <TouchableOpacity 
+  className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
+  onPress={handleBack}
+>
+  <Text className="font-semibold">Cancel</Text>
+</TouchableOpacity>
 
         <TouchableOpacity
           className="px-5 py-3 rounded-lg bg-green-500"
