@@ -495,11 +495,8 @@ export const deletePropertyDocument = async (req, res) => {
 // Keep all other existing functions unchanged
 export const getApprovedProperties = async (req, res) => {
   try {
-    const { propertyType, page = 1, limit = 10, language = 'en' } = req.query;
-   
-    console.log('🔍 Getting approved properties');
-    console.log('🌐 Requested language:', language);
-   
+    const { propertyType, page = 1, limit = 3000 } = req.query;
+    
     const query = { status: 'approved' };
     if (propertyType) {
       query.propertyType = propertyType;
@@ -688,10 +685,26 @@ export const updateProperty = async (req, res) => {
    
   } catch (error) {
     console.error('Update property error:', error);
+
+    const responseError = {
+      message: error.message,
+      name: error.name,
+    };
+
+    // If it's a Mongoose validation error, include the field errors and return 400
+    if (error.name === 'ValidationError') {
+      responseError.validation = Object.values(error.errors).map((e) => e.message);
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed while updating property',
+        error: responseError
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Failed to update property',
-      error: error.message
+      error: responseError
     });
   }
 };
@@ -816,9 +829,28 @@ export const getAllProperties = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
-   
+    
     const count = await Property.countDocuments(query);
-   
+    
+    const host = req.protocol + '://' + req.get('host');
+    const propertiesWithUrls = properties.map((p) => {
+      const obj = p.toObject();
+      return {
+        ...obj,
+        imageUrls: (obj.images || [])
+          .filter((img) => typeof img === "string")
+          .map((img) => `${host}/${img.replace(/^\\\//, "")}`),
+        documentUrls: {
+          ownership: (obj.documents?.ownership || [])
+            .filter((doc) => typeof doc === "string")
+            .map((doc) => `${host}/${doc.replace(/^\\\//, "")}`),
+          identity: (obj.documents?.identity || [])
+            .filter((doc) => typeof doc === "string")
+            .map((doc) => `${host}/${doc.replace(/^\\\//, "")}`),
+        },
+      };
+    });
+
     res.status(200).json({
       success: true,
       data: properties,
@@ -935,7 +967,7 @@ export const adminUpdateProperty = async (req, res) => {
    
     const updatedProperty = await Property.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      { $set: updateData },
       { new: true, runValidators: true }
     ).populate('userId', 'name phone email currentSubscription');
    
@@ -949,10 +981,26 @@ export const adminUpdateProperty = async (req, res) => {
    
   } catch (error) {
     console.error('❌ Admin update property error:', error);
+    console.error('Error details:', error.message);
+
+    const responseError = {
+      message: error.message,
+      name: error.name,
+    };
+
+    if (error.name === 'ValidationError') {
+      responseError.validation = Object.values(error.errors).map((e) => e.message);
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed while updating property',
+        error: responseError
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Failed to update property',
-      error: error.message
+      error: responseError
     });
   }
 };

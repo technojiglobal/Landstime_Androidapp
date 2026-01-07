@@ -39,7 +39,7 @@ export default function Properties() {
   const [properties, setProperties] = useState([]);
 
   const [search, setSearch] = useState("");
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(30);
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState(null);
   const [toast, setToast] = useState("");
@@ -53,17 +53,21 @@ export default function Properties() {
   }, [search, pageSize]);
 
   /* ---------- FILTER (ALL COLUMNS) ---------- */
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase();
+const filtered = useMemo(() => {
+  const q = search.toLowerCase();
 
-    return properties.filter((p) =>
-      Object.values(p)
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-        .includes(q)
+  return properties.filter((p) => {
+    return (
+      p.title.toLowerCase().includes(q) ||
+      p.location.toLowerCase().includes(q) ||
+      p.type.toLowerCase().includes(q) ||
+      p.status.toLowerCase().includes(q) ||
+      p.subscription.toLowerCase().includes(q) ||
+      p.owner.toLowerCase().includes(q) ||
+      p.phone.toLowerCase().includes(q)
     );
-  }, [properties, search]);
+  });
+}, [properties, search]);
 
   /* ---------- PAGINATION ---------- */
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
@@ -177,8 +181,9 @@ export default function Properties() {
 
       setProperties(formatted);
     } catch (err) {
-      console.error("Failed to fetch properties", err);
-      setToast('Failed to fetch properties');
+      console.error("Failed to fetch properties", err.response?.status, err.response?.data || err.message);
+      const message = err.response?.data?.message || err.message || 'Failed to fetch properties';
+      setToast(message);
     }
   };
 
