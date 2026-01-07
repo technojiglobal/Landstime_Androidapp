@@ -225,7 +225,19 @@ if (canonicalSubType === "Hospitality") {
       message: "Hospitality location and area are required",
     });
   }
+  console.log('🏨 Processing Hospitality details:', {
+  hasNeighborhoodArea: !!commercialDetails.hospitalityDetails.neighborhoodArea,
+  propertyDataArea: propertyData.area,
+  });
   finalData.location = commercialDetails.hospitalityDetails.location;
+
+  // ✅ Priority order for area
+const neighborhoodArea = commercialDetails.hospitalityDetails.neighborhoodArea ||
+propertyData.area ||
+'';
+finalData.area = neighborhoodArea;
+console.log('✅ Hospitality area set to:', finalData.area);
+
   finalData.commercialDetails.hospitalityDetails =
     commercialDetails.hospitalityDetails;
 }

@@ -127,9 +127,10 @@ const [alertVisible, setAlertVisible] = useState(false);
 useEffect(() => {
   console.log('🔍 index.jsx useEffect - params:', {
     hasOfficeDetails: !!params.officeDetails,
+    hasHospitalityDetails: !!params.hospitalityDetails, // ✅ ADD THIS
     hasCommercialBaseDetails: !!params.commercialBaseDetails,
     hasImages: !!params.images,
-    hasArea: !!params.area // ✅ ADD THIS
+    hasArea: !!params.area
   });
 
   // STEP 1: Restore images first
@@ -144,13 +145,15 @@ useEffect(() => {
       console.log('❌ Could not restore images:', e);
     }
   }
-   if (params.area) {
+  
+  // STEP 2: Restore area
+  if (params.area) {
     setNeighborhoodArea(params.area);
     setArea(params.area);
     console.log('✅ Area restored from params:', params.area);
   }
   
-  // STEP 2: Restore from commercialBaseDetails (highest priority)
+  // STEP 3: Restore from commercialBaseDetails (highest priority)
   if (params.commercialBaseDetails) {
     try {
       const baseDetails = typeof params.commercialBaseDetails === 'string' 
@@ -171,63 +174,97 @@ useEffect(() => {
         console.log('✅ Property title restored:', baseDetails.propertyTitle);
       }
       
-     // ✅ CRITICAL FIX - Restore office kind with multiple fallbacks
-if (baseDetails.officeKind) {
-  setOfficeKinds([baseDetails.officeKind]);
-  console.log('✅ Office kind restored from commercialBaseDetails:', baseDetails.officeKind);
-} else if (baseDetails.subType === "Office" && officeKindPills.length > 0) {
-  // Fallback: if returning from Office.jsx, check params.officeDetails
-  console.log('⚠️ Office kind missing in baseDetails, checking officeDetails...');
-}
+      // ✅ Restore office kind
+      if (baseDetails.officeKind) {
+        setOfficeKinds([baseDetails.officeKind]);
+        console.log('✅ Office kind restored:', baseDetails.officeKind);
+      }
+      
+      // ✅ NEW - Restore hospitality kind
+      if (baseDetails.hospitalityType) {
+        setHospitalityKinds([baseDetails.hospitalityType]);
+        console.log('✅ Hospitality type restored:', baseDetails.hospitalityType);
+      }
       
     } catch (e) {
       console.log('❌ Could not restore commercialBaseDetails:', e);
     }
   }
   
-  // STEP 3: Fallback - restore from officeDetails if office kind not set
+  // STEP 4: Fallback - restore from officeDetails
   if (params.officeDetails && officeKinds.length === 0) {
     try {
       const savedData = JSON.parse(params.officeDetails);
-      console.log('🔄 Checking officeDetails for office kind:', savedData.officeKind);
-      
       if (savedData.officeKind) {
         setOfficeKinds([savedData.officeKind]);
-        console.log('✅ Office kind restored from officeDetails fallback:', savedData.officeKind);
+        console.log('✅ Office kind restored from officeDetails:', savedData.officeKind);
       }
     } catch (e) {
       console.log('❌ Could not restore from officeDetails:', e);
     }
   }
+  
+  // ✅ NEW - STEP 5: Fallback - restore from hospitalityDetails
+  if (params.hospitalityDetails && HospitalityKinds.length === 0) {
+    try {
+      const savedData = JSON.parse(params.hospitalityDetails);
+      if (savedData.hospitalityType) {
+        setHospitalityKinds([savedData.hospitalityType]);
+        console.log('✅ Hospitality type restored from hospitalityDetails:', savedData.hospitalityType);
+      }
+    } catch (e) {
+      console.log('❌ Could not restore from hospitalityDetails:', e);
+    }
+  }
 
-}, [params.officeDetails, params.images, params.commercialBaseDetails, params.area]); // ✅ ADD params.area
+}, [params.officeDetails, params.hospitalityDetails, params.images, params.commercialBaseDetails, params.area]); // ✅ ADD params.hospitalityDetails
 
 
 // ✅ NEW - Load draft from AsyncStorage on mount
 useEffect(() => {
   const loadDraft = async () => {
     try {
-      const draft = await AsyncStorage.getItem('draft_commercial_office');
-      if (draft) {
-        const parsed = JSON.parse(draft);
-        console.log('📦 Loading draft from AsyncStorage:', parsed);
+      // ✅ Try loading Office draft first
+      const officeDraft = await AsyncStorage.getItem('draft_commercial_office');
+      if (officeDraft) {
+        const parsed = JSON.parse(officeDraft);
+        console.log('📦 Loading Office draft from AsyncStorage:', parsed);
         
-        // Restore fields
-       if (parsed.subType) setSelectedType(parsed.subType);
+        if (parsed.subType) setSelectedType(parsed.subType);
         if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
         if (parsed.officeKind) setOfficeKinds([parsed.officeKind]);
         if (parsed.images) setImages(parsed.images);
-       if (parsed.neighborhoodArea) {
-  setNeighborhoodArea(parsed.neighborhoodArea);
-  setArea(parsed.neighborhoodArea);
-  console.log('✅ Area restored from draft:', parsed.neighborhoodArea);
-}
-if (parsed.area) { // ✅ Additional fallback
-  setArea(parsed.area);
-  console.log('✅ Area restored from draft.area:', parsed.area);
-}
+        if (parsed.neighborhoodArea) {
+          setNeighborhoodArea(parsed.neighborhoodArea);
+          setArea(parsed.neighborhoodArea);
+        }
+        if (parsed.area) {
+          setArea(parsed.area);
+        }
         
-        console.log('✅ Draft loaded successfully');
+        console.log('✅ Office draft loaded successfully');
+        return; // Exit early if Office draft found
+      }
+      
+      // ✅ NEW - Try loading Hospitality draft
+      const hospitalityDraft = await AsyncStorage.getItem('draft_commercial_hospitality');
+      if (hospitalityDraft) {
+        const parsed = JSON.parse(hospitalityDraft);
+        console.log('📦 Loading Hospitality draft from AsyncStorage:', parsed);
+        
+        if (parsed.subType) setSelectedType(parsed.subType);
+        if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
+        if (parsed.hospitalityType) setHospitalityKinds([parsed.hospitalityType]);
+        if (parsed.images) setImages(parsed.images);
+        if (parsed.neighborhoodArea) {
+          setNeighborhoodArea(parsed.neighborhoodArea);
+          setArea(parsed.neighborhoodArea);
+        }
+        if (parsed.area) {
+          setArea(parsed.area);
+        }
+        
+        console.log('✅ Hospitality draft loaded successfully');
       }
     } catch (e) {
       console.log('⚠️ Failed to load draft:', e);
@@ -235,7 +272,7 @@ if (parsed.area) { // ✅ Additional fallback
   };
   
   loadDraft();
-}, []); // Only run once on mount
+}, []);
 
 
   /* ---------- IMAGE HANDLERS ---------- */
@@ -408,24 +445,42 @@ const handleNext = async () => { // ✅ Make async
           },
         });
         break;
+case "Hospitality":
+  if (!HospitalityKinds.length) {
+    Alert.alert("Hospitality Type Required", "Please select hospitality type");
+    return;
+  }
 
-      case "Hospitality":
-        if (!HospitalityKinds.length) {
-          Alert.alert("Hospitality Type Required", "Please select hospitality type");
-          return;
-        }
-        router.push({
-          pathname: `${base}/Hospitality`,
-          params: {
-            ...commonParams,
-            commercialBaseDetails: JSON.stringify({
-              subType: "Hospitality",
-              hospitalityType: HospitalityKinds[0],
-              propertyTitle,
-            }),
-          },
-        });
-        break;
+  // ✅ NEW - Save draft to AsyncStorage
+  const hospitalityDraftData = {
+    subType: "Hospitality",
+    hospitalityType: HospitalityKinds[0],
+    propertyTitle,
+    images,
+    neighborhoodArea: neighborhoodArea || area,
+    area: area || neighborhoodArea, // ✅ Add both for flexibility
+    timestamp: new Date().toISOString(),
+  };
+  
+  try {
+    await AsyncStorage.setItem('draft_commercial_hospitality', JSON.stringify(hospitalityDraftData));
+    console.log('✅ Hospitality draft saved to AsyncStorage');
+  } catch (e) {
+    console.log('⚠️ Failed to save Hospitality draft:', e);
+  }
+
+  router.push({
+    pathname: `${base}/Hospitality`,
+    params: {
+      ...commonParams,
+      commercialBaseDetails: JSON.stringify({
+        subType: "Hospitality",
+        hospitalityType: HospitalityKinds[0],
+        propertyTitle,
+      }),
+    },
+  });
+  break;
 
       case "Other":
         router.push({

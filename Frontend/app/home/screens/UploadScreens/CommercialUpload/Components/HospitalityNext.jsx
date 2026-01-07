@@ -1,6 +1,7 @@
 //Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/HospitalityNext.jsx
 
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage'; // ✅ ADD THIS
 import {
     View,
     Text,
@@ -85,7 +86,109 @@ const HospitalityNext = () => {
     const [flooringType, setFlooringType] = useState('');
     const [focusedField, setFocusedField] = useState(null);
     const [pricingModalVisible, setPricingModalVisible] = useState(false);
+     const [leaseDuration, setLeaseDuration] = useState("");
+    const [monthlyRent, setMonthlyRent] = useState("");
 
+
+
+    // ✅ NEW - Load draft from AsyncStorage
+useEffect(() => {
+  const loadDraft = async () => {
+    try {
+      const draft = await AsyncStorage.getItem('draft_hospitality_pricing');
+      if (draft) {
+        const savedData = JSON.parse(draft);
+        console.log('📦 Loading Hospitality pricing draft from AsyncStorage');
+        
+        setOwnership(savedData.ownership || '');
+        setIndustryApprovedBy(savedData.IndustryApprovedBy || '');
+        setApprovedIndustryType(savedData.approvedIndustryType || '');
+        setExpectedPrice(savedData.expectedPrice?.toString() || '');
+        setAllInclusive(savedData.allInclusive || false);
+        setPriceNegotiable(savedData.priceNegotiable || false);
+        setTaxExcluded(savedData.taxExcluded || false);
+        setPreLeased(savedData.preLeased || null);
+        setLeaseDuration(savedData.leaseDuration || '');
+        setMonthlyRent(savedData.monthlyRent?.toString() || '');
+        setDescribeProperty(savedData.describeProperty || '');
+        setWheelchairFriendly(savedData.wheelchairFriendly || false);
+        setAmenities(savedData.amenities || []);
+        setLocAdvantages(savedData.locAdvantages || []);
+        setFlooringType(savedData.flooringType || '');
+        
+        console.log('✅ Hospitality pricing draft loaded');
+        return;
+      }
+    } catch (e) {
+      console.log('⚠️ Failed to load pricing draft:', e);
+    }
+
+    // ✅ FALLBACK: Load from params
+    if (params.commercialDetails) {
+      try {
+        const details = JSON.parse(params.commercialDetails);
+        if (details.hospitalityDetails) {
+          const hospitality = details.hospitalityDetails;
+          
+          setOwnership(hospitality.ownership || '');
+          setExpectedPrice(hospitality.expectedPrice?.toString() || '');
+          setAllInclusive(hospitality.priceDetails?.allInclusive || false);
+          setPriceNegotiable(hospitality.priceDetails?.negotiable || false);
+          setTaxExcluded(hospitality.priceDetails?.taxExcluded || false);
+          setPreLeased(hospitality.preLeased || null);
+          setLeaseDuration(hospitality.leaseDuration || '');
+          setMonthlyRent(hospitality.monthlyRent?.toString() || '');
+          setDescribeProperty(hospitality.description || '');
+          setAmenities(hospitality.amenities || []);
+          setLocAdvantages(hospitality.locationAdvantages || []);
+          
+          console.log('✅ Hospitality pricing restored from params');
+        }
+      } catch (e) {
+        console.log('❌ Could not restore from params:', e);
+      }
+    }
+  };
+
+  loadDraft();
+}, [params.commercialDetails]);
+
+// ✅ NEW - Auto-save pricing draft
+useEffect(() => {
+  const saveDraft = async () => {
+    const pricingDraft = {
+      ownership,
+      IndustryApprovedBy,
+      approvedIndustryType,
+      expectedPrice,
+      allInclusive,
+      priceNegotiable,
+      taxExcluded,
+      preLeased,
+      leaseDuration,
+      monthlyRent,
+      describeProperty,
+      wheelchairFriendly,
+      amenities,
+      locAdvantages,
+      flooringType,
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      await AsyncStorage.setItem('draft_hospitality_pricing', JSON.stringify(pricingDraft));
+      console.log('💾 Hospitality pricing draft auto-saved');
+    } catch (e) {
+      console.log('⚠️ Failed to save pricing draft:', e);
+    }
+  };
+
+  const timer = setTimeout(saveDraft, 1000);
+  return () => clearTimeout(timer);
+}, [ownership, IndustryApprovedBy, approvedIndustryType, expectedPrice, 
+    allInclusive, priceNegotiable, taxExcluded, preLeased, leaseDuration, 
+    monthlyRent, describeProperty, wheelchairFriendly, amenities, 
+    locAdvantages, flooringType]);
     /* ---------------- AMENITIES ---------------- */
     const amenityOptions = [
 
@@ -109,8 +212,7 @@ const HospitalityNext = () => {
         "+Close to Highway",
     ];
    
-    const [leaseDuration, setLeaseDuration] = useState("");
-    const [monthlyRent, setMonthlyRent] = useState("");
+    
 
     /* ---------------- HELPERS ---------------- */
     const toggleArrayItem = (setter, array, value) => {
@@ -121,56 +223,99 @@ const HospitalityNext = () => {
         }
     };
 
-    const handleNext = () => {
-        if (!expectedPrice.trim()) {
-            Toast.show({
-                type: 'error',
-                text1: 'Price Required',
-                text2: 'Please enter the expected price.',
-            });
-            return;
-        }
-        if (!describeProperty.trim()) {
-            Toast.show({
-                type: 'error',
-                text1: 'Description Required',
-                text2: 'Please describe your property.',
-            });
-            return;
-        }
-        Toast.show({
-            type: 'success',
-            text1: 'Details Saved',
-            text2: 'Moving to next step...',
-        });
+ const handleNext = () => {
+  if (!expectedPrice.trim()) {
+    Toast.show({
+      type: 'error',
+      text1: 'Price Required',
+      text2: 'Please enter the expected price.',
+    });
+    return;
+  }
+  if (!describeProperty.trim()) {
+    Toast.show({
+      type: 'error',
+      text1: 'Description Required',
+      text2: 'Please describe your property.',
+    });
+    return;
+  }
 
-       // NEW
-router.push({
-  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityVaastu",
-  params: {
-    commercialDetails: params.commercialDetails,
-    images: JSON.stringify(images),
-    area: params.area, // ✅ ADD THIS
-  },
-});
-        // Navigate to next screen or submit
-        // router.push("/next-screen");
-    };
+  // ✅ BUILD COMPLETE DETAILS
+  const updatedCommercialDetails = JSON.parse(params.commercialDetails);
+  
+  updatedCommercialDetails.hospitalityDetails = {
+    ...updatedCommercialDetails.hospitalityDetails,
+    ownership,
+    IndustryApprovedBy,
+    approvedIndustryType,
+    expectedPrice: Number(expectedPrice),
+    priceDetails: {
+      allInclusive,
+      negotiable: priceNegotiable,
+      taxExcluded,
+    },
+    preLeased,
+    leaseDuration: leaseDuration || undefined,
+    monthlyRent: monthlyRent ? Number(monthlyRent) : undefined,
+    description: describeProperty,
+    amenities,
+    locationAdvantages: locAdvantages,
+    wheelchairFriendly,
+    flooringType,
+  };
+  
+  Toast.show({
+    type: 'success',
+    text1: 'Details Saved',
+    text2: 'Moving to next step...',
+  });
+
+  router.push({
+    pathname: "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityVaastu",
+    params: {
+      commercialDetails: JSON.stringify(updatedCommercialDetails),
+      images: JSON.stringify(images),
+      area: params.area || updatedCommercialDetails.hospitalityDetails.neighborhoodArea, // ✅ FIXED
+      propertyTitle: updatedCommercialDetails.hospitalityDetails?.propertyTitle || params.propertyTitle,
+    },
+  });
+};
 
     return (
         <View className="flex-1 bg-white">
             <View className="flex-row items-center mt-4 mb-3 ml-4">
-                    <TouchableOpacity
-                        // NEW
-onPress={() => router.push({
-  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/Hospitality",
-  params: {
-    images: JSON.stringify(images),
-    commercialDetails: params.commercialDetails,
-  }
-})}
-                        className="p-2"
-                    >
+               <TouchableOpacity
+  onPress={() => {
+    const currentData = JSON.parse(params.commercialDetails);
+    currentData.hospitalityDetails = {
+      ...currentData.hospitalityDetails,
+      ownership,
+      IndustryApprovedBy,
+      approvedIndustryType,
+      expectedPrice: Number(expectedPrice) || undefined,
+      priceDetails: { allInclusive, negotiable: priceNegotiable, taxExcluded },
+      preLeased,
+      leaseDuration,
+      monthlyRent: monthlyRent ? Number(monthlyRent) : undefined,
+      description: describeProperty,
+      amenities,
+      locationAdvantages: locAdvantages,
+      wheelchairFriendly,
+      flooringType,
+    };
+    
+    router.push({
+      pathname: "/home/screens/UploadScreens/CommercialUpload/Components/Hospitality",
+      params: {
+        images: JSON.stringify(images),
+        commercialDetails: JSON.stringify(currentData),
+        area: params.area || currentData.hospitalityDetails.neighborhoodArea, // ✅ FIXED
+      },
+    });
+  }}
+  className="p-2"
+>
                         <Image
                             source={require("../../../../../../assets/arrow.png")}
                             style={{ width: 20, height: 20 }}
