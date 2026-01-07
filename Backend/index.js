@@ -103,6 +103,11 @@ app.use('/api/admin', adminAuthRoutes);
 app.use('/api/admin/interior', interiorDesignRoutes);
 app.use('/api/admin/notifications', notificationRoutes); // NEW
 app.use('/api/user/notifications', userNotificationRoutes); // ✅ NEW
+// 🔽 ADD
+
+// 🔽 ADD
+app.use("/uploads", express.static("uploads"));
+
 
 // 404 Handler
 app.use('*', (req, res) => {

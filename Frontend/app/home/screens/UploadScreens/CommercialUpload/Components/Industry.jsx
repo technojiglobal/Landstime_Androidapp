@@ -1,3 +1,5 @@
+//Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/Industry.jsx
+
 import React, { useState } from 'react';
 import {
   View,
@@ -74,6 +76,10 @@ const RoundOption = ({ label, selected, onPress }) => (
 
 
 export default function PropertyFormScreen() {
+  const router = useRouter();
+  const params = useLocalSearchParams();
+
+  const images = params.images ? JSON.parse(params.images) : [];
   const [visible, setVisible] = useState(null);
   const [focusedField, setFocusedField] = useState(null);
 
@@ -96,7 +102,7 @@ export default function PropertyFormScreen() {
   const [ageOfProperty, setAgeOfProperty] = useState(null);
   const [possessionBy, setPossessionBy] = useState("");
 
-  const router = useRouter();
+  
    const handleNext = () => {
   if (!location.trim()) {
     Toast.show({
@@ -133,12 +139,13 @@ export default function PropertyFormScreen() {
   };
 
   router.push({
-    pathname:
-      "/home/screens/UploadScreens/CommercialUpload/Components/IndustryNext",
-    params: {
-      commercialDetails: JSON.stringify(commercialDetails),
-    },
-  });
+  pathname:
+    "/home/screens/UploadScreens/CommercialUpload/Components/IndustryNext",
+  params: {
+    commercialDetails: JSON.stringify(commercialDetails),
+    images: JSON.stringify(images), // ✅ ADD THIS
+  },
+});
 };
 
   return (
@@ -149,9 +156,12 @@ export default function PropertyFormScreen() {
       >
         <View className="flex-row items-center mt-7 mb-4">
           <TouchableOpacity
-            onPress={() =>
-              router.push("/home/screens/UploadScreens/AddScreen")
-            }
+            onPress={() => router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload",
+  params: {
+    images: JSON.stringify(images),
+  }
+})}
             className="p-2"
           >
             <Image

@@ -20,7 +20,7 @@ export default function WriteReview({ entityId, entityType }) {
   const [title, setTitle] = useState("");
   const [review, setReview] = useState("");
 const handleSubmit = async () => {
-  if (!rating || !title || review.length < 10) {
+  if (!rating || !title || review.length < 5) {
     alert("Please fill all fields");
     return;
   }

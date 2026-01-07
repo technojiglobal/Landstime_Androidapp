@@ -6,13 +6,13 @@ import { X } from "lucide-react";
 import { adminLogout } from "../services/authService";
 import LogoutModal from "../components/LogoutModal";
 
-const Sidebar = ({ isOpen, onClose }) => {
+const Sidebar = ({ isOpen = true, onClose = () => {} }) => {
   const navigate = useNavigate();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
- // NEW CODE:
- // NEW CODE:
+  const role = localStorage.getItem("role") || "admin";
+  const links = sidebarLinks[role] || sidebarLinks.admin;
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
@@ -67,7 +67,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
         {/* Menu */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {sidebarLinks.map(({ label, path, icon: Icon }) => (
+          {links.map(({ label, path, icon: Icon }) => (
             <NavLink
               key={label}
               to={path}

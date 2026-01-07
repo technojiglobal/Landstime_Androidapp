@@ -1,35 +1,36 @@
-// Landstime_Androidapp/Backend/AdminMiddleware/AdminMiddleware.js
-
 import jwt from "jsonwebtoken";
 
 export const verifyAdmin = (req, res, next) => {
-  console.log("🚨🚨🚨 NEW MIDDLEWARE LOADED 🚨🚨🚨");
+  console.log("🚨🚨🚨 ADMIN AUTH MIDDLEWARE 🚨🚨🚨");
   console.log("ADMIN AUTH HEADER:", req.headers.authorization);
 
   const authHeader = req.headers.authorization;
 
+  // 1️⃣ Check Authorization header
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    console.log("❌ No Authorization header or wrong format");
+    console.log("❌ Missing or invalid Authorization header");
     return res.status(401).json({ message: "Unauthorized" });
   }
 
   const token = authHeader.split(" ")[1];
 
   try {
+    // 2️⃣ Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("🔓 DECODED ADMIN TOKEN:", decoded);
 
-    console.log("DECODED ADMIN TOKEN:", decoded);
-    
-    // ✅ Accept "admin" (lowercase) - this matches the token
-    if (decoded.role === "admin") {
-      console.log("✅✅✅ ADMIN ACCESS GRANTED ✅✅✅");
-      req.adminId = decoded.adminId || decoded.id;
-      return next();
+    // 3️⃣ Role check (admin OR superadmin)
+    if (decoded.role !== "admin" && decoded.role !== "superadmin") {
+      console.log("❌ Role mismatch:", decoded.role);
+      return res.status(403).json({ message: "Forbidden: Admin access required" });
     }
 
-    console.log("❌ Role mismatch - expected 'admin', got:", decoded.role);
-    return res.status(403).json({ message: "Forbidden: Admin access required" });
-    
+    // 4️⃣ Attach admin info to request
+    req.adminId = decoded.adminId || decoded.id;
+    req.adminRole = decoded.role;
+
+    console.log("✅ ADMIN ACCESS GRANTED:", decoded.role);
+    next();
   } catch (err) {
     console.log("❌ JWT VERIFY ERROR:", err.message);
     return res.status(401).json({ message: "Invalid token" });

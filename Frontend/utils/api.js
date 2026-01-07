@@ -196,6 +196,38 @@ export const clearUserData = async () => {
   }
 };
 
+// 🔽 ADD
+
+// 🔽 ADD
+export const updateUserProfile = async (formData) => {
+  try {
+    const token = await AsyncStorage.getItem("userToken");
+
+    console.log("📤 Updating profile...");
+    console.log("FormData:", formData);
+
+    const response = await fetch(`${API_BASE_URL}/profile`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        // ❌ DO NOT set Content-Type
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    console.log("📥 Profile update response:", data);
+
+    return {
+      success: response.ok,
+      data,
+    };
+  } catch (error) {
+    console.error("❌ updateUserProfile error:", error);
+    return { success: false, error: error.message };
+  }
+};
 
 
 // export const checkPhoneExists = async (phone) => {

@@ -10,6 +10,7 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // ✅ SINGLE LOGIN — backend decides role
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -21,18 +22,22 @@ export default function AdminLogin() {
     try {
       setLoading(true);
 
+      // Call backend login API
       const res = await adminLogin(email, password);
 
-      // ✅ FIXED: Store token and role from backend response
+      // ✅ Store auth data
       localStorage.setItem("token", res.token);
       localStorage.setItem("adminToken", res.token);
-      // ✅ Store the role from the admin object, OR default to "admin" (lowercase)
-      localStorage.setItem("role", res.admin?.role || "admin");
+      localStorage.setItem("role", res.admin.role); // admin | superadmin
 
-      navigate("/dashboard");
+      // ✅ Redirect based on role
+      const redirectPath =
+        res.admin.role === "superadmin" ? "/superadmin" : "/admin";
+
+      navigate(redirectPath);
     } catch (err) {
       console.error("Admin login failed:", err);
-      alert(err.response?.data?.message || "Invalid admin credentials");
+      alert(err.response?.data?.message || "Invalid credentials");
     } finally {
       setLoading(false);
     }
@@ -55,8 +60,7 @@ export default function AdminLogin() {
           </h2>
 
           <p className="text-gray-400 leading-relaxed">
-            Manage properties, users, and content all in one powerful
-            dashboard.
+            Manage properties, users, and content all in one powerful dashboard.
           </p>
         </div>
       </div>
@@ -78,7 +82,7 @@ export default function AdminLogin() {
             />
             <input
               type="email"
-              placeholder="admin@realestate.com"
+              placeholder="admin@gmail.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -101,7 +105,7 @@ export default function AdminLogin() {
             />
           </div>
 
-          {/* Button */}
+          {/* SIGN IN BUTTON */}
           <button
             onClick={handleLogin}
             disabled={loading}
@@ -110,11 +114,14 @@ export default function AdminLogin() {
             {loading ? "Signing in..." : "Sign In"}
           </button>
 
-          {/* Demo creds */}
+          {/* Demo credentials */}
           <p className="text-center text-sm text-gray-500 mt-5">
-            Demo credentials:{" "}
+            Demo credentials:
+            <br />
             <span className="font-medium">
-              admin@realestate.com / admin123
+              Admin: admin@gmail.com / admin123
+              <br />
+              SuperAdmin: superadmin@gmail.com / super123
             </span>
           </p>
         </div>

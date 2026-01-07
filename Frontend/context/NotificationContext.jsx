@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { AppState } from 'react-native';
 
-const API_URL = "http://10.37.92.184:8000/api";
+const API_URL = `${process.env.EXPO_PUBLIC_IP_ADDRESS}/api`;
 
 const NotificationContext = createContext();
 

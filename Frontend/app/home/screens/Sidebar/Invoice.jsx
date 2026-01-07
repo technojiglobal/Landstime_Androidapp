@@ -1,15 +1,23 @@
+// Frontend/app/home/screens/Sidebar/Invoice.jsx
 import React from "react";
-import { View, Text, ScrollView, Image, TouchableOpacity,StatusBar } from "react-native";
+import { View, Text, ScrollView, Image, TouchableOpacity, StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 
 export default function InvoiceScreen({ navigation }) {
   const router = useRouter();
+  const { payment } = useLocalSearchParams();
+  const data = payment ? JSON.parse(payment) : null;
+  const cardLast4 =
+    data?.last4 ||
+    data?.razorpayPaymentId?.slice(-4) ||
+    "XXXX";
 
   return (
     <View className="flex-1 bg-white mt-12">
-       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-       
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+
       {/* Header */}
       <View className="bg-[#22C55E] flex-row items-center justify-between px-4 py-4">
         <TouchableOpacity onPress={() => router.push("/home/screens/Sidebar/Billing")}>
@@ -20,19 +28,19 @@ export default function InvoiceScreen({ navigation }) {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 20 }}>
-        
+
         {/* Invoice Card */}
         <View className="border border-gray-200 rounded-xl p-5 bg-white">
 
           {/* Invoice Number */}
           <Text className="text-gray-400 text-sm">Invoice No</Text>
           <Text className="text-black font-bold mb-3">
-            F4CFC-77EB2-FCGA2-7F983
+            {data?.razorpayOrderId}
           </Text>
 
           {/* Date */}
           <Text className="text-gray-400 text-sm">Date</Text>
-          <Text className="text-black font-semibold mb-3">16/10/25</Text>
+          <Text className="text-black font-semibold mb-3">{data?.date}</Text>
 
           {/* Current Plan */}
           <Text className="text-[#22C55E] text-sm font-semibold mb-1 ml-24">
@@ -41,17 +49,17 @@ export default function InvoiceScreen({ navigation }) {
 
           {/* Description */}
           <Text className="text-gray-400 text-sm">Description</Text>
-          <Text className="text-black font-semibold mb-3">Streaming Services</Text>
+          <Text className="text-black font-semibold mb-3">{data?.description}</Text>
 
           {/* Service Period */}
           <Text className="text-gray-500 text-xs">Service Period</Text>
           <Text className="text-black font-semibold mb-3">
-            16/10/25 to 15/11/25
+            {data?.period}
           </Text>
 
           {/* Amount */}
           <Text className="text-gray-400 text-sm">Amount</Text>
-          <Text className="text-black font-bold mb-3">$168.64</Text>
+          <Text className="text-black font-bold mb-3">{data?.amount}</Text>
 
           {/* IGST */}
           <Text className="text-gray-400 text-sm">IGST(18%)</Text>
@@ -71,53 +79,54 @@ export default function InvoiceScreen({ navigation }) {
           <Text className="text-gray-400 text-sm">TOTAL</Text>
           <Text className="text-black font-bold text-lg mb-4">$199</Text>
 
-     {/* PAYMENT METHOD */}
-<Text className="text-gray-400 text-sm font-semibold mb-1">
-  Payment Method
-</Text>
+          {/* PAYMENT METHOD */}
+          <Text className="text-gray-400 text-sm font-semibold mb-1">
+            Payment Method
+          </Text>
 
-{/* FIRST ROW: Credit Card + (circles + dots) */}
-<View className="flex-row justify-between items-center">
+          {/* FIRST ROW: Credit Card + (circles + dots) */}
+          <View className="flex-row justify-between items-center">
 
-  {/* LEFT SIDE: Credit Card only */}
-  <Text className="text-black text-sm">
-    Credit Card
-  </Text>
+            {/* LEFT SIDE: Credit Card only */}
+            <Text className="text-black text-sm">
+              Credit Card
+            </Text>
 
-  {/* RIGHT SIDE BLOCK */}
-  <View className="flex-row items-center">
+            {/* RIGHT SIDE BLOCK */}
+            <View className="flex-row items-center">
 
-    {/* Circles */}
-    <View className="flex-row items-center mr-3">
-      <View
-        className="w-5 h-5 rounded-full"
-        style={{ backgroundColor: "#EB001B", marginRight: -10 }}
-      />
-      <View
-        className="w-5 h-5 rounded-full"
-        style={{ backgroundColor: "#F79E1B" }}
-      />
-    </View>
+              {/* Circles */}
+              <View className="flex-row items-center mr-3">
+                <View
+                  className="w-5 h-5 rounded-full"
+                  style={{ backgroundColor: "#EB001B", marginRight: -10 }}
+                />
+                <View
+                  className="w-5 h-5 rounded-full"
+                  style={{ backgroundColor: "#F79E1B" }}
+                />
+              </View>
 
-    {/* Dots */}
-    <Text className="text-gray-500 text-sm">
-      •••• •••• •••• 7917
-    </Text>
+              {/* Dots */}
+              <Text className="text-gray-500 text-sm">
+                •••• •••• •••• {cardLast4}
+              </Text>
 
-  </View>
-</View>
 
-{/* SECOND ROW (aligned under circles + dots) */}
-<View className="flex-row justify-end  mt-1">
+            </View>
+          </View>
 
-  {/* mastercard under circles */}
-  <Text className="text-gray-500 text-sm mr-10">
-    mastercard
-  </Text>
+          {/* SECOND ROW (aligned under circles + dots) */}
+          <View className="flex-row justify-end  mt-1">
 
-  
+            {/* mastercard under circles */}
+            <Text className="text-gray-500 text-sm mr-10">
+              mastercard
+            </Text>
 
-</View>
+
+
+          </View>
 
 
 
@@ -126,7 +135,7 @@ export default function InvoiceScreen({ navigation }) {
           {/* Payment Date */}
           <Text className="text-gray-400 text-sm mt-3">Payment Date</Text>
           <Text className="text-black font-semibold mb-3">
-            10/16/2025, 1:12 AM
+            {data?.date}
           </Text>
 
           {/* Reference ID */}
