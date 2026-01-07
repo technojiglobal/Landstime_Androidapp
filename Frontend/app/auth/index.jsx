@@ -179,8 +179,15 @@ const response = await registerUser({
 
       if (response.success && response.data.success) {
         if (response.data.data?.token) {
-          await saveToken(response.data.data.token);
-          console.log('🔐 Token saved:', response.data.data.token);
+          const tokenSaved = await saveToken(response.data.data.token);
+          if (!tokenSaved) {
+            console.error('❌ Failed to save token');
+            throw new Error('Token storage failed');
+          }
+          console.log('🔐 Token saved successfully');
+        } else {
+          console.error('❌ No token in response:', response.data);
+          throw new Error('No token received from server');
         }
         
         if (response.data.data?.user) {

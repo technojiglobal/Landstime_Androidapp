@@ -1,54 +1,180 @@
 //Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/HospitalityVaastu.jsx
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
-import { useRouter,useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import Toast from 'react-native-toast-message';
 import VastuDropdown from "../../VastuDropdown";
 
 export default function VastuDetailsScreen() {
-  const [form, setForm] = useState({});
   const router = useRouter();
   const params = useLocalSearchParams();
 
-  const images = params.images ? JSON.parse(params.images) : [];
+  const [form, setForm] = useState({});
 
-const safeParse = (raw) => {
-  if (!raw) return null;
-  try {
-    if (typeof raw === 'string') return JSON.parse(raw);
-    if (Array.isArray(raw)) {
-      const first = raw[0];
-      if (typeof first === 'string') return JSON.parse(first);
-      return first;
+  const images = useMemo(() => {
+    try {
+      if (!params.images) return [];
+      if (Array.isArray(params.images)) return params.images;
+      return JSON.parse(params.images);
+    } catch (e) {
+      console.error('❌ Error parsing images:', e);
+      return [];
     }
-    if (typeof raw === 'object') return raw;
-  } catch (e) {
-    console.warn('Failed to parse commercialDetails param', e);
-    return null;
-  }
-  return null;
-};
+  }, [params.images]);
 
-const commercialDetailsFromPrev = safeParse(params.commercialDetails);
+  const commercialDetails = useMemo(() => {
+    try {
+      console.log('🔍 HospitalityVaastu params:', {
+        hasCommercialDetails: !!params.commercialDetails,
+        type: typeof params.commercialDetails,
+      });
 
-  const update = (key, value) =>
-    setForm((prev) => ({ ...prev, [key]: value }));
+      if (!params.commercialDetails) {
+        console.log('⚠️ No commercialDetails in params');
+        return null;
+      }
+
+      if (typeof params.commercialDetails === 'object' && !Array.isArray(params.commercialDetails)) {
+        console.log('✅ commercialDetails is already an object');
+        return params.commercialDetails;
+      }
+
+      if (typeof params.commercialDetails === 'string') {
+        console.log('✅ Parsing commercialDetails string');
+        return JSON.parse(params.commercialDetails);
+      }
+
+      if (Array.isArray(params.commercialDetails)) {
+        const first = params.commercialDetails[0];
+        if (typeof first === 'string') {
+          return JSON.parse(first);
+        }
+        return first;
+      }
+
+      return null;
+    } catch (e) {
+      console.error('❌ Error parsing commercialDetails:', e);
+      return null;
+    }
+  }, [params.commercialDetails]);
+
+  // Load draft from AsyncStorage
+  useEffect(() => {
+    const loadDraft = async () => {
+      try {
+        const draft = await AsyncStorage.getItem('draft_hospitality_vaastu');
+        if (draft) {
+          const savedForm = JSON.parse(draft);
+          console.log('📦 Loading Hospitality Vaastu draft from AsyncStorage');
+          setForm(savedForm);
+          return;
+        }
+      } catch (e) {
+        console.log('⚠️ Failed to load Vaastu draft:', e);
+      }
+
+      // FALLBACK: Load from params
+      if (commercialDetails?.hospitalityDetails?.vastuDetails) {
+        const vastu = commercialDetails.hospitalityDetails.vastuDetails;
+        console.log('🔄 Restoring Vaastu data from params:', vastu);
+        setForm(vastu);
+      }
+    };
+
+    loadDraft();
+  }, [commercialDetails]);
+
+  // Auto-save Vaastu draft
+  useEffect(() => {
+    const saveDraft = async () => {
+      try {
+        await AsyncStorage.setItem('draft_hospitality_vaastu', JSON.stringify(form));
+        console.log('💾 Hospitality Vaastu draft auto-saved');
+      } catch (e) {
+        console.log('⚠️ Failed to save Vaastu draft:', e);
+      }
+    };
+
+    const timer = setTimeout(saveDraft, 1000);
+    return () => clearTimeout(timer);
+  }, [form]);
+
+  const update = (key, value) => {
+    setForm(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleBack = () => {
+    if (!commercialDetails || !commercialDetails.hospitalityDetails) {
+      router.back();
+      return;
+    }
+
+    const updatedCommercialDetails = {
+      ...commercialDetails,
+      hospitalityDetails: {
+        ...commercialDetails.hospitalityDetails,
+        vastuDetails: form,
+      },
+    };
+
+    router.push({
+      pathname: "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityNext",
+      params: {
+        hospitalityDetails: JSON.stringify(commercialDetails.hospitalityDetails),
+        commercialDetails: JSON.stringify(updatedCommercialDetails),
+        images: JSON.stringify(images),
+        area: params.area,
+        propertyTitle: commercialDetails.hospitalityDetails?.propertyTitle || params.propertyTitle,
+        commercialBaseDetails: params.commercialBaseDetails,
+      },
+    });
+  };
+
+  const handleNext = () => {
+    console.log('🔄 handleNext called with:', {
+      hasCommercialDetails: !!commercialDetails,
+      hasHospitalityDetails: !!commercialDetails?.hospitalityDetails,
+      hasVastuDetails: !!form,
+    });
+
+    if (!commercialDetails || !commercialDetails.hospitalityDetails) {
+      Toast.show({
+        type: 'error',
+        text1: 'Missing Data',
+        text2: 'Property details are missing. Please go back and complete all previous steps.',
+      });
+      return;
+    }
+
+    const updatedCommercialDetails = {
+      ...commercialDetails,
+      hospitalityDetails: {
+        ...commercialDetails.hospitalityDetails,
+        vastuDetails: form,
+      },
+    };
+
+    router.push({
+      pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
+      params: {
+        commercialDetails: JSON.stringify(updatedCommercialDetails),
+        images: JSON.stringify(images),
+        area: params.area,
+        propertyTitle: commercialDetails.hospitalityDetails?.propertyTitle || params.propertyTitle,
+        commercialBaseDetails: params.commercialBaseDetails,
+        hospitalityDetails: JSON.stringify(commercialDetails.hospitalityDetails),
+      },
+    });
+  };
 
   return (
     <View className="flex-1 bg-white">
       {/* HEADER */}
       <View className="flex-row items-center ml-4 mt-12 mb-2">
-        <TouchableOpacity
-          // NEW
-onPress={() => router.push({
-  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityNext",
-  params: {
-    images: JSON.stringify(images),
-    commercialDetails: params.commercialDetails,
-  }
-})}
-        >
+        <TouchableOpacity onPress={handleBack} className="p-2">
           <Image
             source={require("../../../../../../assets/arrow.png")}
             className="w-5 h-5"
@@ -165,47 +291,14 @@ onPress={() => router.push({
         <View className="flex-row bg-white rounded-lg p-4 justify-end mx-3 mb-12 space-x-3">
           <TouchableOpacity
             className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
-            onPress={() =>
-              router.push(
-                "/home/screens/UploadScreens/CommercialUpload/Components/IndustryNext"
-              )
-            }
+            onPress={handleBack}
           >
             <Text className="font-semibold">Cancel</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             className="px-5 py-3 rounded-lg bg-green-500"
-            onPress={() => {
-  if (!commercialDetailsFromPrev) return;
-
-const updatedCommercialDetails = {
-  ...commercialDetailsFromPrev,
-  hospitalityDetails: {
-    ...(commercialDetailsFromPrev.hospitalityDetails || {}),
-    vastuDetails: form,
-  },
-};
-
-console.log("➡️ Hospitality → Owner payload:", updatedCommercialDetails);
-
-if (!commercialDetailsFromPrev) {
-  Toast.show({ type: 'error', text1: 'Missing details', text2: 'Please complete previous steps before continuing.' });
-  return;
-}
-
-// NEW
-router.push({
-  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
-  params: {
-    commercialDetails: JSON.stringify(updatedCommercialDetails),
-    images: JSON.stringify(images),
-    area: params.area, // ✅ ADD THIS
-  },
-});
-
-}}
-
+            onPress={handleNext}
           >
             <Text className="text-white font-semibold">Next</Text>
           </TouchableOpacity>

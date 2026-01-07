@@ -142,8 +142,8 @@ export default function PropertyFormScreen() {
   //const [possessionBy, setPossessionBy] = useState("");
 
   // Area / Setup
-  const [area, setArea] = useState("");
-  const [carpetArea, setCarpetArea] = useState(""); // ✅ ADD THIS NEW LINE
+ const [neighborhoodArea, setNeighborhoodArea] = useState(""); // ✅ RENAMED
+const [carpetArea, setCarpetArea] = useState("");
 
   const [unit, setUnit] = useState("sqft");
 
@@ -211,7 +211,6 @@ export default function PropertyFormScreen() {
 
   const ownershipOptions = ["Freehold", "Leasehold", "Company Owned", "Other"];
   const [ownership, setOwnership] = useState("");
-
 useEffect(() => {
   console.log('🔍 Office.jsx - Received params:', {
     hasOfficeDetails: !!params.officeDetails,
@@ -234,7 +233,7 @@ useEffect(() => {
         setZoneType(prevData.zoneType || '');
         setCarpetArea(prevData.carpetArea?.toString() || '');
         setUnit(prevData.carpetAreaUnit || 'sqft');
-        if (params.area) setArea(params.area);
+        setNeighborhoodArea(prevData.neighborhoodArea || params.area || ''); // ✅ FIXED6
         
         setCabins(prevData.cabins?.toString() || '');
         setMeetingRooms(prevData.meetingRooms?.toString() || '');
@@ -343,7 +342,7 @@ useEffect(() => {
       location,
       locatedInside,
       zoneType,
-      area,
+      neighborhoodArea, // ✅ FIXED
       carpetArea,
       carpetAreaUnit: unit,
       cabins,
@@ -395,8 +394,7 @@ useEffect(() => {
   // Debounce: only save after user stops typing for 1 second
   const timer = setTimeout(saveDraft, 1000);
   return () => clearTimeout(timer);
-
-}, [location, area, carpetArea, cabins, meetingRooms, seats, maxSeats, 
+}, [location, neighborhoodArea, carpetArea, cabins, meetingRooms, seats, maxSeats, // ✅ FIXED
     conferenceCount, publicWashrooms, privateWashrooms, pantryType, pantrySize,
     features, fireMeasures, totalFloors, floorNo, stairCase, lift,
     passengerLifts, serviceLifts, parking, parkingOptions, parkingCount,
@@ -429,7 +427,7 @@ useEffect(() => {
   return;
 }
 
-if (!area.trim()) {
+if (!neighborhoodArea.trim()) { // ✅ FIXED
   Toast.show({
     type: "error",
     text1: "Area Required",
@@ -446,7 +444,7 @@ if (!carpetArea.trim()) {
     });
     return;
   }
-const officeDetails = {
+ const officeDetails = {
   officeKind: officeKindFromBase,
   propertyTitle: baseDetails?.propertyTitle,
 
@@ -454,7 +452,7 @@ const officeDetails = {
   locatedInside,
   zoneType,
   
-  neighborhoodArea: area.trim(),
+  neighborhoodArea: neighborhoodArea.trim(), // ✅ FIXED
 
   carpetArea: carpetArea ? Number(carpetArea) : undefined,
   carpetAreaUnit: unit,
@@ -512,7 +510,7 @@ router.push({
   params: {
     officeDetails: JSON.stringify(officeDetails),
     images: JSON.stringify(images),
-    area: area.trim(), // ✅ Pass trimmed area
+    area: neighborhoodArea.trim(), // ✅ FIXED
     propertyTitle: baseDetails?.propertyTitle,
   },
 });
@@ -574,12 +572,13 @@ router.push({
     };
 
     // ✅ Navigate back to the Commercial Upload index page with saved data
+// ✅ Navigate back to the Commercial Upload index page with saved data
 router.push({
   pathname: "/home/screens/UploadScreens/CommercialUpload",
   params: {
     officeDetails: JSON.stringify(currentOfficeData),
     images: JSON.stringify(images),
-    area: area.trim(),
+    area: neighborhoodArea.trim(), // ✅ FIXED
     propertyTitle: baseDetails?.propertyTitle,
    commercialBaseDetails: JSON.stringify({
   subType: "Office",
@@ -645,8 +644,7 @@ router.push({
       }}
     />
   </View>
-
-  {/* ✅ NEW AREA FIELD */}
+{/* ✅ NEIGHBORHOOD AREA FIELD */}
  <Text className="text-[14px] font-medium text-[#00000099] mb-3">
   Area/Neighborhood<Text className="text-red-500">*</Text>
 </Text>
@@ -654,7 +652,7 @@ router.push({
   className="flex-row items-center rounded-md p-3 mb-5"
   style={{
     borderWidth: 1,
-    borderColor: focusedField === "area" ? "#22C55E" : "#0000001A",
+    borderColor: focusedField === "neighborhoodArea" ? "#22C55E" : "#0000001A",
     backgroundColor: "#D9D9D91C",
     height: 52,
   }}
@@ -665,9 +663,9 @@ router.push({
   />
   <TextInput
     placeholder="Enter Area/Neighborhood (e.g., Akkayapalem)"
-    value={area}
-    onChangeText={setArea}
-    onFocus={() => setFocusedField("area")}
+    value={neighborhoodArea}
+    onChangeText={setNeighborhoodArea}
+    onFocus={() => setFocusedField("neighborhoodArea")}
     onBlur={() => setFocusedField(null)}
     className="flex-1"
   />
@@ -1323,13 +1321,13 @@ router.push({
       possessionBy,
       ownership,
     };
-
+//cancel button
 router.push({
   pathname: "/home/screens/UploadScreens/CommercialUpload",
   params: {
-    officeDetails: JSON.stringify(currentOfficeData),
+    officeDetails: JSON.stringify(currentData),
     images: JSON.stringify(images),
-    area: area.trim(),
+    area: neighborhoodArea.trim(), // ✅ FIXED
     propertyTitle: baseDetails?.propertyTitle,
     commercialBaseDetails: JSON.stringify({
   subType: "Office",

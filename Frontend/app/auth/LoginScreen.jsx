@@ -91,10 +91,17 @@ const getLocalizedName = (nameField) => {
     try {
       const response = await loginUser(phone);
 
-    if (response.success && response.data.success) {
+ if (response.success && response.data.success) {
   if (response.data.data?.token) {
-    await saveToken(response.data.data.token);
-    console.log('🔐 Token saved on login:', response.data.data.token);
+    const tokenSaved = await saveToken(response.data.data.token);
+    if (!tokenSaved) {
+      console.error('❌ Failed to save token on login');
+      throw new Error('Token storage failed');
+    }
+    console.log('🔐 Token saved successfully on login');
+  } else {
+    console.error('❌ No token in login response:', response.data);
+    throw new Error('No token received from server');
   }
   
   await saveUserData(response.data.data.user);

@@ -586,6 +586,10 @@ export default function OwnerScreen() {
           'draft_office_details',
           'draft_office_pricing',
           'draft_office_vaastu',
+          'draft_commercial_hospitality', // ✅ ADD THIS
+          'draft_hospitality_details', // ✅ ADD THIS
+          'draft_hospitality_pricing', // ✅ ADD THIS
+          'draft_hospitality_vaastu', // ✅ ADD THIS
         ]);
         console.log('🧹 All drafts cleared');
       } catch (e) {
@@ -616,6 +620,22 @@ export default function OwnerScreen() {
           <Text className="text-[12px] text-[#00000066]">Add your property details</Text>
         </View>
       </View>
+
+      {/* ✅ TEMPORARY - CLEAR BAD TOKEN BUTTON */}
+      <TouchableOpacity 
+        onPress={async () => {
+          await AsyncStorage.removeItem('userToken');
+          Alert.alert('Success', 'Token cleared. Please login again.');
+          router.replace('/auth/LoginScreen');
+        }}
+        style={{ padding: 15, backgroundColor: '#FF6B6B', margin: 10, borderRadius: 8 }}
+      >
+        <Text style={{ color: 'white', textAlign: 'center', fontWeight: 'bold' }}>
+          🔧 Clear Token & Re-login
+        </Text>
+      </TouchableOpacity>
+
+
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 36 }} showsVerticalScrollIndicator={false}>
         <View className="px-4 mt-4 border border-gray-200 rounded-lg bg-white space-y-4">
           <ImageUpload title="Property Images" subtitle="Upload at least one image of your property." files={propertyImages} setFiles={setPropertyImages} required />

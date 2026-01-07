@@ -111,12 +111,28 @@ export const getUserProfile = async () => {
 };
 
 // Save token to AsyncStorage
+// Save token to AsyncStorage
 export const saveToken = async (token) => {
   try {
-    await AsyncStorage.setItem('userToken', token);
+    // ✅ CRITICAL: Clean and validate token before saving
+    if (!token || typeof token !== 'string') {
+      console.error('❌ Invalid token format:', token);
+      return false;
+    }
+    
+    // Remove any whitespace, quotes, or Bearer prefix
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '').replace(/^Bearer\s+/i, '');
+    
+    console.log('💾 Saving clean token:', cleanToken.substring(0, 20) + '...');
+    await AsyncStorage.setItem('userToken', cleanToken);
+    
+    // ✅ Verify it was saved correctly
+    const verification = await AsyncStorage.getItem('userToken');
+    console.log('✅ Token verified in storage:', verification.substring(0, 20) + '...');
+    
     return true;
   } catch (error) {
-    console.error('Error saving token:', error);
+    console.error('❌ Error saving token:', error);
     return false;
   }
 };
@@ -259,7 +275,7 @@ export const checkPhoneExists = async (phone) => {
 
 
 
-const PROPERTY_API_BASE_URL = 'http://10.10.7.161:8000/api/properties';
+const PROPERTY_API_BASE_URL = 'http://10.37.92.184:8000/api/properties';
 
 
 // Create property with images
