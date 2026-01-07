@@ -1,9 +1,8 @@
-<<<<<<< HEAD
-=======
+
 
 
 //Frontend/app/home/screens/Sidebar/RoomOverview.jsx
->>>>>>> 25c90195813f66daede1f64d9e7273a1050716d3
+
 import React, { useState, useEffect } from "react";
 import {
   View,

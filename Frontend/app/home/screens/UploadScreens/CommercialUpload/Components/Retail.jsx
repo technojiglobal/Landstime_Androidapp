@@ -1,3 +1,5 @@
+//Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/Retail.jsx
+
 import React, { useState } from "react";
 import {
   View,
@@ -55,6 +57,9 @@ const Checkbox = ({ selected }) => (
 export default function Retail() {
   const router = useRouter();
   const params = useLocalSearchParams();
+
+
+  const images = params.images ? JSON.parse(params.images) : [];
   const safeParse = (raw) => {
     if (!raw) return null;
     if (typeof raw === 'string') {
@@ -236,14 +241,14 @@ const handleRetailNext = () => {
     },
   };
 
-  router.push({
-    pathname:
-      "/home/screens/UploadScreens/CommercialUpload/Components/RetailNext",
-    params: {
-      commercialDetails: JSON.stringify(commercialDetails),
-      propertyTitle: baseDetails?.propertyTitle,
-    },
-  });
+router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/RetailNext",
+  params: {
+    commercialDetails: JSON.stringify(commercialDetails),
+    propertyTitle: baseDetails?.propertyTitle,
+    images: JSON.stringify(images), // ✅ ADD THIS
+  },
+});
 };
 
 

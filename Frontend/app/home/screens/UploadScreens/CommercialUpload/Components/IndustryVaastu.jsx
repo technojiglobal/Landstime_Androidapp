@@ -1,3 +1,5 @@
+//CommercialUpload//Components//IndustryVaastu.jsx
+
 import React, { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
 import { useRouter,useLocalSearchParams } from "expo-router";
@@ -7,6 +9,8 @@ export default function VastuDetailsScreen() {
   const [form, setForm] = useState({});
   const router = useRouter();
 const params = useLocalSearchParams();
+
+const images = params.images ? JSON.parse(params.images) : [];
 
 const safeParse = (raw) => {
   if (!raw) return null;
@@ -31,13 +35,14 @@ const commercialDetailsFromPrev = safeParse(params.commercialDetails);
           onPress={() => {
   if (!commercialDetailsFromPrev) return;
 
-  router.push({
-    pathname:
-      "/home/screens/UploadScreens/CommercialUpload/Components/IndustryNext",
-    params: {
-      commercialDetails: JSON.stringify(commercialDetailsFromPrev),
-    },
-  });
+  // NEW
+router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
+  params: {
+    commercialDetails: JSON.stringify(updatedCommercialDetails),
+    images: JSON.stringify(images), // ✅ ADD THIS
+  },
+});
 }}
 
         >
@@ -204,14 +209,14 @@ const commercialDetailsFromPrev = safeParse(params.commercialDetails);
        <View className="bg-white border-t border-gray-200">
       <View className="flex-row bg-white rounded-lg p-4 justify-end mx-3 mb-12 space-x-3">
         <TouchableOpacity className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
-        onPress={() => {
+       // NEW
+onPress={() => {
   if (!commercialDetailsFromPrev) return;
-
   router.push({
-    pathname:
-      "/home/screens/UploadScreens/CommercialUpload/Components/IndustryNext",
+    pathname: "/home/screens/UploadScreens/CommercialUpload/Components/IndustryNext",
     params: {
       commercialDetails: JSON.stringify(commercialDetailsFromPrev),
+      images: JSON.stringify(images), // ✅ ADD THIS
     },
   });
 }}

@@ -1,3 +1,5 @@
+///Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/Other.jsx
+
 import React, { useState } from "react";
 import {
   View,

@@ -1,3 +1,5 @@
+//Frontend//app//home//screens//UploadScreens//CommericalUpload//IndustryNext.jsx
+
 import React, { useState } from "react";
 import {
     View,
@@ -49,7 +51,9 @@ const Checkbox = ({ label, checked, onPress }) => (
 );
 const IndustryNext = () => {
     const router = useRouter();
-      const params = useLocalSearchParams();
+    const params = useLocalSearchParams();
+
+    const images = params.images ? JSON.parse(params.images) : [];
 
 const safeParse = (raw) => {
   if (!raw) return null;
@@ -172,13 +176,15 @@ const commercialDetailsFromPrev = safeParse(params.commercialDetails);
     },
   };
 
-  router.push({
-    pathname:
-      "/home/screens/UploadScreens/CommercialUpload/Components/IndustryVaastu",
-    params: {
-      commercialDetails: JSON.stringify(updatedCommercialDetails),
-    },
-  });
+  // NEW
+router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/IndustryVaastu",
+  params: {
+    commercialDetails: JSON.stringify(updatedCommercialDetails),
+    images: JSON.stringify(images), // ✅ ADD THIS
+  },
+});
+
 };
 
 
@@ -186,9 +192,14 @@ const commercialDetailsFromPrev = safeParse(params.commercialDetails);
         <View className="flex-1 bg-white">
             <View className="flex-row items-center mt-7 mt-4 mb-3 ml-4">
                     <TouchableOpacity
-                        onPress={() =>
-                            router.push("/home/screens/UploadScreens/CommercialUpload/Components/Industry")
-                        }
+                        // NEW
+onPress={() => router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/Industry",
+  params: {
+    images: JSON.stringify(images),
+    commercialDetails: params.commercialDetails,
+  }
+})}
                         className="p-2"
                     >
                         <Image

@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+//Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/Hospitality.jsx
+
+import React, { useState,useEffect } from 'react';
 import {
     View,
     Text,
@@ -10,7 +12,7 @@ import {
     Modal,
     FlatList,
 } from 'react-native';
-import { useRouter } from "expo-router";
+import { useRouter,useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import Toast from 'react-native-toast-message';
@@ -58,10 +60,17 @@ const RoundOption = ({ label, selected, onPress }) => (
 
 export default function Hospitality() {
     const router = useRouter();
+    const params = useLocalSearchParams();
+
+    const images = params.images ? JSON.parse(params.images) : [];
     /* ---------- VALIDATION ---------- */
-const handleNext = (location, plotArea, router) => {
+const handleNext = (location, area, plotArea, router) => {
   if (!location.trim()) {
     Toast.show({ type: "error", text1: "Location Required" });
+    return;
+  }
+  if (!area.trim()) {
+    Toast.show({ type: "error", text1: "Area Required" });
     return;
   }
   if (!plotArea.trim()) {
@@ -73,13 +82,14 @@ const handleNext = (location, plotArea, router) => {
     subType: "Hospitality",
     hospitalityDetails: {
       location,
+       neighborhoodArea: area.trim(), // ✅ ADD THIS
       rooms,
       washroomType,
       balconies,
       otherRooms,
       furnishingType,
       furnishingDetails,
-      area: Number(plotArea),
+      area: { value: Number(plotArea), unit }, // ✅ CHANGE THIS
       areaUnit: unit,
       availability,
       ageOfProperty,
@@ -88,19 +98,23 @@ const handleNext = (location, plotArea, router) => {
     },
   };
 
-  router.push({
-    pathname:
-      "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityNext",
-    params: {
-      commercialDetails: JSON.stringify(commercialDetails),
-    },
-  });
+// NEW
+router.push({
+  pathname:
+    "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityNext",
+  params: {
+    commercialDetails: JSON.stringify(commercialDetails),
+    images: JSON.stringify(images),
+    area: area.trim(), // ✅ ADD THIS
+  },
+});
 };
     const [focusedField, setFocusedField] = useState(null);
     const [visible, setVisible] = useState(null);
 
     /* ---------- STATE ---------- */
     const [location, setLocation] = useState("");
+    const [area, setArea] = useState(""); // ✅ ADD THIS
     const [plotArea, setPlotArea] = useState("");
     const [unit, setUnit] = useState("sqft");
 
@@ -167,8 +181,15 @@ const handleNext = (location, plotArea, router) => {
                 {/* HEADER */}
                 <View className="flex-row items-center mt-7 mb-4">
                     <TouchableOpacity
-                        onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload")
-}
+                       // NEW
+onPress={() => router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload",
+  params: {
+    images: JSON.stringify(images),
+  }
+})}
+
+
                         className="p-2"
                     >
                         <Image
@@ -187,24 +208,57 @@ const handleNext = (location, plotArea, router) => {
                     </View>
                 </View>
 
-                {/* LOCATION */}
-                <View className="bg-white rounded-lg p-4 mb-4 border border-[#0000001A]">
-                    <Text className="text-[15px] text-[#00000060] mb-3">
-                        Location<Text className="text-red-500">*</Text>
-                    </Text>
+               {/* LOCATION */}
+<View className="bg-white rounded-lg p-4 mb-4 border border-[#0000001A]">
+    <Text className="text-[15px] text-[#00000060] mb-3">
+        Location<Text className="text-red-500">*</Text>
+    </Text>
 
-                    <View className="flex-row items-center bg-[#D9D9D91C] rounded-md p-3">
-                        <Image
-                            source={require("../../../../../../assets/location.png")}
-                            style={{ width: 18, height: 18, marginRight: 8 }}
-                        />
-                        <TextInput
-                            placeholder="Enter Property Location"
-                            value={location}
-                            onChangeText={setLocation}
-                            onFocus={() => setFocusedField("location")}
-                            onBlur={() => setFocusedField(null)}
-                            className="flex-1"
+    <View className="flex-row items-center bg-[#D9D9D91C] rounded-md p-3 mb-3">
+        <Image
+            source={require("../../../../../../assets/location.png")}
+            style={{ width: 18, height: 18, marginRight: 8 }}
+        />
+        <TextInput
+            placeholder="Enter Property Location"
+            value={location}
+            onChangeText={setLocation}
+            onFocus={() => setFocusedField("location")}
+            onBlur={() => setFocusedField(null)}
+            className="flex-1 rounded-lg"
+            style={{
+                borderWidth: 1,
+                borderColor: focusedField === "location" ? "#22C55E" : "#0000001A",
+            }}
+        />
+    </View>
+
+    {/* ✅ NEW AREA FIELD */}
+    <Text className="text-[14px] font-medium text-[#00000099] mb-3">
+        Area/Neighborhood<Text className="text-red-500">*</Text>
+    </Text>
+    <View
+        className="flex-row items-center rounded-md p-3 mb-3"
+        style={{
+            borderWidth: 1,
+            borderColor: focusedField === "area" ? "#22C55E" : "#0000001A",
+            backgroundColor: "#D9D9D91C",
+            height: 52,
+        }}
+    >
+        <Image
+            source={require("../../../../../../assets/location.png")}
+            style={{ width: 18, height: 18, marginRight: 8 }}
+        />
+        <TextInput
+            placeholder="Enter Area/Neighborhood (e.g., Banjara Hills)"
+            value={area}
+            onChangeText={setArea}
+            onFocus={() => setFocusedField("area")}
+            onBlur={() => setFocusedField(null)}
+            className="flex-1"
+
+
                             style={{
                                 borderWidth: 1,
                                 borderColor:
@@ -476,7 +530,7 @@ const handleNext = (location, plotArea, router) => {
                     </TouchableOpacity>
                     <TouchableOpacity
                         className="px-10 py-3 rounded-lg bg-green-500"
-                        onPress={() => handleNext(location, plotArea, router)}
+                       onPress={() => handleNext(location, area, plotArea, router)}
                     >
                         <Text className="text-white font-semibold">Next</Text>
                     </TouchableOpacity>

@@ -1,3 +1,5 @@
+//Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/HospitalityVaastu.jsx
+
 import React, { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
 import { useRouter,useLocalSearchParams } from "expo-router";
@@ -8,6 +10,8 @@ export default function VastuDetailsScreen() {
   const [form, setForm] = useState({});
   const router = useRouter();
   const params = useLocalSearchParams();
+
+  const images = params.images ? JSON.parse(params.images) : [];
 
 const safeParse = (raw) => {
   if (!raw) return null;
@@ -36,11 +40,14 @@ const commercialDetailsFromPrev = safeParse(params.commercialDetails);
       {/* HEADER */}
       <View className="flex-row items-center ml-4 mt-12 mb-2">
         <TouchableOpacity
-          onPress={() =>
-            router.push(
-              "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityNext"
-            )
-          }
+          // NEW
+onPress={() => router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityNext",
+  params: {
+    images: JSON.stringify(images),
+    commercialDetails: params.commercialDetails,
+  }
+})}
         >
           <Image
             source={require("../../../../../../assets/arrow.png")}
@@ -187,11 +194,13 @@ if (!commercialDetailsFromPrev) {
   return;
 }
 
+// NEW
 router.push({
-  pathname:
-    "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
   params: {
     commercialDetails: JSON.stringify(updatedCommercialDetails),
+    images: JSON.stringify(images),
+    area: params.area, // ✅ ADD THIS
   },
 });
 

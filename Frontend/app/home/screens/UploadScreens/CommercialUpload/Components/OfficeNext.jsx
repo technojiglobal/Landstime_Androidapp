@@ -1,6 +1,6 @@
 //Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/OfficeNext.jsx
 
-import React, { useState } from "react";
+import React, { useState,useEffect,useMemo } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Pressable,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
+import { Alert } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 
@@ -81,6 +82,10 @@ const LOCATION_ADVANTAGES = [
 const OfficeNext = () => {
   const router = useRouter();
 
+  const params = useLocalSearchParams();
+
+  const images = params.images ? JSON.parse(params.images) : [];
+
   /* ---------------- PRICE STATES ---------------- */
   const [expectedPrice, setExpectedPrice] = useState("");
   const [allInclusive, setAllInclusive] = useState(false);
@@ -108,8 +113,42 @@ const OfficeNext = () => {
 
   /* ---------------- MODAL AND FOCUS STATES ---------------- */
   const [focusedField, setFocusedField] = useState(null);
-  const [isMorePricingModalVisible, setIsMorePricingModalVisible] =
-    useState(false);
+  const [isMorePricingModalVisible, setIsMorePricingModalVisible] =  useState(false);
+
+
+  // ✅ ADD THIS useEffect
+useEffect(() => {
+  const officeDetails = params.officeDetails ? JSON.parse(params.officeDetails) : null;
+  
+  if (officeDetails) {
+    console.log('🔄 Restoring OfficeNext data:', officeDetails);
+    
+    // Price details
+    setExpectedPrice(officeDetails.expectedPrice?.toString() || '');
+    setAllInclusive(officeDetails.priceDetails?.allInclusive || false);
+    setPriceNegotiable(officeDetails.priceDetails?.negotiable || false);
+    setTaxExcluded(officeDetails.priceDetails?.taxExcluded || false);
+    
+    // Pre-leased
+    setPreLeased(officeDetails.preLeased || null);
+    setLeaseDuration(officeDetails.leaseDuration || '');
+    setMonthlyRent(officeDetails.monthlyRent?.toString() || '');
+    
+    // Certificates
+    setNocCertified(officeDetails.nocCertified || null);
+    setOccupancyCertified(officeDetails.occupancyCertified || null);
+    
+    // Previous use
+    setPrevUsedFor(officeDetails.previouslyUsedFor || 'Commercial');
+    
+    // Description
+    setDescribeProperty(officeDetails.description || '');
+    
+    // Amenities & Location
+    setAmenities(officeDetails.amenities || []);
+    setLocAdvantages(officeDetails.locationAdvantages || []);
+  }
+}, [params.officeDetails]);
 
   /* ---------------- HELPERS ---------------- */
   const toggleArrayItem = (setter, array, value) => {
@@ -119,33 +158,104 @@ const OfficeNext = () => {
       setter([...array, value]);
     }
   };
-  const params = useLocalSearchParams();
+  
 
-  const officeDetails = params.officeDetails
-    ? JSON.parse(params.officeDetails)
-    : null;
-  const handleNext = () => {
-    if (!officeDetails) {
-      alert("Missing office details. Please restart.");
-      return;
-    }
+ const officeDetails = useMemo(() => {
+  try {
+    if (!params.officeDetails) return null;
+    if (typeof params.officeDetails === 'object') return params.officeDetails;
+    return JSON.parse(params.officeDetails);
+  } catch (e) {
+    console.error('❌ Error parsing officeDetails:', e);
+    return null;
+  }
+}, [params.officeDetails]);
 
-    const commercialDetails = {
-      subType: "Office",
+const handleNext = () => {
+  if (!officeDetails) {
+    Alert.alert(
+      "Missing Data",
+      "Office details are missing. Please go back and complete the previous step.",
+      [{ text: "Go Back", onPress: () => router.back() }]
+    );
+    return;
+  }
 
-      officeDetails,
+  // ✅ BUILD COMPLETE commercialDetails OBJECT
+const commercialDetails = {
+  subType: "Office",
 
+  officeDetails: {
+    ...officeDetails, // ✅ This preserves officeKind from previous screen
+    
+    // ✅ ADD NEW FIELDS from this screen (don't overwrite old ones)
+    expectedPrice: Number(expectedPrice), // ✅ This includes: location, carpetArea, cabins, etc.
+      
+      // ✅ ADD NEW FIELDS from this screen
       expectedPrice: Number(expectedPrice),
-
+      
       priceDetails: {
         allInclusive,
         negotiable: priceNegotiable,
         taxExcluded,
       },
-
+      
       preLeased,
-      leaseDuration,
-      monthlyRent,
+      leaseDuration: leaseDuration || undefined,
+      monthlyRent: monthlyRent ? Number(monthlyRent) : undefined,
+      
+      nocCertified,
+      occupancyCertified,
+      
+      previouslyUsedFor: prevUsedFor,
+      
+      description: describeProperty,
+      
+      amenities,
+      locationAdvantages: locAdvantages,
+    },
+
+    propertyTitle: officeDetails.propertyTitle || params.propertyTitle,
+    area: params.area, // ✅ Neighborhood area
+    expectedPrice: Number(expectedPrice),
+  };
+
+  console.log('🔄 Passing to OfficeVaastu:', {
+    hasCommercialDetails: !!commercialDetails,
+    hasOfficeDetails: !!commercialDetails.officeDetails,
+    propertyTitle: commercialDetails.propertyTitle,
+  });
+    // NEW
+router.push({
+    pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OfficeVaastu",
+    params: {
+      commercialDetails: JSON.stringify(commercialDetails),
+      images: JSON.stringify(images),
+      area: params.area || area, // ✅ Fallback to state if params missing
+      propertyTitle: commercialDetails.officeDetails?.propertyTitle || params.propertyTitle,
+    },
+  });
+};
+
+  return (
+    <View className="flex-1 bg-gray-50">
+      <View className="flex-row items-center mt-7 mb-4">
+       
+
+<TouchableOpacity
+  onPress={() => {
+    // Build current state
+    const currentData = {
+      ...officeDetails,
+      expectedPrice: Number(expectedPrice) || undefined,
+      priceDetails: {
+        allInclusive,
+        negotiable: priceNegotiable,
+        taxExcluded,
+      },
+      preLeased,
+      leaseDuration: leaseDuration || undefined,
+      monthlyRent: monthlyRent ? Number(monthlyRent) : undefined,
       nocCertified,
       occupancyCertified,
       previouslyUsedFor: prevUsedFor,
@@ -154,22 +264,19 @@ const OfficeNext = () => {
       locationAdvantages: locAdvantages,
     };
 
+    // Navigate back with saved data
     router.push({
-      pathname:
-        "/home/screens/UploadScreens/CommercialUpload/Components/OfficeVaastu",
+      pathname: "/home/screens/UploadScreens/CommercialUpload/Components/Office",
       params: {
-        commercialDetails: JSON.stringify(commercialDetails),
+        officeDetails: JSON.stringify(currentData),
+        images: JSON.stringify(images),
+        area: params.area,
+        commercialBaseDetails: params.commercialBaseDetails,
       },
     });
-  };
-
-  return (
-    <View className="flex-1 bg-gray-50">
-      <View className="flex-row items-center mt-7 mb-4">
-        <TouchableOpacity
-          onPress={() => router.push("/home/screens/UploadScreens/AddScreen")}
-          className="p-2"
-        >
+  }}
+  className="p-2"
+>
           <Image
             source={require("../../../../../../assets/arrow.png")}
             style={{ width: 20, height: 20 }}
@@ -433,9 +540,38 @@ const OfficeNext = () => {
             </View>
           </View>
           <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-3">
-            <TouchableOpacity className="px-5 py-3 rounded-lg bg-gray-200 mx-3">
-              <Text className="font-semibold">Cancel</Text>
-            </TouchableOpacity>
+   
+<TouchableOpacity 
+  className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
+  onPress={() => {
+    const currentData = {
+      ...officeDetails,
+      expectedPrice: Number(expectedPrice) || undefined,
+      priceDetails: { allInclusive, negotiable: priceNegotiable, taxExcluded },
+      preLeased,
+      leaseDuration,
+      monthlyRent: monthlyRent ? Number(monthlyRent) : undefined,
+      nocCertified,
+      occupancyCertified,
+      previouslyUsedFor: prevUsedFor,
+      description: describeProperty,
+      amenities,
+      locationAdvantages: locAdvantages,
+    };
+
+    router.push({
+      pathname: "/home/screens/UploadScreens/CommercialUpload/Components/Office",
+      params: {
+        officeDetails: JSON.stringify(currentData),
+        images: JSON.stringify(images),
+        area: params.area,
+        commercialBaseDetails: params.commercialBaseDetails,
+      },
+    });
+  }}
+>
+  <Text className="font-semibold">Cancel</Text>
+</TouchableOpacity>
 
             <TouchableOpacity
               className="px-5 py-3 rounded-lg bg-green-500"

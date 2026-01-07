@@ -1,3 +1,5 @@
+//Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/HospitalityNext.jsx
+
 import React, { useState } from "react";
 import {
     View,
@@ -7,7 +9,7 @@ import {
     ScrollView,
     Image,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter,useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Toast from 'react-native-toast-message';
 
@@ -51,6 +53,9 @@ const Checkbox = ({ selected }) => (
 );
 const HospitalityNext = () => {
     const router = useRouter();
+    const params = useLocalSearchParams();
+
+    const images = params.images ? JSON.parse(params.images) : [];
 
     /* ---------------- PRICE STATES ---------------- */
     const ownershipOptions = ['Freehold', 'Leasehold', 'Company Owned', 'Other'];
@@ -138,9 +143,16 @@ const HospitalityNext = () => {
             text1: 'Details Saved',
             text2: 'Moving to next step...',
         });
-        router.push(
-            "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityVaastu"
-        );
+
+       // NEW
+router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityVaastu",
+  params: {
+    commercialDetails: params.commercialDetails,
+    images: JSON.stringify(images),
+    area: params.area, // ✅ ADD THIS
+  },
+});
         // Navigate to next screen or submit
         // router.push("/next-screen");
     };
@@ -149,9 +161,14 @@ const HospitalityNext = () => {
         <View className="flex-1 bg-white">
             <View className="flex-row items-center mt-7 mt-4 mb-3 ml-4">
                     <TouchableOpacity
-                        onPress={() =>
-                            router.push("/home/screens/UploadScreens/CommercialUpload/Components/Hospitality")
-                        }
+                        // NEW
+onPress={() => router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/Hospitality",
+  params: {
+    images: JSON.stringify(images),
+    commercialDetails: params.commercialDetails,
+  }
+})}
                         className="p-2"
                     >
                         <Image

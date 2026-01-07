@@ -1,4 +1,6 @@
-import React, { useState,useMemo } from "react";
+// Landstime_Androidapp/Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen.jsx
+
+import React, { useState,useMemo,useEffect } from "react";
 import {
     View,
     Text,
@@ -8,6 +10,7 @@ import {
     Alert,
 } from "react-native";
 import { useRouter,useLocalSearchParams } from "expo-router";
+import { useTranslation } from "react-i18next";
 import DocumentUpload from "components/Documentupload";
 import ImageUpload from "components/ImageUpload";
 import OwnerDetails from "components/OwnersDetails";
@@ -15,9 +18,37 @@ import { createProperty } from "utils/propertyApi";
 
 export default function OwnerScreen() {
     const router = useRouter();
+    const {i18n} = useTranslation();
     // Read all params once at top-level (hooks must not be called inside event handlers)
     const params = useLocalSearchParams();
     const rawCommercialDetails = params.commercialDetails;
+
+
+     // Helper function to get user's current language
+    const getUserLanguage = () => {
+        const currentLang = i18n.language || 'en';
+        console.log('📝 Current app language:', currentLang);
+        return currentLang;
+    };
+
+    const handleBack = () => {
+  if (!commercialDetails) {
+    router.back();
+    return;
+  }
+
+ router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OfficeVaastu",
+  params: {
+    commercialDetails: JSON.stringify(commercialDetails),
+    images: JSON.stringify(propertyImages),
+    area: params.area,
+    propertyTitle: commercialDetails.officeDetails?.propertyTitle || params.propertyTitle,
+    // ✅ ADD THIS
+    commercialBaseDetails: params.commercialBaseDetails,
+  },
+});
+};
 
 
 const commercialDetails = useMemo(() => {
@@ -82,24 +113,65 @@ const commercialDetails = useMemo(() => {
   return;
 }
 
-const { expectedPrice, ...restOfCommercialDetails } = commercialDetails;
+// ✅ Extract expectedPrice from commercialDetails
+// ✅ Extract expectedPrice based on subType
 
-// also read any separately passed propertyTitle param as a fallback
-const passedTitle = params.propertyTitle;
+const restOfCommercialDetails = commercialDetails || {};
+
+const getExpectedPrice = () => {
+  if (restOfCommercialDetails.officeDetails?.expectedPrice) {
+    return restOfCommercialDetails.officeDetails.expectedPrice;
+  }
+  if (restOfCommercialDetails.retailDetails?.pricing?.expectedPrice) {
+    return restOfCommercialDetails.retailDetails.pricing.expectedPrice;
+  }
+  if (restOfCommercialDetails.industryDetails?.pricing?.expectedPrice) {
+    return restOfCommercialDetails.industryDetails.pricing.expectedPrice;
+  }
+  return commercialDetails.expectedPrice || 0;
+};
+
+const getLocation = () => {
+  return restOfCommercialDetails.officeDetails?.location ||
+    restOfCommercialDetails.retailDetails?.location ||
+    restOfCommercialDetails.industryDetails?.location ||
+    restOfCommercialDetails.hospitalityDetails?.location ||
+    restOfCommercialDetails.plotDetails?.location ||
+    restOfCommercialDetails.storageDetails?.location ||
+    '';
+};
+
+const getNeighborhoodArea = () => {
+  return params.area || 
+    restOfCommercialDetails.officeDetails?.neighborhoodArea ||
+    restOfCommercialDetails.area || 
+    '';
+};
+// ✅ ADD THIS helper function before propertyData
+const getDescription = () => {
+  return restOfCommercialDetails.officeDetails?.description ||
+    restOfCommercialDetails.retailDetails?.description ||
+    restOfCommercialDetails.industryDetails?.description ||
+    restOfCommercialDetails.hospitalityDetails?.description ||
+    restOfCommercialDetails.plotDetails?.description ||
+    restOfCommercialDetails.storageDetails?.description ||
+    '';
+};
 
 const propertyData = {
   propertyTitle:
-    restOfCommercialDetails.propertyTitle || passedTitle || `Commercial ${restOfCommercialDetails.subType || "Office"}`,
+    restOfCommercialDetails.propertyTitle || 
+    params.propertyTitle || 
+    `Commercial ${restOfCommercialDetails.subType || "Office"}`,
   propertyType: "Commercial",
-  // include Plot location as a fallback too
- location:
-  restOfCommercialDetails.officeDetails?.location ||
-  restOfCommercialDetails.industryDetails?.location ||
-  restOfCommercialDetails.hospitalityDetails?.location ||
-  restOfCommercialDetails.retailDetails?.location ||
-  restOfCommercialDetails.plotDetails?.location,
+  originalLanguage: getUserLanguage(),
+  
+  location: getLocation(),
+  area: getNeighborhoodArea(),
+  
+  description: getDescription(), // ✅ Use helper function
 
-  expectedPrice: expectedPrice,
+  expectedPrice: getExpectedPrice(),
 
   commercialDetails: restOfCommercialDetails,
 
@@ -140,12 +212,12 @@ const propertyData = {
     return (
         <View className="flex-1 bg-[#F5F6F8]">
             <View className="flex-row items-center mt-12 ">
-                        <TouchableOpacity
-                            onPress={() => router.push("/(tabs)/home")}
-                            className="p-2"
-                            accessibilityRole="button"
-                        >
-                            <Image
+         
+<TouchableOpacity
+  onPress={handleBack}
+  className="p-2"
+  accessibilityRole="button"
+>                 <Image
                                 source={require("../../../../../../assets/arrow.png")}
                                 style={{ width: 20, height: 20, resizeMode: "contain" }}
                             />

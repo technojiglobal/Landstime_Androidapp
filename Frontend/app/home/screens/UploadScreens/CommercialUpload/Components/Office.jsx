@@ -1,10 +1,6 @@
-<<<<<<< HEAD
-
-=======
->>>>>>> 25c90195813f66daede1f64d9e7273a1050716d3
 //Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/Office.jsx
 
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import {
   View,
   Text,
@@ -122,12 +118,14 @@ const Counter = ({ value, setValue }) => (
 export default function PropertyFormScreen() {
   const params = useLocalSearchParams();
 
+   const images = params.images ? JSON.parse(params.images) : [];
+
   const baseDetails = params.commercialBaseDetails
     ? JSON.parse(params.commercialBaseDetails)
     : null;
 
   // ✅ office type from previous screen
-  const officeKindFromBase = baseDetails?.subType;
+ const officeKindFromBase = baseDetails?.officeKind;
 
   // Basic Details
 
@@ -142,9 +140,11 @@ export default function PropertyFormScreen() {
 
   // Area / Setup
   const [area, setArea] = useState("");
+  const [carpetArea, setCarpetArea] = useState(""); // ✅ ADD THIS NEW LINE
+
   const [unit, setUnit] = useState("sqft");
 
-  const [carpetArea, setCarpetArea] = useState("");
+  
   const [cabins, setCabins] = useState("");
   const [meetingRooms, setMeetingRooms] = useState("");
   const [seats, setSeats] = useState("");
@@ -209,6 +209,123 @@ export default function PropertyFormScreen() {
   const ownershipOptions = ["Freehold", "Leasehold", "Company Owned", "Other"];
   const [ownership, setOwnership] = useState("");
 
+useEffect(() => {
+  console.log('🔍 Office.jsx - Received params:', {
+    hasOfficeDetails: !!params.officeDetails,
+    hasArea: !!params.area,
+    area: params.area,
+    hasCommercialBaseDetails: !!params.commercialBaseDetails,
+  });
+
+  // ✅ ADD THIS - Restore commercialBaseDetails to get officeKind
+  if (params.commercialBaseDetails) {
+    try {
+      const baseDetails = JSON.parse(params.commercialBaseDetails);
+      console.log('🔄 Restoring base details with officeKind:', baseDetails.officeKind);
+    } catch (e) {
+      console.log('❌ Could not parse commercialBaseDetails:', e);
+    }
+  }
+
+  if (params.officeDetails) {
+    try {
+      const prevData = JSON.parse(params.officeDetails);
+      console.log('🔄 Restoring office data:', prevData);
+      
+      // Basic fields
+      setLocation(prevData.location || '');
+      setLocatedInside(prevData.locatedInside || '');
+      setZoneType(prevData.zoneType || '');
+      
+      // Area fields
+     // Area fields
+setCarpetArea(prevData.carpetArea?.toString() || '');
+setUnit(prevData.carpetAreaUnit || 'sqft');
+
+// ✅ ADD THIS - Restore neighborhood area
+if (params.area) {
+  setArea(params.area);
+}
+      
+      // Office setup
+      setCabins(prevData.cabins?.toString() || '');
+      setMeetingRooms(prevData.meetingRooms?.toString() || '');
+      setSeats(prevData.seats?.toString() || '');
+      setMaxSeats(prevData.maxSeats?.toString() || '');
+      setShowMaxSeats(!!prevData.maxSeats);
+      
+      // Features
+      if (prevData.receptionArea !== undefined) {
+        setFeatures(prev => ({...prev, reception: prevData.receptionArea}));
+      }
+      if (prevData.furnishing !== undefined) {
+        setFeatures(prev => ({...prev, furnishing: prevData.furnishing}));
+      }
+      if (prevData.additionalFeatures) {
+        setFeatures(prev => ({
+          ...prev,
+          centralAC: prevData.additionalFeatures.includes('Central AC'),
+          oxygenDuct: prevData.additionalFeatures.includes('Oxygen Duct'),
+          ups: prevData.additionalFeatures.includes('UPS'),
+        }));
+      }
+      
+      // Conference & Washrooms
+      setConferenceCount(prevData.conferenceRooms || null);
+      if (prevData.washrooms) {
+        setPublicWashrooms(prevData.washrooms.public?.toString() || null);
+        setPrivateWashrooms(prevData.washrooms.private?.toString() || null);
+        if (prevData.washrooms.public || prevData.washrooms.private) {
+          setFeatures(prev => ({...prev, washRoom: true}));
+        }
+      }
+
+      // ✅ ADD THIS - Restore pantry details
+if (prevData.pantry !== undefined) {
+  setFeatures(prev => ({...prev, pantry: prevData.pantry}));
+  setPantryType(prevData.pantryType || null);
+  setPantrySize(prevData.pantrySize?.toString() || '');
+}
+
+
+      
+      // Fire safety
+      setFireMeasures(prevData.fireSafetyMeasures || []);
+      
+      // Floor details
+      setTotalFloors(prevData.totalFloors?.toString() || '');
+      setFloorNo(prevData.floorNo?.toString() || '');
+      setStairCase(prevData.staircases || null);
+      
+      // Lifts
+      setLift(prevData.lift || null);
+      setPassengerLifts(prevData.passengerLifts || 0);
+      setServiceLifts(prevData.serviceLifts || 0);
+      
+      // Parking
+      if (prevData.parking) {
+        setParking(prevData.parking.type || null);
+        setParkingOptions(prevData.parking.options || {basement: false, outside: false, private: false});
+        setParkingCount(prevData.parking.count?.toString() || '');
+      }
+      
+      // Availability
+      setAvailability(prevData.availability || null);
+      setAgeOfProperty(prevData.ageOfProperty || null);
+      setPossessionBy(prevData.possessionBy || '');
+      setOwnership(prevData.ownership || '');
+      
+    } catch (e) {
+      console.log('❌ Could not restore office data:', e);
+    }
+  }
+  
+  // ✅ Also restore area from params
+  if (params.area) {
+    setArea(params.area);
+  }
+}, [params.officeDetails, params.area]);
+
   // Price and other
 
   const router = useRouter();
@@ -217,96 +334,112 @@ export default function PropertyFormScreen() {
     if (arr.includes(value)) arrSetter(arr.filter((a) => a !== value));
     else arrSetter([...arr, value]);
   };
-  const handleNext = () => {
-    if (!officeKindFromBase) {
-      Toast.show({
-        type: "error",
-        text1: "Office type missing",
-        text2: "Please go back and select office type",
-      });
-      return;
-    }
-
-    if (!location.trim()) {
-      Toast.show({
-        type: "error",
-        text1: "Location Required",
-        text2: "Please enter the property location.",
-      });
-      return;
-    }
-
-    if (!area.trim()) {
-      Toast.show({
-        type: "error",
-        text1: "Area Required",
-        text2: "Please enter the area.",
-      });
-      return;
-    }
-
-    const officeDetails = {
-      officeKind: officeKindFromBase,
-
-      location,
-      locatedInside,
-      zoneType,
-
-      area: Number(area),
-      areaUnit: unit,
-
-      carpetArea: carpetArea ? Number(carpetArea) : undefined,
-      carpetAreaUnit: carpetUnit,
-
-      cabins: cabins ? Number(cabins) : undefined,
-      meetingRooms: meetingRooms ? Number(meetingRooms) : undefined,
-      seats: seats ? Number(seats) : undefined,
-      maxSeats: maxSeats ? Number(maxSeats) : undefined,
-
-      conferenceRooms: conferenceCount,
-
-      washrooms: {
-        public: publicWashrooms ? Number(publicWashrooms) : undefined,
-        private: privateWashrooms ? Number(privateWashrooms) : undefined,
-      },
-
-      receptionArea: features.reception,
-      furnishing: features.furnishing,
-
-      additionalFeatures: [
-        features.centralAC && "Central AC",
-        features.oxygenDuct && "Oxygen Duct",
-        features.ups && "UPS",
-      ].filter(Boolean),
-
-      fireSafetyMeasures: fireMeasures,
-
-      totalFloors: totalFloors ? Number(totalFloors) : undefined,
-      staircases: stairCase,
-
-      lift,
-      passengerLifts,
-      serviceLifts,
-
-      parking: {
-        type: parking,
-        options: parkingOptions,
-        count: parkingCount ? Number(parkingCount) : undefined,
-      },
-
-      availability,
-      ageOfProperty,
-      possessionBy,
-      ownership,
-    };
-
-    router.push({
-      pathname:
-        "/home/screens/UploadScreens/CommercialUpload/Components/OfficeNext",
-      params: {
-        officeDetails: JSON.stringify(officeDetails),
-      },
+ const handleNext = () => {
+  if (!officeKindFromBase) {
+    Toast.show({
+      type: "error",
+      text1: "Office type missing",
+      text2: "Please go back and select office type",
     });
+    return;
+  }
+
+  if (!location.trim()) {
+  Toast.show({
+    type: "error",
+    text1: "Location Required",
+    text2: "Please enter the property location.",
+  });
+  return;
+}
+
+if (!area.trim()) {
+  Toast.show({
+    type: "error",
+    text1: "Area Required",
+    text2: "Please enter the area/neighborhood.",
+  });
+  return;
+}
+
+if (!carpetArea.trim()) {
+    Toast.show({
+      type: "error",
+      text1: "Area Required",
+      text2: "Please enter the area.",
+    });
+    return;
+  }
+const officeDetails = {
+  officeKind: officeKindFromBase,
+  propertyTitle: baseDetails?.propertyTitle,
+
+  location,
+  locatedInside,
+  zoneType,
+  
+  neighborhoodArea: area.trim(),
+
+  carpetArea: carpetArea ? Number(carpetArea) : undefined,
+  carpetAreaUnit: unit,
+
+  cabins: cabins ? Number(cabins) : undefined,
+  meetingRooms: meetingRooms ? Number(meetingRooms) : undefined,
+  seats: seats ? Number(seats) : undefined,
+  maxSeats: maxSeats ? Number(maxSeats) : undefined,
+
+  conferenceRooms: conferenceCount,
+
+  washrooms: {
+    public: publicWashrooms ? Number(publicWashrooms) : undefined,
+    private: privateWashrooms ? Number(privateWashrooms) : undefined,
+  },
+
+  receptionArea: features.reception,
+  furnishing: features.furnishing,
+  
+  // ✅ ADD PANTRY DETAILS
+  pantry: features.pantry,
+  pantryType: pantryType,
+  pantrySize: pantrySize ? Number(pantrySize) : undefined,
+
+  additionalFeatures: [
+    features.centralAC && "Central AC",
+    features.oxygenDuct && "Oxygen Duct",
+    features.ups && "UPS",
+  ].filter(Boolean),
+
+  fireSafetyMeasures: fireMeasures,
+
+  totalFloors: totalFloors ? Number(totalFloors) : undefined,
+  floorNo: floorNo ? Number(floorNo) : undefined, // ✅ ALREADY HERE
+  staircases: stairCase,
+
+  lift,
+  passengerLifts,
+  serviceLifts,
+
+  parking: {
+    type: parking,
+    options: parkingOptions,
+    count: parkingCount ? Number(parkingCount) : undefined,
+  },
+
+  availability,
+  ageOfProperty,
+  possessionBy,
+  ownership,
+};
+
+router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OfficeNext",
+  params: {
+    officeDetails: JSON.stringify(officeDetails),
+    images: JSON.stringify(images),
+    area: area.trim(), // ✅ Pass trimmed area
+    propertyTitle: baseDetails?.propertyTitle,
+  },
+});
   };
 
   return (
@@ -316,10 +449,76 @@ export default function PropertyFormScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View className="flex-row items-center mt-7 mb-4">
-          <TouchableOpacity
-            onPress={() => router.push("/home/screens/UploadScreens/AddScreen")}
-            className="p-2"
-          >
+         
+
+<TouchableOpacity
+  onPress={() => {
+    // Save current state before going back
+    const currentOfficeData = {
+      location,
+      locatedInside,
+      zoneType,
+      carpetArea,
+      carpetAreaUnit: unit,
+      cabins,
+      meetingRooms,
+      seats,
+      maxSeats,
+      receptionArea: features.reception,
+      furnishing: features.furnishing,
+      pantry: features.pantry,
+  pantryType: pantryType,
+  pantrySize: pantrySize,
+      additionalFeatures: [
+        features.centralAC && "Central AC",
+        features.oxygenDuct && "Oxygen Duct",
+        features.ups && "UPS",
+      ].filter(Boolean),
+      conferenceRooms: conferenceCount,
+      washrooms: {
+        public: publicWashrooms ? Number(publicWashrooms) : undefined,
+        private: privateWashrooms ? Number(privateWashrooms) : undefined,
+      },
+      fireSafetyMeasures: fireMeasures,
+      totalFloors: totalFloors ? Number(totalFloors) : undefined,
+      floorNo: floorNo ? Number(floorNo) : undefined,
+      staircases: stairCase,
+      lift,
+      passengerLifts,
+      serviceLifts,
+      parking: {
+        type: parking,
+        options: parkingOptions,
+        count: parkingCount ? Number(parkingCount) : undefined,
+      },
+      availability,
+      ageOfProperty,
+      possessionBy,
+      ownership,
+    };
+
+    // ✅ Navigate back to the Commercial Upload index page with saved data
+router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload",
+  params: {
+    officeDetails: JSON.stringify(currentOfficeData),
+    images: JSON.stringify(images),
+    area: area.trim(),
+    propertyTitle: baseDetails?.propertyTitle,
+    commercialBaseDetails: JSON.stringify({
+      subType: "Office",
+      officeKind: officeKindFromBase, // ✅ REMOVE the fallback
+      propertyTitle: baseDetails?.propertyTitle,
+    }),
+  },
+});
+
+
+  }}
+  className="p-2"
+>
+
+
             <Image
               source={require("../../../../../../assets/arrow.png")}
               style={{ width: 20, height: 20 }}
@@ -338,38 +537,67 @@ export default function PropertyFormScreen() {
 
         {/* Location */}
         <View
-          className="bg-white rounded-lg p-4 mb-4"
-          style={{ borderWidth: 1, borderColor: "#0000001A" }}
-        >
-          <Text className="text-[15px] text-[#00000060] mb-3">
-            Location<Text className="text-red-500">*</Text>
-          </Text>
-          <View
-            className="flex-row items-center rounded-md p-3 mb-5"
-            style={{
-              backgroundColor: "#D9D9D91C",
-              borderWidth: 1,
-              borderColor: "#0000001A",
-            }}
-          >
-            <Image
-              source={require("../../../../../../assets/location.png")}
-              style={{ width: 18, height: 18, marginRight: 8 }}
-            />
-            <TextInput
-              placeholder="Enter Property Location"
-              value={location}
-              onChangeText={setLocation}
-              onFocus={() => setFocusedField("location")}
-              onBlur={() => setFocusedField(null)}
-              className="flex-1 rounded-lg"
-              style={{
-                borderWidth: 1,
-                borderColor:
-                  focusedField === "location" ? "#22C55E" : "#0000001A",
-              }}
-            />
-          </View>
+  className="bg-white rounded-lg p-4 mb-4"
+  style={{ borderWidth: 1, borderColor: "#0000001A" }}
+>
+  <Text className="text-[15px] text-[#00000060] mb-3">
+    Location<Text className="text-red-500">*</Text>
+  </Text>
+  <View
+    className="flex-row items-center rounded-md p-3 mb-3"
+    style={{
+      backgroundColor: "#D9D9D91C",
+      borderWidth: 1,
+      borderColor: "#0000001A",
+    }}
+  >
+    <Image
+      source={require("../../../../../../assets/location.png")}
+      style={{ width: 18, height: 18, marginRight: 8 }}
+    />
+    <TextInput
+      placeholder="Enter Property Location"
+      value={location}
+      onChangeText={setLocation}
+      onFocus={() => setFocusedField("location")}
+      onBlur={() => setFocusedField(null)}
+      className="flex-1 rounded-lg"
+      style={{
+        borderWidth: 1,
+        borderColor:
+          focusedField === "location" ? "#22C55E" : "#0000001A",
+      }}
+    />
+  </View>
+
+  {/* ✅ NEW AREA FIELD */}
+ <Text className="text-[14px] font-medium text-[#00000099] mb-3">
+  Area/Neighborhood<Text className="text-red-500">*</Text>
+</Text>
+<View
+  className="flex-row items-center rounded-md p-3 mb-5"
+  style={{
+    borderWidth: 1,
+    borderColor: focusedField === "area" ? "#22C55E" : "#0000001A",
+    backgroundColor: "#D9D9D91C",
+    height: 52,
+  }}
+>
+  <Image
+    source={require("../../../../../../assets/location.png")}
+    style={{ width: 18, height: 18, marginRight: 8 }}
+  />
+  <TextInput
+    placeholder="Enter Area/Neighborhood (e.g., Akkayapalem)"
+    value={area}
+    onChangeText={setArea}
+    onFocus={() => setFocusedField("area")}
+    onBlur={() => setFocusedField(null)}
+    className="flex-1"
+  />
+</View>
+
+  {/* Possession */}
           {/* Possession */}
 
           <TouchableOpacity
@@ -474,16 +702,16 @@ export default function PropertyFormScreen() {
               height: 52,
             }}
           >
-            <TextInput
-              placeholder="0"
-              value={area}
-              onChangeText={(text) => setArea(text.replace(/[^0-9]/g, ""))}
-              className="flex-1 px-3"
-              onFocus={() => setFocusedField("area")}
-              onBlur={() => setFocusedField(null)}
-              style={{ height: 52 }}
-              keyboardType="numeric"
-            />
+          <TextInput
+  placeholder="0"
+  value={carpetArea}
+  onChangeText={(text) => setCarpetArea(text.replace(/[^0-9]/g, ""))}
+  className="flex-1 px-3"
+  onFocus={() => setFocusedField("carpetArea")}
+  onBlur={() => setFocusedField(null)}
+  style={{ height: 52 }}
+  keyboardType="numeric"
+/>
 
             <View
               style={{ width: 1, backgroundColor: "#0000001A", height: "60%" }}
@@ -972,9 +1200,73 @@ export default function PropertyFormScreen() {
             ))}
           </View>
           <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-3">
-            <TouchableOpacity className="px-5 py-3 rounded-lg bg-gray-200 mx-3">
-              <Text className="font-semibold">Cancel</Text>
-            </TouchableOpacity>
+     
+<TouchableOpacity 
+  className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
+  onPress={() => {
+    // Save current state
+    const currentOfficeData = {
+      location,
+      locatedInside,
+      zoneType,
+      carpetArea,
+      carpetAreaUnit: unit,
+      cabins,
+      meetingRooms,
+      seats,
+      maxSeats,
+      receptionArea: features.reception,
+      furnishing: features.furnishing,
+      pantry: features.pantry,
+  pantryType: pantryType,
+  pantrySize: pantrySize,
+      additionalFeatures: [
+        features.centralAC && "Central AC",
+        features.oxygenDuct && "Oxygen Duct",
+        features.ups && "UPS",
+      ].filter(Boolean),
+      conferenceRooms: conferenceCount,
+      washrooms: {
+        public: publicWashrooms,
+        private: privateWashrooms,
+      },
+      fireSafetyMeasures: fireMeasures,
+      totalFloors,
+      floorNo,
+      staircases: stairCase,
+      lift,
+      passengerLifts,
+      serviceLifts,
+      parking: {
+        type: parking,
+        options: parkingOptions,
+        count: parkingCount,
+      },
+      availability,
+      ageOfProperty,
+      possessionBy,
+      ownership,
+    };
+
+ router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload",
+  params: {
+    officeDetails: JSON.stringify(currentOfficeData),
+    images: JSON.stringify(images),
+    area: area.trim(),
+    propertyTitle: baseDetails?.propertyTitle,
+    commercialBaseDetails: JSON.stringify({
+      subType: "Office",
+      officeKind: officeKindFromBase, // ✅ REMOVE the fallback
+      propertyTitle: baseDetails?.propertyTitle,
+    }),
+  },
+});
+
+  }}
+>
+  <Text className="font-semibold">Cancel</Text>
+</TouchableOpacity>
 
             <TouchableOpacity
               className="px-5 py-3 rounded-lg bg-green-500"

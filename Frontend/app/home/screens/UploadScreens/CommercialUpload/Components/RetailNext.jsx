@@ -1,3 +1,5 @@
+//CommericialUpload//Components//RetailNext.jsx
+
 import React, { useState } from "react";
 import {
   View,
@@ -45,6 +47,7 @@ export default function RetailNext() {
   const router = useRouter();
   const params = useLocalSearchParams();
 
+  const images = params.images ? JSON.parse(params.images) : [];
   const safeParse = (raw) => {
     if (!raw) return null;
     if (typeof raw === 'string') {
@@ -164,20 +167,28 @@ export default function RetailNext() {
 };
 
 
-    router.push({
-      pathname:
-        "/home/screens/UploadScreens/CommercialUpload/Components/RetailVaastu",
-      params: {
-        commercialDetails: JSON.stringify(commercialDetails),
-      },
-    });
+    // NEW
+router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/RetailVaastu",
+  params: {
+    commercialDetails: JSON.stringify(commercialDetails),
+    images: JSON.stringify(images), // ✅ ADD THIS
+  },
+});
   };
 
   return (
     <View className="flex-1 bg-gray-50">
       {/* HEADER */}
       <View className="flex-row items-center mt-6 mb-4">
-        <TouchableOpacity onPress={() => router.back()} className="p-2">
+        <TouchableOpacity // NEW
+onPress={() => router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/Retail",
+  params: {
+    images: JSON.stringify(images),
+    commercialDetails: params.commercialDetails,
+  }
+})} className="p-2">
           <Image
             source={require("../../../../../../assets/arrow.png")}
             className="w-5 h-5"

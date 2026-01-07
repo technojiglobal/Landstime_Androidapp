@@ -1,6 +1,7 @@
 // Backend/controllers/propertyController.js
 import Property from '../UserModels/Property.js';
 import User from '../UserModels/User.js';
+import { translatePropertyFields, normalizeAreaKey } from '../services/translationService.js';
 
 // Utility: normalize filesystem path to URL-friendly forward slashes
 const normalizePath = (p) => (p ? p.replace(/\\+/g, '/') : p);
@@ -39,6 +40,13 @@ export const createProperty = async (req, res) => {
         message: "Owner name, phone and email are mandatory",
       });
     }
+
+    // ✅ ADD THIS DEBUG LOG
+console.log('📄 Files received:', {
+  images: req.files?.images?.length || 0,
+  ownershipDocs: req.files?.ownershipDocs?.length || 0,
+  identityDocs: req.files?.identityDocs?.length || 0
+});
     // Convert uploaded files to base64
     const images = req.files?.images?.map(file =>
       bufferToBase64(file.buffer, file.mimetype)
@@ -104,21 +112,40 @@ export const createProperty = async (req, res) => {
     subType: canonicalSubType,
   };
   // OFFICE
-  if (canonicalSubType === "Office") {
-    if (
-      !commercialDetails.officeDetails ||
-      !commercialDetails.officeDetails.location ||
-      !commercialDetails.officeDetails.area
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Office location and area are required",
-      });
-    }
-    finalData.location = commercialDetails.officeDetails.location;
-    finalData.commercialDetails.officeDetails =
-      commercialDetails.officeDetails;
+// OFFICE
+if (canonicalSubType === "Office") {
+  if (
+    !commercialDetails.officeDetails ||
+    !commercialDetails.officeDetails.location
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "Office location is required",
+    });
   }
+  
+  // ✅ Store ALL office details (don't lose any fields)
+  finalData.location = commercialDetails.officeDetails.location;
+  finalData.area = propertyData.area || 
+                   commercialDetails.officeDetails.neighborhoodArea || 
+                   commercialDetails.area || 
+                   '';
+  
+  // ✅ IMPORTANT: Store complete office details without filtering
+  finalData.commercialDetails.officeDetails = {
+    ...commercialDetails.officeDetails, // Keep all fields
+    neighborhoodArea: propertyData.area || commercialDetails.officeDetails.neighborhoodArea,
+  };
+  
+  console.log('✅ Office details stored:', {
+    location: finalData.location,
+    area: finalData.area,
+    allFields: Object.keys(finalData.commercialDetails.officeDetails),
+  });
+}
+
+
+
   // RETAIL
   if (canonicalSubType === "Retail") {
     if (

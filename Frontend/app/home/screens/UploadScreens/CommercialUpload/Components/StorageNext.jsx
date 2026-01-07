@@ -1,3 +1,5 @@
+//CommercialUpload///Components//StorageNext.jsx
+
 import React, { useState,useEffect } from "react";
 import {
     View,
@@ -52,6 +54,8 @@ import MorePricingDetailsModal from "../../MorePricingDetailsModal";
 const StorageNext = () => {
     const router = useRouter();
     const params = useLocalSearchParams();
+
+    const images = params.images ? JSON.parse(params.images) : [];
 
 const safeParse = (raw) => {
   if (!raw) return null;
@@ -176,13 +180,14 @@ useEffect(() => {
     },
   };
 
-  router.push({
-    pathname:
-      "/home/screens/UploadScreens/CommercialUpload/Components/StorageVaastu",
-    params: {
-      commercialDetails: JSON.stringify(commercialDetails),
-    },
-  });
+ // NEW
+router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/StorageVaastu",
+  params: {
+    commercialDetails: JSON.stringify(commercialDetails),
+    images: JSON.stringify(images), // ✅ ADD THIS
+  },
+});
 };
 
 
@@ -427,7 +432,14 @@ useEffect(() => {
                     <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-3">
                         <TouchableOpacity
                             className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
-                            onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload/Components/Storage")}
+                           // NEW
+onPress={() => router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/Storage",
+  params: {
+    images: JSON.stringify(images),
+    commercialDetails: params.commercialDetails,
+  }
+})}
                         >
                             <Text className="font-semibold">Cancel</Text>
                         </TouchableOpacity>
