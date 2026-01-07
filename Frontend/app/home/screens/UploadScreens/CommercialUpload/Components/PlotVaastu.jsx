@@ -1,3 +1,5 @@
+//Frontend//app//home//screens//UploadScreens//CommericialUpload//Components//PlotVaastu.jsx
+
 import React, { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -6,6 +8,8 @@ import VastuDropdown from "../../VastuDropdown";
 export default function VastuDetailsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+
+  const images = params.images ? JSON.parse(params.images) : [];
 
   const safeParse = (raw) => {
     if (!raw) return null;
@@ -41,8 +45,11 @@ export default function VastuDetailsScreen() {
           ...baseDetails,
           vaastuDetails: form, // ✅ attached correctly
         }),
+
+        images : JSON.stringify(images), // ✅ ADD THIS
       },
     });
+    
   };
 
   return (

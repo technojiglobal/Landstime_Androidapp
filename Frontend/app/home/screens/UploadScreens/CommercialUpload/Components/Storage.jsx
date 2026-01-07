@@ -1,3 +1,5 @@
+//Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/Storage.jsx
+
 import React, { useState } from 'react';
 import {
   View,
@@ -117,6 +119,8 @@ export default function PropertyFormScreen() {
   const [visible, setVisible] = useState(null);
   const [focusedField, setFocusedField] = useState(null);
 
+ const images = params.images ? JSON.parse(params.images) : [];
+
   // Location
   const [location, setLocation] = useState('');
 
@@ -190,13 +194,13 @@ const handleNext = () => {
     },
   };
 
-  router.push({
-    pathname:
-      "/home/screens/UploadScreens/CommercialUpload/Components/StorageNext",
-    params: {
-      commercialDetails: JSON.stringify(commercialDetails),
-    },
-  });
+router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/StorageNext",
+  params: {
+    commercialDetails: JSON.stringify(commercialDetails),
+    images: JSON.stringify(images), // ✅ ADD THIS
+  },
+});
 };
 
 

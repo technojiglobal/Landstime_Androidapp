@@ -281,53 +281,96 @@ siteDetails: {
       type: String,
       enum: ['Office', 'Retail', 'Plot/Land', 'Storage', 'Industry', 'Hospitality', 'Other']
     },
-    
-    // Office specific - REMOVED required: true from schema level
-    officeDetails: {
-  area: {
-    type: Number,
-    required: function() {
-      return this.commercialDetails.subType === 'Office';
-    },
-  },
-
-  areaUnit: {
+officeDetails: {
+  officeKind: String,
+  propertyTitle: String,
+  
+  location: String,
+  locatedInside: String,
+  zoneType: String,
+  neighborhoodArea: String,
+  
+  carpetArea: Number,
+  carpetAreaUnit: {
     type: String,
     enum: ["sqft", "sqm"],
     default: "sqft",
   },
-
-  officeKind: String,
-
+  
+  cabins: Number,
+  meetingRooms: Number,
+  seats: Number,
+  maxSeats: Number,
+  
+  conferenceRooms: String,
+  
+  washrooms: {
+    public: Number,
+    private: Number,
+  },
+  
+  receptionArea: Boolean,
+  furnishing: Boolean,
+  
+  additionalFeatures: [String],
+  fireSafetyMeasures: [String],
+  
+  totalFloors: Number,
+  floorNo: Number,
+  staircases: String,
+  
+  lift: String,
+  passengerLifts: Number,
+  serviceLifts: Number,
+  
+  // ✅ THIS IS THE CRITICAL FIX
+  parking: {
+    type: {
+      type: String,
+      enum: ["Available", "Not-Available"],
+    },
+    options: {
+      basement: { type: Boolean, default: false },
+      outside: { type: Boolean, default: false },
+      private: { type: Boolean, default: false },
+    },
+    count: { type: Number, default: 0 },
+  },
+  
+  availability: String,
+  ageOfProperty: String,
+  possessionBy: String,
+  ownership: String,
+  
   expectedPrice: Number,
-
+  
   priceDetails: {
     allInclusive: { type: Boolean, default: false },
     negotiable: { type: Boolean, default: false },
     taxExcluded: { type: Boolean, default: false },
   },
-
+  
   preLeased: String,
   leaseDuration: String,
   monthlyRent: Number,
-
+  
   nocCertified: String,
   occupancyCertified: String,
-
+  
   previouslyUsedFor: String,
-
+  
   description: String,
-
+  
   amenities: {
     type: [String],
     default: [],
   },
-
+  
   locationAdvantages: {
     type: [String],
     default: [],
   },
-
+  
   vaasthuDetails: {
     officeFacing: String,
     entrance: String,
@@ -344,7 +387,6 @@ siteDetails: {
     cashLocker: String,
   },
 },
-
 
 retailDetails: {
   /* ---------- BASIC DETAILS ---------- */

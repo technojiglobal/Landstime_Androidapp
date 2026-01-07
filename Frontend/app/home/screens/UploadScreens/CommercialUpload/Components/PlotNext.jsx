@@ -53,6 +53,10 @@ export default function PlotNext() {
   const router = useRouter();
   const params = useLocalSearchParams();
 
+   const images = params.images ? JSON.parse(params.images) : [];
+
+  
+
 const safeParse = (raw) => {
   if (!raw) return null;
   if (typeof raw === 'string') {
@@ -166,9 +170,9 @@ const plotDetailsFromPrev = safeParse(params.commercialDetails);
       text2: 'Moving to next step...',
     });
 
- router.push({
-  pathname:
-    "/home/screens/UploadScreens/CommercialUpload/Components/PlotVaastu",
+
+router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/PlotVaastu",
   params: {
     commercialDetails: JSON.stringify({
       ...plotDetailsFromPrev,
@@ -198,6 +202,7 @@ const plotDetailsFromPrev = safeParse(params.commercialDetails);
         locationAdvantages,
       },
     }),
+    images: JSON.stringify(images), // ✅ CORRECT
   },
 });
 
@@ -409,7 +414,14 @@ const plotDetailsFromPrev = safeParse(params.commercialDetails);
       {/* BOTTOM BUTTONS */}
       <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-12">
         <TouchableOpacity
-          onPress={() =>  router.push("/home/screens/UploadScreens/CommercialUpload/Components/Plot")}
+          // NEW
+onPress={() => router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/Plot",
+  params: {
+    images: JSON.stringify(images),
+    commercialDetails: params.commercialDetails,
+  }
+})}
           className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
         >
           <Text>Cancel</Text>

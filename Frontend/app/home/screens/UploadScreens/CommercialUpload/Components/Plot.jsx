@@ -1,3 +1,5 @@
+//Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/Plot.jsx
+
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,6 +26,8 @@ const PillButton = ({ label, selected, onPress }) => (
 export default function Plot() {
   const router = useRouter();
   const params = useLocalSearchParams();
+
+  const images = params.images ? JSON.parse(params.images) : [];
   const safeParse = (raw) => {
     if (!raw) return null;
     if (typeof raw === 'string') {
@@ -107,14 +111,14 @@ const toggleConstruction = (value) => {
     },
   };
 
-  router.push({
-    pathname:
-      "/home/screens/UploadScreens/CommercialUpload/Components/PlotNext",
-    params: {
-      commercialDetails: JSON.stringify(commercialDetails),
-      propertyTitle, // ✅ forwarded explicitly as well
-    },
-  });
+ router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/PlotNext",
+  params: {
+    commercialDetails: JSON.stringify(commercialDetails),
+    propertyTitle,
+    images: JSON.stringify(images), // ✅ ADD THIS
+  },
+});
 
 };
 

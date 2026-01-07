@@ -75,35 +75,63 @@ export const createProperty = async (
     console.log("📸 Images:", imageUris);
 
     // Helper to append files in a web/native-compatible way
-    const appendFile = async (fieldName, fileOrUri, index, defaultPrefix) => {
-      // Web: convert blob/data URIs to File objects
-      if (Platform.OS === 'web') {
-        try {
-          if (fileOrUri instanceof File || fileOrUri instanceof Blob) {
-            const filename = fileOrUri.name || `${defaultPrefix}_${index}.jpg`;
-            formData.append(fieldName, fileOrUri, filename);
-            return;
-          }
+   const appendFile = async (fieldName, fileOrUri, index, defaultPrefix) => {
+  // Web: convert blob/data URIs to File objects
+  if (Platform.OS === 'web') {
+    try {
+      // ✅ Handle File/Blob objects
+      if (fileOrUri instanceof File || fileOrUri instanceof Blob) {
+        const filename = fileOrUri.name || `${defaultPrefix}_${index}.jpg`;
+        formData.append(fieldName, fileOrUri, filename);
+        return;
+      }
 
-          if (typeof fileOrUri === 'string' && (fileOrUri.startsWith('blob:') || fileOrUri.startsWith('data:'))) {
-            const response = await fetch(fileOrUri);
-            const blob = await response.blob();
-            const ext = (blob.type && blob.type.split('/')[1]) || 'jpg';
-            const filename = `${defaultPrefix}_${index}.${ext}`;
-            const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
-            formData.append(fieldName, file, filename);
-            return;
-          }
+      // ✅ Handle string blob/data URIs
+      if (typeof fileOrUri === 'string' && (fileOrUri.startsWith('blob:') || fileOrUri.startsWith('data:'))) {
+        const response = await fetch(fileOrUri);
+        const blob = await response.blob();
+        const ext = (blob.type && blob.type.split('/')[1]) || 'jpg';
+        const filename = `${defaultPrefix}_${index}.${ext}`;
+        const file = new File([blob], filename, { type: blob.type || 'application/pdf' });
+        formData.append(fieldName, file, filename);
+        return;
+      }
 
-          // Sometimes objects come with a uri property on web
-          if (fileOrUri && fileOrUri.uri && (fileOrUri.uri instanceof File || fileOrUri.uri instanceof Blob)) {
-            const f = fileOrUri.uri;
-            const filename = f.name || `${defaultPrefix}_${index}.jpg`;
-            formData.append(fieldName, f, filename);
-            return;
+      // ✅ NEW: Handle objects with uri property (blob URLs)
+      if (fileOrUri && fileOrUri.uri) {
+        const uri = fileOrUri.uri;
+        
+        // Check if uri is a File/Blob
+        if (uri instanceof File || uri instanceof Blob) {
+          const filename = uri.name || fileOrUri.name || `${defaultPrefix}_${index}.jpg`;
+          formData.append(fieldName, uri, filename);
+          return;
+        }
+        
+        // ✅ NEW: Handle uri as blob URL string
+        if (typeof uri === 'string' && (uri.startsWith('blob:') || uri.startsWith('data:'))) {
+          const response = await fetch(uri);
+          const blob = await response.blob();
+          
+          // Determine file extension from blob type or filename
+          let ext = 'pdf';
+          if (blob.type) {
+            const parts = blob.type.split('/');
+            ext = parts[1] || 'pdf';
+          } else if (fileOrUri.name) {
+            const nameParts = fileOrUri.name.split('.');
+            ext = nameParts[nameParts.length - 1] || 'pdf';
           }
+          
+          const filename = fileOrUri.name || `${defaultPrefix}_${index}.${ext}`;
+          const mimeType = blob.type || fileOrUri.type || 'application/pdf';
+          const file = new File([blob], filename, { type: mimeType });
+          formData.append(fieldName, file, filename);
+          return;
+        }
+      }
 
-          console.warn(`Unsupported web file for ${fieldName}:`, fileOrUri);
+      console.warn(`Unsupported web file for ${fieldName}:`, fileOrUri);
         } catch (err) {
           console.error('Error preparing web file for upload:', err);
         }

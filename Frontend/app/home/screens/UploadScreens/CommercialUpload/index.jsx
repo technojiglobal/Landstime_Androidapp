@@ -1,5 +1,5 @@
 // Frontend/app/home/screens/UploadScreens/CommercialUpload/index.jsx
-import React, { useState } from "react";
+import React, { useState ,useEffect} from "react";
 import {
   View,
   Text,
@@ -12,9 +12,20 @@ import {
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import { Linking } from "react-native";
+
+
+// import PropertyImageUpload from "components/PropertyImageUpload";
+// import TopAlert from "../TopAlert";
 
 import PropertyImageUpload from "components/PropertyImageUpload";
 import TopAlert from "../TopAlert";
+
+import CustomPickerAlert from "components/CustomPickerAlert";
+import HowTo360Modal from "../HowTo360Modal";
+import PhotoUploadGuide from "../PhotoUploadGuide";
+
 
 import Office from "./Components/Office";
 import Plot from "./Components/Plot";
@@ -63,11 +74,15 @@ export default function PropertyFormScreen() {
   const [storageKinds, setStorageKinds] = useState([]);
   const [industryKinds, setIndustryKinds] = useState([]);
   const [HospitalityKinds, setHospitalityKinds] = useState([]);
-  const [alertVisible, setAlertVisible] = useState(false);
+const [alertVisible, setAlertVisible] = useState(false);
   const [locatedInside, setLocatedInside] = useState("");
   const [isHowto360ModalVisible, setIsHowto360ModalVisible] = useState(false);
   const [isPhotoGuideModalVisible, setIsPhotoGuideModalVisible] =
     useState(false);
+  const [pickerAlertVisible, setPickerAlertVisible] = useState(false);
+
+
+
 
   /* ---------- CONSTANTS ---------- */
   const typePills = [
@@ -104,14 +119,137 @@ export default function PropertyFormScreen() {
   ];
 
 
+// ADD THIS useEffect after all useState declarations (around line ~42):
 
+useEffect(() => {
+  console.log('🔍 index.jsx useEffect - params:', {
+    hasOfficeDetails: !!params.officeDetails,
+    hasCommercialBaseDetails: !!params.commercialBaseDetails,
+    hasImages: !!params.images
+  });
+
+  // STEP 1: Restore images first
+  if (params.images) {
+    try {
+      const savedImages = JSON.parse(params.images);
+      if (Array.isArray(savedImages)) {
+        setImages(savedImages);
+        console.log('✅ Images restored:', savedImages.length);
+      }
+    } catch (e) {
+      console.log('❌ Could not restore images:', e);
+    }
+  }
+  
+  // STEP 2: Restore from commercialBaseDetails (highest priority)
+  if (params.commercialBaseDetails) {
+    try {
+      const baseDetails = typeof params.commercialBaseDetails === 'string' 
+        ? JSON.parse(params.commercialBaseDetails) 
+        : params.commercialBaseDetails;
+        
+      console.log('🔄 Restoring from commercialBaseDetails:', baseDetails);
+      
+      // Restore selected type
+      if (baseDetails.subType) {
+        setSelectedType(baseDetails.subType);
+        console.log('✅ Selected type restored:', baseDetails.subType);
+      }
+      
+      // Restore property title
+      if (baseDetails.propertyTitle) {
+        setPropertyTitle(baseDetails.propertyTitle);
+        console.log('✅ Property title restored:', baseDetails.propertyTitle);
+      }
+      
+      // ✅ CRITICAL FIX - Restore office kind
+      if (baseDetails.officeKind) {
+        setOfficeKinds([baseDetails.officeKind]);
+        console.log('✅ Office kind restored from commercialBaseDetails:', baseDetails.officeKind);
+      }
+      
+    } catch (e) {
+      console.log('❌ Could not restore commercialBaseDetails:', e);
+    }
+  }
+  
+  // STEP 3: Fallback - restore from officeDetails if office kind not set
+  if (params.officeDetails && officeKinds.length === 0) {
+    try {
+      const savedData = JSON.parse(params.officeDetails);
+      console.log('🔄 Checking officeDetails for office kind:', savedData.officeKind);
+      
+      if (savedData.officeKind) {
+        setOfficeKinds([savedData.officeKind]);
+        console.log('✅ Office kind restored from officeDetails fallback:', savedData.officeKind);
+      }
+    } catch (e) {
+      console.log('❌ Could not restore from officeDetails:', e);
+    }
+  }
+
+}, [params.officeDetails, params.images, params.commercialBaseDetails]);
 
   /* ---------- IMAGE HANDLERS ---------- */
- const pickImage = (uri) => {
-  // Ensure we're only adding valid URI strings
-  if (uri && typeof uri === 'string') {
-    setImages((prev) => [...prev, uri]);
+const takePhoto = async () => {
+  setPickerAlertVisible(false);
+  let permission = await ImagePicker.getCameraPermissionsAsync();
+
+  if (permission.status !== "granted") {
+    permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (permission.status !== "granted") {
+      Alert.alert(
+        "Permission Required",
+        "You need to grant camera permissions to use this feature."
+      );
+      return;
+    }
   }
+  const result = await ImagePicker.launchCameraAsync({
+    allowsEditing: false,
+    quality: 0.8,
+  });
+  if (!result.canceled && result.assets && result.assets.length > 0) {
+    const newImages = result.assets.map((asset) => asset.uri);
+    setImages([...images, ...newImages]);
+  }
+};
+
+const pickFromGallery = async () => {
+  setPickerAlertVisible(false);
+  let permission = await ImagePicker.getMediaLibraryPermissionsAsync();
+
+  if (permission.status !== "granted") {
+    permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permission.status !== "granted") {
+      Alert.alert(
+        "Permission Required",
+        "You need to grant access to your photo library."
+      );
+      return;
+    }
+  }
+  const result = await ImagePicker.launchImageLibraryAsync({
+    allowsEditing: false,
+    quality: 0.8,
+    allowsMultipleSelection: true,
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  });
+  if (!result.canceled && result.assets && result.assets.length > 0) {
+    const newImages = result.assets.map((asset) => asset.uri);
+    setImages([...images, ...newImages]);
+  }
+};
+
+const pickImage = () => {
+  setPickerAlertVisible(true);
+};
+
+const handleOpenPlayStore = () => {
+  const playStoreLink = "https://play.google.com/store/apps/details?id=com.google.android.street";
+  Linking.openURL(playStoreLink).catch((err) =>
+    console.error("Couldn't load page", err)
+  );
 };
 
  const removeImage = (index) => {
@@ -119,7 +257,7 @@ export default function PropertyFormScreen() {
 };
 
   /* ---------- NEXT HANDLER ---------- */
-  const handleNext = () => {
+ const handleNext = () => {
     if (!selectedType) {
       Alert.alert("Select Property Type", "Please select a property type");
       return;
@@ -127,112 +265,113 @@ export default function PropertyFormScreen() {
 
     const base = "/home/screens/UploadScreens/CommercialUpload/Components";
 
+    // ✅ Common params with images
+    const commonParams = {
+      commercialBaseDetails: JSON.stringify({
+        subType: selectedType,
+        propertyTitle,
+      }),
+      images: JSON.stringify(images), // ✅ ADD IMAGES HERE
+    };
+
     switch (selectedType) {
       case "Office":
-  if (!officeKinds.length) {
-    Alert.alert(
-      "Office Type Required",
-      "Please select what kind of office it is"
-    );
-    return;
-  }
+        if (!officeKinds.length) {
+          Alert.alert("Office Type Required", "Please select what kind of office it is");
+          return;
+        }
 
-  router.push({
-  pathname: `${base}/Office`,
-  params: {
-    commercialBaseDetails: JSON.stringify({
-      subType: "Office",            // ✅ FIXED
-      officeKind: officeKinds[0],   // ✅ move kind here
-      propertyTitle,
-    }),
-  },
-});
-
-  break;
+        router.push({
+          pathname: `${base}/Office`,
+          params: {
+            ...commonParams,
+            commercialBaseDetails: JSON.stringify({
+              subType: "Office",
+              officeKind: officeKinds[0],
+              propertyTitle,
+            }),
+          },
+        });
+        break;
 
       case "Retail":
         router.push({
-  pathname: `${base}/Retail`,
-  params: {
-   commercialBaseDetails: JSON.stringify({
-  subType: "Retail",
-  retailKind: retailKinds[0],
-  locatedInside,          // ✅ ADD THIS
-  propertyTitle,
-}),
-
-  },
-});
-
-
+          pathname: `${base}/Retail`,
+          params: commonParams, // ✅ INCLUDES IMAGES
+        });
         break;
-     case "Plot/Land":
-  router.push({
-    pathname: `${base}/Plot`,
-    params: {
-      commercialBaseDetails: JSON.stringify({
-        subType: "Plot",
-        propertyTitle,
-      }),
-    },
-  });
-  break;
 
+      case "Plot/Land":
+        router.push({
+          pathname: `${base}/Plot`,
+          params: commonParams, // ✅ INCLUDES IMAGES
+        });
         break;
+
+      case "Storage":
+        if (!storageKinds.length) {
+          Alert.alert("Storage Type Required", "Please select storage type");
+          return;
+        }
+        router.push({
+          pathname: `${base}/Storage`,
+          params: {
+            ...commonParams,
+            commercialBaseDetails: JSON.stringify({
+              subType: "Storage",
+              storageType: storageKinds[0],
+              propertyTitle,
+            }),
+          },
+        });
+        break;
+
       case "Industry":
-        router.push(`${base}/Industry`);
+        if (!industryKinds.length) {
+          Alert.alert("Industry Type Required", "Please select industry type");
+          return;
+        }
+        router.push({
+          pathname: `${base}/Industry`,
+          params: {
+            ...commonParams,
+            commercialBaseDetails: JSON.stringify({
+              subType: "Industry",
+              industryType: industryKinds[0],
+              propertyTitle,
+            }),
+          },
+        });
         break;
-case "Storage":
-  if (!storageKinds.length) {
-    Alert.alert(
-      "Storage Type Required",
-      "Please select what kind of storage it is"
-    );
-    return;
-  }
-
-  router.push({
-    pathname: `${base}/Storage`,
-    params: {
-      commercialBaseDetails: JSON.stringify({
-        subType: "Storage",          
-        storageType: storageKinds[0],// optional but useful
-        propertyTitle,
-      }),
-    },
-  });
-  break;
 
       case "Hospitality":
-  if (!HospitalityKinds.length) {
-    Alert.alert(
-      "Hospitality Type Required",
-      "Please select what kind of hospitality it is"
-    );
-    return;
-  }
-
-  router.push({
-    pathname: `${base}/Hospitality`,
-    params: {
-      commercialBaseDetails: JSON.stringify({
-        subType: "Hospitality",
-        hospitalityType: HospitalityKinds[0], // Hotel / Guest House
-        propertyTitle,
-      }),
-    },
-  });
-  break;
+        if (!HospitalityKinds.length) {
+          Alert.alert("Hospitality Type Required", "Please select hospitality type");
+          return;
+        }
+        router.push({
+          pathname: `${base}/Hospitality`,
+          params: {
+            ...commonParams,
+            commercialBaseDetails: JSON.stringify({
+              subType: "Hospitality",
+              hospitalityType: HospitalityKinds[0],
+              propertyTitle,
+            }),
+          },
+        });
+        break;
 
       case "Other":
-        router.push(`${base}/Other`);
-        break;
-      default:
+        router.push({
+          pathname: `${base}/Other`,
+          params: commonParams, // ✅ INCLUDES IMAGES
+        });
         break;
     }
   };
 
-  return (
+ return (
     <View className="flex-1 bg-gray-50">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
@@ -240,6 +379,26 @@ case "Storage":
         visible={alertVisible}
         onHide={() => setAlertVisible(false)}
       />
+      
+      <HowTo360Modal
+        visible={isHowto360ModalVisible}
+        onClose={() => setIsHowto360ModalVisible(false)}
+        onOpenPlayStore={handleOpenPlayStore}
+      />
+      
+      <PhotoUploadGuide
+        visible={isPhotoGuideModalVisible}
+        onClose={() => setIsPhotoGuideModalVisible(false)}
+      />
+      
+      <CustomPickerAlert
+        visible={pickerAlertVisible}
+        onClose={() => setPickerAlertVisible(false)}
+        onCameraPress={takePhoto}
+        onGalleryPress={pickFromGallery}
+      />
+
+
        <View className="flex-row items-center mt-12 mb-4 ml-4">
           <TouchableOpacity
             onPress={() =>
