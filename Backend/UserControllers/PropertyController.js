@@ -113,6 +113,7 @@ console.log('📄 Files received:', {
   };
   // OFFICE
 // OFFICE
+// OFFICE
 if (canonicalSubType === "Office") {
   if (
     !commercialDetails.officeDetails ||
@@ -124,12 +125,24 @@ if (canonicalSubType === "Office") {
     });
   }
   
-  // ✅ Store ALL office details (don't lose any fields)
+  console.log('🏢 Processing Office details:', {
+    hasNeighborhoodArea: !!commercialDetails.officeDetails.neighborhoodArea,
+    propertyDataArea: propertyData.area,
+    commercialArea: commercialDetails.area,
+  });
+  
+  // ✅ CRITICAL FIX: Store location and area properly
   finalData.location = commercialDetails.officeDetails.location;
-  finalData.area = propertyData.area || 
-                   commercialDetails.officeDetails.neighborhoodArea || 
-                   commercialDetails.area || 
-                   '';
+  
+  // ✅ Priority order for area
+  const neighborhoodArea = commercialDetails.officeDetails.neighborhoodArea || 
+                           propertyData.area || 
+                           commercialDetails.area || 
+                           '';
+  
+  finalData.area = neighborhoodArea;
+  
+  console.log('✅ Office area set to:', finalData.area);
   
   // ✅ IMPORTANT: Store complete office details without filtering
   finalData.commercialDetails.officeDetails = {
@@ -147,21 +160,50 @@ if (canonicalSubType === "Office") {
 
 
   // RETAIL
-  if (canonicalSubType === "Retail") {
-    if (
-      !commercialDetails.retailDetails ||
-      !commercialDetails.retailDetails.location ||
-      !commercialDetails.retailDetails.area
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Retail location and area are required",
-      });
-    }
-    finalData.location = commercialDetails.retailDetails.location;
-    finalData.commercialDetails.retailDetails =
-      commercialDetails.retailDetails;
+ // RETAIL
+if (canonicalSubType === "Retail") {
+  if (
+    !commercialDetails.retailDetails ||
+    !commercialDetails.retailDetails.location
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "Retail location is required",
+    });
   }
+  
+  console.log('🏪 Processing Retail details:', {
+    hasNeighborhoodArea: !!commercialDetails.retailDetails.neighborhoodArea,
+    propertyDataArea: propertyData.area,
+    commercialArea: commercialDetails.area,
+  });
+  
+  // ✅ CRITICAL FIX: Store location properly
+  finalData.location = commercialDetails.retailDetails.location;
+  
+  // ✅ Priority order for neighborhoodArea
+  const neighborhoodArea = commercialDetails.retailDetails.neighborhoodArea || 
+                           propertyData.area || 
+                           commercialDetails.area || 
+                           '';
+  
+  finalData.area = neighborhoodArea;
+  
+  console.log('✅ Retail area set to:', finalData.area);
+  
+  // ✅ IMPORTANT: Store complete retail details without filtering
+  finalData.commercialDetails.retailDetails = {
+    ...commercialDetails.retailDetails,
+    neighborhoodArea: neighborhoodArea,
+  };
+  
+  console.log('✅ Retail details stored:', {
+    location: finalData.location,
+    area: finalData.area,
+    carpetArea: finalData.commercialDetails.retailDetails.carpetArea,
+    allFields: Object.keys(finalData.commercialDetails.retailDetails),
+  });
+}
 
   // STORAGE
  
@@ -212,7 +254,19 @@ if (canonicalSubType === "Hospitality") {
       message: "Hospitality location and area are required",
     });
   }
+  console.log('🏨 Processing Hospitality details:', {
+  hasNeighborhoodArea: !!commercialDetails.hospitalityDetails.neighborhoodArea,
+  propertyDataArea: propertyData.area,
+  });
   finalData.location = commercialDetails.hospitalityDetails.location;
+
+  // ✅ Priority order for area
+const neighborhoodArea = commercialDetails.hospitalityDetails.neighborhoodArea ||
+propertyData.area ||
+'';
+finalData.area = neighborhoodArea;
+console.log('✅ Hospitality area set to:', finalData.area);
+
   finalData.commercialDetails.hospitalityDetails =
     commercialDetails.hospitalityDetails;
 }
@@ -495,11 +549,8 @@ export const deletePropertyDocument = async (req, res) => {
 // Keep all other existing functions unchanged
 export const getApprovedProperties = async (req, res) => {
   try {
-    const { propertyType, page = 1, limit = 10, language = 'en' } = req.query;
-   
-    console.log('🔍 Getting approved properties');
-    console.log('🌐 Requested language:', language);
-   
+    const { propertyType, page = 1, limit = 3000 } = req.query;
+    
     const query = { status: 'approved' };
     if (propertyType) {
       query.propertyType = propertyType;
@@ -688,10 +739,26 @@ export const updateProperty = async (req, res) => {
    
   } catch (error) {
     console.error('Update property error:', error);
+
+    const responseError = {
+      message: error.message,
+      name: error.name,
+    };
+
+    // If it's a Mongoose validation error, include the field errors and return 400
+    if (error.name === 'ValidationError') {
+      responseError.validation = Object.values(error.errors).map((e) => e.message);
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed while updating property',
+        error: responseError
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Failed to update property',
-      error: error.message
+      error: responseError
     });
   }
 };
@@ -816,9 +883,28 @@ export const getAllProperties = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
-   
+    
     const count = await Property.countDocuments(query);
-   
+    
+    const host = req.protocol + '://' + req.get('host');
+    const propertiesWithUrls = properties.map((p) => {
+      const obj = p.toObject();
+      return {
+        ...obj,
+        imageUrls: (obj.images || [])
+          .filter((img) => typeof img === "string")
+          .map((img) => `${host}/${img.replace(/^\\\//, "")}`),
+        documentUrls: {
+          ownership: (obj.documents?.ownership || [])
+            .filter((doc) => typeof doc === "string")
+            .map((doc) => `${host}/${doc.replace(/^\\\//, "")}`),
+          identity: (obj.documents?.identity || [])
+            .filter((doc) => typeof doc === "string")
+            .map((doc) => `${host}/${doc.replace(/^\\\//, "")}`),
+        },
+      };
+    });
+
     res.status(200).json({
       success: true,
       data: properties,
@@ -935,7 +1021,7 @@ export const adminUpdateProperty = async (req, res) => {
    
     const updatedProperty = await Property.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      { $set: updateData },
       { new: true, runValidators: true }
     ).populate('userId', 'name phone email currentSubscription');
    
@@ -949,10 +1035,26 @@ export const adminUpdateProperty = async (req, res) => {
    
   } catch (error) {
     console.error('❌ Admin update property error:', error);
+    console.error('Error details:', error.message);
+
+    const responseError = {
+      message: error.message,
+      name: error.name,
+    };
+
+    if (error.name === 'ValidationError') {
+      responseError.validation = Object.values(error.errors).map((e) => e.message);
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed while updating property',
+        error: responseError
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Failed to update property',
-      error: error.message
+      error: responseError
     });
   }
 };

@@ -288,6 +288,8 @@ officeDetails: {
   location: String,
   locatedInside: String,
   zoneType: String,
+  
+  // ✅ CRITICAL: This must be here
   neighborhoodArea: String,
   
   carpetArea: Number,
@@ -389,9 +391,8 @@ officeDetails: {
 },
 
 retailDetails: {
-  /* ---------- BASIC DETAILS ---------- */
-  shopType: String, // Shop / Showroom / Mall Shop / Food Outlet
-
+  /* ---------- LOCATION & AREA (MATCHING OFFICE STRUCTURE) ---------- */
+  
   location: {
     type: String,
     required: function () {
@@ -399,60 +400,91 @@ retailDetails: {
     },
   },
 
-  area: {
-    value: {
-      type: Number,
-      required:function () {
-        return this.commercialDetails?.subType === "Retail";
-      },
-    },
-    unit: {
-      type: String,
-      default: "sqft",
+  locality: String, // ✅ NEW - City/locality
+
+  neighborhoodArea: String, // ✅ CRITICAL - Area/Neighborhood (e.g., "Akkayapalem")
+
+  // ✅ FIXED - Carpet area in sqft (separate from neighborhoodArea)
+  carpetArea: {
+    type: Number,
+    required: function () {
+      return this.commercialDetails?.subType === "Retail";
     },
   },
 
-  floors: Number,
-  washrooms: Number,
-
-  parking: {
-    available: { type: Boolean, default: false },
-    count: { type: Number, default: 0 },
+  carpetAreaUnit: {
+    type: String,
+    enum: ["sqft", "sqm"],
+    default: "sqft",
   },
 
-  frontage: Number,
-  ceilingHeight: Number,
-  entrances: Number,
+  /* ---------- SHOP FACADE SIZE ---------- */
+  
+  entranceWidth: Number, // ✅ NEW
+  ceilingHeight: Number, // ✅ NEW
 
-  cornerShop: { type: Boolean, default: false },
-  mainRoadFacing: { type: Boolean, default: false },
+  /* ---------- FACILITIES ---------- */
+  
+  washroom: String, // ✅ NEW - "+Private Washrooms" / "+Public Washrooms" / "Not Available"
 
-  furnishing: String, // Furnished / Semi / Unfurnished
+  floorDetails: String, // ✅ NEW - Total floors
 
-  availability: String, // Ready | UnderConstruction
-  ageOfProperty: String,
+  locatedNear: { // ✅ NEW
+    type: [String],
+    default: [],
+  },
 
-  /* ---------- PRICING ---------- */
-  pricing: {
-    ownership: String, // Freehold / Leasehold
+  parkingType: String, // ✅ NEW
 
-    expectedPrice: {
-      type: Number,
-      required:function () {
-        return this.commercialDetails?.subType === "Retail";
-      },
+  /* ---------- AVAILABILITY & AGE ---------- */
+  
+  availability: String, // "Ready to move" / "Under Construction"
+
+  propertyAge: String, // ✅ RENAMED from ageOfProperty
+
+  possession: { // ✅ NEW - For under construction
+    year: String,
+    month: String,
+  },
+
+  /* ---------- BUSINESS TYPES ---------- */
+  
+  suitableFor: { // ✅ NEW
+    type: [String],
+    default: [],
+  },
+
+  /* ---------- PRICING (FLATTENED STRUCTURE) ---------- */
+  
+  ownership: String, // ✅ MOVED from nested pricing
+
+  expectedPrice: { // ✅ MOVED from nested pricing
+    type: Number,
+    required: function () {
+      return this.commercialDetails?.subType === "Retail";
     },
-
-    allInclusive: Boolean,
-    negotiable: Boolean,
-    taxExcluded: Boolean,
-
-    preLeased: String, // Yes / No
-    leaseDuration: String,
-    monthlyRent: Number,
   },
+
+  priceDetails: { // ✅ RENAMED from pricing object
+    allInclusive: { type: Boolean, default: false },
+    negotiable: { type: Boolean, default: false },
+    taxExcluded: { type: Boolean, default: false },
+  },
+
+  preLeased: String, // ✅ MOVED from nested pricing
+
+  leaseDuration: String, // ✅ MOVED from nested pricing
+
+  monthlyRent: Number, // ✅ MOVED from nested pricing
+
+  /* ---------- PREVIOUS USE & DESCRIPTION ---------- */
+  
+  previouslyUsedFor: String, // ✅ NEW
+
+  description: String, // ✅ NEW
 
   /* ---------- FEATURES ---------- */
+  
   amenities: {
     type: [String],
     default: [],
@@ -463,20 +495,24 @@ retailDetails: {
     default: [],
   },
 
-  /* ---------- VAASTU ---------- */
-  vastuDetails: {
-    shopFacing: String,
+  /* ---------- VAASTU DETAILS (MATCHING RetailVaastu.jsx) ---------- */
+  
+  vaastuDetails: { // ✅ FIXED - Double 'a' spelling
+    shopFacing: String, // Matches "officeFacing" field in code
     entrance: String,
-    cashCounter: String,
-    storage: String,
-    displayArea: String,
-    billingArea: String,
-    washroom: String,
+    cashCounter: String, // Matches "cabin" field in code
+    cashLocker: String, // Matches "workstations" field in code
+    ownerSeating: String, // Matches "conference" field in code
+    staffSeating: String, // Matches "reception" field in code
+    storage: String, // Matches "accounts" field in code
+    displayArea: String, // Matches "pantry" field in code
+    electrical: String, // Matches "server" field in code
+    pantryArea: String, // Matches "washrooms" field in code (confusing naming)
     staircase: String,
-    electrical: String,
-    waterSource: String,
+    staircaseInside: String, // Matches "storage" field in code
   },
 },
+
 
     
     // Plot/Land specific for commercial

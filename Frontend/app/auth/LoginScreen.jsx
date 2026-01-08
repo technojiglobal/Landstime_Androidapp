@@ -156,9 +156,26 @@ const getLocalizedName = (nameField) => {
       const otpCode = otp.join("");
       const verifyResponse = await verifyOTP(phone, otpCode);
 
+<<<<<<< HEAD
       if (verifyResponse.success && verifyResponse.data.success) {
         // OTP verified, now login
         const response = await loginUser(phone);
+=======
+ if (response.success && response.data.success) {
+  if (response.data.data?.token) {
+    const tokenSaved = await saveToken(response.data.data.token);
+    if (!tokenSaved) {
+      console.error('❌ Failed to save token on login');
+      throw new Error('Token storage failed');
+    }
+    console.log('🔐 Token saved successfully on login');
+  } else {
+    console.error('❌ No token in login response:', response.data);
+    throw new Error('No token received from server');
+  }
+  
+  await saveUserData(response.data.data.user);
+>>>>>>> 5b8f30de684ac817925c6727c588887b927a0b70
 
         if (response.success) {
           if (response.data.data?.token) {

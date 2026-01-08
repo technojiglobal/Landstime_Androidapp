@@ -1,6 +1,7 @@
 //Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/Hospitality.jsx
 
 import React, { useState,useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // ✅ ADD THIS
 import {
     View,
     Text,
@@ -64,17 +65,17 @@ export default function Hospitality() {
 
     const images = params.images ? JSON.parse(params.images) : [];
     /* ---------- VALIDATION ---------- */
-const handleNext = (location, area, plotArea, router) => {
+const handleNext = () => {
   if (!location.trim()) {
     Toast.show({ type: "error", text1: "Location Required" });
     return;
   }
-  if (!area.trim()) {
+  if (!neighborhoodArea.trim()) { // ✅ FIXED
     Toast.show({ type: "error", text1: "Area Required" });
     return;
   }
   if (!plotArea.trim()) {
-    Toast.show({ type: "error", text1: "Area Required" });
+    Toast.show({ type: "error", text1: "Plot Area Required" });
     return;
   }
 
@@ -82,14 +83,14 @@ const handleNext = (location, area, plotArea, router) => {
     subType: "Hospitality",
     hospitalityDetails: {
       location,
-       neighborhoodArea: area.trim(), // ✅ ADD THIS
+      neighborhoodArea: neighborhoodArea.trim(), // ✅ FIXED
       rooms,
       washroomType,
       balconies,
       otherRooms,
       furnishingType,
       furnishingDetails,
-      area: { value: Number(plotArea), unit }, // ✅ CHANGE THIS
+      area: { value: Number(plotArea), unit },
       areaUnit: unit,
       availability,
       ageOfProperty,
@@ -98,23 +99,24 @@ const handleNext = (location, area, plotArea, router) => {
     },
   };
 
-// NEW
-router.push({
-  pathname:
-    "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityNext",
-  params: {
-    commercialDetails: JSON.stringify(commercialDetails),
-    images: JSON.stringify(images),
-    area: area.trim(), // ✅ ADD THIS
-  },
-});
+  router.push({
+    pathname:
+      "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityNext",
+    params: {
+      commercialDetails: JSON.stringify(commercialDetails),
+      images: JSON.stringify(images),
+      area: neighborhoodArea.trim(), // ✅ FIXED - use neighborhoodArea
+    },
+  });
 };
+
+
     const [focusedField, setFocusedField] = useState(null);
     const [visible, setVisible] = useState(null);
 
     /* ---------- STATE ---------- */
     const [location, setLocation] = useState("");
-    const [area, setArea] = useState(""); // ✅ ADD THIS
+    const [neighborhoodArea, setNeighborhoodArea] = useState(""); // ✅ RENAMED FOR CONSISTENCY
     const [plotArea, setPlotArea] = useState("");
     const [unit, setUnit] = useState("sqft");
 
@@ -132,6 +134,84 @@ router.push({
     const [possessionBy, setPossessionBy] = useState("");
     const [expectedMonth, setExpectedMonth] = useState("");
     const [showMonthDropdown, setShowMonthDropdown] = useState(false);
+
+  // ✅ NEW - Load draft from AsyncStorage on mount
+useEffect(() => {
+  const loadDraft = async () => {
+    try {
+      const draft = await AsyncStorage.getItem('draft_hospitality_details');
+      if (draft) {
+        const savedData = JSON.parse(draft);
+        console.log('📦 Loading Hospitality draft from AsyncStorage');
+        
+        setLocation(savedData.location || '');
+        setNeighborhoodArea(savedData.neighborhoodArea || savedData.area || params.area || ''); // ✅ FIXED - multiple fallbacks
+        setPlotArea(savedData.plotArea?.toString() || '');
+        setUnit(savedData.unit || 'sqft');
+        setRooms(savedData.rooms?.toString() || '');
+        setWashroomType(savedData.washroomType || null);
+        setBalconies(savedData.balconies || null);
+        setOtherRooms(savedData.otherRooms || []);
+        setFurnishingType(savedData.furnishingType || 'Unfurnished');
+        setFurnishingDetails(savedData.furnishingDetails || []);
+        setAvailability(savedData.availability || null);
+        setAgeOfProperty(savedData.ageOfProperty || null);
+        setPossessionBy(savedData.possessionBy || '');
+        setExpectedMonth(savedData.expectedMonth || '');
+        
+        console.log('✅ Hospitality draft loaded from AsyncStorage');
+        return;
+      }
+    } catch (e) {
+      console.log('⚠️ Failed to load Hospitality draft:', e);
+    }
+
+    // ✅ FALLBACK: Load from params
+    if (params.area) {
+      setNeighborhoodArea(params.area);
+      console.log('✅ Area set from params.area:', params.area);
+    }
+  };
+
+  loadDraft();
+}, [params.area]);
+
+// ✅ NEW - Auto-save draft
+useEffect(() => {
+  const saveDraft = async () => {
+    const draftData = {
+      location,
+      neighborhoodArea, // ✅ This is correct
+      area: neighborhoodArea, // ✅ ADD THIS for consistency
+      plotArea,
+      unit,
+      rooms,
+      washroomType,
+      balconies,
+      otherRooms,
+      furnishingType,
+      furnishingDetails,
+      availability,
+      ageOfProperty,
+      possessionBy,
+      expectedMonth,
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      await AsyncStorage.setItem('draft_hospitality_details', JSON.stringify(draftData));
+      console.log('💾 Hospitality draft auto-saved');
+    } catch (e) {
+      console.log('⚠️ Failed to save Hospitality draft:', e);
+    }
+  };
+
+  const timer = setTimeout(saveDraft, 1000);
+  return () => clearTimeout(timer);
+}, [location, neighborhoodArea, plotArea, unit, rooms, washroomType, balconies, 
+    otherRooms, furnishingType, furnishingDetails, availability, ageOfProperty, 
+    possessionBy, expectedMonth]);
+
 
     const toggleOtherRoom = (room) => {
         setOtherRooms((prev) =>
@@ -180,18 +260,42 @@ router.push({
             <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
                 {/* HEADER */}
                 <View className="flex-row items-center mt-7 mb-4">
-                    <TouchableOpacity
-                       // NEW
-onPress={() => router.push({
-  pathname: "/home/screens/UploadScreens/CommercialUpload",
-  params: {
-    images: JSON.stringify(images),
-  }
-})}
+   <TouchableOpacity
+  onPress={() => {
+    // ✅ Save current state before going back
+    const currentData = {
+      location,
+      neighborhoodArea,
+      plotArea,
+      unit,
+      rooms,
+      washroomType,
+      balconies,
+      otherRooms,
+      furnishingType,
+      furnishingDetails,
+      availability,
+      ageOfProperty,
+      possessionBy,
+      expectedMonth,
+    };
 
-
-                        className="p-2"
-                    >
+    router.push({
+      pathname: "/home/screens/UploadScreens/CommercialUpload",
+      params: {
+        hospitalityDetails: JSON.stringify(currentData),
+        images: JSON.stringify(images),
+        area: neighborhoodArea.trim(),
+        commercialBaseDetails: JSON.stringify({
+          subType: "Hospitality",
+          hospitalityType: params.hospitalityType, // ✅ FIXED - Just use params.hospitalityType
+          propertyTitle: params.propertyTitle,
+        }),
+      },
+    });
+  }}
+  className="p-2"
+>
                         <Image
                             source={require("../../../../../../assets/arrow.png")}
                             style={{ width: 20, height: 20 }}
@@ -208,7 +312,7 @@ onPress={() => router.push({
                     </View>
                 </View>
 
-               {/* LOCATION */}
+{/* LOCATION */}
 <View className="bg-white rounded-lg p-4 mb-4 border border-[#0000001A]">
     <Text className="text-[15px] text-[#00000060] mb-3">
         Location<Text className="text-red-500">*</Text>
@@ -225,7 +329,7 @@ onPress={() => router.push({
             onChangeText={setLocation}
             onFocus={() => setFocusedField("location")}
             onBlur={() => setFocusedField(null)}
-            className="flex-1 rounded-lg"
+            className="flex-1"
             style={{
                 borderWidth: 1,
                 borderColor: focusedField === "location" ? "#22C55E" : "#0000001A",
@@ -233,7 +337,7 @@ onPress={() => router.push({
         />
     </View>
 
-    {/* ✅ NEW AREA FIELD */}
+    {/* ✅ NEIGHBORHOOD AREA FIELD */}
     <Text className="text-[14px] font-medium text-[#00000099] mb-3">
         Area/Neighborhood<Text className="text-red-500">*</Text>
     </Text>
@@ -241,7 +345,7 @@ onPress={() => router.push({
         className="flex-row items-center rounded-md p-3 mb-3"
         style={{
             borderWidth: 1,
-            borderColor: focusedField === "area" ? "#22C55E" : "#0000001A",
+            borderColor: focusedField === "neighborhoodArea" ? "#22C55E" : "#0000001A",
             backgroundColor: "#D9D9D91C",
             height: 52,
         }}
@@ -252,21 +356,19 @@ onPress={() => router.push({
         />
         <TextInput
             placeholder="Enter Area/Neighborhood (e.g., Banjara Hills)"
-            value={area}
-            onChangeText={setArea}
-            onFocus={() => setFocusedField("area")}
+            value={neighborhoodArea}
+            onChangeText={setNeighborhoodArea}
+            onFocus={() => setFocusedField("neighborhoodArea")}
             onBlur={() => setFocusedField(null)}
             className="flex-1"
+            style={{
+                borderWidth: 1,
+                borderColor: focusedField === "neighborhoodArea" ? "#22C55E" : "#0000001A",
+            }}
+        />
+    </View>
+</View>
 
-
-                            style={{
-                                borderWidth: 1,
-                                borderColor:
-                                    focusedField === "location" ? "#22C55E" : "#0000001A",
-                            }}
-                        />
-                    </View>
-                </View>
 
                 {/* ADD ROOM DETAILS */}
                 <View className="bg-white rounded-lg p-4 mb-6 border border-[#0000001A]">
@@ -530,7 +632,7 @@ onPress={() => router.push({
                     </TouchableOpacity>
                     <TouchableOpacity
                         className="px-10 py-3 rounded-lg bg-green-500"
-                       onPress={() => handleNext(location, area, plotArea, router)}
+                       onPress={handleNext} // ✅ SIMPLIFIED
                     >
                         <Text className="text-white font-semibold">Next</Text>
                     </TouchableOpacity>

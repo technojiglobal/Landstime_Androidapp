@@ -7,12 +7,31 @@ export default API_BASE_URL;
 
 
 // Helper function to get token
+// Helper function to get token
 const getToken = async () => {
   try {
     const token = await AsyncStorage.getItem('userToken');
-    return token;
+    
+    if (!token) {
+      console.error('❌ No token found in AsyncStorage');
+      return null;
+    }
+    
+    // ✅ Clean token (remove any whitespace, quotes, or Bearer prefix)
+    const cleanToken = token.trim().replace(/^["']|["']$/g, '').replace(/^Bearer\s+/i, '');
+    
+    console.log('🔍 Token retrieved:', cleanToken.substring(0, 20) + '...');
+    console.log('🔢 Token length:', cleanToken.length);
+    
+    // ✅ Validate token format (JWT has 3 parts separated by dots)
+    if (!cleanToken.includes('.')) {
+      console.error('❌ Invalid token format - not a JWT');
+      return null;
+    }
+    
+    return cleanToken;
   } catch (error) {
-    console.error('Error getting token:', error);
+    console.error('❌ Error getting token:', error);
     return null;
   }
 };

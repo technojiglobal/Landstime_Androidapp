@@ -1,5 +1,6 @@
 // Frontend/app/home/screens/UploadScreens/CommercialUpload/index.jsx
 import React, { useState ,useEffect} from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -74,6 +75,8 @@ export default function PropertyFormScreen() {
   const [storageKinds, setStorageKinds] = useState([]);
   const [industryKinds, setIndustryKinds] = useState([]);
   const [HospitalityKinds, setHospitalityKinds] = useState([]);
+   const [area, setArea] = useState(""); // ✅ ADD THIS LINE
+  const [neighborhoodArea, setNeighborhoodArea] = useState(""); // ✅ ADD THIS LINE
 const [alertVisible, setAlertVisible] = useState(false);
   const [locatedInside, setLocatedInside] = useState("");
   const [isHowto360ModalVisible, setIsHowto360ModalVisible] = useState(false);
@@ -124,8 +127,10 @@ const [alertVisible, setAlertVisible] = useState(false);
 useEffect(() => {
   console.log('🔍 index.jsx useEffect - params:', {
     hasOfficeDetails: !!params.officeDetails,
+    hasHospitalityDetails: !!params.hospitalityDetails, // ✅ ADD THIS
     hasCommercialBaseDetails: !!params.commercialBaseDetails,
-    hasImages: !!params.images
+    hasImages: !!params.images,
+    hasArea: !!params.area
   });
 
   // STEP 1: Restore images first
@@ -141,54 +146,130 @@ useEffect(() => {
     }
   }
   
-  // STEP 2: Restore from commercialBaseDetails (highest priority)
-  if (params.commercialBaseDetails) {
-    try {
-      const baseDetails = typeof params.commercialBaseDetails === 'string' 
-        ? JSON.parse(params.commercialBaseDetails) 
-        : params.commercialBaseDetails;
-        
-      console.log('🔄 Restoring from commercialBaseDetails:', baseDetails);
-      
-      // Restore selected type
-      if (baseDetails.subType) {
-        setSelectedType(baseDetails.subType);
-        console.log('✅ Selected type restored:', baseDetails.subType);
-      }
-      
-      // Restore property title
-      if (baseDetails.propertyTitle) {
-        setPropertyTitle(baseDetails.propertyTitle);
-        console.log('✅ Property title restored:', baseDetails.propertyTitle);
-      }
-      
-      // ✅ CRITICAL FIX - Restore office kind
-      if (baseDetails.officeKind) {
-        setOfficeKinds([baseDetails.officeKind]);
-        console.log('✅ Office kind restored from commercialBaseDetails:', baseDetails.officeKind);
-      }
-      
-    } catch (e) {
-      console.log('❌ Could not restore commercialBaseDetails:', e);
-    }
+  // STEP 2: Restore area
+  if (params.area) {
+    setNeighborhoodArea(params.area);
+    setArea(params.area);
+    console.log('✅ Area restored from params:', params.area);
   }
   
-  // STEP 3: Fallback - restore from officeDetails if office kind not set
+  // STEP 3: Restore from commercialBaseDetails (highest priority)
+ if (params.commercialBaseDetails) {
+  try {
+    const baseDetails = JSON.parse(params.commercialBaseDetails);
+    console.log('🔄 Restoring from commercialBaseDetails:', baseDetails);
+    
+    setSelectedType(baseDetails.subType || '');
+    setPropertyTitle(baseDetails.propertyTitle || '');
+    
+  if (baseDetails.officeKind) {
+  setOfficeKinds([baseDetails.officeKind]);
+}
+
+if (baseDetails.retailKind) {
+  setRetailKinds([baseDetails.retailKind]);
+}
+
+if (baseDetails.hospitalityKind) {
+  setHospitalityKinds([baseDetails.hospitalityKind]);
+}
+
+if (baseDetails.locatedInside) {
+  setLocatedInside(baseDetails.locatedInside);
+}
+    
+    console.log('✅ Selected type restored:', baseDetails.subType);
+    console.log('✅ Property title restored:', baseDetails.propertyTitle);
+  } catch (e) {
+    console.log('❌ Failed to parse commercialBaseDetails:', e);
+  }
+}
+  
+  // STEP 4: Fallback - restore from officeDetails
   if (params.officeDetails && officeKinds.length === 0) {
     try {
       const savedData = JSON.parse(params.officeDetails);
-      console.log('🔄 Checking officeDetails for office kind:', savedData.officeKind);
-      
       if (savedData.officeKind) {
         setOfficeKinds([savedData.officeKind]);
-        console.log('✅ Office kind restored from officeDetails fallback:', savedData.officeKind);
+        console.log('✅ Office kind restored from officeDetails:', savedData.officeKind);
       }
     } catch (e) {
       console.log('❌ Could not restore from officeDetails:', e);
     }
   }
+  
+  // ✅ NEW - STEP 5: Fallback - restore from hospitalityDetails
+  if (params.hospitalityDetails && HospitalityKinds.length === 0) {
+    try {
+      const savedData = JSON.parse(params.hospitalityDetails);
+      if (savedData.hospitalityType) {
+        setHospitalityKinds([savedData.hospitalityType]);
+        console.log('✅ Hospitality type restored from hospitalityDetails:', savedData.hospitalityType);
+      }
+    } catch (e) {
+      console.log('❌ Could not restore from hospitalityDetails:', e);
+    }
+  }
 
-}, [params.officeDetails, params.images, params.commercialBaseDetails]);
+}, [params.officeDetails, params.hospitalityDetails, params.images, params.commercialBaseDetails, params.area]); // ✅ ADD params.hospitalityDetails
+
+
+// ✅ NEW - Load draft from AsyncStorage on mount
+useEffect(() => {
+  const loadDraft = async () => {
+    try {
+      // ✅ Try loading Office draft first
+    const officeDraft = await AsyncStorage.getItem('draft_commercial_office');
+if (officeDraft) {
+  const parsed = JSON.parse(officeDraft);
+  console.log('📦 Loading Office draft from AsyncStorage:', parsed);
+  
+  if (parsed.selectedType) setSelectedType(parsed.selectedType);
+  if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
+  if (parsed.officeKind) setOfficeKinds([parsed.officeKind]);
+  if (parsed.retailKind) setRetailKinds([parsed.retailKind]);
+  if (parsed.locatedInside) setLocatedInside(parsed.locatedInside);
+  if (parsed.images) setImages(parsed.images);
+        if (parsed.neighborhoodArea) {
+          setNeighborhoodArea(parsed.neighborhoodArea);
+          setArea(parsed.neighborhoodArea);
+        }
+        if (parsed.area) {
+          setArea(parsed.area);
+        }
+        
+        console.log('✅ Office draft loaded successfully');
+        return; // Exit early if Office draft found
+      }
+      
+      // ✅ NEW - Try loading Hospitality draft
+     const hospitalityDraft = await AsyncStorage.getItem('draft_commercial_hospitality');
+if (hospitalityDraft) {
+  const parsed = JSON.parse(hospitalityDraft);
+  console.log('📦 Loading Hospitality draft from AsyncStorage:', parsed);
+  
+  if (parsed.selectedType) setSelectedType(parsed.selectedType);
+  if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
+  if (parsed.hospitalityKind) setHospitalityKinds([parsed.hospitalityKind]);
+  if (parsed.images) setImages(parsed.images);
+        if (parsed.neighborhoodArea) {
+          setNeighborhoodArea(parsed.neighborhoodArea);
+          setArea(parsed.neighborhoodArea);
+        }
+        if (parsed.area) {
+          setArea(parsed.area);
+        }
+        
+        console.log('✅ Hospitality draft loaded successfully');
+      }
+    } catch (e) {
+      console.log('⚠️ Failed to load draft:', e);
+    }
+  };
+  
+  loadDraft();
+}, []);
+
 
   /* ---------- IMAGE HANDLERS ---------- */
 const takePhoto = async () => {
@@ -257,7 +338,7 @@ const handleOpenPlayStore = () => {
 };
 
   /* ---------- NEXT HANDLER ---------- */
- const handleNext = () => {
+const handleNext = async () => { // ✅ Make async
     if (!selectedType) {
       Alert.alert("Select Property Type", "Please select a property type");
       return;
@@ -271,7 +352,7 @@ const handleOpenPlayStore = () => {
         subType: selectedType,
         propertyTitle,
       }),
-      images: JSON.stringify(images), // ✅ ADD IMAGES HERE
+      images: JSON.stringify(images),
     };
 
     switch (selectedType) {
@@ -279,6 +360,25 @@ const handleOpenPlayStore = () => {
         if (!officeKinds.length) {
           Alert.alert("Office Type Required", "Please select what kind of office it is");
           return;
+        }
+
+        // ✅ NEW - Save draft to AsyncStorage
+    const draftData = {
+  selectedType,
+  propertyTitle,
+  images: images,
+  officeKind: officeKinds.length > 0 ? officeKinds[0] : undefined,
+  retailKind: retailKinds.length > 0 ? retailKinds[0] : undefined,
+  hospitalityKind: HospitalityKinds.length > 0 ? HospitalityKinds[0] : undefined,
+  locatedInside: locatedInside || undefined,
+  timestamp: new Date().toISOString(),
+};
+        
+        try {
+          await AsyncStorage.setItem('draft_commercial_office', JSON.stringify(draftData));
+          console.log('✅ Draft saved to AsyncStorage');
+        } catch (e) {
+          console.log('⚠️ Failed to save draft:', e);
         }
 
         router.push({
@@ -343,24 +443,42 @@ const handleOpenPlayStore = () => {
           },
         });
         break;
+case "Hospitality":
+  if (!HospitalityKinds.length) {
+    Alert.alert("Hospitality Type Required", "Please select hospitality type");
+    return;
+  }
 
-      case "Hospitality":
-        if (!HospitalityKinds.length) {
-          Alert.alert("Hospitality Type Required", "Please select hospitality type");
-          return;
-        }
-        router.push({
-          pathname: `${base}/Hospitality`,
-          params: {
-            ...commonParams,
-            commercialBaseDetails: JSON.stringify({
-              subType: "Hospitality",
-              hospitalityType: HospitalityKinds[0],
-              propertyTitle,
-            }),
-          },
-        });
-        break;
+  // ✅ NEW - Save draft to AsyncStorage
+  const hospitalityDraftData = {
+    subType: "Hospitality",
+    hospitalityType: HospitalityKinds[0],
+    propertyTitle,
+    images,
+    neighborhoodArea: neighborhoodArea || area,
+    area: area || neighborhoodArea, // ✅ Add both for flexibility
+    timestamp: new Date().toISOString(),
+  };
+  
+  try {
+    await AsyncStorage.setItem('draft_commercial_hospitality', JSON.stringify(hospitalityDraftData));
+    console.log('✅ Hospitality draft saved to AsyncStorage');
+  } catch (e) {
+    console.log('⚠️ Failed to save Hospitality draft:', e);
+  }
+
+  router.push({
+    pathname: `${base}/Hospitality`,
+    params: {
+      ...commonParams,
+      commercialBaseDetails: JSON.stringify({
+        subType: "Hospitality",
+        hospitalityType: HospitalityKinds[0],
+        propertyTitle,
+      }),
+    },
+  });
+  break;
 
       case "Other":
         router.push({
