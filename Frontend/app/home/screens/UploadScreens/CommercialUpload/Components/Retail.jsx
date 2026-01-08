@@ -127,9 +127,15 @@ useEffect(() => {
         
         // ✅ ADD: Restore missing fields
         setLocatedInside(parsed.locatedInside || '');
-        setZoneType(parsed.zoneType || '');
-        
-        setEntranceWidth(parsed.entranceWidth?.toString() || '');
+setZoneType(parsed.zoneType || '');
+
+// ✅ ADD THIS - Restore retailKind to params for proper flow
+if (parsed.retailKind && !params.commercialBaseDetails) {
+  // Store it so index.jsx can restore it
+  console.log('✅ Restoring retailKind from draft:', parsed.retailKind);
+}
+
+setEntranceWidth(parsed.entranceWidth?.toString() || '');
         setCeilingHeight(parsed.ceilingHeight?.toString() || '');
         setWashroom(parsed.washroom || '');
         setFloorDetails(parsed.floorDetails || '');
@@ -203,32 +209,32 @@ if (params.retailDetails) {
 // ✅ NEW - Auto-save draft to AsyncStorage
 useEffect(() => {
   const saveDraft = async () => {
-    const draftData = {
-      location,
-      locality,
-      neighborhoodArea,
-      carpetArea,
-      carpetAreaUnit: unit, // ✅ ADD THIS
-      
-      // ✅ ADD MISSING FIELDS
-      locatedInside,
-      zoneType,
-      
-      entranceWidth,
-      ceilingHeight,
-      washroom,
-      floorDetails,
-      locatedNear,
-      parkingType,
-      availability,
-      propertyAge,
-      possession: {
-        year: possessionYear,
-        month: possessionMonth,
-      },
-      suitableFor: businessTypes,
-      timestamp: new Date().toISOString(),
-    };
+   const draftData = {
+  location,
+  locality,
+  neighborhoodArea,
+  carpetArea,
+  carpetAreaUnit: unit,
+  
+  locatedInside,
+  zoneType,
+  retailKind: baseDetails?.retailType, // ✅ ADD THIS
+  
+  entranceWidth,
+  ceilingHeight,
+  washroom,
+  floorDetails,
+  locatedNear,
+  parkingType,
+  availability,
+  propertyAge,
+  possession: {
+    year: possessionYear,
+    month: possessionMonth,
+  },
+  suitableFor: businessTypes,
+  timestamp: new Date().toISOString(),
+};
 
     try {
       await AsyncStorage.setItem('draft_retail_details', JSON.stringify(draftData));
@@ -240,11 +246,11 @@ useEffect(() => {
 
   const timer = setTimeout(saveDraft, 1000);
   return () => clearTimeout(timer);
-}, [location, locality, neighborhoodArea, carpetArea, unit, // ✅ ADD unit
-    locatedInside, zoneType, // ✅ ADD THESE
+}, [location, locality, neighborhoodArea, carpetArea, unit,
+    locatedInside, zoneType,
     entranceWidth, ceilingHeight, washroom, floorDetails, locatedNear, 
     parkingType, availability, propertyAge, possessionYear, possessionMonth, 
-    businessTypes]);
+    businessTypes, baseDetails?.retailType]); // ✅ ADD baseDetails.retailType
 
   /* ---------- OPTIONS ---------- */
   const washroomOptions = [
