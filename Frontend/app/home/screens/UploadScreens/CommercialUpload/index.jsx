@@ -168,6 +168,12 @@ useEffect(() => {
 
 if (baseDetails.retailKind) {
   setRetailKinds([baseDetails.retailKind]);
+  console.log('✅ Retail kind restored from baseDetails:', baseDetails.retailKind);
+}
+
+if (baseDetails.locatedInside) {
+  setLocatedInside(baseDetails.locatedInside);
+  console.log('✅ Located inside restored from baseDetails:', baseDetails.locatedInside);
 }
 
 if (baseDetails.hospitalityKind) {
@@ -225,10 +231,16 @@ if (officeDraft) {
   console.log('📦 Loading Office draft from AsyncStorage:', parsed);
   
   if (parsed.selectedType) setSelectedType(parsed.selectedType);
-  if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
-  if (parsed.officeKind) setOfficeKinds([parsed.officeKind]);
-  if (parsed.retailKind) setRetailKinds([parsed.retailKind]);
-  if (parsed.locatedInside) setLocatedInside(parsed.locatedInside);
+if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
+if (parsed.officeKind) setOfficeKinds([parsed.officeKind]);
+if (parsed.retailKind) {
+  setRetailKinds([parsed.retailKind]);
+  console.log('✅ Retail kind restored from draft:', parsed.retailKind);
+}
+if (parsed.locatedInside) {
+  setLocatedInside(parsed.locatedInside);
+  console.log('✅ Located inside restored from draft:', parsed.locatedInside);
+}
   if (parsed.images) setImages(parsed.images);
         if (parsed.neighborhoodArea) {
           setNeighborhoodArea(parsed.neighborhoodArea);
@@ -241,6 +253,36 @@ if (officeDraft) {
         console.log('✅ Office draft loaded successfully');
         return; // Exit early if Office draft found
       }
+
+      // ✅ NEW - Try loading Retail draft
+    const retailDraft = await AsyncStorage.getItem('draft_commercial_retail');
+    if (retailDraft) {
+      const parsed = JSON.parse(retailDraft);
+      console.log('📦 Loading Retail draft from AsyncStorage:', parsed);
+      
+      if (parsed.selectedType) setSelectedType(parsed.selectedType);
+      if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
+      if (parsed.retailKind) {
+        setRetailKinds([parsed.retailKind]);
+        console.log('✅ Retail kind restored:', parsed.retailKind);
+      }
+      if (parsed.locatedInside) {
+        setLocatedInside(parsed.locatedInside);
+        console.log('✅ Located inside restored:', parsed.locatedInside);
+      }
+      if (parsed.images) setImages(parsed.images);
+      if (parsed.neighborhoodArea) {
+        setNeighborhoodArea(parsed.neighborhoodArea);
+        setArea(parsed.neighborhoodArea);
+      }
+      if (parsed.area) {
+        setArea(parsed.area);
+      }
+      
+      console.log('✅ Retail draft loaded successfully');
+      return; // Exit early
+    }
+    
       
       // ✅ NEW - Try loading Hospitality draft
      const hospitalityDraft = await AsyncStorage.getItem('draft_commercial_hospitality');
@@ -269,6 +311,49 @@ if (hospitalityDraft) {
   
   loadDraft();
 }, []);
+
+
+// ✅ NEW - Auto-save index.jsx state changes
+useEffect(() => {
+  const saveDraft = async () => {
+    // Only save if we have meaningful data
+    if (!selectedType) return;
+
+    const draftData = {
+      selectedType,
+      propertyTitle,
+      images,
+      officeKind: officeKinds.length > 0 ? officeKinds[0] : undefined,
+      retailKind: retailKinds.length > 0 ? retailKinds[0] : undefined,
+      hospitalityKind: HospitalityKinds.length > 0 ? HospitalityKinds[0] : undefined,
+      locatedInside: locatedInside || undefined,
+      area: area || neighborhoodArea || undefined,
+      timestamp: new Date().toISOString(),
+    };
+
+    const storageKey = selectedType === 'Office' 
+      ? 'draft_commercial_office' 
+      : selectedType === 'Hospitality'
+      ? 'draft_commercial_hospitality'
+      : selectedType === 'Retail'
+      ? 'draft_commercial_retail'
+      : null;
+
+    if (storageKey) {
+      try {
+        await AsyncStorage.setItem(storageKey, JSON.stringify(draftData));
+        console.log(`💾 ${selectedType} index draft auto-saved`);
+      } catch (e) {
+        console.log('⚠️ Failed to auto-save index draft:', e);
+      }
+    }
+  };
+
+  const timer = setTimeout(saveDraft, 1000);
+  return () => clearTimeout(timer);
+}, [selectedType, propertyTitle, images, officeKinds, retailKinds, 
+    HospitalityKinds, locatedInside, area, neighborhoodArea]);
+
 
 
   /* ---------- IMAGE HANDLERS ---------- */
@@ -363,7 +448,7 @@ const handleNext = async () => { // ✅ Make async
         }
 
         // ✅ NEW - Save draft to AsyncStorage
-    const draftData = {
+  const draftData = {
   selectedType,
   propertyTitle,
   images: images,
@@ -371,6 +456,7 @@ const handleNext = async () => { // ✅ Make async
   retailKind: retailKinds.length > 0 ? retailKinds[0] : undefined,
   hospitalityKind: HospitalityKinds.length > 0 ? HospitalityKinds[0] : undefined,
   locatedInside: locatedInside || undefined,
+  area: area || neighborhoodArea || undefined, // ✅ ADD THIS
   timestamp: new Date().toISOString(),
 };
         
