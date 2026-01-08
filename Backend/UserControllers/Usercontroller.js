@@ -23,7 +23,7 @@ const DEVELOPMENT_MODE = true; // Set to false in production
 export const sendOTP = async (req, res) => {
   console.log('\n📨 ===== SEND OTP REQUEST =====');
   console.log('Request body:', req.body);
-  
+
   try {
     const { phone, countryCode = '+91' } = req.body;
     console.log('📱 Phone:', phone, 'Country Code:', countryCode);
@@ -65,13 +65,13 @@ export const sendOTP = async (req, res) => {
 
     await otpDoc.save();
 
-     // Send OTP via SMS (or skip in development)
+    // Send OTP via SMS (or skip in development)
     let smsResult;
 
     console.log('📱 Attempting to send OTP to:', phone, 'Country:', countryCode);
     console.log('🔧 DEVELOPMENT_MODE:', DEVELOPMENT_MODE);
 
-    
+
     if (DEVELOPMENT_MODE) {
       // Development mode - just log OTP, don't send SMS
       console.log('🔐 DEV MODE - OTP:', otp, 'for phone:', phone);
@@ -84,27 +84,27 @@ export const sendOTP = async (req, res) => {
     }
 
     if (smsResult.success) {
-  console.log('✅ OTP sent successfully');
-  console.log('===== END SEND OTP =====\n');
-  return res.status(200).json({
-    success: true,
-    message: 'OTP sent successfully to your phone number',
-    data: {
-      phone: phone,
-      expiresIn: '10 minutes',
-      ...(DEVELOPMENT_MODE && { devOtp: otp })
+      console.log('✅ OTP sent successfully');
+      console.log('===== END SEND OTP =====\n');
+      return res.status(200).json({
+        success: true,
+        message: 'OTP sent successfully to your phone number',
+        data: {
+          phone: phone,
+          expiresIn: '10 minutes',
+          ...(DEVELOPMENT_MODE && { devOtp: otp })
+        }
+      });
+    } else {
+      console.log('❌ Failed to send OTP:', smsResult);
+      await Otp.deleteOne({ _id: otpDoc._id });
+
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send OTP. Please try again',
+        error: smsResult.message
+      });
     }
-  });
-} else {
-  console.log('❌ Failed to send OTP:', smsResult);
-  await Otp.deleteOne({ _id: otpDoc._id });
-  
-  return res.status(500).json({
-    success: false,
-    message: 'Failed to send OTP. Please try again',
-    error: smsResult.message
-  });
-}
 
   } catch (error) {
     console.error('Error in sendOTP:', error);
@@ -182,24 +182,24 @@ export const verifyOTP = async (req, res) => {
     }
 
 
-// OTP is correct - mark as verified and keep for 30 minutes
-otpDoc.isVerified = true;
-await otpDoc.save();
+    // OTP is correct - mark as verified and keep for 30 minutes
+    otpDoc.isVerified = true;
+    await otpDoc.save();
 
-// Delete all other OTPs for this phone number (but keep the verified one)
-await Otp.deleteMany({
-  phone: phone,
-  _id: { $ne: otpDoc._id }
-});
+    // Delete all other OTPs for this phone number (but keep the verified one)
+    await Otp.deleteMany({
+      phone: phone,
+      _id: { $ne: otpDoc._id }
+    });
 
-return res.status(200).json({
-  success: true,
-  message: 'Phone number verified successfully',
-  data: {
-    phone: phone,
-    verified: true
-  }
-});
+    return res.status(200).json({
+      success: true,
+      message: 'Phone number verified successfully',
+      data: {
+        phone: phone,
+        verified: true
+      }
+    });
 
 
 
@@ -262,7 +262,7 @@ export const resendOTP = async (req, res) => {
     // NEW
     // Send OTP via SMS (or skip in development)
     let smsResult;
-    
+
     if (DEVELOPMENT_MODE) {
       // Development mode - just log OTP, don't send SMS
       console.log('🔐 DEV MODE - OTP:', otp, 'for phone:', phone);
@@ -284,7 +284,7 @@ export const resendOTP = async (req, res) => {
       });
     } else {
       await Otp.deleteOne({ _id: otpDoc._id });
-      
+
       return res.status(500).json({
         success: false,
         message: 'Failed to send OTP. Please try again',
@@ -379,26 +379,32 @@ export const registerUser = async (req, res) => {
     }
 
     // Create new user
-  // Translate name to all 3 languages
-const originalLanguage = req.body.originalLanguage || 'en';
-const translatedName = await translatePropertyFields({
-  name: name.trim()
-}, originalLanguage);
+    // Translate name to all 3 languages
+    const originalLanguage = req.body.originalLanguage || 'en';
+    let translatedName;
+    try {
+      translatedName = await translatePropertyFields({
+        name: name.trim()
+      }, originalLanguage);
+    } catch (error) {
+      console.error('Translation failed, using original name:', error);
+      translatedName = { name: { en: name.trim(), hi: name.trim(), te: name.trim() } };
+    }
 
-// Create new user
-const newUser = new User({
-  name: translatedName.name, // Now contains {te, hi, en}
-  originalLanguage: originalLanguage,
-  phone: phone,
-  countryCode: countryCode,
-  email: email.toLowerCase(),
-  role: role,
-  isPhoneVerified: true,
-  isEmailVerified: false,
-  lastLogin: new Date()
-});
+    // Create new user
+    const newUser = new User({
+      name: translatedName.name, // Now contains {te, hi, en}
+      originalLanguage: originalLanguage,
+      phone: phone,
+      countryCode: countryCode,
+      email: email.toLowerCase(),
+      role: role,
+      isPhoneVerified: true,
+      isEmailVerified: false,
+      lastLogin: new Date()
+    });
 
-await newUser.save();
+    await newUser.save();
 
     // Delete the verified OTP
     await Otp.deleteMany({ phone: phone });
@@ -506,6 +512,8 @@ export const loginUser = async (req, res) => {
   }
 };
 // ==================== GET USER PROFILE ====================
+
+//Backend/UserControllers/Usercontroller.js
 export const getUserProfile = async (req, res) => {
   try {
     const user = req.user;
@@ -536,11 +544,25 @@ export const updateUserProfile = async (req, res) => {
   try {
     const user = req.user;
 
-    const { name, phone, email, address, about } = req.body;
+    const { name, email, address, about } = req.body;
 
-    if (name) user.name = name;
-    if (phone) user.phone = phone;
-    if (email) user.email = email.toLowerCase();
+    if (name) {
+      user.name = {
+        en: name,
+        hi: name,
+        te: name
+      };
+    }
+    if (email && email !== user.email) {
+      const exists = await User.findOne({ email: email.toLowerCase() });
+      if (exists) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already in use"
+        });
+      }
+      user.email = email.toLowerCase();
+    }
     if (address) user.address = address;
     if (about) user.about = about;
 
@@ -615,10 +637,10 @@ export const testFast2SMS = async (req, res) => {
     console.log('API Key exists:', !!process.env.FAST2SMS);
     console.log('API Key length:', process.env.FAST2SMS?.length);
     console.log('API Key first 10 chars:', process.env.FAST2SMS?.substring(0, 10));
-    
+
     // Test with a dummy number
     const testResult = await sendOTPviaSMS('9999999999', '1234', '+91');
-    
+
     return res.status(200).json({
       success: true,
       keyExists: !!process.env.FAST2SMS,

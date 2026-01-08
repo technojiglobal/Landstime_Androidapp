@@ -1,4 +1,4 @@
-// src/screens/Profile/ProfileScreen.jsx
+// Landstime_Androidapp/Frontend/app/home/screens/Settings/Profile.jsx
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import {
@@ -16,12 +16,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useEffect } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { getUserProfile, updateUserProfile } from "../../../../utils/api";
-const IMAGE_BASE_URL = "http://10.10.7.127:8000"; // backend URL
+const IMAGE_BASE_URL = "http://10.10.2.39:8000"; // backend URL
 export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState(null);
   // 🔽 ADD
-  
+
 
   useEffect(() => {
     fetchProfile();
@@ -30,7 +30,10 @@ export default function Profile() {
   const fetchProfile = async () => {
     const res = await getUserProfile();
     if (res.success) {
-      setProfile(res.data.data || res.data);
+      setProfile({
+        ...res.data,
+        name: typeof res.data.name === "object" ? res.data.name.en : res.data.name,
+      });
     }
   };
 
@@ -57,31 +60,31 @@ export default function Profile() {
   const scaleWidth = (size) => (SCREEN_WIDTH / REF_WIDTH) * size;
   const scaleHeight = (size) => (SCREEN_HEIGHT / REF_HEIGHT) * size;
   // 🔽 REPLACE
- const handleSave = async () => {
-  const formData = new FormData();
+  const handleSave = async () => {
+    const formData = new FormData();
 
-  formData.append("name", profile.name);
-  formData.append("phone", profile.phone);
-  formData.append("email", profile.email);
-  formData.append("address", profile.address || "");
-  formData.append("about", profile.about || "");
+    formData.append("name", profile.name);
 
-  if (profile.profileImage?.startsWith("file://")) {
-    formData.append("profileImage", {
-      uri: profile.profileImage,
-      name: "profile.jpg",
-      type: "image/jpeg",
-    });
-  }
+    formData.append("email", profile.email);
+    formData.append("address", profile.address || "");
+    formData.append("about", profile.about || "");
 
-  const res = await updateUserProfile(formData);
+    if (profile.profileImage?.startsWith("file://")) {
+      formData.append("profileImage", {
+        uri: profile.profileImage,
+        name: "profile.jpg",
+        type: "image/jpeg",
+      });
+    }
 
-  if (res.success) {
-    // 🔽 IMPORTANT: re-fetch from backend
-    await fetchProfile();
-    setIsEditing(false);
-  }
-};
+    const res = await updateUserProfile(formData);
+
+    if (res.success) {
+      // 🔽 IMPORTANT: re-fetch from backend
+      await fetchProfile();
+      setIsEditing(false);
+    }
+  };
 
 
   const router = useRouter();
@@ -96,28 +99,28 @@ export default function Profile() {
 
 
     <ScrollView className="mt-12 flex-1 bg-white px-4 pt-12">
-     
+
 
 
       {/* Profile Header */}
       <View className="flex-row items-center mb-6 mt-2">
 
         {/* Profile Image */}
-         <TouchableOpacity disabled={!isEditing} onPress={pickImage}>
-        <Image
-          source={
-            profile.profileImage
-              ? {
-                uri: profile.profileImage.startsWith("file://")
-                  ? profile.profileImage
-                  : `${IMAGE_BASE_URL}${profile.profileImage}`,
-              }
-              : require("../../../../assets/profile.png")
-          }
-          className="w-24 h-24 rounded-full"
-        />
+        <TouchableOpacity disabled={!isEditing} onPress={pickImage}>
+          <Image
+            source={
+              profile.profileImage
+                ? {
+                  uri: profile.profileImage.startsWith("file://")
+                    ? profile.profileImage
+                    : `${IMAGE_BASE_URL}${profile.profileImage}`,
+                }
+                : require("../../../../assets/profile.png")
+            }
+            className="w-24 h-24 rounded-full"
+          />
 
-      </TouchableOpacity>
+        </TouchableOpacity>
 
         {/* Name + Phone */}
         <View className="ml-4 flex-1">
@@ -130,9 +133,11 @@ export default function Profile() {
               className="text-xl font-semibold text-[#16A34A] border-b pb-1"
             />
           ) : (
-            <Text className="text-xl font-semibold text-[#16A34A]">
-              {profile.name}
-            </Text>
+            <TextInput
+              value={profile.name}
+              onChangeText={(text) => setProfile({ ...profile, name: text })}
+            />
+
           )}
 
           {/* Phone */}
@@ -194,22 +199,23 @@ export default function Profile() {
             <Text className="ml-3 text-gray-700">{profile.email}</Text>
           )}
         </View>
-
-        <Ionicons name="location-outline" size={18} color="gray" />
-        {isEditing ? (
-          <TextInput
-            value={profile.address || ""}
-            onChangeText={(text) =>
-              setProfile({ ...profile, address: text })
-            }
-            className="ml-3 border-b flex-1 text-gray-700"
-            placeholder="Address"
-          />
-        ) : (
-          <Text className="ml-3 text-gray-700">
-            {profile.address || "—"}
-          </Text>
-        )}
+        <View className="flex-row items-center mb-3">
+          <Ionicons name="location-outline" size={18} color="gray" />
+          {isEditing ? (
+            <TextInput
+              value={profile.address || ""}
+              onChangeText={(text) =>
+                setProfile({ ...profile, address: text })
+              }
+              className="ml-3 border-b flex-1 text-gray-700"
+              placeholder="Address"
+            />
+          ) : (
+            <Text className="ml-3 text-gray-700">
+              {profile.address || "—"}
+            </Text>
+          )}
+        </View>
 
       </View>
 
