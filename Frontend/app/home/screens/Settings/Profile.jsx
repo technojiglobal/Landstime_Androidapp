@@ -16,7 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useEffect } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { getUserProfile, updateUserProfile } from "../../../../utils/api";
-const IMAGE_BASE_URL = "http://10.10.2.39:8000"; // backend URL
+const IMAGE_BASE_URL = "http://10.10.2.74:8000"; // backend URL
 export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState(null);
@@ -30,9 +30,10 @@ export default function Profile() {
   const fetchProfile = async () => {
     const res = await getUserProfile();
     if (res.success) {
+      const user = res.data.data || res.data;
       setProfile({
-        ...res.data,
-        name: typeof res.data.name === "object" ? res.data.name.en : res.data.name,
+        ...user,
+        name: typeof user.name === "object" ? user.name.en : user.name,
       });
     }
   };
@@ -133,23 +134,13 @@ export default function Profile() {
               className="text-xl font-semibold text-[#16A34A] border-b pb-1"
             />
           ) : (
-            <TextInput
-              value={profile.name}
-              onChangeText={(text) => setProfile({ ...profile, name: text })}
-            />
-
+            <Text className="text-xl font-semibold text-[#16A34A]">
+              {profile.name}
+            </Text>
           )}
 
           {/* Phone */}
-          {isEditing ? (
-            <TextInput
-              value={profile.phone}
-              onChangeText={(text) => setProfile({ ...profile, phone: text })}
-              className="text-gray-500 mt-2 border-b border-gray-400 pb-1 w-36"
-            />
-          ) : (
-            <Text className="text-gray-500 mt-1">{profile.phone}</Text>
-          )}
+          <Text className="text-gray-500 mt-1">{profile.phone}</Text>
 
         </View>
 

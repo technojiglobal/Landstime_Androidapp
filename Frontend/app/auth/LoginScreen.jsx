@@ -149,98 +149,102 @@ const getLocalizedName = (nameField) => {
   };
 
   const handleVerifyOtp = async () => {
-    if (!canVerifyOtp) return;
+  if (!canVerifyOtp) return;
 
-    setLoading(true);
-    try {
-      const otpCode = otp.join("");
-      const verifyResponse = await verifyOTP(phone, otpCode);
+  setLoading(true);
+  try {
+    const otpCode = otp.join("");
 
-<<<<<<< HEAD
-      if (verifyResponse.success && verifyResponse.data.success) {
-        // OTP verified, now login
-        const response = await loginUser(phone);
-=======
- if (response.success && response.data.success) {
-  if (response.data.data?.token) {
-    const tokenSaved = await saveToken(response.data.data.token);
-    if (!tokenSaved) {
-      console.error('❌ Failed to save token on login');
-      throw new Error('Token storage failed');
-    }
-    console.log('🔐 Token saved successfully on login');
-  } else {
-    console.error('❌ No token in login response:', response.data);
-    throw new Error('No token received from server');
-  }
-  
-  await saveUserData(response.data.data.user);
->>>>>>> 5b8f30de684ac817925c6727c588887b927a0b70
+    // 1️⃣ Verify OTP
+    const verifyResponse = await verifyOTP(phone, otpCode);
 
-        if (response.success) {
-          if (response.data.data?.token) {
-            await saveToken(response.data.data.token);
-            console.log('🔐 Token saved on login:', response.data.data.token);
-          }
-          
-          await saveUserData(response.data.data.user);
+    if (verifyResponse?.success && verifyResponse?.data?.success) {
 
-          const userName = getLocalizedName(response.data.data.user.name);
+      // 2️⃣ Login after OTP verification
+      const response = await loginUser(phone);
 
-          Toast.show({
-            type: 'success',
-            text1: 'Login Successful',
-            text2: `Welcome back, ${userName}`,
-            position: 'top',
-            visibilityTime: 2500,
-          });
+      if (response?.success && response?.data?.success) {
 
-          setTimeout(() => {
-            router.replace("/(tabs)/home");
-          }, 2500);
-        } else {
-          const errorMessage = response.data?.message || "Something went wrong";
-          
-          if (errorMessage.includes("not found") || errorMessage.includes("Please register")) {
-            Toast.show({
-              type: 'error',
-              text1: 'Account not found',
-              text2: 'Please register first',
-              position: 'top',
-              visibilityTime: 4000,
-            });
-          } else {
-            Toast.show({
-              type: 'error',
-              text1: 'Login Failed',
-              text2: errorMessage,
-              position: 'top',
-              visibilityTime: 4000,
-            });
-          }
+        // 3️⃣ Save token
+        const token = response.data.data?.token;
+        if (!token) {
+          throw new Error("No token received from server");
         }
-      } else {
+
+        const tokenSaved = await saveToken(token);
+        if (!tokenSaved) {
+          throw new Error("Token storage failed");
+        }
+
+        console.log("🔐 Token saved successfully");
+
+        // 4️⃣ Save user data
+        await saveUserData(response.data.data.user);
+
+        const userName = getLocalizedName(response.data.data.user.name);
+
+        // 5️⃣ Success toast
         Toast.show({
-          type: 'error',
-          text1: 'OTP Verification Failed',
-          text2: verifyResponse.data?.message || 'Invalid OTP',
-          position: 'top',
-          visibilityTime: 3000,
+          type: "success",
+          text1: "Login Successful",
+          text2: `Welcome back, ${userName}`,
+          position: "top",
+          visibilityTime: 2500,
         });
+
+        // 6️⃣ Navigate to home
+        setTimeout(() => {
+          router.replace("/(tabs)/home");
+        }, 2500);
+
+      } else {
+        const errorMessage =
+          response?.data?.message || "Something went wrong";
+
+        if (
+          errorMessage.includes("not found") ||
+          errorMessage.includes("Please register")
+        ) {
+          Toast.show({
+            type: "error",
+            text1: "Account not found",
+            text2: "Please register first",
+            position: "top",
+            visibilityTime: 4000,
+          });
+        } else {
+          Toast.show({
+            type: "error",
+            text1: "Login Failed",
+            text2: errorMessage,
+            position: "top",
+            visibilityTime: 4000,
+          });
+        }
       }
-    } catch (error) {
-      console.error("Verify OTP and Login error:", error);
+    } else {
       Toast.show({
-        type: 'error',
-        text1: 'Network Error',
-        text2: 'Failed to verify OTP. Please try again.',
-        position: 'top',
-        visibilityTime: 4000,
+        type: "error",
+        text1: "OTP Verification Failed",
+        text2: verifyResponse?.data?.message || "Invalid OTP",
+        position: "top",
+        visibilityTime: 3000,
       });
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (error) {
+    console.error("Verify OTP & Login error:", error);
+    Toast.show({
+      type: "error",
+      text1: "Network Error",
+      text2: "Failed to verify OTP. Please try again.",
+      position: "top",
+      visibilityTime: 4000,
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleOtpChange = (text, index) => {
     if (!/^\d?$/.test(text)) return; // Only allow digits

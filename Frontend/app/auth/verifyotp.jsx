@@ -118,7 +118,7 @@
 //       }
 //     } catch (error) {
 //       console.error("Verify OTP error:", error);
-//       Alert.alert("Error", "Failed to verify OTP. Please try again.");
+//       Alert.alert("Error", " Please try again.");
 //     } finally {
 //       setLoading(false);
 //     }
