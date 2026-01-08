@@ -146,7 +146,8 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
       <View 
         className="flex-1 bg-white" 
         style={{ 
-          marginTop: insets.top, 
+          marginTop: insets.top,
+          //marginBottom: insets.bottom  
         }}
       >
         {/* Banner */}

@@ -25,16 +25,10 @@ const __dirname = path.dirname(__filename);
 
 // Middleware
 app.use(cors({
-  origin: [
-    'http://localhost:8081', 
-     'http://10.37.92.184:8000' ,          // React Native/Expo
-    'http://localhost:5173',            // Admin Panel (Vite)
-             // Admin Panel (Vite)
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  origin: true,
+  credentials: true
 }));
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 

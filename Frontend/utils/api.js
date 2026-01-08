@@ -246,23 +246,6 @@ export const updateUserProfile = async (formData) => {
 };
 
 
-// export const checkPhoneExists = async (phone) => {
-
-//   try {
-//     const response = await fetch(`${API_URL}/check-phone`, {
-//       method: 'POST',
-//       headers: {
-//         'Content-Type': 'application/json',
-//       },
-//       body: JSON.stringify({ phone }),
-//     });
-//     const data = await response.json();
-//     return { success: response.ok, data };
-//   } catch (error) {
-//     console.error('Check phone error:', error);
-//     return { success: false, error: error.message };
-//   }
-// };
 
 
 export const checkPhoneExists = async (phone) => {
@@ -273,10 +256,7 @@ export const checkPhoneExists = async (phone) => {
 
 // ===== PROPERTY APIs =====
 
-
-
-const PROPERTY_API_BASE_URL = 'http://10.37.92.184:8000/api/properties';
-
+const PROPERTY_API_BASE_URL = `${process.env.EXPO_PUBLIC_IP_ADDRESS}/api/properties`;
 
 // Create property with images
 export const createProperty = async (propertyData, imageUris = []) => {
