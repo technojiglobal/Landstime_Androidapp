@@ -671,19 +671,58 @@ retailDetails: {
 }
 ,
     
-    // Storage specific
-    storageDetails: {
+ // Backend/models/Property.js - Storage Schema Section Only
+
+storageDetails: {
   storageType: {
+    type: String,
+    enum: ['Warehouse', 'Cold Storage'],
+  },
+
+  location: {
+    type: String,
+    required: function () {
+      return this.commercialDetails?.subType === "Storage";
+    },
+  },
+
+  // ✅ NEW - Neighborhood Area (critical field)
+  neighborhoodArea: {
     type: String,
   },
 
-  area: {
+  storageArea: {
+    value: {
+      type: Number,
+      required: function () {
+        return this.commercialDetails?.subType === "Storage";
+      },
+    },
+    unit: {
+      type: String,
+      enum: ["sqft", "sqm", "acre"],
+      default: "sqft",
+    },
+  },
+
+  dimensions: {
+    length: Number,
+    breadth: Number,
+  },
+
+  // ✅ NEW - Additional Storage Specifications
+  ceilingHeight: {
     type: Number,
   },
 
-  areaUnit: {
+  flooring: {
     type: String,
-    default: "sqft",
+    enum: ['Concrete', 'Tiles', 'Epoxy', 'Other'],
+  },
+
+  ventilation: {
+    type: String,
+    enum: ['Natural', 'Mechanical', 'Both'],
   },
 
   covered: {
@@ -691,16 +730,9 @@ retailDetails: {
     default: false,
   },
 
-  ceilingHeight: {
-    type: Number,
-  },
-
-  flooring: {
-    type: String,
-  },
-
-  ventilation: {
-    type: String,
+  temperatureControl: {
+    type: Boolean,
+    default: false,
   },
 
   security: {
@@ -708,27 +740,92 @@ retailDetails: {
     default: [],
   },
 
-  temperatureControl: {
-    type: Boolean,
-    default: false,
+  accessibility: {
+    type: String,
+    enum: ['Dock Level', 'Ground Level', 'Ramp Access'],
   },
 
-  accessibility: {
+  washroomType: {
     type: String,
   },
 
-  /* ✅ STORAGE VASTU DETAILS (THIS IS REQUIRED) */
+  availability: {
+    type: String,
+    enum: ['Ready', 'UnderConstruction'],
+  },
+
+  ageOfProperty: {
+    type: String,
+  },
+
+  possession: {
+    expectedBy: String,
+  },
+
+  // ✅ Pricing Details (from StorageNext.jsx)
+  ownership: {
+    type: String,
+  },
+
+  expectedPrice: {
+    type: Number,
+    required: function () {
+      return this.commercialDetails?.subType === "Storage";
+    },
+  },
+
+  priceDetails: {
+    allInclusive: { type: Boolean, default: false },
+    negotiable: { type: Boolean, default: false },
+    taxExcluded: { type: Boolean, default: false },
+  },
+
+  authority: {
+    type: String,
+  },
+
+  approvedIndustryType: {
+    type: String,
+  },
+
+  preLeased: {
+    type: String,
+  },
+
+  leaseDuration: {
+    type: String,
+  },
+
+  monthlyRent: {
+    type: Number,
+  },
+
+  description: {
+    type: String,
+  },
+
+  amenities: {
+    type: [String],
+    default: [],
+  },
+
+  locationAdvantages: {
+    type: [String],
+    default: [],
+  },
+
+  // ✅ Vastu Details (from StorageVaastu.jsx)
   vastuDetails: {
-    buildingFacing: { type: String },
-    entrance: { type: String },
-    storageArea: { type: String },
-    lightGoods: { type: String },
-    loading: { type: String },
-    office: { type: String },
-    electrical: { type: String },
-    water: { type: String },
-    washroom: { type: String },
-    height: { type: String },
+    buildingFacing: String,
+    entrance: String,
+    storageArea: String,
+    lightGoods: String,
+    loading: String,
+    office: String,
+    electrical: String,
+    water: String,
+    washroom: String,
+    height: String,
   },
 },
 

@@ -180,6 +180,11 @@ if (baseDetails.hospitalityKind) {
   setHospitalityKinds([baseDetails.hospitalityKind]);
 }
 
+if (baseDetails.storageKind) {
+  setStorageKinds([baseDetails.storageKind]);
+  console.log('✅ Storage kind restored from baseDetails:', baseDetails.storageKind);
+}
+
 if (baseDetails.locatedInside) {
   setLocatedInside(baseDetails.locatedInside);
 }
@@ -303,11 +308,43 @@ if (hospitalityDraft) {
         }
         
         console.log('✅ Hospitality draft loaded successfully');
+
+        return;
       }
-    } catch (e) {
+    
+
+    // ✅ NEW - Try loading Storage draft
+      const storageDraft = await AsyncStorage.getItem('draft_commercial_storage');
+      if (storageDraft) {
+        const parsed = JSON.parse(storageDraft);
+        console.log('📦 Loading Storage draft from AsyncStorage:', parsed);
+        
+        if (parsed.selectedType) setSelectedType(parsed.selectedType);
+        if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
+        if (parsed.storageKind) setStorageKinds([parsed.storageKind]);
+        if (parsed.images) setImages(parsed.images);
+        if (parsed.neighborhoodArea) {
+          setNeighborhoodArea(parsed.neighborhoodArea);
+          setArea(parsed.neighborhoodArea);
+        }
+        if (parsed.area) {
+          setArea(parsed.area);
+        }
+        
+        console.log('✅ Storage draft loaded successfully');
+      }
+    }
+  
+
+    
+    catch (e) {
       console.log('⚠️ Failed to load draft:', e);
     }
   };
+
+  
+
+
   
   loadDraft();
 }, []);
@@ -319,13 +356,14 @@ useEffect(() => {
     // Only save if we have meaningful data
     if (!selectedType) return;
 
-    const draftData = {
+  const draftData = {
       selectedType,
       propertyTitle,
       images,
       officeKind: officeKinds.length > 0 ? officeKinds[0] : undefined,
       retailKind: retailKinds.length > 0 ? retailKinds[0] : undefined,
       hospitalityKind: HospitalityKinds.length > 0 ? HospitalityKinds[0] : undefined,
+      storageKind: storageKinds.length > 0 ? storageKinds[0] : undefined,
       locatedInside: locatedInside || undefined,
       area: area || neighborhoodArea || undefined,
       timestamp: new Date().toISOString(),
@@ -337,6 +375,8 @@ useEffect(() => {
       ? 'draft_commercial_hospitality'
       : selectedType === 'Retail'
       ? 'draft_commercial_retail'
+      : selectedType === 'Storage'
+      ? 'draft_commercial_storage'
       : null;
 
     if (storageKey) {
@@ -352,7 +392,7 @@ useEffect(() => {
   const timer = setTimeout(saveDraft, 1000);
   return () => clearTimeout(timer);
 }, [selectedType, propertyTitle, images, officeKinds, retailKinds, 
-    HospitalityKinds, locatedInside, area, neighborhoodArea]);
+    HospitalityKinds, storageKinds, locatedInside, area, neighborhoodArea]);
 
 
 
@@ -494,11 +534,29 @@ const handleNext = async () => { // ✅ Make async
         });
         break;
 
-      case "Storage":
+     case "Storage":
         if (!storageKinds.length) {
           Alert.alert("Storage Type Required", "Please select storage type");
           return;
         }
+        
+        // ✅ NEW - Save draft to AsyncStorage
+        const storageDraftData = {
+          selectedType: "Storage",
+          propertyTitle,
+          storageKind: storageKinds[0],
+          images,
+          area: area || neighborhoodArea,
+          timestamp: new Date().toISOString(),
+        };
+        
+        try {
+          await AsyncStorage.setItem('draft_commercial_storage', JSON.stringify(storageDraftData));
+          console.log('✅ Storage draft saved to AsyncStorage');
+        } catch (e) {
+          console.log('⚠️ Failed to save Storage draft:', e);
+        }
+        
         router.push({
           pathname: `${base}/Storage`,
           params: {
