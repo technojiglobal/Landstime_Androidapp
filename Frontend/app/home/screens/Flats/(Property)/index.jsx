@@ -10,6 +10,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from "react-i18next";
 import i18n  from "../../../../../i18n/index"
 
+// ✅ Helper function OUTSIDE component
+const getLocalizedText = (field, language) => {
+  if (!field) return '';
+  if (typeof field === 'string') return field;
+  return field[language] || field.en || field.te || field.hi || '';
+};
+
 export default function OverviewScreen() {
   const router = useRouter();
    const { propertyId } = useLocalSearchParams(); 
@@ -17,6 +24,9 @@ export default function OverviewScreen() {
   const [showVastuModal, setShowVastuModal] = useState(false);
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // ✅ Get current language
+const currentLanguage = i18n.language || 'en';
  // const [language, setLanguage] = useState('en');
 
  
@@ -234,10 +244,8 @@ const fetchPropertyDetails = async () => {
           {/* Name + Location + Rating */}
           <View className="flex-row items-start justify-between">
             <View>
-            <Text className="text-[20px] text-green-500 font-semibold" style={{ fontFamily: "Poppins",fontWeight:"bold" }}>
- {typeof property.propertyTitle === 'string' 
-   ? property.propertyTitle 
-   : (property.propertyTitle?.en || property.propertyTitle?.te || property.propertyTitle?.hi || 'Property')}
+          <Text className="text-[20px] text-green-500 font-semibold" style={{ fontFamily: "Poppins",fontWeight:"bold" }}>
+  {getLocalizedText(property.propertyTitle, currentLanguage) || 'Property'}
 </Text>
 <View className="flex-row items-center mt-1">
   <Image
@@ -245,10 +253,8 @@ const fetchPropertyDetails = async () => {
     style={{ width: 12, height: 12, resizeMode: "contain" }}
   />
   <Text className="text-[12px] text-[#72707090] ml-1" style={{ fontFamily: "Poppins" }}>
-    {typeof property.location === 'string' 
-      ? property.location 
-      : (property.location?.en || property.location?.te || property.location?.hi || 'Location')}
-  </Text>
+  {getLocalizedText(property.location, currentLanguage) || 'Location'}
+</Text>
 </View>
 
             </View>
@@ -312,10 +318,8 @@ const fetchPropertyDetails = async () => {
             <Text className="text-[20px] font-semibold mb-1" style={{ fontFamily: "Poppins" }}>
               Description
             </Text>
-        <Text className="text-[14px] text-[#00000091]" style={{ fontFamily: "Poppins" }}>
- {typeof property.description === 'string' 
-   ? property.description 
-   : (property.description?.en || property.description?.te || property.description?.hi || 'No description available')}
+     <Text className="text-[14px] text-[#00000091]" style={{ fontFamily: "Poppins" }}>
+  {getLocalizedText(property.description, currentLanguage) || 'No description available'}
 </Text>
           </View>
 

@@ -1,4 +1,4 @@
-// Landstime_Androidapp/admin/src/pages/AdminLogin.jsx
+// admin/src/pages/AdminLogin.jsx
 import { useState } from "react";
 import { Mail, Lock, Building2 } from "lucide-react";
 import { adminLogin } from "../services/authService";
@@ -10,7 +10,6 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // ✅ SINGLE LOGIN — backend decides role
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -25,16 +24,14 @@ export default function AdminLogin() {
       // Call backend login API
       const res = await adminLogin(email, password);
 
-      // ✅ Store auth data
+      // ✅ Store auth data with consistent key names
       localStorage.setItem("token", res.token);
       localStorage.setItem("adminToken", res.token);
-      localStorage.setItem("role", res.admin.role); // admin | superadmin
+      localStorage.setItem("userRole", res.admin.role); // Changed from 'role' to 'userRole'
+      localStorage.setItem("authToken", res.token); // Added for UnifiedProtectedRoute
 
-      // ✅ Redirect based on role
-      const redirectPath =
-        res.admin.role === "superadmin" ? "/superadmin" : "/admin";
-
-      navigate(redirectPath);
+      // ✅ Redirect to /dashboard (unified path)
+      navigate("/dashboard");
     } catch (err) {
       console.error("Admin login failed:", err);
       alert(err.response?.data?.message || "Invalid credentials");
@@ -109,7 +106,7 @@ export default function AdminLogin() {
           <button
             onClick={handleLogin}
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-50"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>

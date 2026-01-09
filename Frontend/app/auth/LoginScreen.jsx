@@ -103,50 +103,61 @@ const getLocalizedName = (nameField) => {
   const canVerifyOtp = otp.join("").length === 4 && step === 'enterOtp';
 
   const handleSendOtp = async () => {
-    if (!canSendOtp) return;
+  if (!canSendOtp) return;
 
-    setOtpLoading(true);
-    try {
-      const response = await sendOTP(phone, "+91");
+  setOtpLoading(true);
+  try {
+    const response = await sendOTP(phone, "+91");
 
-      if (response.success && response.data.success) {
-        setStep('enterOtp');
-        setTimer(30);
-        setOtp(["", "", "", ""]);
+    if (response.success && response.data.success) {
+      setStep('enterOtp');
+      setTimer(30);
+      setOtp(["", "", "", ""]);
 
-        if (response.data.devOtp) {
-          Alert.alert('DEV MODE', `OTP: ${response.data.devOtp}`, [{ text: 'OK' }]);
-        }
-
+      // ✅ FIXED: Check response.data.data.devOtp instead of response.data.devOtp
+      if (response.data.data?.devOtp) {
+        Toast.show({
+          type: 'success',
+          text1: 'OTP Sent Successfully',
+          text2: `Your OTP: ${response.data.data.devOtp}`,
+          position: 'top',
+          visibilityTime: 6000,
+          topOffset: 50,
+        });
+      } else {
         Toast.show({
           type: 'success',
           text1: 'OTP Sent',
           text2: 'Please check your phone for the verification code',
           position: 'top',
           visibilityTime: 3000,
-        });
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Failed to send OTP',
-          text2: response.data?.message || 'Please try again',
-          position: 'top',
-          visibilityTime: 3000,
+          topOffset: 50,
         });
       }
-    } catch (error) {
-      console.error("Send OTP error:", error);
+    } else {
       Toast.show({
         type: 'error',
-        text1: 'Network Error',
-        text2: 'Failed to send OTP. Please check your connection.',
+        text1: 'Failed to send OTP',
+        text2: response.data?.message || 'Please try again',
         position: 'top',
         visibilityTime: 3000,
+        topOffset: 50,
       });
-    } finally {
-      setOtpLoading(false);
     }
-  };
+  } catch (error) {
+    console.error("Send OTP error:", error);
+    Toast.show({
+      type: 'error',
+      text1: 'Network Error',
+      text2: 'Failed to send OTP. Please check your connection.',
+      position: 'top',
+      visibilityTime: 3000,
+      topOffset: 50,
+    });
+  } finally {
+    setOtpLoading(false);
+  }
+};
 
   const handleVerifyOtp = async () => {
   if (!canVerifyOtp) return;

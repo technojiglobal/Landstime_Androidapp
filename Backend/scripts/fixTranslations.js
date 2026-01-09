@@ -1,3 +1,5 @@
+//Backend//scripts//fixTranslations.js
+
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';

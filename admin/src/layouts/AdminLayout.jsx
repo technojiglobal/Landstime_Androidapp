@@ -152,9 +152,11 @@ import { sidebarLinks } from "../constants/sidebarLinks";
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+ const role = localStorage.getItem("userRole") || "admin";
 
+  const links = sidebarLinks[role];
   // ✅ FIX: get admin links correctly
-  const links = sidebarLinks.admin;
+  
 
   const active =
     links.find((item) => item.path === location.pathname) || links[0];

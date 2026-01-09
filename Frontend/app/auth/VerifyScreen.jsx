@@ -69,50 +69,78 @@ export default function VerificationScreen() {
       i18n.off('languageChanged', handleLanguageChange);
     };
   }, []);
-
-  const handleSendOTP = async () => {
-    console.log('🚀 Starting OTP send process...');
-    console.log('📞 Phone:', phoneNumber, 'Country Code:', countryCode);
+const handleSendOTP = async () => {
+  console.log('🚀 Starting OTP send process...');
+  console.log('📞 Phone:', phoneNumber, 'Country Code:', countryCode);
+  
+  setLoading(true);
+  try {
+    console.log('📡 Calling sendOTP API...');
+    const response = await sendOTP(phoneNumber, countryCode);
     
-    setLoading(true);
-    try {
-      console.log('📡 Calling sendOTP API...');
-      const response = await sendOTP(phoneNumber, countryCode);
-      
-      console.log('✅ Response received:', JSON.stringify(response, null, 2));
+    console.log('✅ Response received:', JSON.stringify(response, null, 2));
 
-      if (response.success && response.data.success) {
-        console.log('✨ OTP sent successfully!');
+    if (response.success && response.data.success) {
+      console.log('✨ OTP sent successfully!');
+      
+      // ✅ FIXED: Check response.data.data.devOtp instead of response.data.devOtp
+      if (response.data.data?.devOtp) {
+        console.log('🔐 DEV OTP:', response.data.data.devOtp);
         
-        // Check if OTP is in response (dev mode)
-        if (response.data.devOtp) {
-          console.log('🔐 DEV OTP:', response.data.devOtp);
-          Alert.alert('DEV MODE', `OTP: ${response.data.devOtp}`, [
-            { text: 'OK', onPress: () => navigateToVerify() }
-          ]);
-        } else {
+        // Show Toast with OTP
+        Toast.show({
+          type: 'success',
+          text1: t('verify_otp_sent_title') || 'OTP Sent Successfully',
+          text2: `Your OTP: ${response.data.data.devOtp}`,
+          visibilityTime: 6000,
+          position: 'top',
+          topOffset: 60,
+        });
+        
+        setTimeout(() => {
           navigateToVerify();
-        }
-      } 
-      else {
-        console.error('❌ OTP send failed:', response.data?.message);
-        Alert.alert(
-          t('verify_otp_send_failed_title'),
-          response.data.message || t('verify_otp_send_failed_desc')
-        );
+        }, 1500);
+      } else {
+        Toast.show({
+          type: 'success',
+          text1: t('verify_otp_sent_title') || 'OTP Sent',
+          text2: t('verify_otp_sent_desc') || 'Please check your phone',
+          visibilityTime: 3000,
+          position: 'top',
+          topOffset: 60,
+        });
+        
+        setTimeout(() => {
+          navigateToVerify();
+        }, 1000);
       }
-    } catch (error) {
-      console.error('💥 Network error:', error);
-      console.error('Error details:', error.message);
-      Alert.alert(
-        t('verify_otp_send_failed_title'), 
-        t('verify_network_error_desc')
-      );
-    } finally {
-      setLoading(false);
-      console.log('🏁 OTP send process completed');
+    } 
+    else {
+      console.error('❌ OTP send failed:', response.data?.message);
+      Toast.show({
+        type: 'error',
+        text1: t('verify_otp_send_failed_title') || 'Failed',
+        text2: response.data.message || t('verify_otp_send_failed_desc'),
+        visibilityTime: 4000,
+        position: 'top',
+        topOffset: 60,
+      });
     }
-  };
+  } catch (error) {
+    console.error('💥 Network error:', error);
+    Toast.show({
+      type: 'error',
+      text1: t('verify_otp_send_failed_title') || 'Error', 
+      text2: t('verify_network_error_desc') || 'Network error occurred',
+      visibilityTime: 4000,
+      position: 'top',
+      topOffset: 60,
+    });
+  } finally {
+    setLoading(false);
+    console.log('🏁 OTP send process completed');
+  }
+};
 
   const navigateToVerify = () => {
     router.push({

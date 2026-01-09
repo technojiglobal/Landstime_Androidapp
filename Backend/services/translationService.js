@@ -1,5 +1,13 @@
 // Landstime_Androidapp/Backend/services/translationService.js
 import { Translate } from '@google-cloud/translate/build/src/v2/index.js';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+// ✅ Load .env before creating client
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+dotenv.config({ path: join(__dirname, '..', '.env') });
 
 const translateClient = new Translate({
   key: process.env.TRANSLATION_API_KEY
@@ -14,31 +22,37 @@ if (!process.env.TRANSLATION_API_KEY) {
 
 export const translateToAllLanguages = async (text, sourceLang = 'en') => {
   try {
-    if (!text || !text.trim()) {
-      console.log('⚠️  Empty text provided, skipping translation');
+    // ✅ FIX: Check if text is a string first
+    if (!text || typeof text !== 'string' || !text.trim()) {
+      console.log('⚠️  Empty or invalid text provided, skipping translation');
       return { te: '', hi: '', en: '' };
     }
 
     console.log(`🔄 Translating: "${text}" from ${sourceLang}`);
     
-    const targetLanguages = ['te', 'hi', 'en'].filter(lang => lang !== sourceLang);
-    const result = { [sourceLang]: text };
+    // ✅ CRITICAL FIX: Always translate from English
+    const actualSourceLang = 'en';
+    const targetLanguages = ['te', 'hi', 'en'];
+    const result = {};
 
     for (const targetLang of targetLanguages) {
-      try {
-        console.log(`   → Translating to ${targetLang}...`);
-        
-        const [translation] = await translateClient.translate(text, {
-          from: sourceLang,
-          to: targetLang
-        });
-        
-        result[targetLang] = translation;
-        console.log(`   ✅ ${sourceLang}→${targetLang}: "${translation}"`);
-        
-      } catch (error) {
-        console.error(`   ❌ Translation failed (${sourceLang}→${targetLang}):`, error.message);
-        result[targetLang] = text; // Fallback to original text
+      if (targetLang === actualSourceLang) {
+        // Source language - keep original
+        result[targetLang] = text;
+        console.log(`   ✅ Source (${targetLang}): "${text}"`);
+      } else {
+        try {
+          console.log(`   → Translating to ${targetLang}...`);
+          
+          const [translation] = await translateClient.translate(text, targetLang);
+          
+          result[targetLang] = translation;
+          console.log(`   ✅ en→${targetLang}: "${translation}"`);
+          
+        } catch (error) {
+          console.error(`   ❌ Translation failed (en→${targetLang}):`, error.message);
+          result[targetLang] = text; // Fallback to original text
+        }
       }
     }
 

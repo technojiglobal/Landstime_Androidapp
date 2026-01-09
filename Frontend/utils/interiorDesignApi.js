@@ -1,14 +1,13 @@
 //Frontend/utils/interiorDesignApi.js
 
 import { Platform } from "react-native";
-
+import { API_URL } from './apiConfig';
 /**
  * IMPORTANT:
  * Android emulator → use local IP (NOT localhost)
  * Expo physical device → same WiFi IP
  */
-const BASE_URL = `${process.env.EXPO_PUBLIC_IP_ADDRESS}/api/admin/interior`;
-
+const BASE_URL = `${API_URL}/api/admin/interior`;
 export const fetchInteriorDesigns = async ({
   page = 1,
   limit = 10,

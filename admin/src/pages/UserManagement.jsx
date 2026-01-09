@@ -350,18 +350,16 @@ export default function UserManagement() {
   }, [tab, search, pageSize]);
 
   // Fetch users from backend
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
-// NEW CODE:
+
+  // NEW CODE:
   const fetchUsers = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      
+
       console.log('🔑 Fetching users with token:', token ? 'EXISTS' : 'MISSING');
-      
+
       const response = await axios.get('http://localhost:8000/api/admin/users', {
         headers: {
           Authorization: `Bearer ${token}`
@@ -373,10 +371,10 @@ export default function UserManagement() {
       if (response.data.success) {
         const formattedUsers = response.data.data.map(user => {
           const now = new Date();
-          const expDate = user.currentSubscription?.endDate 
-            ? new Date(user.currentSubscription.endDate) 
+          const expDate = user.currentSubscription?.endDate
+            ? new Date(user.currentSubscription.endDate)
             : null;
-          
+
           let status = 'active';
           if (user.isBlocked) {
             status = 'blocked';
@@ -388,12 +386,29 @@ export default function UserManagement() {
 
           return {
             id: user._id,
-            name: user.name,
+            name: (() => {
+              if (user.name && typeof user.name === "object") {
+                return user.name.en || user.name.hi || user.name.te || "";
+              }
+              return user.name || "";
+            })(),
+
+
             email: user.email,
             phone: user.phone,
-            plan: user.currentSubscription?.planName || null,
+            plan: (() => {
+              const planName = user.currentSubscription?.planName;
+
+              if (planName && typeof planName === "object") {
+                return planName.en || planName.hi || planName.te || null;
+              }
+
+              return planName || null;
+            })(),
+
+
             subscribed: !!user.currentSubscription?.planId,
-            subDate: user.currentSubscription?.startDate 
+            subDate: user.currentSubscription?.startDate
               ? new Date(user.currentSubscription.startDate).toLocaleDateString('en-CA')
               : null,
             expDate: user.currentSubscription?.endDate
@@ -404,7 +419,7 @@ export default function UserManagement() {
             isBlocked: user.isBlocked || false
           };
         });
-        
+
         setUsers(formattedUsers);
       }
       setLoading(false);
@@ -414,6 +429,9 @@ export default function UserManagement() {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   /* -------------------- FILTER (ENHANCED SEARCH) -------------------- */
   const filteredUsers = useMemo(() => {
@@ -443,15 +461,15 @@ export default function UserManagement() {
   const end = Math.min(endIndex, filteredUsers.length);
 
   /* -------------------- ACTIONS -------------------- */
- // NEW CODE:
+  // NEW CODE:
   const toggleStatus = async (id) => {
     try {
       const token = localStorage.getItem('token');
-      
+
       console.log('🔑 Token:', token ? 'EXISTS' : 'MISSING');
       console.log('🆔 User ID:', id);
       console.log('🌐 API URL:', `http://localhost:8000/api/admin/users/${id}/toggle-block`);
-      
+
       const response = await axios.put(
         `http://localhost:8000/api/admin/users/${id}/toggle-block`,
         {},
@@ -484,13 +502,13 @@ export default function UserManagement() {
   const stats =
     tab === "subscribers"
       ? [
-          { title: "Total Subscribers", value: subscriberCount.toString(), icon: Users },
-          { title: "Premium Users", value: premiumCount.toString(), icon: Crown },
-        ]
+        { title: "Total Subscribers", value: subscriberCount.toString(), icon: Users },
+        { title: "Premium Users", value: premiumCount.toString(), icon: Crown },
+      ]
       : [
-          { title: "Total Non-Subscribers", value: nonSubscriberCount.toString(), icon: UserX },
-          { title: "Potential Conversions", value: Math.floor(nonSubscriberCount * 0.15).toString(), icon: UserPlus },
-        ];
+        { title: "Total Non-Subscribers", value: nonSubscriberCount.toString(), icon: UserX },
+        { title: "Potential Conversions", value: Math.floor(nonSubscriberCount * 0.15).toString(), icon: UserPlus },
+      ];
 
   if (loading) {
     return (
@@ -517,9 +535,8 @@ export default function UserManagement() {
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-4 py-2 rounded-md text-sm font-medium ${
-              tab === t ? "bg-white shadow text-black" : "text-gray-500"
-            }`}
+            className={`px-4 py-2 rounded-md text-sm font-medium ${tab === t ? "bg-white shadow text-black" : "text-gray-500"
+              }`}
           >
             {t === "subscribers" ? "Subscribers" : "Non-Subscribers"}
           </button>
@@ -600,13 +617,12 @@ export default function UserManagement() {
                     <td className="px-4 py-3">{u.expDate || 'N/A'}</td>
                     <td className="px-4 py-3">
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          u.status === "blocked"
-                            ? "bg-red-500 text-white"
-                            : u.status === "expired"
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${u.status === "blocked"
+                          ? "bg-red-500 text-white"
+                          : u.status === "expired"
                             ? "bg-orange-500 text-white"
                             : "bg-green-200 text-green-700"
-                        }`}
+                          }`}
                       >
                         {u.status}
                       </span>
@@ -614,7 +630,7 @@ export default function UserManagement() {
                     <td className="px-4 py-3">{u.email}</td>
                     <td className="px-4 py-3">{u.phone}</td>
                     <td className="px-4 py-3">
-                      <button 
+                      <button
                         onClick={() => toggleStatus(u.id)}
                         className="hover:opacity-70 transition"
                         title={u.isBlocked ? "Unblock user" : "Block user"}

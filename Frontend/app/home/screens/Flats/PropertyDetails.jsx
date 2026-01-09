@@ -22,9 +22,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from "react-i18next";
 import i18n  from "../../../../i18n/index"
 
+
+const getLocalizedText = (field, language) => {
+  if (!field) return '';
+  if (typeof field === 'string') return field;
+  return field[language] || field.en || field.te || field.hi || '';
+};
+
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const CARD_WIDTH = 345;
 const CARD_HEIGHT = 298;
+
+// ✅ Helper function OUTSIDE component - extract language text
+
 
 export default function PropertyListScreen() {
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -35,6 +45,9 @@ export default function PropertyListScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { areaKey, districtKey } = useLocalSearchParams();
+
+  // ✅ Get current language
+const currentLanguage = i18n.language || 'en';
   
   // Get translated area name from areaKey
   const areaName = areaKey ? t(`areas.${areaKey}`) : '';
@@ -78,19 +91,11 @@ const fetchProperties = async () => {
 };
 
   // ✅ FILTER BY AREA (location)
-// ✅ NEW CODE
-// NEW CODE:
-// ✅ NEW: Filter using areaKey for consistent matching across languages
 const filteredProperties = properties.filter((property) => {
   const propertyAreaKey = property.areaKey || '';
   
-  // Handle both string and object propertyTitle
-  let propertyTitle = '';
-  if (typeof property.propertyTitle === 'string') {
-    propertyTitle = property.propertyTitle;
-  } else if (property.propertyTitle && typeof property.propertyTitle === 'object') {
-    propertyTitle = property.propertyTitle.en || property.propertyTitle.te || property.propertyTitle.hi || '';
-  }
+  // ✅ Use helper function to extract title
+  const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
   
   // Match by areaKey (consistent across all languages)
   const matchesArea = propertyAreaKey === areaKey;
@@ -254,19 +259,17 @@ const filteredProperties = properties.filter((property) => {
     params: { propertyId: item._id }
   })}
 >
-                    <Text
-                      style={{
-                        fontFamily: "Poppins-Medium",
-                        fontWeight: "500",
-                        fontSize: 12,
-                        color: "#16A34A",
-                        marginTop: 5,
-                      }}
-                    >
-                    {typeof item.propertyTitle === 'string' 
-                        ? item.propertyTitle 
-                        : item.propertyTitle?.en || item.propertyTitle?.te || item.propertyTitle?.hi || 'Property'}
-                    </Text>
+                   <Text
+  style={{
+    fontFamily: "Poppins-Medium",
+    fontWeight: "500",
+    fontSize: 12,
+    color: "#16A34A",
+    marginTop: 5,
+  }}
+>
+ {getLocalizedText(item.propertyTitle, currentLanguage) || 'Property'}
+</Text>
                   </TouchableOpacity>
 
                   <View
@@ -332,7 +335,7 @@ const filteredProperties = properties.filter((property) => {
                         marginLeft: 4,
                       }}
                     >
-                     {item.location || areaName}
+                    {getLocalizedText(item.area, currentLanguage) || getLocalizedText(item.location, currentLanguage) || areaName}
                     </Text>
                   </View>
 
