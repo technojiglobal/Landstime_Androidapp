@@ -75,11 +75,11 @@ console.log('📄 Files received:', {
     
 
 
-    const finalData = {
+   const finalData = {
   propertyType: propertyData.propertyType,
   propertyTitle: propertyData.propertyTitle,
   ownerDetails: propertyData.ownerDetails,
-    expectedPrice: propertyData.expectedPrice,
+  expectedPrice: propertyData.expectedPrice,
   description: propertyData.description || "",
   images,
   documents: {
@@ -89,7 +89,22 @@ console.log('📄 Files received:', {
   userId: req.user._id,
   status: "pending",
 };
-  if (propertyData.propertyType === "Commercial") {
+
+// ✅ ADD THIS NEW CODE FOR HOUSE PROPERTIES
+if (propertyData.propertyType === "House") {
+  finalData.location = propertyData.location;
+  finalData.area = propertyData.area; // This should be the neighborhood name from frontend
+  finalData.houseDetails = propertyData.houseDetails;
+  
+  console.log('🏠 House property data:', {
+    location: finalData.location,
+    area: finalData.area,
+    sqft: propertyData.houseDetails?.area
+  });
+}
+
+if (propertyData.propertyType === "Commercial") {
+  // Commercial handling code...
   const { commercialDetails } = propertyData;
   if (!commercialDetails || !commercialDetails.subType) {
     return res.status(400).json({
@@ -435,13 +450,21 @@ if (canonicalSubType === "Plot/Land") {
     }
     // Create property
 console.log('🔄 Translating property fields...');
-// Translate text fields to all 3 languages
+// ✅ FIX: Ensure we're translating the actual string values
 const originalLanguage = propertyData.originalLanguage || 'en';
+
+// ✅ Extract plain text if it's already an object
+const getPlainText = (field) => {
+  if (!field) return '';
+  if (typeof field === 'string') return field;
+  return field[originalLanguage] || field.en || field.te || field.hi || '';
+};
+
 const translatedFields = await translatePropertyFields({
-  propertyTitle: propertyData.propertyTitle,
-  description: propertyData.description,
-  location: finalData.location || propertyData.location,
-  area: propertyData.area
+  propertyTitle: getPlainText(propertyData.propertyTitle),
+  description: getPlainText(propertyData.description),
+  location: getPlainText(finalData.location || propertyData.location),
+  area: getPlainText(propertyData.area)
 }, originalLanguage);
 console.log('✅ Translation complete');
 // ✅ NEW: Generate areaKey for consistent filtering
@@ -679,7 +702,7 @@ export const deletePropertyDocument = async (req, res) => {
 // Keep all other existing functions unchanged
 export const getApprovedProperties = async (req, res) => {
   try {
-    const { propertyType, page = 1, limit = 3000 } = req.query;
+    const { propertyType, page = 1, limit = 3000, language = 'en' } = req.query;  // ✅ ADD language from query
     
     const query = { status: 'approved' };
     if (propertyType) {
@@ -693,24 +716,32 @@ export const getApprovedProperties = async (req, res) => {
       .skip((page - 1) * limit);
    
     // ✅ Helper function to extract language-specific text
-    const getLocalizedText = (field) => {
-      if (!field) return '';
-      if (typeof field === 'string') return field;
-      return field[language] || field.en || field.te || field.hi || '';
-    };
+    // const getLocalizedText = (field) => {
+    //   if (!field) return '';
+    //   if (typeof field === 'string') return field;
+    //   return field[language] || field.en || field.te || field.hi || '';
+    // };
    
-    const transformedProperties = properties.map(prop => {
-      const propObj = prop.toObject();
-     
-      return {
-        ...propObj,
-        propertyTitle: getLocalizedText(propObj.propertyTitle),
-        description: getLocalizedText(propObj.description),
-        location: getLocalizedText(propObj.location),
-        area: getLocalizedText(propObj.area),
-        areaKey: propObj.areaKey || ''
-      };
-    });
+  const transformedProperties = properties.map(prop => {
+  const propObj = prop.toObject();
+  
+  // ✅ DON'T transform here - send the full multilingual object
+  return {
+    ...propObj,
+    // Keep the original multilingual objects intact
+    propertyTitle: propObj.propertyTitle,
+    description: propObj.description,
+    location: propObj.location,
+    area: propObj.area,
+    areaKey: propObj.areaKey || ''
+  };
+});
+
+console.log('✅ First transformed property:', {
+  original: properties[0]?.propertyTitle,
+  transformed: transformedProperties[0]?.propertyTitle,
+  language: language
+});
    
     console.log('✅ Transformed first property:', transformedProperties[0] ? {
       propertyTitle: transformedProperties[0].propertyTitle,
@@ -771,21 +802,22 @@ export const getPropertyById = async (req, res) => {
     const propObj = property.toObject();
    
     // ✅ Helper function to extract language-specific text
-    const getLocalizedText = (field) => {
-      if (!field) return '';
-      if (typeof field === 'string') return field;
-      return field[language] || field.en || field.te || field.hi || '';
-    };
+    // const getLocalizedText = (field) => {
+    //   if (!field) return '';
+    //   if (typeof field === 'string') return field;
+    //   return field[language] || field.en || field.te || field.hi || '';
+    // };
    
     // Transform to requested language
-    const transformedProperty = {
-      ...propObj,
-      propertyTitle: getLocalizedText(propObj.propertyTitle),
-      description: getLocalizedText(propObj.description),
-      location: getLocalizedText(propObj.location),
-      area: getLocalizedText(propObj.area),
-      areaKey: propObj.areaKey || ''
-    };
+   const transformedProperty = {
+  ...propObj,
+  // ✅ Send full multilingual objects - let frontend handle language selection
+  propertyTitle: propObj.propertyTitle,
+  description: propObj.description,
+  location: propObj.location,
+  area: propObj.area,
+  areaKey: propObj.areaKey || ''
+};
    
     console.log('✅ Transformed property:', {
       propertyTitle: transformedProperty.propertyTitle,
