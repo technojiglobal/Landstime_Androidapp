@@ -1,9 +1,8 @@
-// Landstime_Androidapp/admin/src/pages/Properties.jsx
-
 import { useEffect, useMemo, useState } from "react";
 import StatCard from "../components/properties/StatCard";
 import PropertyModal from "../components/properties/PropertyModal";
 import Toast from "../components/UserManagement/Toast";
+import Loading from "../components/Loading";
 import {
   Search,
   Eye,
@@ -14,7 +13,9 @@ import {
   ChevronRight,
   Building2,
   Clock,
+  Trash,
   X,
+  Filter,
 } from "lucide-react";
 import {
   fetchAllProperties,
@@ -24,7 +25,7 @@ import {
   updatePropertyDetails,
 } from "../services/propertyService";
 
-// Helper function to safely extract string from translation object
+// Helper function remains the same...
 const getTranslatedText = (value, fallback = 'N/A') => {
   if (!value) return fallback;
   if (typeof value === 'string') return value;
@@ -34,40 +35,56 @@ const getTranslatedText = (value, fallback = 'N/A') => {
   return fallback;
 };
 
-/* ---------------- COMPONENT ---------------- */
 export default function Properties() {
-  const [properties, setProperties] = useState([]);
+const [properties, setProperties] = useState([]);
+const [search, setSearch] = useState("");
+const [pageSize, setPageSize] = useState(30);
+const [page, setPage] = useState(1);
+const [selected, setSelected] = useState(null);
+const [toast, setToast] = useState("");
+const [isLoading, setIsLoading] = useState(true);
+const [filterPropertyType, setFilterPropertyType] = useState("All");
+const [filterPropertyStatus, setFilterPropertyStatus] = useState("All");
+const [filterApprovalStatus, setFilterApprovalStatus] = useState("All");
 
-  const [search, setSearch] = useState("");
-  const [pageSize, setPageSize] = useState(30);
-  const [page, setPage] = useState(1);
-  const [selected, setSelected] = useState(null);
-  const [toast, setToast] = useState("");
 
   useEffect(() => {
     loadProperties();
   }, []);
 
-  useEffect(() => {
-    setPage(1);
-  }, [search, pageSize]);
+ useEffect(() => {
+  setPage(1);
+}, [search, pageSize, filterPropertyType, filterPropertyStatus, filterApprovalStatus]);
 
-  /* ---------- FILTER (ALL COLUMNS) ---------- */
-const filtered = useMemo(() => {
+  /* ---------- FILTER ---------- */
+ const filtered = useMemo(() => {
   const q = search.toLowerCase();
-
+  
   return properties.filter((p) => {
-    return (
+    const matchesSearch = 
       p.title.toLowerCase().includes(q) ||
       p.location.toLowerCase().includes(q) ||
       p.type.toLowerCase().includes(q) ||
       p.status.toLowerCase().includes(q) ||
       p.subscription.toLowerCase().includes(q) ||
       p.owner.toLowerCase().includes(q) ||
-      p.phone.toLowerCase().includes(q)
-    );
+      p.phone.toLowerCase().includes(q);
+
+    const matchesPropertyType = 
+      filterPropertyType === "All" || 
+      p.type === filterPropertyType;
+
+    const matchesPropertyStatus = 
+      filterPropertyStatus === "All" || 
+      p.propertyStatus === filterPropertyStatus;
+
+    const matchesApprovalStatus = 
+      filterApprovalStatus === "All" || 
+      p.status === filterApprovalStatus;
+
+    return matchesSearch && matchesPropertyType && matchesPropertyStatus && matchesApprovalStatus;
   });
-}, [properties, search]);
+}, [properties, search, filterPropertyType, filterPropertyStatus, filterApprovalStatus]);
 
   /* ---------- PAGINATION ---------- */
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
@@ -79,8 +96,9 @@ const filtered = useMemo(() => {
   const start = filtered.length ? (page - 1) * pageSize + 1 : 0;
   const end = Math.min(page * pageSize, filtered.length);
 
+ 
+
   /* ---------- ACTIONS ---------- */
-  // Delete property (soft delete)
   const handleDeleteProperty = async (id) => {
     if (!window.confirm('Are you sure you want to delete this property?')) {
       return;
@@ -96,7 +114,6 @@ const filtered = useMemo(() => {
     }
   };
 
-  // Update property availability status
   const handlePropertyStatusChange = async (id, newStatus) => {
     try {
       await updatePropertyAvailability(id, newStatus);
@@ -120,11 +137,11 @@ const filtered = useMemo(() => {
   };
 
   const loadProperties = async () => {
+    setIsLoading(true);
     try {
       const data = await fetchAllProperties();
 
       const formatted = data.map((p) => {
-        // Determine subscription display
         let subscriptionDisplay = 'Freemium';
         
         if (p.userId?.currentSubscription?.status === 'active') {
@@ -135,9 +152,9 @@ const filtered = useMemo(() => {
 
         return {
           id: p._id,
-          // Fixed: Use helper function to extract string from translation object
           title: getTranslatedText(p.propertyTitle, 'Untitled Property'),
           location: getTranslatedText(p.location, 'Unknown Location'),
+          area: getTranslatedText(p.area, 'Unknown Area'),
           type: p.propertyType || 'N/A',
           price: `₹${p.expectedPrice || 0}`,
           status: p.status || 'pending',
@@ -149,7 +166,6 @@ const filtered = useMemo(() => {
           phone: p.ownerDetails?.phone || 'N/A',
           email: p.ownerDetails?.email || 'N/A',
           description: getTranslatedText(p.description, 'No description'),
-          // Prefer absolute URLs from backend if available, else normalize local paths
           images: (p.imageUrls && p.imageUrls.length > 0)
             ? p.imageUrls
                 .filter(v => typeof v === "string")
@@ -175,15 +191,18 @@ const filtered = useMemo(() => {
                   .filter(v => typeof v === "string")
                   .map(v => v.replace(/\\/g, "/"))
           },
-          raw: p, // Keep the entire raw object
+          raw: p,
         };
       });
 
       setProperties(formatted);
+     
     } catch (err) {
       console.error("Failed to fetch properties", err.response?.status, err.response?.data || err.message);
       const message = err.response?.data?.message || err.message || 'Failed to fetch properties';
       setToast(message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -202,7 +221,18 @@ const filtered = useMemo(() => {
     ];
   }, [properties]);
 
+  // Show loading while fetching
+ // Show loading while fetching
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Loading message="Loading properties..." size="large" />
+      </div>
+    );
+  }
+
   return (
+    <>
     <div className="space-y-6">
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -221,32 +251,83 @@ const filtered = useMemo(() => {
         </button>
       </div>
 
-      {/* Search + Page Size */}
-      <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
-        <div className="relative w-full sm:w-96">
-          <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
-          <input
-            className="pl-10 pr-4 py-2 border rounded-lg w-full"
-            placeholder="Search properties..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+    {/* Search + Filters + Page Size */}
+<div className="flex flex-col lg:flex-row lg:items-center gap-4">
+  
+  {/* LEFT: Search + Filters */}
+  <div className="flex flex-wrap items-center gap-4">
+    
+    {/* 🔍 Search Bar (same width as before) */}
+    <div className="relative w-full lg:w-[320px]">
+      <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+      <input
+        className="pl-10 pr-4 py-2 border rounded-lg w-full"
+        placeholder="Search properties..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+    </div>
 
-        <select
-          value={pageSize}
-          onChange={(e) => setPageSize(+e.target.value)}
-          className="border rounded-lg px-3 py-2 w-full sm:w-auto"
-        >
-          {[5, 10, 15, 20].map((n) => (
-            <option key={n} value={n}>
-              {n} per page
-            </option>
-          ))}
-        </select>
+    {/* 🎛 Filters */}
+    <div className="flex flex-wrap items-center gap-3">
+      <div className="flex items-center gap-2 text-gray-600">
+        <Filter size={18} />
+        <span className="text-sm font-medium">Filters:</span>
       </div>
 
-      {/* Table (Responsive) */}
+      <select
+        value={filterPropertyType}
+        onChange={(e) => setFilterPropertyType(e.target.value)}
+        className="border rounded-lg px-3 py-2 bg-white text-sm focus:outline-none focus:border-blue-500"
+      >
+        <option value="All">All Property Types</option>
+        <option value="House">House</option>
+        <option value="Site/Plot/Land">Site/Plot/Land</option>
+        <option value="Commercial">Commercial</option>
+        <option value="Resort">Resort</option>
+      </select>
+
+      <select
+        value={filterPropertyStatus}
+        onChange={(e) => setFilterPropertyStatus(e.target.value)}
+        className="border rounded-lg px-3 py-2 bg-white text-sm focus:outline-none focus:border-blue-500"
+      >
+        <option value="All">All Status</option>
+        <option value="Available">Available</option>
+        <option value="Sold">Sold</option>
+      </select>
+
+      <select
+        value={filterApprovalStatus}
+        onChange={(e) => setFilterApprovalStatus(e.target.value)}
+        className="border rounded-lg px-3 py-2 bg-white text-sm focus:outline-none focus:border-blue-500"
+      >
+        <option value="All">All Approvals</option>
+        <option value="pending">Pending</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
+      </select>
+    </div>
+  </div>
+
+  {/* RIGHT: Page Size (pushed to corner) */}
+  <div className="lg:ml-auto">
+    <select
+      value={pageSize}
+      onChange={(e) => setPageSize(+e.target.value)}
+      className="border rounded-lg px-3 py-2 bg-white text-sm focus:outline-none focus:border-blue-500"
+    >
+      {[5, 10, 15, 20, 30].map((n) => (
+        <option key={n} value={n}>
+          {n} per page
+        </option>
+      ))}
+    </select>
+  </div>
+</div>
+
+
+      {/* Table */}
       <div className="bg-white rounded-xl shadow overflow-x-auto">
         <table className="min-w-[900px] w-full text-sm">
           <thead className="bg-gray-50">
@@ -326,7 +407,6 @@ const filtered = useMemo(() => {
 
                 <td className="px-4 py-3">
                   <div className="flex gap-3 items-center">
-                    {/* View Icon */}
                     <Eye
                       size={16}
                       className="cursor-pointer text-blue-600 hover:text-blue-800"
@@ -334,7 +414,6 @@ const filtered = useMemo(() => {
                       title="View Details"
                     />
                     
-                    {/* Status Dropdown */}
                     <select
                       value={p.status}
                       onChange={(e) => updateStatus(p.id, e.target.value)}
@@ -345,8 +424,7 @@ const filtered = useMemo(() => {
                       <option value="rejected">Rejected</option>
                     </select>
                     
-                    {/* Delete Icon */}
-                    <X
+                    <Trash
                       size={16}
                       className="cursor-pointer text-red-600 hover:text-red-800"
                       onClick={() => handleDeleteProperty(p.id)}
@@ -381,24 +459,26 @@ const filtered = useMemo(() => {
         </div>
       </div>
 
-      {selected && (
-        <PropertyModal 
-          property={selected} 
-          onClose={() => setSelected(null)}
-          onUpdate={async (id, updatedData) => {
-            try {
-              await updatePropertyDetails(id, updatedData);
-              setToast('Property updated successfully');
-              loadProperties();
-            } catch (error) {
-              console.error('Update failed', error);
-              setToast('Failed to update property');
-            }
-          }}
-        />
-      )}
-
-      {toast && <Toast message={toast} onClose={() => setToast("")} />}
+    {toast && <Toast message={toast} onClose={() => setToast("")} />}
     </div>
+
+    {/* Move PropertyModal OUTSIDE the main container */}
+    {selected && (
+      <PropertyModal 
+        property={selected} 
+        onClose={() => setSelected(null)}
+        onUpdate={async (id, updatedData) => {
+          try {
+            await updatePropertyDetails(id, updatedData);
+            setToast('Property updated successfully');
+            loadProperties();
+          } catch (error) {
+            console.error('Update failed', error);
+            setToast('Failed to update property');
+          }
+        }}
+      />
+    )}
+    </>
   );
 }

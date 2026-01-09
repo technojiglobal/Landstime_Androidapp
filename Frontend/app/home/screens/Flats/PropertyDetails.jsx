@@ -222,7 +222,7 @@ const filteredProperties = properties.filter((property) => {
                   <Image
                     source={
                       item.images && item.images.length > 0
-                        ? { uri: `http://10.37.92.184:8000/${item.images[0]}` }
+                        ? { uri: `${process.env.EXPO_PUBLIC_IP_ADDRESS}/${item.images[0]}` }
                         : require("../../../../assets/Flat1.jpg")
                     }
                     style={{

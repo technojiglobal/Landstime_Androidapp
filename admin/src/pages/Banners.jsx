@@ -1,188 +1,193 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "../utils/axiosInstance";
+import { Loader2 } from "lucide-react";
 import BannerFormModal from "../components/Banner/BannerFormModal";
 import DeleteModal from "../components/UserManagement/DeleteModal";
 import Toast from "../components/UserManagement/Toast";
 import {
   Plus,
-  Eye,
-  EyeOff,
   Edit,
   Trash2,
   GripVertical,
 } from "lucide-react";
 
-/* ---------------- DATA ---------------- */
-const INITIAL_BANNERS = [
-  {
-    id: 1,
-    heading: "Find Your Dream Home",
-    description:
-      "Discover over 10,000 premium properties across the nation with our AI-powered search",
-    ctaText: "Start Exploring",
-    ctaLink: "/properties",
-    image:
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c",
-    active: true,
-  },
-  {
-    id: 2,
-    heading: "Luxury Living Awaits",
-    description:
-      "Exclusive access to off-market luxury homes and private listings",
-    ctaText: "View Luxury Homes",
-    ctaLink: "/luxury",
-    image:
-      "https://images.unsplash.com/photo-1568605114967-8130f3a36994",
-    active: true,
-  },
-  {
-    id: 3,
-    heading: "Smart Investment Opportunities",
-    description:
-      "High-return real estate investments vetted by our expert analysts",
-    ctaText: "Explore Investments",
-    ctaLink: "/invest",
-    image:
-      "https://images.unsplash.com/photo-1600585154207-1f0b9f47a7c4",
-    active: true,
-  },
-  {
-    id: 4,
-    heading: "New Developments Launch",
-    description:
-      "Be the first to explore brand new luxury developments with exclusive pricing",
-    ctaText: "See New Projects",
-    ctaLink: "/new-developments",
-    image:
-      "https://images.unsplash.com/photo-1600585154084-4e5c8f9c2a54",
-    active: false,
-  },
-];
-
-/* ---------------- COMPONENT ---------------- */
 export default function Banners() {
-  const [banners, setBanners] = useState(INITIAL_BANNERS);
+  const [banners, setBanners] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [formBanner, setFormBanner] = useState(null);
   const [deleteBanner, setDeleteBanner] = useState(null);
   const [toast, setToast] = useState("");
 
-  /* ---------- ACTIONS ---------- */
-  const toggleStatus = (id) => {
-    setBanners((prev) =>
-      prev.map((b) =>
-        b.id === id ? { ...b, active: !b.active } : b
-      )
-    );
-    setToast("Banner status updated");
+  useEffect(() => {
+    fetchBanners();
+  }, []);
+
+  const fetchBanners = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('/banners');
+      
+      if (response.data.success) {
+        setBanners(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching banners:', error);
+      setToast(error.response?.data?.message || 'Failed to fetch banners');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const saveBanner = (data) => {
-  if (data.id) {
-    // EDIT
-    setBanners((prev) =>
-      prev.map((b) => (b.id === data.id ? data : b))
-    );
-    setToast("Banner updated");
-  } else {
-    // CREATE
-    setBanners((prev) => [
-      ...prev,
-      {
-        ...data,
-        id: Date.now(),
-        active: true,
-      },
-    ]);
-    setToast("Banner created");
-  }
-  setFormBanner(null);
-};
+  const saveBanner = async (formData) => {
+    try {
+      const bannerData = {
+        title: {
+          en: formData.heading,
+          te: formData.heading,
+          hi: formData.heading,
+        },
+        subtitle: {
+          en: formData.description,
+          te: formData.description,
+          hi: formData.description,
+        },
+        isActive: formData.active,
+        ctaText: formData.ctaText,
+        ctaLink: formData.ctaLink,
+      };
 
+      if (formBanner?._id) {
+        if (formData.image !== formBanner.image) {
+          bannerData.image = formData.image;
+        }
+      } else {
+        bannerData.image = formData.image;
+      }
 
-  const confirmDelete = () => {
-    setBanners((prev) =>
-      prev.filter((b) => b.id !== deleteBanner.id)
-    );
-    setDeleteBanner(null);
-    setToast("Banner deleted");
+      let response;
+      if (formBanner?._id) {
+        response = await axios.put(`/banners/${formBanner._id}`, bannerData);
+      } else {
+        response = await axios.post('/banners', bannerData);
+      }
+
+      if (response.data.success) {
+        setToast(response.data.message);
+        fetchBanners();
+        setFormBanner(null);
+      }
+    } catch (error) {
+      console.error('Error saving banner:', error);
+      setToast(error.response?.data?.message || 'Failed to save banner');
+    }
+  };
+
+  const confirmDelete = async () => {
+    try {
+      const response = await axios.delete(`/banners/${deleteBanner._id}`);
+      
+      if (response.data.success) {
+        setBanners((prev) => prev.filter((b) => b._id !== deleteBanner._id));
+        setToast(response.data.message);
+        setDeleteBanner(null);
+      }
+    } catch (error) {
+      console.error('Error deleting banner:', error);
+      setToast(error.response?.data?.message || 'Failed to delete banner');
+    }
   };
 
   return (
     <div className="space-y-6">
-
-      {/* Header */}
-      <div className="flex justify-end">
-        <button
-          onClick={() => setFormBanner({})}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-        >
-          <Plus size={16} /> Add Banner
-        </button>
-      </div>
-
-      {/* Banner List */}
-      <div className="space-y-4">
-        {banners.map((b, idx) => (
-          <div
-            key={b.id}
-            className="bg-white rounded-xl shadow-sm p-4 flex flex-col md:flex-row gap-4 md:items-center"
-          >
-            {/* Drag + Index */}
-            <div className="flex items-center gap-4">
-              <GripVertical className="text-gray-400" />
-              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm">
-                {idx + 1}
-              </div>
-            </div>
-
-            {/* Image */}
-            <img
-              src={b.image}
-              alt=""
-              className="w-28 h-20 rounded-lg object-cover"
-            />
-
-            {/* Content */}
-            <div className="flex-1">
-              <h3 className="font-semibold">{b.heading}</h3>
-              <p className="text-sm text-gray-500">{b.description}</p>
-              <p className="text-sm text-blue-600 mt-1">
-                CTA: {b.ctaText} → {b.ctaLink}
-              </p>
-            </div>
-
-            {/* Status */}
-            <span
-              className={`px-3 py-1 rounded-full text-xs font-medium ${
-                b.active
-                  ? "bg-green-100 text-green-700"
-                  : "bg-gray-100 text-gray-600"
-              }`}
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="animate-spin text-blue-600" size={32} />
+        </div>
+      ) : (
+        <>
+          {/* Header */}
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold">Banner Management</h1>
+            <button
+              onClick={() => setFormBanner({})}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition"
             >
-              {b.active ? "Active" : "Inactive"}
-            </span>
+              <Plus size={16} /> Add Banner
+            </button>
+          </div>
 
-            {/* Actions */}
-            <div className="flex gap-4">
-              <button onClick={() => toggleStatus(b.id)}>
-                {b.active ? (
-                  <Eye className="hover:text-black" size={18} />
-                ) : (
-                  <EyeOff className="hover:text-black" size={18} />
-                )}
-              </button>
-
-              <button onClick={() => setFormBanner(b)}>
-                <Edit className="hover:text-black" size={18} />
-              </button>
-
-              <button onClick={() => setDeleteBanner(b)}>
-                <Trash2 className="text-red-500 hover:text-black" size={18} />
+          {/* Empty State */}
+          {banners.length === 0 ? (
+            <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+              <div className="text-gray-400 mb-4">
+                <GripVertical size={48} className="mx-auto" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">No Banners Yet</h3>
+              <p className="text-gray-500 mb-4">
+                Create your first banner to display on the mobile app
+              </p>
+              <button
+                onClick={() => setFormBanner({})}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+              >
+                Create Banner
               </button>
             </div>
-          </div>
-        ))}
-      </div>
+          ) : (
+            /* Banner List */
+            <div className="space-y-4">
+              {banners.map((b, idx) => (
+                <div
+                  key={b._id}
+                  className="bg-white rounded-xl shadow-sm p-4 flex flex-col md:flex-row gap-4 md:items-center hover:shadow-md transition"
+                >
+                  <div className="flex items-center gap-4">
+                    <GripVertical className="text-gray-400 cursor-move" />
+                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold">
+                      {idx + 1}
+                    </div>
+                  </div>
+
+                  <img
+                    src={b.image}
+                    alt=""
+                    className="w-28 h-20 rounded-lg object-cover shadow-sm"
+                  />
+
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg">{b.title.en}</h3>
+                    <p className="text-sm text-gray-500 line-clamp-2">{b.subtitle.en}</p>
+                    <div className="flex gap-4 mt-2 text-xs">
+                      <span className="text-gray-400">TE: {b.title.te}</span>
+                      <span className="text-gray-400">HI: {b.title.hi}</span>
+                    </div>
+                  </div>
+
+                  
+                  {/* Actions */}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setFormBanner(b)}
+                      className="p-2 hover:bg-blue-50 rounded-lg transition"
+                      title="Edit Banner"
+                    >
+                      <Edit className="text-blue-600" size={18} />
+                    </button>
+
+                    <button
+                      onClick={() => setDeleteBanner(b)}
+                      className="p-2 hover:bg-red-50 rounded-lg transition"
+                      title="Delete Banner"
+                    >
+                      <Trash2 className="text-red-500" size={18} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
 
       {formBanner && (
         <BannerFormModal
@@ -194,6 +199,8 @@ export default function Banners() {
 
       {deleteBanner && (
         <DeleteModal
+          title="Delete Banner"
+          message={`Are you sure you want to delete "${deleteBanner.title.en}"?`}
           onCancel={() => setDeleteBanner(null)}
           onDelete={confirmDelete}
         />

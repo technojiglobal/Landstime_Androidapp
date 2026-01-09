@@ -14,9 +14,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { getUserProfile, updateUserProfile } from "../../../../utils/api";
-
-const IMAGE_BASE_URL = "http://10.10.2.143:8000";
-
+const IMAGE_BASE_URL = `${process.env.EXPO_PUBLIC_IP_ADDRESS}`; // backend URL
 export default function Profile() {
   const router = useRouter();
 
