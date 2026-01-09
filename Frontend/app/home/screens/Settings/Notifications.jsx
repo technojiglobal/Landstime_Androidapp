@@ -26,9 +26,9 @@ const Notifications = () => {
   const [messages, setMessages] = useState(true);
 
   return (
-    <View className="bg-white rounded-xl p-6 shadow-md ml-6 w-[80%] mt-6">
+    <View className="bg-white rounded-xl p-6 shadow-md ml-6 w-[92%] mt-6">
       {/* Title */}
-      <Text className="border-b border-gray-200 text-gray-700 font-semibold text-sm pb-2 mb-4">
+      <Text className="border-b border-gray-200  font-semibold text-lg pb-2 mb-4">
         {t('notifications_title')}
       </Text>
 
@@ -36,25 +36,25 @@ const Notifications = () => {
       <View className="gap-2 flex flex-col space-y-4 text-sm text-gray-600">
         {/* Property Alerts */}
         <View className="flex flex-row justify-between items-center">
-          <Text className="text-gray-700">{t('property_alerts')}</Text>
+          <Text className="text-gray-500 text-[15px]">{t('property_alerts')}</Text>
           <Toggle enabled={propertyAlerts} onChange={setPropertyAlerts} />
         </View>
 
         {/* Price Changes */}
         <View className="flex flex-row justify-between items-center">
-          <Text className="text-gray-700">{t('price_changes')}</Text>
+          <Text className="text-gray-500 text-[15px]">{t('price_changes')}</Text>
           <Toggle enabled={priceChanges} onChange={setPriceChanges} />
         </View>
 
         {/* Messages */}
         <View className="flex flex-row justify-between items-center">
-          <Text className="text-gray-700">{t('messages')}</Text>
+          <Text className="text-gray-500 text-[15px]">{t('messages')}</Text>
           <Toggle enabled={messages} onChange={setMessages} />
         </View>
 
         {/* Marketing Emails */}
         <View className="flex flex-row justify-between items-center">
-          <Text className="text-gray-700">{t('marketing_emails')}</Text>
+          <Text className="text-gray-500 text-[15px]">{t('marketing_emails')}</Text>
         </View>
       </View>
     </View>

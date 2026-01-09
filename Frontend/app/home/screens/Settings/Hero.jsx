@@ -19,7 +19,7 @@ const Hero = () => {
   const { t } = useTranslation();
 
   return (
-    <View className="border-b border-gray-200 m-2 p-2 flex flex-col">
+    <View className="border-b border-gray-200 m-2  mt-4 p-2 flex flex-col">
       <View
         style={{
           flexDirection: "row",

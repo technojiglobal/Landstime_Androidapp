@@ -9,7 +9,7 @@ import { sidebarLinks } from "../constants/sidebarLinks";
 const SuperAdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const role = localStorage.getItem("role") || "superadmin";
+  const role = localStorage.getItem("userRole") || "superadmin";
 
   const links = sidebarLinks[role];
 

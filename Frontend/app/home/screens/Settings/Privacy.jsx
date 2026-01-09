@@ -26,26 +26,26 @@ const Privacy = () => {
   const [allowMessages, setAllowMessages] = useState(true);
 
   return (
-    <View className="bg-white rounded-xl p-6 shadow-md ml-6 w-[80%] mt-6">
+    <View className="bg-white rounded-xl p-6 shadow-md ml-6 w-[92%] mt-6">
       {/* Title */}
-      <Text className="border-b border-gray-200 text-gray-700 font-semibold text-sm pb-2 mb-4">
+      <Text className="border-b border-gray-200  font-semibold text-lg pb-2 mb-4">
         {t('privacy_title')}
       </Text>
 
       {/* Options */}
       <View className="gap-2 text-sm text-gray-600">
         <View className="flex flex-row justify-between items-center">
-          <Text>{t('profile_visible')}</Text>
+          <Text className="text-gray-500 text-[15px]">{t('profile_visible')}</Text>
           <Toggle enabled={profileVisible} onChange={setProfileVisible} />
         </View>
 
         <View className="flex flex-row justify-between items-center">
-          <Text>{t('show_activity')}</Text>
+          <Text className="text-gray-500 text-[15px]">{t('show_activity')}</Text>
           <Toggle enabled={showActivity} onChange={setShowActivity} />
         </View>
 
         <View className="flex flex-row justify-between items-center">
-          <Text>{t('allow_messages')}</Text>
+          <Text className="text-gray-500 text-[15px]">{t('allow_messages')}</Text>
           <Toggle enabled={allowMessages} onChange={setAllowMessages} />
         </View>
       </View>

@@ -20,11 +20,13 @@ import saveIcon from "../../../../assets/save-icon.png";
 import saveBlue from "../../../../assets/save-blue.png";
 import Review from "../../../../components/Review";
 import WriteReview from "../../../../components/WriteReview";
+import { API_URL } from '../../../../utils/apiConfig';
+
 export default function RoomOverviewScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
 
-  const BASE_URL = "http://192.168.31.115:8000";
+  const BASE_URL = API_URL;
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -36,7 +38,7 @@ export default function RoomOverviewScreen() {
   });
 
   useEffect(() => {
-    fetch(`http://10.37.92.184:8000/api/reviews/interior/${id}`)
+    fetch(`${API_URL}/api/reviews/interior/${id}`)
       .then((res) => res.json())
       .then((data) =>
         setReviewSummary({
