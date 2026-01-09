@@ -1,11 +1,11 @@
-//Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/Storage.jsx
+//Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/Storage.jsx (Jahnavi)
 
 import React, { useState, useEffect, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
-  ScrollView,
+  ScrollView, 
   TextInput,
   TouchableOpacity,
   Pressable,

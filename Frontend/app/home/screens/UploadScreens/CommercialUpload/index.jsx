@@ -75,6 +75,7 @@ export default function PropertyFormScreen() {
   const [storageKinds, setStorageKinds] = useState([]);
   const [industryKinds, setIndustryKinds] = useState([]);
   const [HospitalityKinds, setHospitalityKinds] = useState([]);
+  const [plotKinds, setPlotKinds] = useState([]); // ✅ ADD THIS
    const [area, setArea] = useState(""); // ✅ ADD THIS LINE
   const [neighborhoodArea, setNeighborhoodArea] = useState(""); // ✅ ADD THIS LINE
 const [alertVisible, setAlertVisible] = useState(false);
@@ -171,6 +172,11 @@ if (baseDetails.retailKind) {
   console.log('✅ Retail kind restored from baseDetails:', baseDetails.retailKind);
 }
 
+ if (baseDetails.plotKind) { // ✅ ADD THIS ENTIRE BLOCK
+      setPlotKinds([baseDetails.plotKind]);
+      console.log('✅ Plot kind restored from baseDetails:', baseDetails.plotKind);
+    }
+
 if (baseDetails.locatedInside) {
   setLocatedInside(baseDetails.locatedInside);
   console.log('✅ Located inside restored from baseDetails:', baseDetails.locatedInside);
@@ -179,11 +185,23 @@ if (baseDetails.locatedInside) {
 if (baseDetails.hospitalityKind) {
   setHospitalityKinds([baseDetails.hospitalityKind]);
 }
-
 if (baseDetails.storageKind) {
   setStorageKinds([baseDetails.storageKind]);
   console.log('✅ Storage kind restored from baseDetails:', baseDetails.storageKind);
 }
+
+if (baseDetails.industryKind) {
+  setIndustryKinds([baseDetails.industryKind]);
+  console.log('✅ Industry kind restored from baseDetails:', baseDetails.industryKind);
+}
+
+
+
+// // ✅ ADD THIS - Restore Plot Kind
+// if (baseDetails.plotKind) {
+//   setPlotKinds([baseDetails.plotKind]);
+//   console.log('✅ Plot kind restored from baseDetails:', baseDetails.plotKind);
+// }
 
 if (baseDetails.locatedInside) {
   setLocatedInside(baseDetails.locatedInside);
@@ -197,6 +215,7 @@ if (baseDetails.locatedInside) {
 }
   
   // STEP 4: Fallback - restore from officeDetails
+// STEP 4: Fallback - restore from officeDetails
   if (params.officeDetails && officeKinds.length === 0) {
     try {
       const savedData = JSON.parse(params.officeDetails);
@@ -208,6 +227,22 @@ if (baseDetails.locatedInside) {
       console.log('❌ Could not restore from officeDetails:', e);
     }
   }
+
+  // ✅ NEW - STEP 4.5: Fallback - restore from plotDetails
+ // ✅ NEW - STEP 4.5: Fallback - restore from plotDetails
+if (params.plotDetails && plotKinds.length === 0) {
+  try {
+    const savedData = JSON.parse(params.plotDetails);
+    if (savedData.plotKind) {
+      setPlotKinds([savedData.plotKind]); // ✅ CHANGED from setOfficeKinds
+      console.log('✅ Plot kind restored from plotDetails:', savedData.plotKind);
+    }
+  } catch (e) {
+    console.log('❌ Could not restore from plotDetails:', e);
+  }
+}
+  
+  // ✅ NEW - STEP 5: Fallback - restore from hospitalityDetails
   
   // ✅ NEW - STEP 5: Fallback - restore from hospitalityDetails
   if (params.hospitalityDetails && HospitalityKinds.length === 0) {
@@ -222,7 +257,8 @@ if (baseDetails.locatedInside) {
     }
   }
 
-}, [params.officeDetails, params.hospitalityDetails, params.images, params.commercialBaseDetails, params.area]); // ✅ ADD params.hospitalityDetails
+// NEW CODE
+}, [params.officeDetails, params.hospitalityDetails, params.plotDetails, params.images, params.commercialBaseDetails, params.area]);
 
 
 // ✅ NEW - Load draft from AsyncStorage on mount
@@ -311,9 +347,57 @@ if (hospitalityDraft) {
 
         return;
       }
+
+       // ✅ NEW - Try loading Plot draft
+ // NEW CODE
+// ✅ Try loading Plot draft
+const plotDraft = await AsyncStorage.getItem('draft_commercial_plot');
+if (plotDraft) {
+  const parsed = JSON.parse(plotDraft);
+  console.log('📦 Loading Plot draft from AsyncStorage:', parsed);
+  
+  if (parsed.selectedType) setSelectedType(parsed.selectedType);
+  if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
+  if (parsed.plotKind) {
+    setPlotKinds([parsed.plotKind]);
+    console.log('✅ Plot kind restored from draft:', parsed.plotKind);
+  }
+  if (parsed.images) setImages(parsed.images);
+  if (parsed.neighborhoodArea) {
+    setNeighborhoodArea(parsed.neighborhoodArea);
+    setArea(parsed.neighborhoodArea);
+  }
+  if (parsed.area) {
+    setArea(parsed.area);
+  }
+  
+  console.log('✅ Plot draft loaded successfully');
+  return; // Exit early after loading Plot draft
+}
+
+// ✅ ALSO try loading from params.plotDetails as fallback
+if (params.plotDetails && plotKinds.length === 0) {
+  try {
+    const savedData = JSON.parse(params.plotDetails);
+    console.log('🔄 Restoring plot data from params.plotDetails:', savedData);
+    
+    if (savedData.plotKind) {
+      setPlotKinds([savedData.plotKind]);
+      console.log('✅ Plot kind restored from params:', savedData.plotKind);
+    }
+    
+    // ✅ Restore area if present
+    if (savedData.neighborhoodArea) {
+      setNeighborhoodArea(savedData.neighborhoodArea);
+      setArea(savedData.neighborhoodArea);
+    }
+  } catch (e) {
+    console.log('❌ Could not restore from params.plotDetails:', e);
+  }
+}
     
 
-    // ✅ NEW - Try loading Storage draft
+         // ✅ NEW - Try loading Storage draft
       const storageDraft = await AsyncStorage.getItem('draft_commercial_storage');
       if (storageDraft) {
         const parsed = JSON.parse(storageDraft);
@@ -333,7 +417,33 @@ if (hospitalityDraft) {
         
         console.log('✅ Storage draft loaded successfully');
       }
+
+      // ✅ NEW - Try loading Industry draft
+      const industryDraft = await AsyncStorage.getItem('draft_commercial_industry');
+      if (industryDraft) {
+        const parsed = JSON.parse(industryDraft);
+        console.log('📦 Loading Industry draft from AsyncStorage:', parsed);
+        
+        if (parsed.selectedType) setSelectedType(parsed.selectedType);
+        if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
+        if (parsed.industryKind) setIndustryKinds([parsed.industryKind]);
+        if (parsed.images) setImages(parsed.images);
+        if (parsed.neighborhoodArea) {
+          setNeighborhoodArea(parsed.neighborhoodArea);
+          setArea(parsed.neighborhoodArea);
+        }
+        if (parsed.area) {
+          setArea(parsed.area);
+        }
+        
+        console.log('✅ Industry draft loaded successfully');
+      }
+
+
     }
+    
+
+
   
 
     
@@ -341,7 +451,6 @@ if (hospitalityDraft) {
       console.log('⚠️ Failed to load draft:', e);
     }
   };
-
   
 
 
@@ -356,7 +465,7 @@ useEffect(() => {
     // Only save if we have meaningful data
     if (!selectedType) return;
 
-  const draftData = {
+ const draftData = {
       selectedType,
       propertyTitle,
       images,
@@ -364,12 +473,14 @@ useEffect(() => {
       retailKind: retailKinds.length > 0 ? retailKinds[0] : undefined,
       hospitalityKind: HospitalityKinds.length > 0 ? HospitalityKinds[0] : undefined,
       storageKind: storageKinds.length > 0 ? storageKinds[0] : undefined,
+      plotKind: plotKinds.length > 0 ? plotKinds[0] : undefined, // ✅ ADD THIS
+      industryKind: industryKinds.length > 0 ? industryKinds[0] : undefined,
       locatedInside: locatedInside || undefined,
       area: area || neighborhoodArea || undefined,
       timestamp: new Date().toISOString(),
     };
 
-    const storageKey = selectedType === 'Office' 
+   const storageKey = selectedType === 'Office' 
       ? 'draft_commercial_office' 
       : selectedType === 'Hospitality'
       ? 'draft_commercial_hospitality'
@@ -377,6 +488,10 @@ useEffect(() => {
       ? 'draft_commercial_retail'
       : selectedType === 'Storage'
       ? 'draft_commercial_storage'
+      : selectedType === 'Plot/Land'
+      ? 'draft_commercial_plot'
+      : selectedType === 'Industry'
+      ? 'draft_commercial_industry'
       : null;
 
     if (storageKey) {
@@ -392,7 +507,7 @@ useEffect(() => {
   const timer = setTimeout(saveDraft, 1000);
   return () => clearTimeout(timer);
 }, [selectedType, propertyTitle, images, officeKinds, retailKinds, 
-    HospitalityKinds, storageKinds, locatedInside, area, neighborhoodArea]);
+    HospitalityKinds, storageKinds, plotKinds, industryKinds, locatedInside, area, neighborhoodArea]);
 
 
 
@@ -495,6 +610,8 @@ const handleNext = async () => { // ✅ Make async
   officeKind: officeKinds.length > 0 ? officeKinds[0] : undefined,
   retailKind: retailKinds.length > 0 ? retailKinds[0] : undefined,
   hospitalityKind: HospitalityKinds.length > 0 ? HospitalityKinds[0] : undefined,
+  storageKind: storageKinds.length > 0 ? storageKinds[0] : undefined,
+  plotKind: plotKinds.length > 0 ? plotKinds[0] : undefined, // ✅ ADD THIS
   locatedInside: locatedInside || undefined,
   area: area || neighborhoodArea || undefined, // ✅ ADD THIS
   timestamp: new Date().toISOString(),
@@ -527,12 +644,23 @@ const handleNext = async () => { // ✅ Make async
         });
         break;
 
-      case "Plot/Land":
-        router.push({
-          pathname: `${base}/Plot`,
-          params: commonParams, // ✅ INCLUDES IMAGES
-        });
-        break;
+    case "Plot/Land":
+  // ✅ Don't save empty draft - let Plot.jsx create it with actual data
+  // Just pass the necessary params
+  
+  router.push({
+    pathname: `${base}/Plot`,
+    params: {
+      ...commonParams,
+      commercialBaseDetails: JSON.stringify({
+        subType: "Plot/Land",
+        plotKind: plotKinds.length > 0 ? plotKinds[0] : undefined,
+        propertyTitle,
+      }),
+      area: area || neighborhoodArea, // ✅ Pass area to Plot.jsx
+    },
+  });
+  break;
 
      case "Storage":
         if (!storageKinds.length) {
@@ -570,23 +698,43 @@ const handleNext = async () => { // ✅ Make async
         });
         break;
 
-      case "Industry":
+          case "Industry":
         if (!industryKinds.length) {
           Alert.alert("Industry Type Required", "Please select industry type");
           return;
         }
+
+        // ✅ NEW - Save draft to AsyncStorage
+        const industryDraftData = {
+          selectedType: "Industry",
+          propertyTitle,
+          industryKind: industryKinds[0],
+          images,
+          area: area || neighborhoodArea,
+          timestamp: new Date().toISOString(),
+        };
+        
+        try {
+          await AsyncStorage.setItem('draft_commercial_industry', JSON.stringify(industryDraftData));
+          console.log('✅ Industry draft saved to AsyncStorage');
+        } catch (e) {
+          console.log('⚠️ Failed to save Industry draft:', e);
+        }
+
         router.push({
           pathname: `${base}/Industry`,
           params: {
             ...commonParams,
             commercialBaseDetails: JSON.stringify({
               subType: "Industry",
-              industryType: industryKinds[0],
+              industryKind: industryKinds[0],
               propertyTitle,
             }),
           },
         });
         break;
+
+        
 case "Hospitality":
   if (!HospitalityKinds.length) {
     Alert.alert("Hospitality Type Required", "Please select hospitality type");
@@ -861,7 +1009,7 @@ onPress={() => setRetailKinds([type])}
             </>
           )}
 
-          {selectedType === "Plot/Land" && (
+        {selectedType === "Plot/Land" && (
             <>
               <Text className="text-[15px] text-[#00000099] font-bold mb-2">
                 What kind of plot/land is it ?
@@ -872,8 +1020,8 @@ onPress={() => setRetailKinds([type])}
                   <PillButton
                     key={type}
                     label={type}
-                    selected={officeKinds.includes(type)}
-                    onPress={() => setOfficeKinds([type])}
+                    selected={plotKinds.includes(type)} // ✅ CHANGED from officeKinds
+                    onPress={() => setPlotKinds([type])} // ✅ CHANGED from setOfficeKinds
                   />
                 ))}
               </View>

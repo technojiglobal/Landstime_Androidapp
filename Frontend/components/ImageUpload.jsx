@@ -1,3 +1,5 @@
+//Frontend//components//ImageUpload.jsx
+
 import React from "react";
 import { View, Text, TouchableOpacity, Alert, Image, ScrollView } from "react-native";
 import * as ImagePicker from "expo-image-picker";
@@ -65,17 +67,18 @@ export default function ImageUpload({
         </Text>
       </View>
 
-      {/* Uploaded images */}
-      <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} className="mt-4">
-        {files.map((file) => (
-          <View key={file.uri} className="relative mr-2">
-            <Image source={{ uri: file.uri }} className="w-24 h-24 rounded-lg" />
-            <TouchableOpacity onPress={() => removeImage(file.uri)} className="absolute top-1 right-1 bg-red-500 rounded-full p-1">
-              <Ionicons name="close" size={12} color="white" />
-            </TouchableOpacity>
-          </View>
-        ))}
-      </ScrollView>
+    {files.length > 0 && (
+        <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} className="mt-4">
+          {files.map((file, index) => (
+            <View key={`${file.uri}-${index}`} className="relative mr-2">
+              <Image source={{ uri: file.uri }} className="w-24 h-24 rounded-lg" />
+              <TouchableOpacity onPress={() => removeImage(file.uri)} className="absolute top-1 right-1 bg-red-500 rounded-full p-1">
+                <Ionicons name="close" size={12} color="white" />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </ScrollView>
+      )}
 
       {required && files.length === 0 && (
         <Text className="text-red-500 text-xs mt-2">

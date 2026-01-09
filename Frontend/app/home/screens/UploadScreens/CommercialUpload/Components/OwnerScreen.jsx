@@ -24,13 +24,12 @@ export default function OwnerScreen() {
     return currentLang;
   };
 
- const handleBack = () => {
+const handleBack = () => {
   if (!commercialDetails) {
     router.back();
     return;
   }
 
-  // ✅ Determine which Vaastu screen to go back to based on subType
   const subType = commercialDetails.subType;
   let pathname = "/home/screens/UploadScreens/CommercialUpload/Components/OfficeVaastu";
   let propertyTitle = commercialDetails.officeDetails?.propertyTitle || params.propertyTitle;
@@ -38,6 +37,12 @@ export default function OwnerScreen() {
   if (subType === "Retail") {
     pathname = "/home/screens/UploadScreens/CommercialUpload/Components/RetailVaastu";
     propertyTitle = commercialDetails.retailDetails?.propertyTitle || params.propertyTitle;
+  } else if (subType === "Plot/Land") {
+    pathname = "/home/screens/UploadScreens/CommercialUpload/Components/PlotVaastu";
+    propertyTitle = commercialDetails.plotDetails?.propertyTitle || params.propertyTitle;
+  } else if (subType === "Industry") { // ✅ ADD THIS
+    pathname = "/home/screens/UploadScreens/CommercialUpload/Components/IndustryVaastu";
+    propertyTitle = commercialDetails.industryDetails?.propertyTitle || params.propertyTitle;
   }
 
   router.push({
@@ -69,7 +74,9 @@ export default function OwnerScreen() {
     return null;
   }, [rawCommercialDetails]);
 
-  const [propertyImages, setPropertyImages] = useState([]);
+
+
+    const [propertyImages, setPropertyImages] = useState([]);
   const [ownershipDocs, setOwnershipDocs] = useState([]);
   const [identityDocs, setIdentityDocs] = useState([]);
   const [ownerName, setOwnerName] = useState("");
@@ -78,6 +85,80 @@ export default function OwnerScreen() {
   const [email, setEmail] = useState("");
   const [focusedField, setFocusedField] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // ✅ Load images from params
+// ✅ Load draft and images on mount
+useEffect(() => {
+  const loadDraft = async () => {
+    try {
+      // PRIORITY 1: Load from AsyncStorage draft
+      const draft = await AsyncStorage.getItem('draft_owner_screen');
+      if (draft) {
+        const parsed = JSON.parse(draft);
+        console.log('📦 Loading OwnerScreen draft from AsyncStorage');
+        
+        if (parsed.propertyImages) setPropertyImages(parsed.propertyImages);
+        if (parsed.ownershipDocs) setOwnershipDocs(parsed.ownershipDocs);
+        if (parsed.identityDocs) setIdentityDocs(parsed.identityDocs);
+        if (parsed.ownerName) setOwnerName(parsed.ownerName);
+        if (parsed.phone) setPhone(parsed.phone);
+        if (parsed.email) setEmail(parsed.email);
+        
+        console.log('✅ OwnerScreen draft loaded successfully');
+        return; // Exit early if draft found
+      }
+    } catch (e) {
+      console.log('⚠️ Failed to load OwnerScreen draft:', e);
+    }
+
+    // FALLBACK: Load images from params if no draft
+    if (params.images) {
+      try {
+        const parsedImages = typeof params.images === 'string' 
+          ? JSON.parse(params.images) 
+          : params.images;
+        
+        if (Array.isArray(parsedImages) && parsedImages.length > 0) {
+          setPropertyImages(parsedImages);
+          console.log('✅ Images loaded from params:', parsedImages.length);
+        }
+      } catch (e) {
+        console.log('⚠️ Failed to parse images:', e);
+      }
+    }
+  };
+
+  loadDraft();
+}, [params.images]);
+
+// ✅ NEW - Auto-save OwnerScreen draft
+useEffect(() => {
+  const saveDraft = async () => {
+    // Only save if we have meaningful data
+    if (!ownerName && !phone && !email && propertyImages.length === 0) return;
+
+    const ownerDraft = {
+      propertyImages,
+      ownershipDocs,
+      identityDocs,
+      ownerName,
+      phone,
+      email,
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      await AsyncStorage.setItem('draft_owner_screen', JSON.stringify(ownerDraft));
+      console.log('💾 OwnerScreen draft auto-saved');
+    } catch (e) {
+      console.log('⚠️ Failed to save OwnerScreen draft:', e);
+    }
+  };
+
+  const timer = setTimeout(saveDraft, 1000);
+  return () => clearTimeout(timer);
+}, [propertyImages, ownershipDocs, identityDocs, ownerName, phone, email]);
+
+
 
   const validatePhone = (text) => {
     const cleaned = text.replace(/\D/g, '');
@@ -205,7 +286,8 @@ export default function OwnerScreen() {
       if (!result.success) {
         throw new Error(result.error || result.data?.message || "Upload failed");
       }
-      try {
+
+ try {
   await AsyncStorage.multiRemove([
     // Office drafts
     'draft_commercial_office',
@@ -213,7 +295,7 @@ export default function OwnerScreen() {
     'draft_office_pricing',
     'draft_office_vaastu',
     
-    // ✅ NEW - Retail drafts
+    // Retail drafts
     'draft_commercial_retail',
     'draft_retail_details',
     'draft_retail_pricing',
@@ -224,8 +306,28 @@ export default function OwnerScreen() {
     'draft_hospitality_details',
     'draft_hospitality_pricing',
     'draft_hospitality_vaastu',
+
+    // Plot drafts
+    'draft_commercial_plot',
+    'draft_plot_pricing',
+    'draft_plot_vaastu',
+
+    // Storage drafts
+    'draft_commercial_storage',
+    'draft_storage_details',
+    'draft_storage_pricing',
+    'draft_storage_vaastu',
+
+    // Industry drafts
+    'draft_commercial_industry',
+    'draft_industry_details',
+    'draft_industry_pricing',
+    'draft_industry_vaastu',
+
+    // ✅ NEW - Owner screen draft
+    'draft_owner_screen',
   ]);
-  console.log('🧹 All drafts cleared');
+  console.log('🧹 All drafts cleared including OwnerScreen');
 } catch (e) {
   console.log('⚠️ Failed to clear drafts:', e);
 }
