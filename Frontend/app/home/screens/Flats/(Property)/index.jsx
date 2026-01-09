@@ -203,7 +203,7 @@ const fetchPropertyDetails = async () => {
             <Image
   source={
     property.images && property.images.length > 0
-      ? { uri: `http://10.37.92.184:8000/${property.images[0]}` }
+      ? { uri: `${process.env.EXPO_PUBLIC_IP_ADDRESS}0/${property.images[0]}` }
       : require("../../../../../assets/flatimg.jpg")
   }
   className="rounded-[17px]"

@@ -20,7 +20,7 @@ import star3d from "../../assets/star-3d.png";
 import profileImg from "../../assets/profile.jpg";
 
 
-const BASE_URL = "http://10.37.92.184:8000";
+const BASE_URL = `${process.env.EXPO_PUBLIC_IP_ADDRESS}`;
 
 
 

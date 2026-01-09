@@ -36,7 +36,7 @@ export default function RoomOverviewScreen() {
   });
 
   useEffect(() => {
-    fetch(`http://10.37.92.184:8000/api/reviews/interior/${id}`)
+    fetch(`${process.env.EXPO_PUBLIC_IP_ADDRESS}/api/reviews/interior/${id}`)
       .then((res) => res.json())
       .then((data) =>
         setReviewSummary({

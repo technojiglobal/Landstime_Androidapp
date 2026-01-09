@@ -16,7 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useEffect } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { getUserProfile, updateUserProfile } from "../../../../utils/api";
-const IMAGE_BASE_URL = "http://10.37.92.184:8000"; // backend URL
+const IMAGE_BASE_URL = `${process.env.EXPO_PUBLIC_IP_ADDRESS}`; // backend URL
 export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState(null);
