@@ -1,8 +1,9 @@
 // Frontend/utils/propertyApi.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
+import { API_URL } from './apiConfig';
 
-const API_BASE_URL = `${process.env.EXPO_PUBLIC_IP_ADDRESS}/api/properties`;
+const API_BASE_URL = `${API_URL}/api/properties`;
 export default API_BASE_URL;
 
 

@@ -11,26 +11,30 @@ const Sidebar = ({ isOpen = true, onClose = () => {} }) => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
-  const role = localStorage.getItem("role") || "admin";
+  const role = localStorage.getItem("userRole") || "admin";
   const links = sidebarLinks[role] || sidebarLinks.admin;
-  const handleLogout = async () => {
-    setLoggingOut(true);
-    try {
-      await adminLogout();
-      localStorage.removeItem("token");
-      localStorage.removeItem("role");
-      navigate("/login");
-    } catch (error) {
-      console.error("Logout failed:", error);
-      // Even if API call fails, clear local storage and redirect
-      localStorage.removeItem("token");
-      localStorage.removeItem("role");
-      navigate("/login");
-    } finally {
-      setLoggingOut(false);
-      setShowLogoutModal(false);
-    }
-  };
+ const handleLogout = async () => {
+  setLoggingOut(true);
+  try {
+    await adminLogout();
+    localStorage.removeItem("token");
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userRole");  // Changed from "role"
+    navigate("/login");
+  } catch (error) {
+    console.error("Logout failed:", error);
+    // Even if API call fails, clear local storage and redirect
+    localStorage.removeItem("token");
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userRole");  // Changed from "role"
+    navigate("/login");
+  } finally {
+    setLoggingOut(false);
+    setShowLogoutModal(false);
+  }
+};
 
   return (
     <>

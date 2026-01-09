@@ -27,24 +27,24 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
   const router = useRouter();
   const { t, i18n } = useTranslation();
 
-   const getLocalizedName = (nameField) => {
-  if (!nameField) return "Guest User";
-  if (typeof nameField === 'string') return nameField;
-  return nameField[i18n.language] || nameField.en || nameField.te || nameField.hi || "Guest User";
-};
+  const getLocalizedName = (nameField) => {
+    if (!nameField) return "Guest User";
+    if (typeof nameField === 'string') return nameField;
+    return nameField[i18n.language] || nameField.en || nameField.te || nameField.hi || "Guest User";
+  };
 
   // Helper functions for font sizing (consistent with other screens)
   const getFontSize = (baseSize) => {
     const currentLang = i18n?.language || 'en';
-    switch(currentLang) {
+    switch (currentLang) {
       case 'te': return baseSize - 1.5;
       case 'hi': return baseSize - 1;
-      case 'en': 
+      case 'en':
       default: return baseSize;
     }
   };
 
- 
+
 
 
   const getLineHeight = () => {
@@ -55,39 +55,39 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
   };
 
   // Load user data on mount
- // Load user data on mount
-useEffect(() => {
-  const loadUserData = async () => {
-    // First try local storage for immediate display
-    const localData = await getUserData();
-    if (localData) {
-      setUserData(localData);
-    }
-    
-    // Then fetch from backend with current language
-    const { success, data } = await getUserProfileWithLanguage();
-    if (success && data) {
-      setUserData(data);
-    }
-  };
-  loadUserData();
-}, []);
+  // Load user data on mount
+  useEffect(() => {
+    const loadUserData = async () => {
+      // First try local storage for immediate display
+      const localData = await getUserData();
+      if (localData) {
+        setUserData(localData);
+      }
 
-// ✅ ALSO reload when language changes
-useEffect(() => {
-  const handleLanguageChange = async () => {
-    const { success, data } = await getUserProfileWithLanguage();
-    if (success && data) {
-      setUserData(data);
-    }
-  };
-  
-  i18n.on('languageChanged', handleLanguageChange);
-  
-  return () => {
-    i18n.off('languageChanged', handleLanguageChange);
-  };
-}, []);
+      // Then fetch from backend with current language
+      const { success, data } = await getUserProfileWithLanguage();
+      if (success && data) {
+        setUserData(data);
+      }
+    };
+    loadUserData();
+  }, []);
+
+  // ✅ ALSO reload when language changes
+  useEffect(() => {
+    const handleLanguageChange = async () => {
+      const { success, data } = await getUserProfileWithLanguage();
+      if (success && data) {
+        setUserData(data);
+      }
+    };
+
+    i18n.on('languageChanged', handleLanguageChange);
+
+    return () => {
+      i18n.off('languageChanged', handleLanguageChange);
+    };
+  }, []);
 
   const handleLogout = async () => {
     await clearUserData();
@@ -106,56 +106,56 @@ useEffect(() => {
 
   // Menu items with translation keys matching your te.json
   const menuItems = [
-    { 
-      name: t('sidebar_menu_home'), 
-      icon: "home-outline", 
-      route: "/(tabs)/home" 
+    {
+      name: t('sidebar_menu_home'),
+      icon: "home-outline",
+      route: "/(tabs)/home"
     },
-    { 
-      name: t('sidebar_menu_nearby'), 
-      icon: "location-outline", 
-      route: "/home/screens/Sidebar/NearbyProperty" 
+    {
+      name: t('sidebar_menu_nearby'),
+      icon: "location-outline",
+      route: "/home/screens/Sidebar/NearbyProperty"
     },
-    { 
-      name: t('sidebar_menu_billing'), 
-      icon: "card-outline", 
-      route: "/home/screens/Sidebar/Billing" 
+    {
+      name: t('sidebar_menu_billing'),
+      icon: "card-outline",
+      route: "/home/screens/Sidebar/Billing"
     },
-    { 
-      name: t('sidebar_menu_interior'), 
-      icon: "color-palette-outline", 
-      route: "/home/screens/Sidebar/InteriorDesign" 
+    {
+      name: t('sidebar_menu_interior'),
+      icon: "color-palette-outline",
+      route: "/home/screens/Sidebar/InteriorDesign"
     },
-    { 
-      name: t('sidebar_menu_vaastu'), 
-      icon: "business-outline", 
-      route: "/home/screens/Vaastu" 
+    {
+      name: t('sidebar_menu_vaastu'),
+      icon: "business-outline",
+      route: "/home/screens/Vaastu"
     },
-    { 
-      name: t('sidebar_menu_saved'), 
-      icon: "bookmark-outline", 
-      route: "/home/screens/Sidebar/SavedPropertiesScreen" 
+    {
+      name: t('sidebar_menu_saved'),
+      icon: "bookmark-outline",
+      route: "/home/screens/Sidebar/SavedPropertiesScreen"
     },
-    { 
-      name: t('sidebar_menu_chat'), 
-      icon: "chatbubble-outline", 
-      route: "/home/screens/Sidebar/MessagesScreen" 
+    {
+      name: t('sidebar_menu_chat'),
+      icon: "chatbubble-outline",
+      route: "/home/screens/Sidebar/MessagesScreen"
     },
-    { 
-    name: t('sidebar_menu_my_properties'), 
-    icon: "briefcase-outline", 
-    route: "/home/screens/Sidebar/MyProperties" 
+    {
+      name: t('sidebar_menu_my_properties'),
+      icon: "briefcase-outline",
+      route: "/home/screens/Sidebar/MyProperties"
     },
 
-    { 
-      name: t('sidebar_menu_notifications'), 
-      icon: "notifications-outline", 
-      route: "/home/screens/Notifications" 
+    {
+      name: t('sidebar_menu_notifications'),
+      icon: "notifications-outline",
+      route: "/home/screens/Notifications"
     },
-    { 
-      name: t('sidebar_menu_settings'), 
-      icon: "settings-outline", 
-      route: "/home/screens/Settings" 
+    {
+      name: t('sidebar_menu_settings'),
+      icon: "settings-outline",
+      route: "/home/screens/Settings"
     },
   ];
 
@@ -189,22 +189,26 @@ useEffect(() => {
         }}
       >
         {/* User Info */}
+        <TouchableOpacity
+  activeOpacity={0.8}
+  onPress={() => router.push("/home/screens/Settings/Profile")}
+>
         <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 20 }}>
           <Image
             source={require("../../../assets/profile.png")}
             style={{ width: 50, height: 50, borderRadius: 25, marginRight: 12 }}
           />
           <View>
-          
 
-            <Text 
-  className="text-white font-semibold"
-  style={{ fontSize: getFontSize(16), lineHeight: getLineHeight() }}
->
-  {getLocalizedName(userData?.name)}
-</Text>
 
-            <Text 
+            <Text
+              className="text-white font-semibold"
+              style={{ fontSize: getFontSize(16), lineHeight: getLineHeight() }}
+            >
+              {getLocalizedName(userData?.name)}
+            </Text>
+
+            <Text
               className="text-white opacity-90"
               style={{ fontSize: getFontSize(12), lineHeight: getLineHeight() - 2 }}
             >
@@ -212,6 +216,7 @@ useEffect(() => {
             </Text>
           </View>
         </View>
+        </TouchableOpacity>
 
         {/* Back Button - Half Circle */}
         <TouchableOpacity
@@ -244,17 +249,17 @@ useEffect(() => {
               }}
               style={{ flexDirection: "row", alignItems: "center", paddingVertical: 16 }}
             >
-              <Ionicons 
-                name={item.icon} 
-                size={22} 
-                color="white" 
-                style={{ marginRight: 16 }} 
+              <Ionicons
+                name={item.icon}
+                size={22}
+                color="white"
+                style={{ marginRight: 16 }}
               />
-              <Text 
+              <Text
                 className="text-white"
-                style={{ 
-                  fontSize: getFontSize(18), 
-                  lineHeight: getLineHeight() + 2 
+                style={{
+                  fontSize: getFontSize(18),
+                  lineHeight: getLineHeight() + 2
                 }}
               >
                 {item.name}
@@ -270,17 +275,17 @@ useEffect(() => {
             onPress={() => setShowLogoutModal(true)}
             style={{ flexDirection: "row", alignItems: "center", paddingVertical: 16 }}
           >
-            <Ionicons 
-              name="log-out-outline" 
-              size={22} 
-              color="white" 
-              style={{ marginRight: 16 }} 
+            <Ionicons
+              name="log-out-outline"
+              size={22}
+              color="white"
+              style={{ marginRight: 16 }}
             />
-            <Text 
+            <Text
               className="text-white"
-              style={{ 
-                fontSize: getFontSize(18), 
-                lineHeight: getLineHeight() + 2 
+              style={{
+                fontSize: getFontSize(18),
+                lineHeight: getLineHeight() + 2
               }}
             >
               {t('sidebar_menu_logout')}
@@ -293,7 +298,7 @@ useEffect(() => {
       <View style={{ flex: 1 }}>{children}</View>
 
       {/* Logout Modal */}
-      <LogoutModal 
+      <LogoutModal
         visible={showLogoutModal}
         onClose={() => setShowLogoutModal(false)}
         onConfirm={handleLogout}

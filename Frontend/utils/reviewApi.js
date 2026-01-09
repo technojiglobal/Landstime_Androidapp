@@ -1,5 +1,6 @@
 // Frontend/utils/reviewApi.js
-const BASE_URL = `${process.env.EXPO_PUBLIC_IP_ADDRESS}/api/reviews`;
+import { API_URL } from './apiConfig';
+const BASE_URL = `${API_URL}/api/reviews`;
 
 /**
  * Fetch reviews for an entity

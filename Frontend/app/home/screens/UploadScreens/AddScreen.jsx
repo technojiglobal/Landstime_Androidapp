@@ -1679,12 +1679,13 @@ houseDetails: {
   setFocusedField={setFocusedField}
 />
 
+
               </ScrollView>
               <View
                 style={{
                   flexDirection: "row",
                   justifyContent: "flex-end",
-                  marginTop: 16,
+                  marginTop: 10,
                   gap: 12,
                 }}
                 className="space-x-3 mr-4 mb-3"
@@ -1726,6 +1727,7 @@ houseDetails: {
                   </Text>
                 </TouchableOpacity>
               </View>
+              
             </SafeAreaView>
             <Toast />
           </View>

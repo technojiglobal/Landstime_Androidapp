@@ -1,5 +1,5 @@
 // Landstime_Androidapp/Frontend/app/home/screens/Settings/Profile.jsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import {
   View,
@@ -8,21 +8,24 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
-  Dimensions
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-// Update path if needed
-// 🔽 ADD
-import { useEffect } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { getUserProfile, updateUserProfile } from "../../../../utils/api";
-const IMAGE_BASE_URL = "http://10.37.92.184:8000"; // backend URL
+
+const IMAGE_BASE_URL = "http://10.10.2.143:8000";
+
 export default function Profile() {
-  const [isEditing, setIsEditing] = useState(false);
+  const router = useRouter();
+
   const [profile, setProfile] = useState(null);
-  // 🔽 ADD
+  const [backupProfile, setBackupProfile] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [focused, setFocused] = useState(null);
 
-
+  /* ---------------- FETCH PROFILE ---------------- */
   useEffect(() => {
     fetchProfile();
   }, []);
@@ -38,8 +41,7 @@ export default function Profile() {
     }
   };
 
-
-  // 🔽 ADD
+  /* ---------------- IMAGE PICKER ---------------- */
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -51,21 +53,10 @@ export default function Profile() {
     }
   };
 
-
-  const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
-
-  // Reference device: iPhone 14 Pro Max
-  const REF_WIDTH = 430;
-  const REF_HEIGHT = 932;
-
-  const scaleWidth = (size) => (SCREEN_WIDTH / REF_WIDTH) * size;
-  const scaleHeight = (size) => (SCREEN_HEIGHT / REF_HEIGHT) * size;
-  // 🔽 REPLACE
+  /* ---------------- SAVE ---------------- */
   const handleSave = async () => {
     const formData = new FormData();
-
     formData.append("name", profile.name);
-
     formData.append("email", profile.email);
     formData.append("address", profile.address || "");
     formData.append("about", profile.about || "");
@@ -79,211 +70,212 @@ export default function Profile() {
     }
 
     const res = await updateUserProfile(formData);
-
     if (res.success) {
-      // 🔽 IMPORTANT: re-fetch from backend
       await fetchProfile();
       setIsEditing(false);
     }
   };
 
+  /* ---------------- SAFE INPUT CLASS ---------------- */
+  const inputClass = (key) =>
+    `border-b pb-1 text-gray-700 ${
+      focused === key ? "border-[#16A34A]" : "border-gray-300"
+    }`;
 
-  const router = useRouter();
   if (!profile) {
     return (
-      <View className="flex-1 justify-center items-center bg-white">
+      <View className="flex-1 items-center justify-center bg-white">
         <Text>Loading profile...</Text>
       </View>
     );
   }
+
   return (
-
-
-    <ScrollView className="mt-12 flex-1 bg-white px-4 pt-12">
-
-
-
-      {/* Profile Header */}
-      <View className="flex-row items-center mb-6 mt-2">
-
-        {/* Profile Image */}
-        <TouchableOpacity disabled={!isEditing} onPress={pickImage}>
-          <Image
-            source={
-              profile.profileImage
-                ? {
-                  uri: profile.profileImage.startsWith("file://")
-                    ? profile.profileImage
-                    : `${IMAGE_BASE_URL}${profile.profileImage}`,
-                }
-                : require("../../../../assets/profile.png")
-            }
-            className="w-24 h-24 rounded-full"
-          />
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1 bg-white"
+    >
+      {/* ---------- FIXED HEADER ---------- */}
+      <View className="h-14 flex-row items-center mt-8 px-4 border-b border-gray-100">
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="chevron-back" size={24} color="#16A34A" />
 
         </TouchableOpacity>
-
-        {/* Name + Phone */}
-        <View className="ml-4 flex-1">
-
-          {/* Name */}
-          {isEditing ? (
-            <TextInput
-              value={profile.name}
-              onChangeText={(text) => setProfile({ ...profile, name: text })}
-              className="text-xl font-semibold text-[#16A34A] border-b pb-1"
-            />
-          ) : (
-            <Text className="text-xl font-semibold text-[#16A34A]">
-              {profile.name}
-            </Text>
-          )}
-
-          {/* Phone */}
-          <Text className="text-gray-500 mt-1">{profile.phone}</Text>
-
-        </View>
-
-        {/* Edit Button */}
-        <TouchableOpacity
-          onPress={() => {
-            if (isEditing) handleSave();
-            else setIsEditing(true);
-          }}
-          className="bg-[#16A34A]/10 p-2 rounded-lg ml-2"
-        >
-          <Ionicons
-            name={isEditing ? "checkmark" : "pencil"}
-            size={18}
-            color="#16A34A"
-          />
-        </TouchableOpacity>
-
+        <Text className="ml-4 text-lg font-semibold">Profile</Text>
       </View>
 
-      {/* Contact Information */}
-      <View className="bg-white border border-gray-100 rounded-2xl p-4"
-        style={{
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.15,
-          shadowRadius: 6,
-          elevation: 4,
-        }}
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        className="flex-1 px-4 pt-6"
       >
-        <Text className="text-lg font-semibold mb-3">Contact Information</Text>
-
-        <View className="flex-row items-center mb-3">
-          <Ionicons name="call-outline" size={18} color="gray" />
-          <Text className="ml-3 text-gray-700">{profile.phone}</Text>
-        </View>
-
-        <View className="flex-row items-center mb-3">
-          <Ionicons name="mail-outline" size={18} color="gray" />
-          {isEditing ? (
-            <TextInput
-              value={profile.email}
-              onChangeText={(text) => setProfile({ ...profile, email: text })}
-              className="ml-3 border-b flex-1 text-gray-700"
-            />
-          ) : (
-            <Text className="ml-3 text-gray-700">{profile.email}</Text>
-          )}
-        </View>
-        <View className="flex-row items-center mb-3">
-          <Ionicons name="location-outline" size={18} color="gray" />
-          {isEditing ? (
-            <TextInput
-              value={profile.address || ""}
-              onChangeText={(text) =>
-                setProfile({ ...profile, address: text })
+        {/* ---------- PROFILE HEADER ---------- */}
+        <View className="flex-row items-center mb-4">
+          <TouchableOpacity disabled={!isEditing} onPress={pickImage}>
+            <Image
+              source={
+                profile.profileImage
+                  ? {
+                      uri: profile.profileImage.startsWith("file://")
+                        ? profile.profileImage
+                        : `${IMAGE_BASE_URL}${profile.profileImage}`,
+                    }
+                  : require("../../../../assets/profile.png")
               }
-              className="ml-3 border-b flex-1 text-gray-700"
-              placeholder="Address"
+              className="w-24 h-24 rounded-full"
+            />
+          </TouchableOpacity>
+
+          <View className="ml-4 flex-1">
+            {isEditing ? (
+              <TextInput
+                value={profile.name}
+                onChangeText={(t) => setProfile({ ...profile, name: t })}
+                onFocus={() => setFocused("name")}
+                onBlur={() => setFocused(null)}
+                className={inputClass("name")}
+              />
+            ) : (
+              <Text className="text-xl font-semibold text-[#16A34A]">
+                {profile.name}
+              </Text>
+            )}
+            <Text className="text-gray-500 mt-1">{profile.phone}</Text>
+          </View>
+
+          {!isEditing && (
+            <TouchableOpacity
+              onPress={() => {
+                setBackupProfile(profile);
+                setIsEditing(true);
+              }}
+              className="bg-[#16A34A]/10 p-2 rounded-lg"
+            >
+              <Ionicons name="pencil" size={18} color="#16A34A" />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* ---------- ACTION BUTTONS ---------- */}
+        {isEditing && (
+          <View className="flex-row justify-end gap-3 mb-4">
+            <TouchableOpacity
+              onPress={() => {
+                setProfile(backupProfile);
+                setIsEditing(false);
+              }}
+              className="px-4 py-2 border border-gray-300 rounded-lg"
+            >
+              <Text className="text-gray-600">Cancel</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleSave}
+              className="px-4 py-2 bg-[#16A34A] rounded-lg"
+            >
+              <Text className="text-white font-semibold">Save</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* ---------- CONTACT INFO ---------- */}
+        <View className="bg-white border border-gray-100 rounded-xl p-4 mb-4 shadow">
+          <Text className="text-lg font-semibold mb-3">
+            Contact Information
+          </Text>
+
+          <TextInput
+            value={profile.email}
+            editable={isEditing}
+            onChangeText={(t) => setProfile({ ...profile, email: t })}
+            onFocus={() => setFocused("email")}
+            onBlur={() => setFocused(null)}
+            className={`${inputClass("email")} mb-3`}
+          />
+
+          <TextInput
+            value={profile.address || ""}
+            editable={isEditing}
+            onChangeText={(t) => setProfile({ ...profile, address: t })}
+            onFocus={() => setFocused("address")}
+            onBlur={() => setFocused(null)}
+            className={inputClass("address")}
+            placeholder="Address"
+          />
+        </View>
+          {/* Statistics Section */}
+        <View className="mt-5">
+          <View className="flex-row justify-between">
+            <View className="w-[48%] bg-white border border-gray-100 rounded-xl p-4 items-center">
+              <View className="bg-[#E3F7E7] p-3 rounded-full mb-1">
+                <Ionicons name="home-outline" size={22} color="#16A34A" />
+              </View>
+
+              <Text className="text-xl font-bold mt-1">{profile.listed}</Text>
+              <Text className="text-sm text-gray-500">Properties Listed</Text>
+            </View>
+
+            <View className="w-[48%] bg-white border border-gray-100 rounded-xl p-4 items-center">
+              <View className="bg-[#E3F7E7] p-3 rounded-full mb-1">
+                <Ionicons name="briefcase-outline" size={22} color="#16A34A" />
+              </View>
+
+              <Text className="text-xl font-bold mt-1">{profile.sold}</Text>
+              <Text className="text-sm text-gray-500">Properties Sold</Text>
+            </View>
+          </View>
+
+          <View className="flex-row justify-between mt-4">
+            <View className="w-[48%] bg-white border border-gray-100 rounded-xl p-4 items-center">
+              <View className="bg-[#E3F7E7] p-3 rounded-full mb-1">
+                <Ionicons name="star-outline" size={22} color="#16A34A" />
+              </View>
+
+              <Text className="text-xl font-bold mt-1">{profile.rating}</Text>
+              <Text className="text-sm text-gray-500">Client Rating</Text>
+            </View>
+
+            <View className="w-[48%] bg-white border border-gray-100 rounded-xl p-4 items-center">
+              <View className="bg-[#E3F7E7] p-3 rounded-full mb-1">
+                <Ionicons name="ribbon-outline" size={20} color="#16A34A" />
+              </View>
+
+              <Text className="text-xl font-bold mt-1">
+                {profile.reviews}
+              </Text>
+
+              <Text className="text-sm text-gray-500">
+                Properties Reviewed
+              </Text>
+            </View>
+
+          </View>
+        </View>
+
+        {/* ---------- ABOUT ---------- */}
+        <View className="bg-white border mt-6 border-gray-100 rounded-xl p-4 shadow">
+          <Text className="font-semibold mb-2">About</Text>
+          {isEditing ? (
+            <TextInput
+              multiline
+              value={profile.about || ""}
+              onChangeText={(t) => setProfile({ ...profile, about: t })}
+              onFocus={() => setFocused("about")}
+              onBlur={() => setFocused(null)}
+              className={`border rounded-lg p-2 text-gray-700 ${
+                focused === "about"
+                  ? "border-[#16A34A]"
+                  : "border-gray-300"
+              }`}
             />
           ) : (
-            <Text className="ml-3 text-gray-700">
-              {profile.address || "—"}
+            <Text className="text-gray-600 leading-5">
+              {profile.about || "—"}
             </Text>
           )}
         </View>
 
-      </View>
-
-      {/* Statistics Section */}
-      <View className="mt-5">
-        <View className="flex-row justify-between">
-          <View className="w-[48%] bg-white border border-gray-100 rounded-xl p-4 items-center">
-            <View className="bg-[#E3F7E7] p-3 rounded-full mb-1">
-              <Ionicons name="home-outline" size={22} color="#16A34A" />
-            </View>
-
-            <Text className="text-xl font-bold mt-1">{profile.listed}</Text>
-            <Text className="text-sm text-gray-500">Properties Listed</Text>
-          </View>
-
-          <View className="w-[48%] bg-white border border-gray-100 rounded-xl p-4 items-center">
-            <View className="bg-[#E3F7E7] p-3 rounded-full mb-1">
-              <Ionicons name="briefcase-outline" size={22} color="#16A34A" />
-            </View>
-
-            <Text className="text-xl font-bold mt-1">{profile.sold}</Text>
-            <Text className="text-sm text-gray-500">Properties Sold</Text>
-          </View>
-        </View>
-
-        <View className="flex-row justify-between mt-4">
-          <View className="w-[48%] bg-white border border-gray-100 rounded-xl p-4 items-center">
-            <View className="bg-[#E3F7E7] p-3 rounded-full mb-1">
-              <Ionicons name="star-outline" size={22} color="#16A34A" />
-            </View>
-
-            <Text className="text-xl font-bold mt-1">{profile.rating}</Text>
-            <Text className="text-sm text-gray-500">Client Rating</Text>
-          </View>
-
-          <View className="w-[48%] bg-white border border-gray-100 rounded-xl p-4 items-center">
-            <View className="bg-[#E3F7E7] p-3 rounded-full mb-1">
-              <Ionicons name="ribbon-outline" size={20} color="#16A34A" />
-            </View>
-
-            <Text className="text-xl font-bold mt-1">
-              {profile.reviews}
-            </Text>
-
-            <Text className="text-sm text-gray-500">
-              Properties Reviewed
-            </Text>
-          </View>
-
-        </View>
-      </View>
-
-      {/* About */}
-      <View className="bg-white border border-gray-100 rounded-xl p-4 mt-6"
-        style={{
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.15,
-          shadowRadius: 6,
-          elevation: 4,
-        }}
-      >
-        <Text className="font-semibold mb-2">About</Text>
-
-        {isEditing ? (
-          <TextInput
-            multiline
-            value={profile.about}
-            onChangeText={(text) => setProfile({ ...profile, about: text })}
-            className="text-gray-700 border p-2 rounded-lg"
-          />
-        ) : (
-          <Text className="text-gray-600 leading-5">{profile.about}</Text>
-        )}
-      </View>
-
-      <View className="h-20" />
-    </ScrollView>
+        <View className="h-24" />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
