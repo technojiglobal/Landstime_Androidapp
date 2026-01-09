@@ -1,6 +1,7 @@
-//CommercialUpload///Components//StorageNext.jsx
+//CommercialUpload///Components//StorageNext.jsx (jahnavi)
 
-import React, { useState,useEffect } from "react";
+import React, { useState,useEffect,useMemo } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
     View,
     Text,
@@ -35,46 +36,29 @@ import MorePricingDetailsModal from "../../MorePricingDetailsModal";
    </TouchableOpacity>
  );
  
- const Checkbox = ({ selected }) => (
-   <View
-     style={{
-       width: 16,
-       height: 16,
-       borderWidth: 1,
-       borderColor: selected ? "#22C55E" : "#D1D5DB",
-       backgroundColor: selected ? "#22C55E" : "#fff",
-       justifyContent: "center",
-       alignItems: "center",
-       marginRight: 8,
-     }}
-   >
-     {selected && <Text style={{ color: "#fff", fontSize: 10 }}>✓</Text>}
-   </View>
+ const Checkbox = ({ label, selected, onPress }) => (
+   <TouchableOpacity onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+     <View
+       style={{
+         width: 16,
+         height: 16,
+         borderWidth: 1,
+         borderColor: selected ? "#22C55E" : "#D1D5DB",
+         backgroundColor: selected ? "#22C55E" : "#fff",
+         justifyContent: "center",
+         alignItems: "center",
+         marginRight: 8,
+       }}
+     >
+       {selected && <Text style={{ color: "#fff", fontSize: 10 }}>✓</Text>}
+     </View>
+     <Text style={{ fontSize: 11, color: '#00000099' }}>{label}</Text>
+   </TouchableOpacity>
  );
 const StorageNext = () => {
-    const router = useRouter();
+    
+ const router = useRouter();
     const params = useLocalSearchParams();
-
-    const images = params.images ? JSON.parse(params.images) : [];
-
-const safeParse = (raw) => {
-  if (!raw) return null;
-  if (typeof raw === "string") {
-    try { return JSON.parse(raw); } catch { return null; }
-  }
-  if (Array.isArray(raw)) {
-    try { return JSON.parse(raw[0]); } catch { return null; }
-  }
-  if (typeof raw === "object") return raw;
-  return null;
-};
-
-const [storageDetailsFromPrev, setStorageDetailsFromPrev] = useState(null);
-
-useEffect(() => {
-  const parsed = safeParse(params.commercialDetails);
-  setStorageDetailsFromPrev(parsed);
-}, [params.commercialDetails]);
 
 
 
@@ -112,7 +96,7 @@ useEffect(() => {
         "+Security fire Alarm",
         "+Visitor Parking",
     ];
-    const [amenities, setAmenities] = useState([]);
+   const [amenities, setAmenities] = useState([]);
 
     /* ---------------- LOCATION ADVANTAGES ---------------- */
     const locationAdvantages = [
@@ -126,8 +110,168 @@ useEffect(() => {
         "+Close to Highway",
     ];
     const [locAdvantages, setLocAdvantages] = useState([]);
+
+   // ✅ ADD THIS: Debug logging for state changes
+useEffect(() => {
+  console.log('🔍 StorageNext state:', {
+    amenities: amenities.length,
+    locAdvantages: locAdvantages.length,
+    amenitiesValues: amenities,
+    locAdvantagesValues: locAdvantages,
+  });
+}, [amenities, locAdvantages]);
+
+
+    /* ---------------- LOCATION ADVANTAGES ---------------- */
+   
+    
     const [leaseDuration, setLeaseDuration] = useState("");
     const [monthlyRent, setMonthlyRent] = useState("");
+
+    /* ---------------- MODAL AND FOCUS STATES ---------------- */
+   
+
+    // ✅ NOW parse params AFTER all state is declared
+    const images = useMemo(() => {
+      try {
+        if (!params.images) return [];
+        if (typeof params.images === 'string') return JSON.parse(params.images);
+        if (Array.isArray(params.images)) return params.images;
+        return [];
+      } catch (e) {
+        console.error('❌ Error parsing images:', e);
+        return [];
+      }
+    }, [params.images]);
+
+    const commercialDetails = useMemo(() => {
+      try {
+        if (!params.commercialDetails) return null;
+        if (typeof params.commercialDetails === 'object') return params.commercialDetails;
+        return JSON.parse(params.commercialDetails);
+      } catch (e) {
+        console.error('❌ Error parsing commercialDetails:', e);
+        return null;
+      }
+    }, [params.commercialDetails]);
+
+// ✅ Load draft from AsyncStorage
+// ✅ Load draft from AsyncStorage
+useEffect(() => {
+  const loadDraft = async () => {
+    try {
+      const draft = await AsyncStorage.getItem('draft_storage_pricing');
+      if (draft) {
+        const savedData = JSON.parse(draft);
+        console.log('📦 Loading Storage pricing draft from AsyncStorage');
+        
+        setOwnership(savedData.ownership || '');
+        setExpectedPrice(savedData.expectedPrice?.toString() || '');
+        setAllInclusive(savedData.allInclusive || false);
+        setPriceNegotiable(savedData.priceNegotiable || false);
+        setTaxExcluded(savedData.taxExcluded || false);
+        setIndustryApprovedBy(savedData.IndustryApprovedBy || '');
+        setApprovedIndustryType(savedData.approvedIndustryType || '');
+        setPreLeased(savedData.preLeased || null);
+        setLeaseDuration(savedData.leaseDuration || '');
+        setMonthlyRent(savedData.monthlyRent?.toString() || '');
+        setDescribeProperty(savedData.describeProperty || '');
+        
+        // ✅ FIX: Properly restore arrays with validation
+        if (Array.isArray(savedData.amenities)) {
+          setAmenities(savedData.amenities);
+          console.log('✅ Amenities restored from draft:', savedData.amenities.length);
+        }
+        if (Array.isArray(savedData.locAdvantages)) {
+          setLocAdvantages(savedData.locAdvantages);
+          console.log('✅ Location advantages restored from draft:', savedData.locAdvantages.length);
+        }
+        
+        console.log('✅ Storage pricing draft loaded');
+        return;
+      
+      }
+    } catch (e) {
+      console.log('⚠️ Failed to load Storage pricing draft:', e);
+    }
+
+    // Fallback to params
+  // Fallback to params
+    if (commercialDetails?.storageDetails) {
+      const storage = commercialDetails.storageDetails;
+      console.log('🔄 Restoring from params:', {
+        hasAmenities: !!storage.amenities,
+        hasLocationAdvantages: !!storage.locationAdvantages,
+        hasLocAdvantages: !!storage.locAdvantages,
+      });
+      
+      setOwnership(storage.ownership || '');
+      setExpectedPrice(storage.expectedPrice?.toString() || '');
+      setAllInclusive(storage.priceDetails?.allInclusive || false);
+      setPriceNegotiable(storage.priceDetails?.negotiable || false);
+      setTaxExcluded(storage.priceDetails?.taxExcluded || false);
+      setIndustryApprovedBy(storage.authority || '');
+      setApprovedIndustryType(storage.approvedIndustryType || '');
+      setPreLeased(storage.preLeased || null);
+      setLeaseDuration(storage.leaseDuration || '');
+      setMonthlyRent(storage.monthlyRent?.toString() || '');
+      setDescribeProperty(storage.description || '');
+      
+      // ✅ FIX: Check both possible field names with proper validation
+      const restoredAmenities = storage.amenities || [];
+      const restoredLocAdvantages = storage.locationAdvantages || 
+                                    storage.locAdvantages || [];
+      
+      if (Array.isArray(restoredAmenities) && restoredAmenities.length > 0) {
+        setAmenities(restoredAmenities);
+        console.log('✅ Amenities from params:', restoredAmenities);
+      }
+      
+      if (Array.isArray(restoredLocAdvantages) && restoredLocAdvantages.length > 0) {
+        setLocAdvantages(restoredLocAdvantages);
+        console.log('✅ Location advantages from params:', restoredLocAdvantages);
+      }
+    }
+  };
+
+  loadDraft();
+}, [commercialDetails]);
+
+// ✅ Auto-save pricing draft
+useEffect(() => {
+  const saveDraft = async () => {
+    const pricingDraft = {
+      ownership,
+      expectedPrice,
+      allInclusive,
+      priceNegotiable,
+      taxExcluded,
+      IndustryApprovedBy,
+      approvedIndustryType,
+      preLeased,
+      leaseDuration,
+      monthlyRent,
+      describeProperty,
+      amenities,
+      locAdvantages,
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      await AsyncStorage.setItem('draft_storage_pricing', JSON.stringify(pricingDraft));
+      console.log('💾 Storage pricing draft auto-saved');
+    } catch (e) {
+      console.log('⚠️ Failed to save Storage pricing draft:', e);
+    }
+  };
+
+  const timer = setTimeout(saveDraft, 1000);
+  return () => clearTimeout(timer);
+}, [ownership, expectedPrice, allInclusive, priceNegotiable, taxExcluded,
+    IndustryApprovedBy, approvedIndustryType, preLeased, leaseDuration,
+    monthlyRent, describeProperty, amenities, locAdvantages]);
+
+  
 
     /* ---------------- HELPERS ---------------- */
     const toggleArrayItem = (setter, array, value) => {
@@ -138,8 +282,8 @@ useEffect(() => {
         }
     };
 
-    const handleNext = () => {
-  if (!storageDetailsFromPrev) {
+const handleNext = () => {
+  if (!commercialDetails) {
     Toast.show({ type: "error", text1: "Storage details missing" });
     return;
   }
@@ -154,19 +298,21 @@ useEffect(() => {
     return;
   }
 
-  const commercialDetails = {
-    ...storageDetailsFromPrev,
+  const updatedCommercialDetails = {
+    ...commercialDetails,
+    
+    storageDetails: {
+      ...commercialDetails.storageDetails, // ✅ Preserve previous fields
+      
+      expectedPrice: Number(expectedPrice),
+      description: describeProperty,
 
-    expectedPrice: Number(expectedPrice),
-    description: describeProperty,
+      priceDetails: {
+        allInclusive,
+        negotiable: priceNegotiable,
+        taxExcluded,
+      },
 
-    priceDetails: {
-      allInclusive,
-      negotiable: priceNegotiable,
-      taxExcluded,
-    },
-
-    pricingExtras: {
       ownership,
       authority: IndustryApprovedBy,
       approvedIndustryType,
@@ -180,12 +326,13 @@ useEffect(() => {
     },
   };
 
- // NEW
 router.push({
   pathname: "/home/screens/UploadScreens/CommercialUpload/Components/StorageVaastu",
   params: {
-    commercialDetails: JSON.stringify(commercialDetails),
-    images: JSON.stringify(images), // ✅ ADD THIS
+    commercialDetails: JSON.stringify(updatedCommercialDetails),
+    images: JSON.stringify(images),
+    area: params.area,
+    propertyTitle: commercialDetails.storageDetails?.propertyTitle || params.propertyTitle,
   },
 });
 };
@@ -201,11 +348,35 @@ router.push({
             >
                 <View className="flex-row items-center mt-7 mb-4">
                     <TouchableOpacity
-                        onPress={() =>
-                            router.push("/home/screens/UploadScreens/CommercialUpload/Components/Storage")
-                        }
-                        className="p-2"
-                    >
+  onPress={() => {
+    const currentData = {
+      ...commercialDetails?.storageDetails,
+      expectedPrice: Number(expectedPrice) || undefined,
+      priceDetails: { allInclusive, negotiable: priceNegotiable, taxExcluded },
+      ownership,
+      authority: IndustryApprovedBy,
+      approvedIndustryType,
+      preLeased,
+      leaseDuration,
+      monthlyRent: monthlyRent ? Number(monthlyRent) : undefined,
+      description: describeProperty,
+      amenities,
+      locationAdvantages: locAdvantages,
+    };
+
+    router.push({
+      pathname: "/home/screens/UploadScreens/CommercialUpload/Components/Storage",
+      params: {
+        storageDetails: JSON.stringify(currentData),
+        images: JSON.stringify(images),
+        area: params.area,
+        storageType: commercialDetails?.storageDetails?.storageType || params.storageType, // ✅ ADD THIS
+        commercialBaseDetails: params.commercialBaseDetails,
+      },
+    });
+  }}
+  className="p-2"
+>
                         <Image
                             source={require("../../../../../../assets/arrow.png")}
                             style={{ width: 20, height: 20 }}
@@ -413,34 +584,57 @@ router.push({
                             ))}
                         </View>
 
-                        <Text className="text-[15px] font-bold text-[#00000099] mb-3">
+                       <Text className="text-[15px] font-bold text-[#00000099] mb-3">
                             Location Advantages
                         </Text>
                         <View className="flex-row flex-wrap">
-                            {locationAdvantages.map((a) => (
-                                <PillButton
-                                    key={a}
-                                    label={a}
-                                    selected={locAdvantages.includes(a)}
-                                    onPress={() =>
-                                        toggleArrayItem(setLocAdvantages, locAdvantages, a)
-                                    }
-                                />
-                            ))}
+                            {locationAdvantages.map((a) => {
+                                const isSelected = locAdvantages.includes(a);
+                                return (
+                                    <PillButton
+                                        key={a}
+                                        label={a}
+                                        selected={isSelected}
+                                        onPress={() => {
+                                            console.log('🔄 Toggling location advantage:', a, 'Current:', isSelected);
+                                            toggleArrayItem(setLocAdvantages, locAdvantages, a);
+                                        }}
+                                    />
+                                );
+                            })}
                         </View>
                     </View>
                     <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-3">
-                        <TouchableOpacity
-                            className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
-                           // NEW
-onPress={() => router.push({
-  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/Storage",
-  params: {
-    images: JSON.stringify(images),
-    commercialDetails: params.commercialDetails,
-  }
-})}
-                        >
+                       <TouchableOpacity
+  className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
+  onPress={() => {
+    const currentData = {
+      ...commercialDetails?.storageDetails,
+      expectedPrice: Number(expectedPrice) || undefined,
+      priceDetails: { allInclusive, negotiable: priceNegotiable, taxExcluded },
+      ownership,
+      authority: IndustryApprovedBy,
+      approvedIndustryType,
+      preLeased,
+      leaseDuration,
+      monthlyRent: monthlyRent ? Number(monthlyRent) : undefined,
+      description: describeProperty,
+      amenities,
+      locationAdvantages: locAdvantages,
+    };
+
+    router.push({
+      pathname: "/home/screens/UploadScreens/CommercialUpload/Components/Storage",
+      params: {
+        storageDetails: JSON.stringify(currentData),
+        images: JSON.stringify(images),
+        area: params.area,
+        storageType: commercialDetails?.storageDetails?.storageType || params.storageType, // ✅ ADD THIS
+        commercialBaseDetails: params.commercialBaseDetails,
+      },
+    });
+  }}
+>
                             <Text className="font-semibold">Cancel</Text>
                         </TouchableOpacity>
 

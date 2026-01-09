@@ -75,11 +75,11 @@ console.log('📄 Files received:', {
     
 
 
-    const finalData = {
+   const finalData = {
   propertyType: propertyData.propertyType,
   propertyTitle: propertyData.propertyTitle,
   ownerDetails: propertyData.ownerDetails,
-    expectedPrice: propertyData.expectedPrice,
+  expectedPrice: propertyData.expectedPrice,
   description: propertyData.description || "",
   images,
   documents: {
@@ -89,7 +89,22 @@ console.log('📄 Files received:', {
   userId: req.user._id,
   status: "pending",
 };
-  if (propertyData.propertyType === "Commercial") {
+
+// ✅ ADD THIS NEW CODE FOR HOUSE PROPERTIES
+if (propertyData.propertyType === "House") {
+  finalData.location = propertyData.location;
+  finalData.area = propertyData.area; // This should be the neighborhood name from frontend
+  finalData.houseDetails = propertyData.houseDetails;
+  
+  console.log('🏠 House property data:', {
+    location: finalData.location,
+    area: finalData.area,
+    sqft: propertyData.houseDetails?.area
+  });
+}
+
+if (propertyData.propertyType === "Commercial") {
+  // Commercial handling code...
   const { commercialDetails } = propertyData;
   if (!commercialDetails || !commercialDetails.subType) {
     return res.status(400).json({
@@ -206,7 +221,9 @@ if (canonicalSubType === "Retail") {
 }
 
   // STORAGE
- 
+// Backend/controllers/propertyController.js - Storage Section Only
+
+// STORAGE
 if (canonicalSubType === "Storage") {
   if (
     !commercialDetails.storageDetails ||
@@ -218,29 +235,130 @@ if (canonicalSubType === "Storage") {
       message: "Storage location and storage area are required",
     });
   }
+
+  console.log('📦 Processing Storage details:', {
+    hasNeighborhoodArea: !!commercialDetails.storageDetails.neighborhoodArea,
+    propertyDataArea: propertyData.area,
+    commercialArea: commercialDetails.area,
+    hasStorageType: !!commercialDetails.storageDetails.storageType,
+  });
+
+  // ✅ CRITICAL FIX: Store location and area properly
   finalData.location = commercialDetails.storageDetails.location;
-  finalData.commercialDetails.storageDetails =
-    commercialDetails.storageDetails;
+
+  // ✅ Priority order for neighborhoodArea
+  const neighborhoodArea = commercialDetails.storageDetails.neighborhoodArea ||
+                           propertyData.area ||
+                           commercialDetails.area ||
+                           '';
+
+  finalData.area = neighborhoodArea;
+
+  console.log('✅ Storage area set to:', finalData.area);
+
+  // ✅ IMPORTANT: Store COMPLETE storage details without filtering
+  finalData.commercialDetails.storageDetails = {
+    // Basic Info
+    storageType: commercialDetails.storageDetails.storageType,
+    location: commercialDetails.storageDetails.location,
+    neighborhoodArea: neighborhoodArea,
+
+    // Area & Dimensions
+    storageArea: {
+      value: commercialDetails.storageDetails.storageArea?.value,
+      unit: commercialDetails.storageDetails.storageArea?.unit || 'sqft',
+    },
+    dimensions: {
+      length: commercialDetails.storageDetails.dimensions?.length,
+      breadth: commercialDetails.storageDetails.dimensions?.breadth,
+    },
+
+    // ✅ NEW FIELDS - Storage Specifications
+    ceilingHeight: commercialDetails.storageDetails.ceilingHeight,
+    flooring: commercialDetails.storageDetails.flooring,
+    ventilation: commercialDetails.storageDetails.ventilation,
+    covered: commercialDetails.storageDetails.covered,
+    temperatureControl: commercialDetails.storageDetails.temperatureControl,
+    security: commercialDetails.storageDetails.security || [],
+    accessibility: commercialDetails.storageDetails.accessibility,
+
+    // Facilities
+    washroomType: commercialDetails.storageDetails.washroomType,
+
+    // Availability
+    availability: commercialDetails.storageDetails.availability,
+    ageOfProperty: commercialDetails.storageDetails.ageOfProperty,
+    possession: commercialDetails.storageDetails.possession,
+
+    // Pricing (from StorageNext.jsx)
+    ownership: commercialDetails.storageDetails.ownership,
+    expectedPrice: commercialDetails.storageDetails.expectedPrice,
+    priceDetails: commercialDetails.storageDetails.priceDetails,
+    authority: commercialDetails.storageDetails.authority,
+    approvedIndustryType: commercialDetails.storageDetails.approvedIndustryType,
+
+    // Lease Details
+    preLeased: commercialDetails.storageDetails.preLeased,
+    leaseDuration: commercialDetails.storageDetails.leaseDuration,
+    monthlyRent: commercialDetails.storageDetails.monthlyRent,
+
+    // Description & Features
+    description: commercialDetails.storageDetails.description,
+    amenities: commercialDetails.storageDetails.amenities || [],
+    locationAdvantages: commercialDetails.storageDetails.locationAdvantages || [],
+
+    // Vastu Details
+    vastuDetails: commercialDetails.storageDetails.vastuDetails || {},
+  };
+
+  console.log('✅ Storage details stored:', {
+    location: finalData.location,
+    area: finalData.area,
+    storageType: finalData.commercialDetails.storageDetails.storageType,
+    allFields: Object.keys(finalData.commercialDetails.storageDetails),
+    hasVastu: !!finalData.commercialDetails.storageDetails.vastuDetails,
+  });
+
+  // ✅ Handle pricing extras if provided
   if (commercialDetails.pricingExtras) {
-    finalData.commercialDetails.pricingExtras =
-      commercialDetails.pricingExtras;
+    finalData.commercialDetails.pricingExtras = commercialDetails.pricingExtras;
   }
 }
+
+
 // INDUSTRY
 if (canonicalSubType === "Industry") {
-  if (
-    !commercialDetails.industryDetails ||
-    !commercialDetails.industryDetails.location ||
-    !commercialDetails.industryDetails.area?.value
-  ) {
-    return res.status(400).json({
-      success: false,
-      message: "Industry location and area are required",
-    });
-  }
-  finalData.location = commercialDetails.industryDetails.location;
-  finalData.commercialDetails.industryDetails =
-    commercialDetails.industryDetails;
+if (
+!commercialDetails.industryDetails ||
+!commercialDetails.industryDetails.location ||
+!commercialDetails.industryDetails.area?.value
+) {
+return res.status(400).json({
+success: false,
+message: "Industry location and area are required",
+});
+}
+console.log('🏭 Processing Industry details:', {
+hasNeighborhoodArea: !!commercialDetails.industryDetails.neighborhoodArea,
+propertyDataArea: propertyData.area,
+});
+finalData.location = commercialDetails.industryDetails.location;
+// ✅ Priority order for neighborhoodArea
+const neighborhoodArea = commercialDetails.industryDetails.neighborhoodArea ||
+propertyData.area ||
+'';
+finalData.area = neighborhoodArea;
+console.log('✅ Industry area set to:', finalData.area);
+// ✅ Store complete industry details
+finalData.commercialDetails.industryDetails = {
+...commercialDetails.industryDetails,
+neighborhoodArea: neighborhoodArea,
+};
+console.log('✅ Industry details stored:', {
+location: finalData.location,
+area: finalData.area,
+allFields: Object.keys(finalData.commercialDetails.industryDetails),
+});
 }
 // HOSPITALITY
 if (canonicalSubType === "Hospitality") {
@@ -271,24 +389,51 @@ console.log('✅ Hospitality area set to:', finalData.area);
     commercialDetails.hospitalityDetails;
 }
   // PLOT / LAND
-  if (canonicalSubType === "Plot/Land") {
-    if (
-      !commercialDetails.plotDetails ||
-      !commercialDetails.plotDetails.location ||
-      !commercialDetails.plotDetails.area
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Plot location and area are required",
-      });
-    }
-    finalData.location = commercialDetails.plotDetails.location;
-    finalData.commercialDetails.plotDetails = commercialDetails.plotDetails;
-    if (commercialDetails.pricingExtras) {
-      finalData.commercialDetails.pricingExtras =
-        commercialDetails.pricingExtras;
-    }
+if (canonicalSubType === "Plot/Land") {
+  if (
+    !commercialDetails.plotDetails ||
+    !commercialDetails.plotDetails.location ||
+    !commercialDetails.plotDetails.area
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "Plot location and area are required",
+    });
   }
+
+  console.log('🏞️ Processing Plot details:', {
+    hasNeighborhoodArea: !!commercialDetails.plotDetails.neighborhoodArea,
+    propertyDataArea: propertyData.area,
+  });
+
+  // ✅ CRITICAL FIX: Store location and area properly
+  finalData.location = commercialDetails.plotDetails.location;
+
+  // ✅ Priority order for neighborhoodArea
+  const neighborhoodArea = commercialDetails.plotDetails.neighborhoodArea ||
+                           propertyData.area ||
+                           '';
+
+  finalData.area = neighborhoodArea;
+
+  console.log('✅ Plot area set to:', finalData.area);
+
+  // ✅ IMPORTANT: Store complete plot details
+  finalData.commercialDetails.plotDetails = {
+    ...commercialDetails.plotDetails,
+    neighborhoodArea: neighborhoodArea,
+  };
+
+  console.log('✅ Plot details stored:', {
+    location: finalData.location,
+    area: finalData.area,
+    allFields: Object.keys(finalData.commercialDetails.plotDetails),
+  });
+
+  if (commercialDetails.pricingExtras) {
+    finalData.commercialDetails.pricingExtras = commercialDetails.pricingExtras;
+  }
+}
 }
  
 // Plot handling is normalized above with other commercial subtypes
@@ -305,13 +450,21 @@ console.log('✅ Hospitality area set to:', finalData.area);
     }
     // Create property
 console.log('🔄 Translating property fields...');
-// Translate text fields to all 3 languages
+// ✅ FIX: Ensure we're translating the actual string values
 const originalLanguage = propertyData.originalLanguage || 'en';
+
+// ✅ Extract plain text if it's already an object
+const getPlainText = (field) => {
+  if (!field) return '';
+  if (typeof field === 'string') return field;
+  return field[originalLanguage] || field.en || field.te || field.hi || '';
+};
+
 const translatedFields = await translatePropertyFields({
-  propertyTitle: propertyData.propertyTitle,
-  description: propertyData.description,
-  location: finalData.location || propertyData.location,
-  area: propertyData.area
+  propertyTitle: getPlainText(propertyData.propertyTitle),
+  description: getPlainText(propertyData.description),
+  location: getPlainText(finalData.location || propertyData.location),
+  area: getPlainText(propertyData.area)
 }, originalLanguage);
 console.log('✅ Translation complete');
 // ✅ NEW: Generate areaKey for consistent filtering
@@ -549,7 +702,7 @@ export const deletePropertyDocument = async (req, res) => {
 // Keep all other existing functions unchanged
 export const getApprovedProperties = async (req, res) => {
   try {
-    const { propertyType, page = 1, limit = 3000 } = req.query;
+    const { propertyType, page = 1, limit = 3000, language = 'en' } = req.query;  // ✅ ADD language from query
     
     const query = { status: 'approved' };
     if (propertyType) {
@@ -563,24 +716,32 @@ export const getApprovedProperties = async (req, res) => {
       .skip((page - 1) * limit);
    
     // ✅ Helper function to extract language-specific text
-    const getLocalizedText = (field) => {
-      if (!field) return '';
-      if (typeof field === 'string') return field;
-      return field[language] || field.en || field.te || field.hi || '';
-    };
+    // const getLocalizedText = (field) => {
+    //   if (!field) return '';
+    //   if (typeof field === 'string') return field;
+    //   return field[language] || field.en || field.te || field.hi || '';
+    // };
    
-    const transformedProperties = properties.map(prop => {
-      const propObj = prop.toObject();
-     
-      return {
-        ...propObj,
-        propertyTitle: getLocalizedText(propObj.propertyTitle),
-        description: getLocalizedText(propObj.description),
-        location: getLocalizedText(propObj.location),
-        area: getLocalizedText(propObj.area),
-        areaKey: propObj.areaKey || ''
-      };
-    });
+  const transformedProperties = properties.map(prop => {
+  const propObj = prop.toObject();
+  
+  // ✅ DON'T transform here - send the full multilingual object
+  return {
+    ...propObj,
+    // Keep the original multilingual objects intact
+    propertyTitle: propObj.propertyTitle,
+    description: propObj.description,
+    location: propObj.location,
+    area: propObj.area,
+    areaKey: propObj.areaKey || ''
+  };
+});
+
+console.log('✅ First transformed property:', {
+  original: properties[0]?.propertyTitle,
+  transformed: transformedProperties[0]?.propertyTitle,
+  language: language
+});
    
     console.log('✅ Transformed first property:', transformedProperties[0] ? {
       propertyTitle: transformedProperties[0].propertyTitle,
@@ -641,21 +802,22 @@ export const getPropertyById = async (req, res) => {
     const propObj = property.toObject();
    
     // ✅ Helper function to extract language-specific text
-    const getLocalizedText = (field) => {
-      if (!field) return '';
-      if (typeof field === 'string') return field;
-      return field[language] || field.en || field.te || field.hi || '';
-    };
+    // const getLocalizedText = (field) => {
+    //   if (!field) return '';
+    //   if (typeof field === 'string') return field;
+    //   return field[language] || field.en || field.te || field.hi || '';
+    // };
    
     // Transform to requested language
-    const transformedProperty = {
-      ...propObj,
-      propertyTitle: getLocalizedText(propObj.propertyTitle),
-      description: getLocalizedText(propObj.description),
-      location: getLocalizedText(propObj.location),
-      area: getLocalizedText(propObj.area),
-      areaKey: propObj.areaKey || ''
-    };
+   const transformedProperty = {
+  ...propObj,
+  // ✅ Send full multilingual objects - let frontend handle language selection
+  propertyTitle: propObj.propertyTitle,
+  description: propObj.description,
+  location: propObj.location,
+  area: propObj.area,
+  areaKey: propObj.areaKey || ''
+};
    
     console.log('✅ Transformed property:', {
       propertyTitle: transformedProperty.propertyTitle,

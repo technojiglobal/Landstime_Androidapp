@@ -1,10 +1,11 @@
-//Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/Storage.jsx
+//Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/Storage.jsx (Jahnavi)
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
-  ScrollView,
+  ScrollView, 
   TextInput,
   TouchableOpacity,
   Pressable,
@@ -54,27 +55,6 @@ export const Checkbox = ({ label, selected, onPress }) => (
   </Pressable>
 );
 
-const FeatureCheckbox = ({ label, checked, onToggle }) => (
-  <TouchableOpacity
-    onPress={onToggle}
-    className="flex-row items-center justify-between mb-2"
-  >
-    <View>
-      <Text className="text-sm font-medium">{label}</Text>
-      <Text className="text-xs text-gray-400">
-        {checked ? "Available" : "Not Available"}
-      </Text>
-    </View>
-
-    <View
-      className={`w-5 h-5 rounded items-center justify-center ${checked ? "bg-green-500" : "border border-gray-300"
-        }`}
-    >
-      {checked && <Text className="text-white text-xs">✓</Text>}
-    </View>
-  </TouchableOpacity>
-);
-
 const RoundOption = ({ label, selected, onPress }) => (
   <TouchableOpacity
     onPress={onPress}
@@ -91,48 +71,31 @@ const RoundOption = ({ label, selected, onPress }) => (
   </TouchableOpacity>
 );
 
-const Counter = ({ value, setValue }) => (
-  <View className="flex-row items-center gap-3">
-    <TouchableOpacity
-      onPress={() => setValue(Math.max(0, value - 1))}
-      className="w-7 h-7 rounded-full border border-gray-300 items-center justify-center"
-    >
-      <Text>-</Text>
-    </TouchableOpacity>
-
-    <Text className="text-sm font-semibold">{value}</Text>
-
-    <TouchableOpacity
-      onPress={() => setValue(value + 1)}
-      className="w-7 h-7 rounded-full border   border-gray-300 items-center justify-center"
-    >
-      <Text>+</Text>
-    </TouchableOpacity>
-  </View>
-);
-
-
-
-
-
 export default function PropertyFormScreen() {
   const [visible, setVisible] = useState(null);
   const [focusedField, setFocusedField] = useState(null);
 
- const images = params.images ? JSON.parse(params.images) : [];
-
   // Location
   const [location, setLocation] = useState('');
-
+  
+  // ✅ NEW - Neighborhood Area
+  const [neighborhoodArea, setNeighborhoodArea] = useState('');
 
   // Area
   const [plotArea, setPlotArea] = useState('');
   const [unit, setUnit] = useState('sqft');
   const [length, setLength] = useState('');
   const [breadth, setBreadth] = useState('');
-  const [rooms, setRooms] = useState(0);
   const [washroomType, setWashroomType] = useState(null);
   
+  // ✅ NEW - Additional Storage Fields
+  const [ceilingHeight, setCeilingHeight] = useState('');
+  const [flooring, setFlooring] = useState('');
+  const [ventilation, setVentilation] = useState(null);
+  const [temperatureControl, setTemperatureControl] = useState(false);
+  const [covered, setCovered] = useState(null);
+  const [security, setSecurity] = useState([]);
+  const [accessibility, setAccessibility] = useState('');
 
   // Availability
   const [availability, setAvailability] = useState(null);
@@ -142,67 +105,230 @@ export default function PropertyFormScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
 
-const safeParse = (raw) => {
-  if (!raw) return null;
-  if (typeof raw === "string") {
-    try { return JSON.parse(raw); } catch { return null; }
-  }
-  if (Array.isArray(raw)) {
-    try { return JSON.parse(raw[0]); } catch { return null; }
-  }
-  if (typeof raw === "object") return raw;
-  return null;
-};
+  const images = useMemo(() => {
+    try {
+      if (!params.images) return [];
+      if (typeof params.images === 'string') return JSON.parse(params.images);
+      if (Array.isArray(params.images)) return params.images;
+      return [];
+    } catch (e) {
+      console.error('❌ Error parsing images:', e);
+      return [];
+    }
+  }, [params.images]);
 
-const baseDetails = safeParse(params.commercialBaseDetails);
-const handleNext = () => {
-  if (!location.trim()) {
-    Toast.show({ type: "error", text1: "Location Required" });
-    return;
-  }
+  const baseDetails = useMemo(() => {
+    try {
+      if (!params.commercialBaseDetails) return null;
+      if (typeof params.commercialBaseDetails === 'object') return params.commercialBaseDetails;
+      return JSON.parse(params.commercialBaseDetails);
+    } catch (e) {
+      console.error('❌ Error parsing baseDetails:', e);
+      return null;
+    }
+  }, [params.commercialBaseDetails]);
 
-  if (!plotArea.trim()) {
-    Toast.show({ type: "error", text1: "Area Required" });
-    return;
-  }
+  // Load draft from AsyncStorage
+useEffect(() => {
+  const loadDraft = async () => {
+    try {
+      const draft = await AsyncStorage.getItem('draft_storage_details');
+      if (draft) {
+        const prevData = JSON.parse(draft);
+        console.log('📦 Loading Storage draft from AsyncStorage');
+        
+        setLocation(prevData.location || '');
+        setNeighborhoodArea(prevData.neighborhoodArea || '');
+        setPlotArea(prevData.plotArea?.toString() || '');
+        setUnit(prevData.unit || 'sqft');
+        setLength(prevData.length?.toString() || '');
+        setBreadth(prevData.breadth?.toString() || '');
+        setWashroomType(prevData.washroomType || null);
+        setCeilingHeight(prevData.ceilingHeight?.toString() || '');
+        setFlooring(prevData.flooring || '');
+        setVentilation(prevData.ventilation || null);
+        setTemperatureControl(prevData.temperatureControl || false);
+        setCovered(prevData.covered || null);
+        setSecurity(prevData.security || []);
+        setAccessibility(prevData.accessibility || '');
+        setAvailability(prevData.availability || null);
+        setAgeOfProperty(prevData.ageOfProperty || null);
+        setPossessionBy(prevData.possessionBy || '');
+        
+        console.log('✅ Storage draft loaded, storageType:', prevData.storageType);
+        return;
+      }
+    } catch (e) {
+      console.log('⚠️ Failed to load Storage draft:', e);
+    }
 
-  const commercialDetails = {
-    subType: "Storage",
-    propertyTitle: baseDetails?.propertyTitle,
-
-    storageDetails: {
-      location, // ✅ REQUIRED & MATCHES SCHEMA
-
-      storageArea: {
-        value: Number(plotArea),
-        unit,
-      },
-
-      dimensions: {
-        length: length ? Number(length) : null,
-        breadth: breadth ? Number(breadth) : null,
-      },
-
-      washroomType,
-      availability,
-      ageOfProperty,
-
-      possession:
-        availability === "UnderConstruction"
-          ? { expectedBy: possessionBy }
-          : null,
-    },
+    // Fallback to params
+    if (params.storageDetails) {
+      try {
+        const prevData = JSON.parse(params.storageDetails);
+        setLocation(prevData.location || '');
+        setNeighborhoodArea(prevData.neighborhoodArea || '');
+        setPlotArea(prevData.storageArea?.value?.toString() || '');
+        setUnit(prevData.storageArea?.unit || 'sqft');
+        setLength(prevData.dimensions?.length?.toString() || '');
+        setBreadth(prevData.dimensions?.breadth?.toString() || '');
+        setWashroomType(prevData.washroomType || null);
+        setCeilingHeight(prevData.ceilingHeight?.toString() || '');
+        setFlooring(prevData.flooring || '');
+        setVentilation(prevData.ventilation || null);
+        setTemperatureControl(prevData.temperatureControl || false);
+        setCovered(prevData.covered || null);
+        setSecurity(prevData.security || []);
+        setAccessibility(prevData.accessibility || '');
+        setAvailability(prevData.availability || null);
+        setAgeOfProperty(prevData.ageOfProperty || null);
+        setPossessionBy(prevData.possession?.expectedBy || '');
+        
+        console.log('✅ Restored from params, storageType:', prevData.storageType);
+      } catch (e) {
+        console.log('❌ Could not restore storage data:', e);
+      }
+    }
+    
+    if (params.area) {
+      setNeighborhoodArea(params.area);
+    }
   };
 
-router.push({
-  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/StorageNext",
-  params: {
-    commercialDetails: JSON.stringify(commercialDetails),
-    images: JSON.stringify(images), // ✅ ADD THIS
-  },
-});
-};
+  loadDraft();
+}, [params.storageDetails, params.area, params.commercialBaseDetails,  params.storageType]); // ✅ ADD params.commercialBaseDetails
+  // Auto-save draft
+  useEffect(() => {
+    const saveDraft = async () => {
+      const draftData = {
+        location,
+        neighborhoodArea,
+        plotArea,
+        unit,
+        length,
+        breadth,
+        washroomType,
+        ceilingHeight,
+        flooring,
+        ventilation,
+        temperatureControl,
+        covered,
+        security,
+        accessibility,
+        availability,
+        ageOfProperty,
+        possessionBy,
+        storageType: baseDetails?.storageType,
+        timestamp: new Date().toISOString(),
+      };
 
+      try {
+        await AsyncStorage.setItem('draft_storage_details', JSON.stringify(draftData));
+        console.log('💾 Storage draft auto-saved');
+      } catch (e) {
+        console.log('⚠️ Failed to save Storage draft:', e);
+      }
+    };
+
+    const timer = setTimeout(saveDraft, 1000);
+    return () => clearTimeout(timer);
+  }, [location, neighborhoodArea, plotArea, unit, length, breadth, washroomType, 
+      ceilingHeight, flooring, ventilation, temperatureControl, covered, 
+      security, accessibility, availability, ageOfProperty, possessionBy, 
+      baseDetails?.storageType]);
+
+ const handleNext = () => {
+  // ✅ FIX: Check multiple sources for storageType
+  const storageType = baseDetails?.storageType || 
+                      baseDetails?.storageKind ||
+                      params.storageType;
+  
+  console.log('🔍 Storage type check:', {
+    fromBaseDetails: baseDetails?.storageType,
+    fromStorageKind: baseDetails?.storageKind,
+    fromParams: params.storageType,
+    finalStorageType: storageType
+  });
+  
+  if (!storageType) {
+    Toast.show({
+      type: "error",
+      text1: "Storage type missing",
+      text2: "Please go back and select storage type",
+    });
+    return;
+  }
+
+    if (!location.trim()) {
+      Toast.show({ type: "error", text1: "Location Required" });
+      return;
+    }
+
+    if (!neighborhoodArea.trim()) {
+      Toast.show({ type: "error", text1: "Area/Neighborhood Required" });
+      return;
+    }
+
+    if (!plotArea.trim()) {
+      Toast.show({ type: "error", text1: "Storage Area Required" });
+      return;
+    }
+
+   const commercialDetails = {
+  subType: "Storage",
+  propertyTitle: baseDetails?.propertyTitle,
+
+  storageDetails: {
+    storageType: storageType, // ✅ Use the validated storageType
+    location,
+    neighborhoodArea,
+
+        storageArea: {
+          value: Number(plotArea),
+          unit,
+        },
+
+        dimensions: {
+          length: length ? Number(length) : null,
+          breadth: breadth ? Number(breadth) : null,
+        },
+
+        ceilingHeight: ceilingHeight ? Number(ceilingHeight) : null,
+        flooring,
+        ventilation,
+        temperatureControl,
+        covered,
+        security,
+        accessibility,
+        washroomType,
+        availability,
+        ageOfProperty,
+
+        possession:
+          availability === "UnderConstruction"
+            ? { expectedBy: possessionBy }
+            : null,
+      },
+    };
+
+    router.push({
+      pathname: "/home/screens/UploadScreens/CommercialUpload/Components/StorageNext",
+      params: {
+        commercialDetails: JSON.stringify(commercialDetails),
+        images: JSON.stringify(images),
+        area: neighborhoodArea,
+        propertyTitle: baseDetails?.propertyTitle,
+      },
+    });
+  };
+
+  const toggleArrayItem = (setter, array, value) => {
+    if (array.includes(value)) {
+      setter(array.filter((item) => item !== value));
+    } else {
+      setter([...array, value]);
+    }
+  };
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -212,9 +338,44 @@ router.push({
       >
         <View className="flex-row items-center mt-7 mb-4">
           <TouchableOpacity
-            onPress={() =>
-              router.push("/home/screens/UploadScreens/AddScreen")
-            }
+            onPress={() => {
+              const currentStorageData = {
+                location,
+                neighborhoodArea,
+                plotArea,
+                unit,
+                length,
+                breadth,
+                washroomType,
+                ceilingHeight,
+                flooring,
+                ventilation,
+                temperatureControl,
+                covered,
+                security,
+                accessibility,
+                availability,
+                ageOfProperty,
+                possessionBy,
+                storageType: baseDetails?.storageType,
+              };
+
+              router.push({
+                pathname: "/home/screens/UploadScreens/CommercialUpload",
+                params: {
+                  storageDetails: JSON.stringify(currentStorageData),
+                  images: JSON.stringify(images),
+                  area: neighborhoodArea,
+                  propertyTitle: baseDetails?.propertyTitle,
+                   storageType: baseDetails?.storageType || currentStorageData.storageType, // ✅ ADD THIS
+                  commercialBaseDetails: JSON.stringify({
+                    subType: "Storage",
+                    storageType: baseDetails?.storageType,
+                    propertyTitle: baseDetails?.propertyTitle,
+                  }),
+                },
+              });
+            }}
             className="p-2"
           >
             <Image
@@ -240,7 +401,7 @@ router.push({
         >
           <Text className="text-[15px] text-[#00000060] mb-3">Location<Text className="text-red-500">*</Text></Text>
           <View
-            className="flex-row items-center rounded-md p-3 mb-5"
+            className="flex-row items-center rounded-md p-3 mb-3"
             style={{
               backgroundColor: "#D9D9D91C",
               borderWidth: 1,
@@ -263,10 +424,34 @@ router.push({
                 borderColor: focusedField === "location" ? "#22C55E" : "#0000001A",
               }}
             />
-
           </View>
 
-
+          {/* ✅ NEW - Neighborhood Area Field */}
+          <Text className="text-[14px] font-medium text-[#00000099] mb-3">
+            Area/Neighborhood<Text className="text-red-500">*</Text>
+          </Text>
+          <View
+            className="flex-row items-center rounded-md p-3 mb-5"
+            style={{
+              borderWidth: 1,
+              borderColor: focusedField === "neighborhoodArea" ? "#22C55E" : "#0000001A",
+              backgroundColor: "#D9D9D91C",
+              height: 52,
+            }}
+          >
+            <Image
+              source={require("../../../../../../assets/location.png")}
+              style={{ width: 18, height: 18, marginRight: 8 }}
+            />
+            <TextInput
+              placeholder="Enter Area/Neighborhood (e.g., Akkayapalem)"
+              value={neighborhoodArea}
+              onChangeText={setNeighborhoodArea}
+              onFocus={() => setFocusedField("neighborhoodArea")}
+              onBlur={() => setFocusedField(null)}
+              className="flex-1"
+            />
+          </View>
         </View>
 
         {/* Area & Details Box */}
@@ -275,7 +460,7 @@ router.push({
           style={{ borderWidth: 1, borderColor: "#0000001A" }}
         >
           <Text className="text-[14px] font-medium text-[#00000099] mb-3">
-            Plot Area<Text className="text-red-500">*</Text>
+            Storage Area<Text className="text-red-500">*</Text>
           </Text>
           <View
             className="flex-row items-center mb-3 rounded-md"
@@ -312,65 +497,160 @@ router.push({
             </View>
           </View>
 
-          <Text className="text-[15px] font-bold text-[#00000099] mb-2">Property Dimensions (optional)</Text>
-          <TextInput placeholder="Length of plot (in Ft.)" value={length} onChangeText={(text) => setLength(text.replace(/[^0-9]/g, ""))}
-            className=" flex-1 mb-3 rounded-md p-3"
+          <Text className="text-[15px] font-bold text-[#00000099] mb-2">Storage Dimensions (optional)</Text>
+          <TextInput
+            placeholder="Length (in Ft.)"
+            value={length}
+            onChangeText={(text) => setLength(text.replace(/[^0-9]/g, ""))}
+            className="flex-1 mb-3 rounded-md p-3"
             onFocus={() => setFocusedField("length")}
             onBlur={() => setFocusedField(null)}
             style={{
-              height: 50, backgroundColor: "#D9D9D91C", borderWidth: 1,
+              height: 50,
+              backgroundColor: "#D9D9D91C",
+              borderWidth: 1,
               borderColor: focusedField === "length" ? "#22C55E" : "#0000001A",
-            }} keyboardType="numeric" />
+            }}
+            keyboardType="numeric"
+          />
 
-          <TextInput placeholder="Breadth of plot (in Ft.)" value={breadth} onChangeText={(text) => setBreadth(text.replace(/[^0-9]/g, ""))}
-            className=" flex-1 mb-3 rounded-md p-3"
+          <TextInput
+            placeholder="Breadth (in Ft.)"
+            value={breadth}
+            onChangeText={(text) => setBreadth(text.replace(/[^0-9]/g, ""))}
+            className="flex-1 mb-3 rounded-md p-3"
             onFocus={() => setFocusedField("breadth")}
             onBlur={() => setFocusedField(null)}
             style={{
-              height: 50, backgroundColor: "#D9D9D91C", borderWidth: 1,
+              height: 50,
+              backgroundColor: "#D9D9D91C",
+              borderWidth: 1,
               borderColor: focusedField === "breadth" ? "#22C55E" : "#0000001A",
-            }} keyboardType="numeric" />
+            }}
+            keyboardType="numeric"
+          />
 
-          {/* Add Room Details */}
-          <Text className="text-[14px] text-gray-600 mb-2">
-            Add Room Details
-          </Text>
+          {/* ✅ NEW - Ceiling Height */}
+          <Text className="text-[15px] font-bold text-[#00000099] mb-2">Ceiling Height (optional)</Text>
+          <TextInput
+            placeholder="Height in Feet"
+            value={ceilingHeight}
+            onChangeText={(text) => setCeilingHeight(text.replace(/[^0-9]/g, ""))}
+            className="flex-1 mb-3 rounded-md p-3"
+            style={{
+              height: 50,
+              backgroundColor: "#D9D9D91C",
+              borderWidth: 1,
+              borderColor: "#0000001A",
+            }}
+            keyboardType="numeric"
+          />
 
-          
-            <Text className="text-[14px] text-gray-500 mr-4">
-              No of Wash Rooms
-            </Text>
-
-            <View className="flex-row mt-4">
+          {/* ✅ NEW - Flooring Type */}
+          <Text className="text-[15px] font-bold text-[#00000099] mb-2">Flooring Type</Text>
+          <View className="flex-row flex-wrap mb-3">
+            {["Concrete", "Tiles", "Epoxy", "Other"].map((type) => (
               <PillButton
-                label="None"
-                selected={washroomType === "None"}
-                onPress={() => setWashroomType("None")}
+                key={type}
+                label={type}
+                selected={flooring === type}
+                onPress={() => setFlooring(type)}
               />
+            ))}
+          </View>
+
+          {/* ✅ NEW - Ventilation */}
+          <Text className="text-[15px] font-bold text-[#00000099] mb-2">Ventilation</Text>
+          <View className="flex-row mb-3">
+            <PillButton
+              label="Natural"
+              selected={ventilation === "Natural"}
+              onPress={() => setVentilation("Natural")}
+            />
+            <PillButton
+              label="Mechanical"
+              selected={ventilation === "Mechanical"}
+              onPress={() => setVentilation("Mechanical")}
+            />
+            <PillButton
+              label="Both"
+              selected={ventilation === "Both"}
+              onPress={() => setVentilation("Both")}
+            />
+          </View>
+
+          {/* ✅ NEW - Temperature Control */}
+          <Checkbox
+            label="Temperature Controlled"
+            selected={temperatureControl}
+            onPress={() => setTemperatureControl(!temperatureControl)}
+          />
+
+          {/* ✅ NEW - Covered Storage */}
+          <Text className="text-[15px] font-bold text-[#00000099] mb-2">Storage Type</Text>
+          <View className="flex-row mb-3">
+            <PillButton
+              label="Covered"
+              selected={covered === true}
+              onPress={() => setCovered(true)}
+            />
+            <PillButton
+              label="Open"
+              selected={covered === false}
+              onPress={() => setCovered(false)}
+            />
+          </View>
+
+          {/* ✅ NEW - Security Features */}
+          <Text className="text-[15px] font-bold text-[#00000099] mb-2">Security Features</Text>
+          <View className="flex-row flex-wrap mb-3">
+            {["CCTV", "Security Guard", "Alarm System", "Fire Safety"].map((sec) => (
               <PillButton
-                label="Shared"
-                selected={washroomType === "Shared"}
-                onPress={() => setWashroomType("Shared")}
+                key={sec}
+                label={sec}
+                selected={security.includes(sec)}
+                onPress={() => toggleArrayItem(setSecurity, security, sec)}
               />
-              {["1", "2", "3", "4+"].map((num) => (
-                <RoundOption
-                  key={num}
-                  label={num}
-                  selected={washroomType === num}
-                  onPress={() => setWashroomType(num)}
-                />
-              ))}
-            </View>
-         
+            ))}
+          </View>
 
-          
-           
-              
-            
-       
+          {/* ✅ NEW - Accessibility */}
+          <Text className="text-[15px] font-bold text-[#00000099] mb-2">Loading/Unloading Access</Text>
+          <View className="flex-row flex-wrap mb-3">
+            {["Dock Level", "Ground Level", "Ramp Access"].map((acc) => (
+              <PillButton
+                key={acc}
+                label={acc}
+                selected={accessibility === acc}
+                onPress={() => setAccessibility(acc)}
+              />
+            ))}
+          </View>
 
+          {/* Washroom Details */}
+          <Text className="text-[14px] text-gray-600 mb-2">Washroom Facilities</Text>
+          <View className="flex-row mt-4">
+            <PillButton
+              label="None"
+              selected={washroomType === "None"}
+              onPress={() => setWashroomType("None")}
+            />
+            <PillButton
+              label="Shared"
+              selected={washroomType === "Shared"}
+              onPress={() => setWashroomType("Shared")}
+            />
+            {["1", "2", "3", "4+"].map((num) => (
+              <RoundOption
+                key={num}
+                label={num}
+                selected={washroomType === num}
+                onPress={() => setWashroomType(num)}
+              />
+            ))}
+          </View>
 
-          <Text className="text-[15px] text-[#00000099] font-bold mb-2">
+          <Text className="text-[15px] text-[#00000099] font-bold mb-2 mt-4">
             Availability Status
           </Text>
           <View className="flex-row mb-3">
@@ -385,6 +665,7 @@ router.push({
               onPress={() => setAvailability("UnderConstruction")}
             />
           </View>
+
           {availability === "Ready" && (
             <>
               <Text className="text-[15px] text-[#00000099] font-bold mb-2">
@@ -402,6 +683,7 @@ router.push({
               </View>
             </>
           )}
+
           {availability === "UnderConstruction" && (
             <>
               <View>
@@ -456,13 +738,51 @@ router.push({
           <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-3">
             <TouchableOpacity
               className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
+              onPress={() => {
+                const currentStorageData = {
+                  location,
+                  neighborhoodArea,
+                  plotArea,
+                  unit,
+                  length,
+                  breadth,
+                  washroomType,
+                  ceilingHeight,
+                  flooring,
+                  ventilation,
+                  temperatureControl,
+                  covered,
+                  security,
+                  accessibility,
+                  availability,
+                  ageOfProperty,
+                  possessionBy,
+                  storageType: baseDetails?.storageType,
+                };
+
+                router.push({
+                  pathname: "/home/screens/UploadScreens/CommercialUpload",
+                  params: {
+                    storageDetails: JSON.stringify(currentStorageData),
+                    images: JSON.stringify(images),
+                    area: neighborhoodArea,
+                    propertyTitle: baseDetails?.propertyTitle,
+                     storageType: baseDetails?.storageType || currentStorageData.storageType, // ✅ ADD THIS
+                    commercialBaseDetails: JSON.stringify({
+                      subType: "Storage",
+                      storageType: baseDetails?.storageType,
+                      propertyTitle: baseDetails?.propertyTitle,
+                    }),
+                  },
+                });
+              }}
             >
               <Text className="font-semibold">Cancel</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               className="px-5 py-3 rounded-lg bg-green-500"
-              onPress={ handleNext}
+              onPress={handleNext}
             >
               <Text className="text-white font-semibold">Next</Text>
             </TouchableOpacity>
