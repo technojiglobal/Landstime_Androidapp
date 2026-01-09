@@ -1,6 +1,6 @@
 //Frontend//app//home//screens//UploadScreens//CommericalUpload//IndustryNext.jsx
 
-import React, { useState } from "react";
+import React, { useState, useEffect ,useMemo} from "react";
 import {
     View,
     Text,
@@ -9,10 +9,10 @@ import {
     ScrollView,
     Image,
 } from "react-native";
-import { useRouter,useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Toast from 'react-native-toast-message';
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import MorePricingDetailsModal from "../../MorePricingDetailsModal";
 const PillButton = ({ label, selected, onPress }) => (
@@ -53,9 +53,7 @@ const IndustryNext = () => {
     const router = useRouter();
     const params = useLocalSearchParams();
 
-    const images = params.images ? JSON.parse(params.images) : [];
-
-const safeParse = (raw) => {
+   const safeParse = (raw) => {
   if (!raw) return null;
   try {
     return typeof raw === "string" ? JSON.parse(raw) : raw;
@@ -64,7 +62,12 @@ const safeParse = (raw) => {
   }
 };
 
-const commercialDetailsFromPrev = safeParse(params.commercialDetails);
+// ✅ Use useMemo to prevent infinite re-parsing
+const commercialDetailsFromPrev = useMemo(() => {
+  return safeParse(params.commercialDetails);
+}, [params.commercialDetails]);
+
+    const images = params.images ? JSON.parse(params.images) : [];
 
     /* ---------------- PRICE STATES ---------------- */
     const ownershipOptions = ['Freehold', 'Leasehold', 'Company Owned', 'Other'];
@@ -130,85 +133,201 @@ const commercialDetailsFromPrev = safeParse(params.commercialDetails);
         }
     };
 
-    const handleNext = () => {
-  if (!expectedPrice.trim()) {
-    Toast.show({
-      type: "error",
-      text1: "Price Required",
-      text2: "Please enter expected price",
-    });
-    return;
-  }
+    // ✅ NEW - Load draft from AsyncStorage
+useEffect(() => {
+  const loadDraft = async () => {
+    try {
+      console.log("📦 Loading Industry pricing draft from AsyncStorage");
+      const draft = await AsyncStorage.getItem('draft_industry_pricing');
+      if (draft) {
+        const parsed = JSON.parse(draft);
+        console.log('✅ Industry pricing draft loaded:', parsed);
 
-  if (!describeProperty.trim()) {
-    Toast.show({
-      type: "error",
-      text1: "Description Required",
-      text2: "Please describe your property",
-    });
-    return;
-  }
+        setOwnership(parsed.ownership || '');
+        setExpectedPrice(parsed.expectedPrice?.toString() || '');
+        setAllInclusive(parsed.allInclusive || false);
+        setPriceNegotiable(parsed.priceNegotiable || false);
+        setTaxExcluded(parsed.taxExcluded || false);
+        setIndustryApprovedBy(parsed.IndustryApprovedBy || '');
+        setApprovedIndustryType(parsed.approvedIndustryType || '');
+        setPreLeased(parsed.preLeased || null);
+        setNocCertified(parsed.nocCertified || null);
+        setOccupancyCertified(parsed.occupancyCertified || null);
+        setLeaseDuration(parsed.leaseDuration || '');
+        setMonthlyRent(parsed.monthlyRent?.toString() || '');
+        setDescribeProperty(parsed.describeProperty || '');
+        setWheelchairFriendly(parsed.wheelchairFriendly || false);
+        setAmenities(parsed.amenities || []);
+        setLocAdvantages(parsed.locAdvantages || []);
 
- if (!commercialDetailsFromPrev) {
-  Toast.show({
-    type: "error",
-    text1: "Something went wrong",
-    text2: "Please go back and try again",
-  });
-  return;
-}
+        console.log('✅ Industry pricing draft loaded successfully');
+        return;
+      }
+    } catch (e) {
+      console.log('⚠️ Failed to load Industry pricing draft:', e);
+    }
 
-  const industryPricingDetails = {
-  ownership,
-  expectedPrice: Number(expectedPrice),
-  priceDetails: {
-    allInclusive,
-    negotiable: priceNegotiable,
-    taxExcluded,
-  },
-  approvedBy: IndustryApprovedBy,
-  approvedIndustryType,
-  preLeased,
-  leaseDuration: preLeased === "Yes" ? leaseDuration : null,
-  monthlyRent: preLeased === "Yes" ? Number(monthlyRent) : null,
-  amenities,
-  locationAdvantages: locAdvantages,
-  wheelchairFriendly,
-};
+    // ✅ FALLBACK: Load from params
+    if (commercialDetailsFromPrev?.industryDetails?.pricing) {
+      const pricing = commercialDetailsFromPrev.industryDetails.pricing;
+      console.log('🔄 Restoring from params.industryDetails.pricing');
 
-  const updatedCommercialDetails = {
-    ...commercialDetailsFromPrev,
-   industryDetails: {
-  ...(commercialDetailsFromPrev.industryDetails || {}),
-  pricing: industryPricingDetails,
-},
-
+      setOwnership(pricing.ownership || '');
+      setExpectedPrice(pricing.expectedPrice?.toString() || '');
+      setAllInclusive(pricing.priceDetails?.allInclusive || false);
+      setPriceNegotiable(pricing.priceDetails?.negotiable || false);
+      setTaxExcluded(pricing.priceDetails?.taxExcluded || false);
+      setIndustryApprovedBy(pricing.approvedBy || '');
+      setApprovedIndustryType(pricing.approvedIndustryType || '');
+      setPreLeased(pricing.preLeased || null);
+      setLeaseDuration(pricing.leaseDuration || '');
+      setMonthlyRent(pricing.monthlyRent?.toString() || '');
+      setDescribeProperty(pricing.description || '');
+      setWheelchairFriendly(pricing.wheelchairFriendly || false);
+      setAmenities(pricing.amenities || []);
+      setLocAdvantages(pricing.locationAdvantages || []);
+    }
   };
 
-  // NEW
-router.push({
-  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/IndustryVaastu",
-  params: {
-    commercialDetails: JSON.stringify(updatedCommercialDetails),
-    images: JSON.stringify(images), // ✅ ADD THIS
-  },
-});
+  loadDraft();
+}, []); // ✅ CHANGED: Remove commercialDetailsFromPrev from dependencies
 
-};
+    // ✅ NEW - Auto-save pricing draft
+    useEffect(() => {
+      const saveDraft = async () => {
+        const pricingDraft = {
+          ownership,
+          expectedPrice,
+          allInclusive,
+          priceNegotiable,
+          taxExcluded,
+          IndustryApprovedBy,
+          approvedIndustryType,
+          preLeased,
+          nocCertified,
+          occupancyCertified,
+          leaseDuration,
+          monthlyRent,
+          describeProperty,
+          wheelchairFriendly,
+          amenities,
+          locAdvantages,
+          timestamp: new Date().toISOString(),
+        };
 
+        try {
+          await AsyncStorage.setItem('draft_industry_pricing', JSON.stringify(pricingDraft));
+          console.log('💾 Industry pricing draft auto-saved');
+        } catch (e) {
+          console.log('⚠️ Failed to save Industry pricing draft:', e);
+        }
+      };
+
+      const timer = setTimeout(saveDraft, 1000);
+      return () => clearTimeout(timer);
+    }, [ownership, expectedPrice, allInclusive, priceNegotiable, taxExcluded, 
+        IndustryApprovedBy, approvedIndustryType, preLeased, nocCertified, occupancyCertified, 
+        leaseDuration, monthlyRent, describeProperty, wheelchairFriendly, amenities, locAdvantages]);
+
+    const handleNext = () => {
+      if (!expectedPrice.trim()) {
+        Toast.show({
+          type: "error",
+          text1: "Price Required",
+          text2: "Please enter expected price",
+        });
+        return;
+      }
+
+      if (!describeProperty.trim()) {
+        Toast.show({
+          type: "error",
+          text1: "Description Required",
+          text2: "Please describe your property",
+        });
+        return;
+      }
+
+      if (!commercialDetailsFromPrev) {
+        Toast.show({
+          type: "error",
+          text1: "Something went wrong",
+          text2: "Please go back and try again",
+        });
+        return;
+      }
+
+      const industryPricingDetails = {
+        ownership,
+        expectedPrice: Number(expectedPrice),
+        priceDetails: {
+          allInclusive,
+          negotiable: priceNegotiable,
+          taxExcluded,
+        },
+        approvedBy: IndustryApprovedBy,
+        approvedIndustryType,
+        preLeased,
+        leaseDuration: preLeased === "Yes" ? leaseDuration : null,
+        monthlyRent: preLeased === "Yes" ? Number(monthlyRent) : null,
+        amenities,
+        locationAdvantages: locAdvantages,
+        wheelchairFriendly,
+      };
+
+      const updatedCommercialDetails = {
+        ...commercialDetailsFromPrev,
+        industryDetails: {
+          ...(commercialDetailsFromPrev.industryDetails || {}),
+          pricing: industryPricingDetails,
+        },
+      };
+
+      router.push({
+        pathname: "/home/screens/UploadScreens/CommercialUpload/Components/IndustryVaastu",
+        params: {
+          commercialDetails: JSON.stringify(updatedCommercialDetails),
+          images: JSON.stringify(images),
+          area: params.area,
+        },
+      });
+    };
+
+    const handleBack = () => {
+      const currentData = {
+        ownership,
+        expectedPrice: Number(expectedPrice) || undefined,
+        priceDetails: {
+          allInclusive,
+          negotiable: priceNegotiable,
+          taxExcluded,
+        },
+        approvedBy: IndustryApprovedBy,
+        approvedIndustryType,
+        preLeased,
+        leaseDuration: leaseDuration || undefined,
+        monthlyRent: monthlyRent ? Number(monthlyRent) : undefined,
+        amenities,
+        locationAdvantages: locAdvantages,
+        wheelchairFriendly,
+      };
+
+      router.push({
+        pathname: "/home/screens/UploadScreens/CommercialUpload/Components/Industry",
+        params: {
+          commercialDetails: JSON.stringify(commercialDetailsFromPrev),
+          industryDetails: JSON.stringify(currentData),
+          images: JSON.stringify(images),
+          area: params.area,
+        },
+      });
+    };
 
     return (
         <View className="flex-1 bg-white">
             <View className="flex-row items-center mt-7 mt-4 mb-3 ml-4">
                     <TouchableOpacity
-                        // NEW
-onPress={() => router.push({
-  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/Industry",
-  params: {
-    images: JSON.stringify(images),
-    commercialDetails: params.commercialDetails,
-  }
-})}
+                        onPress={handleBack}
                         className="p-2"
                     >
                         <Image
@@ -463,7 +582,7 @@ onPress={() => router.push({
             <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-12">
                 <TouchableOpacity
                     className="px-10 py-3 rounded-lg bg-gray-200 mx-3"
-                    onPress={() => router.back()}
+                    onPress={handleBack}
                 >
                     <Text className="font-semibold">Cancel</Text>
                 </TouchableOpacity>

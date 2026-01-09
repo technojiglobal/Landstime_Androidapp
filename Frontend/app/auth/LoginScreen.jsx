@@ -172,21 +172,27 @@ const getLocalizedName = (nameField) => {
     if (verifyResponse?.success && verifyResponse?.data?.success) {
 
       // 2️⃣ Login after OTP verification
-      const response = await loginUser(phone);
+      // 2️⃣ Login after OTP verification
+const response = await loginUser(phone);
 
-      if (response?.success && response?.data?.success) {
+console.log('🔍 Full login response:', JSON.stringify(response, null, 2));
 
-        // 3️⃣ Save token
-        const token = response.data.data?.token;
-        if (!token) {
-          throw new Error("No token received from server");
-        }
+if (response?.success && response?.data?.success) {
 
-        const tokenSaved = await saveToken(token);
-        if (!tokenSaved) {
-          throw new Error("Token storage failed");
-        }
+  // 3️⃣ Save token - FIX: Backend returns nested data
+  const token = response.data.data?.token;
+  
+  console.log('🔑 Extracted token:', token ? token.substring(0, 20) + '...' : 'NULL');
+  
+  if (!token) {
+    console.error('❌ Token structure:', response.data);
+    throw new Error("No token received from server");
+  }
 
+  const tokenSaved = await saveToken(token);
+  if (!tokenSaved) {
+    throw new Error("Token storage failed");
+  }
         console.log("🔐 Token saved successfully");
 
         // 4️⃣ Save user data
