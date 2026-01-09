@@ -312,7 +312,7 @@ const propertyData = {
   propertyType: "House",
   propertyTitle,
   location,
-  area,
+  area: neighborhood,  // ✅ NOW sending the neighborhood name
   description,
   originalLanguage: getUserLanguage(), // Store original language
   expectedPrice: parseFloat(expectedPrice),
