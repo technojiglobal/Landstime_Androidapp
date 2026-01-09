@@ -1,4 +1,4 @@
-//Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/StorageVaastu.jsx
+//Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/StorageVaastu.jsx (jahnavi)
 
 import React, { useState, useMemo, useEffect } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';

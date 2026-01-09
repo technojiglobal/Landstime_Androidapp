@@ -1,25 +1,29 @@
 //Frontend//app//home//screens//UploadScreens//CommericialUpload//Components//PlotVaastu.jsx
 
-import React, { useState } from "react";
+import React, { useState,useEffect,useMemo } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import VastuDropdown from "../../VastuDropdown";
 
 export default function VastuDetailsScreen() {
+  // ✅ STEP 1: Declare router and params FIRST
   const router = useRouter();
   const params = useLocalSearchParams();
 
-  const images = params.images ? JSON.parse(params.images) : [];
+  // ✅ STEP 2: Then declare state
+  const [form, setForm] = useState({});
 
+  // ✅ STEP 3: Define safeParse BEFORE useMemo
   const safeParse = (raw) => {
     if (!raw) return null;
     if (typeof raw === 'string') {
-      try { return JSON.parse(raw); } catch (e) { console.warn('parse error', e); return null; }
+      try { return JSON.parse(raw); } catch (e) { return null; }
     }
     if (Array.isArray(raw)) {
       const first = raw[0];
       if (typeof first === 'string') {
-        try { return JSON.parse(first); } catch (e) { console.warn('parse error', e); return null; }
+        try { return JSON.parse(first); } catch (e) { return null; }
       }
       return first;
     }
@@ -27,28 +31,130 @@ export default function VastuDetailsScreen() {
     return null;
   };
 
-  const baseDetails = safeParse(params.commercialDetails);
+  // ✅ STEP 4: Then useMemo for parsing (using safeParse)
+  const commercialDetailsFromPrev = useMemo(() => {
+    return safeParse(params.commercialDetails);
+  }, [params.commercialDetails]);
 
-  const [form, setForm] = useState({});
+  const images = useMemo(() => {
+    try {
+      if (!params.images) return [];
+      if (Array.isArray(params.images)) return params.images;
+      return JSON.parse(params.images);
+    } catch (e) {
+      console.error('Error parsing images:', e);
+      return [];
+    }
+  }, [params.images]);
 
-  const update = (key, value) =>
+  const commercialDetails = useMemo(() => {
+    try {
+      if (!params.commercialDetails) return null;
+      if (typeof params.commercialDetails === 'object') return params.commercialDetails;
+      return JSON.parse(params.commercialDetails);
+    } catch (e) {
+      console.error('Error parsing commercialDetails:', e);
+      return null;
+    }
+  }, [params.commercialDetails]);
+
+ const update = (key, value) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
-  const handleNext = () => {
-    if (!baseDetails) return;
+// ✅ ADD THIS - Load draft from AsyncStorage
+// ✅ Load draft from AsyncStorage
+useEffect(() => {
+  const loadDraft = async () => {
+    // ✅ PRIORITY 1: Load from params if coming back from OwnerScreen
+    if (commercialDetailsFromPrev?.vaastuDetails) {
+      const vastu = commercialDetailsFromPrev.vaastuDetails;
+      console.log('🔄 Restoring Plot Vaastu from params:', vastu);
+      setForm(vastu);
+      return;
+    }
 
-    router.push({
-      pathname:
-        "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
-      params: {
-        commercialDetails: JSON.stringify({
-          ...baseDetails,
-          vaastuDetails: form, // ✅ attached correctly
-        }),
+    // ✅ PRIORITY 2: Load from AsyncStorage draft
+    try {
+      console.log("📦 Loading Plot Vaastu draft from AsyncStorage");
+      const draft = await AsyncStorage.getItem('draft_plot_vaastu');
+      if (draft) {
+        const parsed = JSON.parse(draft);
+        console.log('✅ Plot Vaastu draft loaded from storage:', parsed);
+        setForm(parsed);
+        return;
+      }
+    } catch (e) {
+      console.log('⚠️ Failed to load Plot Vaastu draft:', e);
+    }
+  };
 
-        images : JSON.stringify(images), // ✅ ADD THIS
-      },
-    });
+  loadDraft();
+}, [commercialDetailsFromPrev]); // ✅ ADD commercialDetailsFromPrev as dependency
+
+// ✅ ADD THIS - Auto-save Vaastu draft
+useEffect(() => {
+  const saveDraft = async () => {
+    try {
+      await AsyncStorage.setItem('draft_plot_vaastu', JSON.stringify(form));
+      console.log('💾 Plot Vaastu draft auto-saved');
+    } catch (e) {
+      console.log('⚠️ Failed to save Plot Vaastu draft:', e);
+    }
+  };
+
+  const timer = setTimeout(saveDraft, 1000);
+  return () => clearTimeout(timer);
+}, [form]);
+
+
+const handleBack = () => {
+  if (!commercialDetailsFromPrev) {
+    router.back();
+    return;
+  }
+
+  // ✅ Save current Vaastu form data before going back
+  const updatedCommercialDetails = {
+    ...commercialDetailsFromPrev,
+    vaastuDetails: form, // ✅ Keep current form data
+  };
+
+  console.log('🔙 Going back to PlotNext with Vaastu data:', form);
+
+router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/PlotNext",
+  params: {
+    commercialDetails: JSON.stringify(updatedCommercialDetails),
+    images: JSON.stringify(images),
+    area: params.area,
+    propertyTitle: commercialDetails?.propertyTitle || params.propertyTitle,
+    plotKind: params.plotKind, // ✅ Keep this one only
+  },
+});
+};
+
+const handleNext = () => {
+  if (!commercialDetailsFromPrev) {
+    return;
+  }
+
+  const updatedCommercialDetails = {
+    ...commercialDetailsFromPrev,
+    vaastuDetails: form,
+  };
+
+  console.log("➡️ Plot Vastu → Owner payload:", updatedCommercialDetails);
+
+router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
+  params: {
+    commercialDetails: JSON.stringify(updatedCommercialDetails),
+    images: JSON.stringify(images),
+    area: params.area,
+    propertyTitle: commercialDetails?.propertyTitle || params.propertyTitle,
+    plotKind: params.plotKind, // ✅ ADD THIS
+  },
+});
     
   };
 
@@ -56,7 +162,7 @@ export default function VastuDetailsScreen() {
     <View className="flex-1 bg-white">
       {/* HEADER */}
       <View className="flex-row items-center mt-12 mb-2 ml-4">
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={handleBack}>
           <Image
             source={require("../../../../../../assets/arrow.png")}
             className="w-5 h-5"
@@ -129,12 +235,12 @@ export default function VastuDetailsScreen() {
 
       {/* FOOTER */}
       <View className="flex-row justify-end mx-3 mb-12 space-x-3">
-        <TouchableOpacity
-          className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
-          onPress={() => router.back()}
-        >
-          <Text className="font-semibold">Cancel</Text>
-        </TouchableOpacity>
+      <TouchableOpacity
+  className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
+  onPress={handleBack}
+>
+  <Text className="font-semibold">Cancel</Text>
+</TouchableOpacity>
 
         <TouchableOpacity
           className="px-5 py-3 rounded-lg bg-green-500"

@@ -482,25 +482,35 @@ export const loginUser = async (req, res) => {
     await user.save();
 
     // Generate JWT token
-    const token = generateToken(user._id);
+  // Generate JWT token
+const token = generateToken(user._id);
 
-    return res.status(200).json({
-      success: true,
-      message: 'Login successful',
-      data: {
-        token: token,
-        user: {
-          id: user._id,
-          name: user.name,
-          phone: user.phone,
-          email: user.email,
-          role: user.role,
-          isPhoneVerified: user.isPhoneVerified,
-          isEmailVerified: user.isEmailVerified,
-          lastLogin: user.lastLogin // Include in response
-        }
-      }
-    });
+console.log('🔐 Generated token:', token.substring(0, 20) + '...');
+console.log('📦 Login response structure:', {
+  success: true,
+  data: {
+    token: token.substring(0, 20) + '...',
+    user: { id: user._id }
+  }
+});
+
+return res.status(200).json({
+  success: true,
+  message: 'Login successful',
+  data: {
+    token: token,
+    user: {
+      id: user._id,
+      name: user.name,
+      phone: user.phone,
+      email: user.email,
+      role: user.role,
+      isPhoneVerified: user.isPhoneVerified,
+      isEmailVerified: user.isEmailVerified,
+      lastLogin: user.lastLogin
+    }
+  }
+});
 
   } catch (error) {
     console.error('Error in loginUser:', error);

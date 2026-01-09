@@ -313,19 +313,37 @@ if (canonicalSubType === "Storage") {
 
 // INDUSTRY
 if (canonicalSubType === "Industry") {
-  if (
-    !commercialDetails.industryDetails ||
-    !commercialDetails.industryDetails.location ||
-    !commercialDetails.industryDetails.area?.value
-  ) {
-    return res.status(400).json({
-      success: false,
-      message: "Industry location and area are required",
-    });
-  }
-  finalData.location = commercialDetails.industryDetails.location;
-  finalData.commercialDetails.industryDetails =
-    commercialDetails.industryDetails;
+if (
+!commercialDetails.industryDetails ||
+!commercialDetails.industryDetails.location ||
+!commercialDetails.industryDetails.area?.value
+) {
+return res.status(400).json({
+success: false,
+message: "Industry location and area are required",
+});
+}
+console.log('🏭 Processing Industry details:', {
+hasNeighborhoodArea: !!commercialDetails.industryDetails.neighborhoodArea,
+propertyDataArea: propertyData.area,
+});
+finalData.location = commercialDetails.industryDetails.location;
+// ✅ Priority order for neighborhoodArea
+const neighborhoodArea = commercialDetails.industryDetails.neighborhoodArea ||
+propertyData.area ||
+'';
+finalData.area = neighborhoodArea;
+console.log('✅ Industry area set to:', finalData.area);
+// ✅ Store complete industry details
+finalData.commercialDetails.industryDetails = {
+...commercialDetails.industryDetails,
+neighborhoodArea: neighborhoodArea,
+};
+console.log('✅ Industry details stored:', {
+location: finalData.location,
+area: finalData.area,
+allFields: Object.keys(finalData.commercialDetails.industryDetails),
+});
 }
 // HOSPITALITY
 if (canonicalSubType === "Hospitality") {
@@ -356,24 +374,51 @@ console.log('✅ Hospitality area set to:', finalData.area);
     commercialDetails.hospitalityDetails;
 }
   // PLOT / LAND
-  if (canonicalSubType === "Plot/Land") {
-    if (
-      !commercialDetails.plotDetails ||
-      !commercialDetails.plotDetails.location ||
-      !commercialDetails.plotDetails.area
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Plot location and area are required",
-      });
-    }
-    finalData.location = commercialDetails.plotDetails.location;
-    finalData.commercialDetails.plotDetails = commercialDetails.plotDetails;
-    if (commercialDetails.pricingExtras) {
-      finalData.commercialDetails.pricingExtras =
-        commercialDetails.pricingExtras;
-    }
+if (canonicalSubType === "Plot/Land") {
+  if (
+    !commercialDetails.plotDetails ||
+    !commercialDetails.plotDetails.location ||
+    !commercialDetails.plotDetails.area
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "Plot location and area are required",
+    });
   }
+
+  console.log('🏞️ Processing Plot details:', {
+    hasNeighborhoodArea: !!commercialDetails.plotDetails.neighborhoodArea,
+    propertyDataArea: propertyData.area,
+  });
+
+  // ✅ CRITICAL FIX: Store location and area properly
+  finalData.location = commercialDetails.plotDetails.location;
+
+  // ✅ Priority order for neighborhoodArea
+  const neighborhoodArea = commercialDetails.plotDetails.neighborhoodArea ||
+                           propertyData.area ||
+                           '';
+
+  finalData.area = neighborhoodArea;
+
+  console.log('✅ Plot area set to:', finalData.area);
+
+  // ✅ IMPORTANT: Store complete plot details
+  finalData.commercialDetails.plotDetails = {
+    ...commercialDetails.plotDetails,
+    neighborhoodArea: neighborhoodArea,
+  };
+
+  console.log('✅ Plot details stored:', {
+    location: finalData.location,
+    area: finalData.area,
+    allFields: Object.keys(finalData.commercialDetails.plotDetails),
+  });
+
+  if (commercialDetails.pricingExtras) {
+    finalData.commercialDetails.pricingExtras = commercialDetails.pricingExtras;
+  }
+}
 }
  
 // Plot handling is normalized above with other commercial subtypes

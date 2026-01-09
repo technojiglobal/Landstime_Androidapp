@@ -1,6 +1,6 @@
-//Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/Industry.jsx
+//Fronetend//app//home//screens//UploadScreens//CommercialUpload//Components//Industry.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,11 +13,12 @@ import {
   Modal,
   FlatList,
 } from 'react-native';
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import Toast from 'react-native-toast-message';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const PillButton = ({ label, selected, onPress }) => (
   <TouchableOpacity
@@ -72,21 +73,35 @@ const RoundOption = ({ label, selected, onPress }) => (
 );
 
 
-
-
-
 export default function PropertyFormScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+
+  const safeParse = (raw) => {
+    if (!raw) return null;
+    if (typeof raw === 'string') {
+      try { return JSON.parse(raw); } catch (e) { console.warn('parse error', e); return null; }
+    }
+    if (Array.isArray(raw)) {
+      const first = raw[0];
+      if (typeof first === 'string') {
+        try { return JSON.parse(first); } catch (e) { console.warn('parse error', e); return null; }
+      }
+      return first;
+    }
+    if (typeof raw === 'object') return raw;
+    return null;
+  };
+
+  const baseDetails = safeParse(params.commercialBaseDetails);
 
   const images = params.images ? JSON.parse(params.images) : [];
   const [visible, setVisible] = useState(null);
   const [focusedField, setFocusedField] = useState(null);
 
-
   // Location
   const [location, setLocation] = useState('');
-
+  const [neighborhoodArea, setNeighborhoodArea] = useState('');
 
   // Area
   const [plotArea, setPlotArea] = useState('');
@@ -96,57 +111,185 @@ export default function PropertyFormScreen() {
   const [rooms, setRooms] = useState(0);
   const [washroomType, setWashroomType] = useState(null);
   
-
   // Availability
   const [availability, setAvailability] = useState(null);
   const [ageOfProperty, setAgeOfProperty] = useState(null);
   const [possessionBy, setPossessionBy] = useState("");
 
-  
-   const handleNext = () => {
-  if (!location.trim()) {
-    Toast.show({
-      type: "error",
-      text1: "Location Required",
-      text2: "Please enter the property location",
-    });
-    return;
-  }
+  // ✅ NEW - Load draft from AsyncStorage on mount
+  useEffect(() => {
+    const loadDraft = async () => {
+      try {
+        console.log("📦 Loading Industry draft from AsyncStorage");
+        const draft = await AsyncStorage.getItem('draft_industry_details');
+        if (draft) {
+          const parsed = JSON.parse(draft);
+          console.log('✅ Industry draft loaded:', parsed);
+          
+          setLocation(parsed.location || '');
+          setNeighborhoodArea(parsed.neighborhoodArea || params.area || '');
+          setPlotArea(parsed.plotArea?.toString() || '');
+          setUnit(parsed.unit || 'sqft');
+          setLength(parsed.length?.toString() || '');
+          setBreadth(parsed.breadth?.toString() || '');
+          setWashroomType(parsed.washroomType || null);
+          setAvailability(parsed.availability || null);
+          setAgeOfProperty(parsed.ageOfProperty || null);
+          setPossessionBy(parsed.possessionBy || '');
 
-  if (!plotArea.trim()) {
-    Toast.show({
-      type: "error",
-      text1: "Area Required",
-      text2: "Please enter the area",
-    });
-    return;
-  }
+          console.log('✅ Industry draft loaded successfully');
+          return;
+        }
+      } catch (e) {
+        console.log('⚠️ Failed to load Industry draft:', e);
+      }
 
-  const commercialDetails = {
-    subType: "Industry",
-    
-    industryDetails: {
-      location,
-      area: {
-        value: Number(plotArea),
+      // ✅ FALLBACK: Load from params if no draft
+      if (params.industryDetails) {
+        try {
+          const prevData = JSON.parse(params.industryDetails);
+          console.log('🔄 Restoring from params.industryDetails');
+          
+          setLocation(prevData.location || '');
+          setNeighborhoodArea(prevData.neighborhoodArea || params.area || '');
+          setPlotArea(prevData.plotArea?.toString() || '');
+          setUnit(prevData.unit || 'sqft');
+          setLength(prevData.length?.toString() || '');
+          setBreadth(prevData.breadth?.toString() || '');
+          setWashroomType(prevData.washroomType || null);
+          setAvailability(prevData.availability || null);
+          setAgeOfProperty(prevData.ageOfProperty || null);
+          setPossessionBy(prevData.possessionBy || '');
+        } catch (e) {
+          console.log('❌ Could not restore industry data:', e);
+        }
+      }
+      
+      // ✅ FIX: Always restore area from params if available
+      if (params.area) {
+        setNeighborhoodArea(params.area);
+        console.log('✅ Area restored from params:', params.area);
+      }
+    };
+
+    loadDraft();
+  }, [params.industryDetails, params.area]);
+
+  // ✅ NEW - Auto-save draft to AsyncStorage
+  useEffect(() => {
+    const saveDraft = async () => {
+      const draftData = {
+        location,
+        neighborhoodArea,
+        plotArea,
         unit,
+        length,
+        breadth,
+        washroomType,
+        availability,
+        ageOfProperty,
+        possessionBy,
+        industryKind: baseDetails?.industryKind || params.industryKind,
+        timestamp: new Date().toISOString(),
+      };
+
+      try {
+        await AsyncStorage.setItem('draft_industry_details', JSON.stringify(draftData));
+        console.log('💾 Industry draft auto-saved');
+      } catch (e) {
+        console.log('⚠️ Failed to save Industry draft:', e);
+      }
+    };
+
+    const timer = setTimeout(saveDraft, 1000);
+    return () => clearTimeout(timer);
+  }, [location, neighborhoodArea, plotArea, unit, length, breadth, washroomType, 
+      availability, ageOfProperty, possessionBy, baseDetails?.industryKind, params.industryKind]);
+
+  const handleNext = () => {
+    if (!location.trim()) {
+      Toast.show({
+        type: "error",
+        text1: "Location Required",
+        text2: "Please enter the property location",
+      });
+      return;
+    }
+
+    if (!neighborhoodArea.trim()) {
+      Toast.show({
+        type: "error",
+        text1: "Area/Neighborhood Required",
+        text2: "Please enter the area/neighborhood",
+      });
+      return;
+    }
+
+    if (!plotArea.trim()) {
+      Toast.show({
+        type: "error",
+        text1: "Area Required",
+        text2: "Please enter the area",
+      });
+      return;
+    }
+
+    const commercialDetails = {
+      subType: "Industry",
+      
+      industryDetails: {
+        location,
+        neighborhoodArea,
+        area: {
+          value: Number(plotArea),
+          unit,
+        },
+        length: Number(length) || undefined,
+        breadth: Number(breadth) || undefined,
+        washroomType,
+        availability,
+        ageOfProperty,
+        possessionBy,
       },
+    };
+
+    router.push({
+      pathname: "/home/screens/UploadScreens/CommercialUpload/Components/IndustryNext",
+      params: {
+        commercialDetails: JSON.stringify(commercialDetails),
+        images: JSON.stringify(images),
+        area: neighborhoodArea.trim(),
+      },
+    });
+  };
+
+  const handleBack = () => {
+    const currentData = {
+      location,
+      neighborhoodArea,
+      plotArea,
+      unit,
+      length,
+      breadth,
       washroomType,
       availability,
       ageOfProperty,
       possessionBy,
-    },
-  };
+    };
 
-  router.push({
-  pathname:
-    "/home/screens/UploadScreens/CommercialUpload/Components/IndustryNext",
-  params: {
-    commercialDetails: JSON.stringify(commercialDetails),
-    images: JSON.stringify(images), // ✅ ADD THIS
-  },
-});
-};
+    router.push({
+      pathname: "/home/screens/UploadScreens/CommercialUpload",
+      params: {
+        industryDetails: JSON.stringify(currentData),
+        images: JSON.stringify(images),
+        area: neighborhoodArea.trim(),
+        commercialBaseDetails: JSON.stringify({
+          subType: "Industry",
+          industryKind: baseDetails?.industryKind || params.industryKind,
+        }),
+      },
+    });
+  };
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -156,12 +299,7 @@ export default function PropertyFormScreen() {
       >
         <View className="flex-row items-center mt-7 mb-4">
           <TouchableOpacity
-            onPress={() => router.push({
-  pathname: "/home/screens/UploadScreens/CommercialUpload",
-  params: {
-    images: JSON.stringify(images),
-  }
-})}
+            onPress={handleBack}
             className="p-2"
           >
             <Image
@@ -213,7 +351,32 @@ export default function PropertyFormScreen() {
 
           </View>
 
-
+          <Text className="text-[15px] text-[#00000060] mb-3">Area/Neighborhood<Text className="text-red-500">*</Text></Text>
+          <View
+            className="flex-row items-center rounded-md p-3 mb-5"
+            style={{
+              backgroundColor: "#D9D9D91C",
+              borderWidth: 1,
+              borderColor: "#0000001A",
+            }}
+          >
+            <Image
+              source={require("../../../../../../assets/location.png")}
+              style={{ width: 18, height: 18, marginRight: 8 }}
+            />
+            <TextInput
+              placeholder="Enter Area/Neighborhood (e.g., Akkayapalem)"
+              value={neighborhoodArea}
+              onChangeText={setNeighborhoodArea}
+              onFocus={() => setFocusedField("neighborhoodArea")}
+              onBlur={() => setFocusedField(null)}
+              className="flex-1 rounded-lg"
+              style={{
+                borderWidth: 1,
+                borderColor: focusedField === "neighborhoodArea" ? "#22C55E" : "#0000001A",
+              }}
+            />
+          </View>
         </View>
           
 
@@ -395,7 +558,7 @@ export default function PropertyFormScreen() {
       <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-12">
             <TouchableOpacity
               className="px-8 py-3 rounded-lg bg-gray-200 mx-3"
-              onPress={() => router.back()}
+              onPress={handleBack}
             >
               <Text className="font-semibold">Cancel</Text>
             </TouchableOpacity>

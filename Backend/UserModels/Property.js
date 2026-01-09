@@ -516,7 +516,7 @@ retailDetails: {
 
     
     // Plot/Land specific for commercial
-    plotDetails: {
+   plotDetails: {
   plotType: {
     type: String, // Residential / Commercial / Industrial
   },
@@ -526,6 +526,17 @@ retailDetails: {
     required: function () {
       return this.commercialDetails?.subType === "Plot/Land";
     },
+    trim: true,
+  },
+
+  // ✅ ADD THIS - Neighborhood Area
+  neighborhoodArea: {
+    type: String,
+    trim: true,
+  },
+
+  locality: {
+    type: String,
     trim: true,
   },
 
@@ -601,75 +612,142 @@ retailDetails: {
 
     
     // Industry specific
-   industryDetails: {
-  location: {
-    type: String,
-    required: function() {
-      return this.commercialDetails.subType === 'Industry';
-    },
-  },
+//    industryDetails: {
+//   location: {
+//     type: String,
+//     required: function() {
+//       return this.commercialDetails.subType === 'Industry';
+//     },
+//   },
 
-  area: {
-    value: {
-      type: Number,
-      required: function() {
-        return this.commercialDetails.subType === 'Industry';
-      },
-    },
-    unit: {
-      type: String,
-      enum: ["sqft", "sqm", "acre"],
-      default: "sqft",
-    },
-  },
+//   area: {
+//     value: {
+//       type: Number,
+//       required: function() {
+//         return this.commercialDetails.subType === 'Industry';
+//       },
+//     },
+//     unit: {
+//       type: String,
+//       enum: ["sqft", "sqm", "acre"],
+//       default: "sqft",
+//     },
+//   },
 
-  washroomType: String,
-  availability: String,
-  ageOfProperty: String,
-  possessionBy: String,
+//   washroomType: String,
+//   availability: String,
+//   ageOfProperty: String,
+//   possessionBy: String,
 
-  pricing: {
-    ownership: String,
-    expectedPrice: {
-      type: Number,
-      required: function() {
-        return this.commercialDetails.subType === 'Industry';
-      },
-    },
+//   pricing: {
+//     ownership: String,
+//     expectedPrice: {
+//       type: Number,
+//       required: function() {
+//         return this.commercialDetails.subType === 'Industry';
+//       },
+//     },
 
-    priceDetails: {
-      allInclusive: Boolean,
-      negotiable: Boolean,
-      taxExcluded: Boolean,
-    },
+//     priceDetails: {
+//       allInclusive: Boolean,
+//       negotiable: Boolean,
+//       taxExcluded: Boolean,
+//     },
 
-    approvedBy: String,
-    approvedIndustryType: String,
+//     approvedBy: String,
+//     approvedIndustryType: String,
 
-    preLeased: String,
-    leaseDuration: String,
-    monthlyRent: Number,
+//     preLeased: String,
+//     leaseDuration: String,
+//     monthlyRent: Number,
 
-    amenities: [String],
-    locationAdvantages: [String],
-    wheelchairFriendly: Boolean,
-  },
+//     amenities: [String],
+//     locationAdvantages: [String],
+//     wheelchairFriendly: Boolean,
+//   },
 
-  vastuDetails: {
-    buildingFacing: String,
-    entrance: String,
-    machinery: String,
-    production: String,
-    rawMaterial: String,
-    finishedGoods: String,
-    office: String,
-    electrical: String,
-    water: String,
-    waste: String,
-    washroom: String,
-  },
-}
-,
+//   vastuDetails: {
+//     buildingFacing: String,
+//     entrance: String,
+//     machinery: String,
+//     production: String,
+//     rawMaterial: String,
+//     finishedGoods: String,
+//     office: String,
+//     electrical: String,
+//     water: String,
+//     waste: String,
+//     washroom: String,
+//   },
+// }
+
+
+
+industryDetails: {
+location: {
+type: String,
+required: function() {
+return this.commercialDetails.subType === 'Industry';
+},
+},
+neighborhoodArea: String, // NEW
+area: {
+value: {
+type: Number,
+required: function() {
+return this.commercialDetails.subType === 'Industry';
+},
+},
+unit: {
+type: String,
+enum: ["sqft", "sqm", "acre"],
+default: "sqft",
+},
+},
+dimensions: { // NEW
+length: Number,
+breadth: Number,
+},
+washroomType: String,
+availability: String,
+ageOfProperty: String,
+possessionBy: String,
+pricing: {
+ownership: String,
+expectedPrice: {
+type: Number,
+required: function() {
+return this.commercialDetails.subType === 'Industry';
+},
+},
+priceDetails: {
+allInclusive: Boolean,
+negotiable: Boolean,
+taxExcluded: Boolean,
+},
+approvedBy: String,
+approvedIndustryType: String,
+preLeased: String,
+leaseDuration: String,
+monthlyRent: Number,
+amenities: [String],
+locationAdvantages: [String],
+wheelchairFriendly: Boolean,
+},
+vastuDetails: {
+buildingFacing: String,
+entrance: String,
+machinery: String,
+production: String,
+rawMaterial: String,
+finishedGoods: String,
+office: String,
+electrical: String,
+water: String,
+waste: String,
+washroom: String,
+},
+},
     
  // Backend/models/Property.js - Storage Schema Section Only
 
