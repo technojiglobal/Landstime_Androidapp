@@ -180,14 +180,14 @@ export default function OverviewScreen() {
         <View className="items-center relative">
           <View className="relative">
             <Image
-              source={
-                property.images && property.images.length > 0
-                  ? { uri: `http://10.37.92.184:8000/${property.images[0]}` }
-                  : require("../../../../../assets/Green-Valley-Site.jpg")
-              }
-              className="rounded-[17px]"
-              style={{ height: 223, width: 330, resizeMode: "cover" }}
-            />
+  source={
+    property.images && property.images.length > 0
+      ? { uri: property.images[0] }  // ✅ CHANGED: Removed IP address prefix for base64
+      : require("../../../../../assets/Green-Valley-Site.jpg")
+  }
+  className="rounded-[17px]"
+  style={{ height: 223, width: 330, resizeMode: "cover" }}
+/>
             <View
               className="absolute bg-white rounded-full p-1"
               style={{
