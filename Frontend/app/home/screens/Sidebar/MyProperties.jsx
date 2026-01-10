@@ -14,23 +14,37 @@ import {
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { getUserProperties } from "utils/propertyApi";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function MyProperties() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("All");
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [language, setLanguage] = useState('en'); // Default language
 
   useEffect(() => {
+    loadLanguagePreference();
     fetchMyProperties();
   }, []);
+
+  const loadLanguagePreference = async () => {
+    try {
+      const savedLanguage = await AsyncStorage.getItem('appLanguage');
+      if (savedLanguage) {
+        setLanguage(savedLanguage);
+      }
+    } catch (error) {
+      console.error('Error loading language preference:', error);
+    }
+  };
 
   const fetchMyProperties = async () => {
     try {
       setLoading(true);
       const propertyList = await getUserProperties();
       
-      console.log("🏠 Fetched properties:", propertyList);
+      // console.log("🏠 Fetched properties:", propertyList);
       console.log("📊 Properties count:", propertyList.length);
       
       setProperties(Array.isArray(propertyList) ? propertyList : []);
@@ -40,6 +54,21 @@ export default function MyProperties() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // ✅ NEW: Helper function to extract text based on language
+  const getLocalizedText = (field) => {
+    if (!field) return '';
+    
+    // If it's already a plain string, return it
+    if (typeof field === 'string') return field;
+    
+    // If it's an object with language keys, extract the right one
+    if (typeof field === 'object') {
+      return field[language] || field.en || field.te || field.hi || '';
+    }
+    
+    return '';
   };
 
   const tabs = [
@@ -196,10 +225,13 @@ export default function MyProperties() {
                 ? "Pending Review"
                 : "Rejected";
 
-            // ✅ Debug logging
-            console.log('🖼️ Property:', property.propertyTitle);
-            console.log('📸 Image data type:', typeof property.images?.[0]);
-            console.log('📸 Image starts with:', property.images?.[0]?.substring(0, 30));
+            // ✅ Extract localized values
+            const propertyTitle = getLocalizedText(property.propertyTitle);
+            const location = getLocalizedText(property.location);
+            const description = getLocalizedText(property.description);
+
+            console.log('🖼️ Property:', propertyTitle);
+            console.log('📍 Location:', location);
 
             return (
               <View
@@ -220,11 +252,11 @@ export default function MyProperties() {
                     className="w-full h-52"
                     resizeMode="cover"
                     onError={(error) => {
-                      console.error('❌ Image load error for:', property.propertyTitle);
+                      console.error('❌ Image load error for:', propertyTitle);
                       console.error('❌ Error details:', error.nativeEvent.error);
                     }}
                     onLoad={() => {
-                      console.log('✅ Image loaded successfully for:', property.propertyTitle);
+                      console.log('✅ Image loaded successfully for:', propertyTitle);
                     }}
                   />
 
@@ -264,9 +296,9 @@ export default function MyProperties() {
 
                 {/* Property Details */}
                 <View className="p-4">
-                  {/* Title */}
+                  {/* Title - ✅ NOW USING LOCALIZED TEXT */}
                   <Text className="text-green-600 font-bold text-base">
-                    {property.propertyTitle}
+                    {propertyTitle || 'Untitled Property'}
                   </Text>
 
                   {/* Subtitle */}
@@ -297,18 +329,18 @@ export default function MyProperties() {
                     )}
                   </View>
 
-                  {/* Location */}
+                  {/* Location - ✅ NOW USING LOCALIZED TEXT */}
                   <View className="flex-row items-center mt-3">
                     <Ionicons name="location-outline" size={16} color="#6B7280" />
                     <Text className="text-gray-600 text-sm ml-1">
-                      {property.location}
+                      {location || 'Location not specified'}
                     </Text>
                   </View>
 
                   {/* Price & Actions */}
                   <View className="flex-row items-center justify-between mt-4">
                     <Text className="text-green-600 text-xl font-bold">
-                      ₹ {property.expectedPrice?.toLocaleString('en-IN')}
+                      ₹ {property.expectedPrice?.toLocaleString('en-IN') || 'N/A'}
                     </Text>
                     <View className="flex-row">
                       <TouchableOpacity className="border border-green-600 px-4 py-2 rounded-full mr-2 flex-row items-center">

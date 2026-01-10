@@ -78,7 +78,7 @@ const fetchProperties = async () => {
     const response = await getApprovedProperties(null, 1, currentLang);
     
     if (response.success) {
-      console.log('✅ All properties fetched:', response.data);
+     // console.log('✅ All properties fetched:', response.data);
       setProperties(response.data.data || []);
     } else {
       console.error('❌ Failed to fetch properties:', response.error);
