@@ -3,8 +3,7 @@ import React, { createContext, useState, useEffect, useContext, useCallback } fr
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { AppState } from 'react-native';
-
-const API_URL = `${process.env.EXPO_PUBLIC_IP_ADDRESS}/api`;
+import { API_URL } from '../utils/apiConfig';
 
 const NotificationContext = createContext();
 
@@ -34,9 +33,11 @@ export const NotificationProvider = ({ children }) => {
         return;
       }
 
-      console.log("🔔 Fetching notification count...");
+      // ✅ FIXED: Using /api/user/notifications/unread (matches your backend route)
+      const endpoint = `${API_URL}/api/user/notifications/unread`;
+      console.log("🔔 Fetching notification count from:", endpoint);
 
-      const response = await axios.get(`${API_URL}/user/notifications/unread`, {
+      const response = await axios.get(endpoint, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -51,6 +52,14 @@ export const NotificationProvider = ({ children }) => {
       }
     } catch (err) {
       console.error("❌ Failed to fetch notification count:", err.message);
+      if (err.response) {
+        console.error("❌ Error details:", {
+          url: err.config?.url,
+          method: err.config?.method,
+          status: err.response?.status,
+          data: err.response?.data
+        });
+      }
       // Don't reset count on error, keep previous value
     } finally {
       setIsLoading(false);
@@ -73,8 +82,12 @@ export const NotificationProvider = ({ children }) => {
       const token = await AsyncStorage.getItem("userToken");
       if (!token) return;
 
+      // ✅ FIXED: Using /api/user/notifications/:id/read
+      const endpoint = `${API_URL}/api/user/notifications/${notificationId}/read`;
+      console.log("📝 Marking notification as read:", endpoint);
+
       await axios.patch(
-        `${API_URL}/user/notifications/${notificationId}/read`,
+        endpoint,
         {},
         {
           headers: {
@@ -86,7 +99,10 @@ export const NotificationProvider = ({ children }) => {
       decrementCount();
       console.log("✅ Notification marked as read");
     } catch (err) {
-      console.error("❌ Failed to mark notification as read:", err);
+      console.error("❌ Failed to mark notification as read:", err.message);
+      if (err.response) {
+        console.error("Error details:", err.response.data);
+      }
     }
   }, [decrementCount]);
 
@@ -96,8 +112,12 @@ export const NotificationProvider = ({ children }) => {
       const token = await AsyncStorage.getItem("userToken");
       if (!token) return;
 
+      // ✅ FIXED: Using /api/user/notifications/mark-all-read
+      const endpoint = `${API_URL}/api/user/notifications/mark-all-read`;
+      console.log("📝 Marking all notifications as read:", endpoint);
+
       await axios.patch(
-        `${API_URL}/user/notifications/mark-all-read`,
+        endpoint,
         {},
         {
           headers: {
@@ -109,7 +129,10 @@ export const NotificationProvider = ({ children }) => {
       setUnreadCount(0);
       console.log("✅ All notifications marked as read");
     } catch (err) {
-      console.error("❌ Failed to mark all as read:", err);
+      console.error("❌ Failed to mark all as read:", err.message);
+      if (err.response) {
+        console.error("Error details:", err.response.data);
+      }
       throw err;
     }
   }, []);
