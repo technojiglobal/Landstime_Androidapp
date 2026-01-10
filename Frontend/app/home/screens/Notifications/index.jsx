@@ -18,8 +18,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useNotifications } from "../../../../context/NotificationContext";
-
-const API_URL = `${process.env.EXPO_PUBLIC_IP_ADDRESS}/api`;
+import { API_URL } from "../../../../utils/apiConfig";
 
 export default function Notifications() {
   const router = useRouter();
@@ -85,8 +84,8 @@ export default function Notifications() {
 
       const endpoint =
         tab === "Unread"
-          ? `${API_URL}/user/notifications/unread`
-          : `${API_URL}/user/notifications`;
+          ? `${API_URL}/api/user/notifications/unread`
+          : `${API_URL}/api/user/notifications`;
 
       console.log("📡 Fetching notifications from:", endpoint);
 
@@ -186,7 +185,7 @@ export default function Notifications() {
         return;
       }
 
-      await axios.delete(`${API_URL}/user/notifications/${id}`, {
+      await axios.delete(`${API_URL}/api/user/notifications/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
