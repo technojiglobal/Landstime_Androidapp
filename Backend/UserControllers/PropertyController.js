@@ -113,6 +113,9 @@ if (propertyData.propertyType === "Site/Plot/Land") {
     area: finalData.area,
     sqft: propertyData.siteDetails?.area
   });
+
+  // ✅ ADD THIS NEW SECTION FOR RESORT
+
   
   finalData.siteDetails = {
     area: propertyData.siteDetails?.area !== "" ? Number(propertyData.siteDetails.area) : undefined,
@@ -138,6 +141,54 @@ if (propertyData.propertyType === "Site/Plot/Land") {
     vaasthuDetails: propertyData.siteDetails?.vaasthuDetails || {}
   };
 }
+
+
+//✅ HANDLE RESORT PROPERTIES (MOVED OUTSIDE AND FIXED)
+if (propertyData.propertyType === "Resort") {
+  finalData.location = propertyData.location;
+  finalData.area = propertyData.area; // neighborhood name
+  
+  console.log('🏨 Resort property data:', {
+    location: finalData.location,
+    area: finalData.area,
+    landArea: propertyData.resortDetails?.landArea,
+    buildArea: propertyData.resortDetails?.buildArea,
+    resortType: propertyData.resortDetails?.resortType
+  });
+  
+  finalData.resortDetails = {
+    resortType: propertyData.resortDetails?.resortType,
+    landArea: Number(propertyData.resortDetails?.landArea) || 0,
+    buildArea: Number(propertyData.resortDetails?.buildArea) || 0,
+    rooms: Number(propertyData.resortDetails?.rooms) || 0,
+    floors: Number(propertyData.resortDetails?.floors) || 0,
+    locationAdvantages: propertyData.resortDetails?.locationAdvantages || [],
+    vaasthuDetails: {
+      propertyFacing: propertyData.resortDetails?.vaasthuDetails?.propertyFacing,
+      entranceDirection: propertyData.resortDetails?.vaasthuDetails?.entranceDirection,
+      receptionAreaFacing: propertyData.resortDetails?.vaasthuDetails?.receptionAreaFacing,
+      mainLobbyDirection: propertyData.resortDetails?.vaasthuDetails?.mainLobbyDirection,
+      masterSuitroom: propertyData.resortDetails?.vaasthuDetails?.masterSuitroom,
+      guestRoom: propertyData.resortDetails?.vaasthuDetails?.guestRoom,
+      restaurantDirection: propertyData.resortDetails?.vaasthuDetails?.restaurantDirection,
+      vipSuite: propertyData.resortDetails?.vaasthuDetails?.vipSuite,
+      conferenceDirection: propertyData.resortDetails?.vaasthuDetails?.conferenceDirection,
+      spaRoom: propertyData.resortDetails?.vaasthuDetails?.spaRoom,
+      swimmingPool: propertyData.resortDetails?.vaasthuDetails?.swimmingPool,
+      yoga: propertyData.resortDetails?.vaasthuDetails?.yoga,
+      kitchenRoom: propertyData.resortDetails?.vaasthuDetails?.kitchenRoom,
+      poojaRoom: propertyData.resortDetails?.vaasthuDetails?.poojaRoom,
+      office: propertyData.resortDetails?.vaasthuDetails?.office,
+      recreation: propertyData.resortDetails?.vaasthuDetails?.recreation,
+      balcony: propertyData.resortDetails?.vaasthuDetails?.balcony,
+      garden: propertyData.resortDetails?.vaasthuDetails?.garden,
+    }
+  };
+  
+  console.log('✅ Resort details to save:', JSON.stringify(finalData.resortDetails, null, 2));
+}
+
+
 
 
 
