@@ -1,11 +1,10 @@
 // Frontend/utils/api.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { API_URL } from './apiConfig';
 // API Base URL - Change this to your backend URL
 
 
-const API_BASE_URL = `${process.env.EXPO_PUBLIC_IP_ADDRESS}/api/user`;
-
+const API_BASE_URL = `${API_URL}/api/user`;
 export default API_BASE_URL;
 
 
