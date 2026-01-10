@@ -1,6 +1,7 @@
 //Frontend//app//home//screens//UploadScreens//ResortUpload//index.jsx
 
 import React, { useState } from "react";
+import {useTranslation } from "react-i18next";
 import {
   View,
   Text,
@@ -51,6 +52,7 @@ const PillButton = ({ label, selected, onPress }) => (
 
 /* ---------- Screen ---------- */
 export default function PropertyFormScreen() {
+  const {i18n} = useTranslation();
   const router = useRouter();
 
   const [title, setTitle] = useState("");
@@ -69,24 +71,25 @@ export default function PropertyFormScreen() {
   const [images, setImages] = useState([]);
    const [isSubmitting, setIsSubmitting] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
-const [propertyFacing, setPropertyFacing] = useState("Select");
-const [masterSuitroom, setMasterSuitroom] = useState("Select");
-const [kitchenRoom, setKitchenRoom] = useState("Select");
-const [poojaRoom, setPoojaRoom] = useState("Select");
-const [balcony, setBalcony] = useState("Select");
-const [entranceDirection, setEntranceDirection] = useState("Select");
-const [receptionAreaFacing, setReceptionAreaFacing] = useState("Select");
-const [mainLobbyDirection, setMainLobbyDirection] = useState("Select");
-const [guestRoom, setGuestRoom] = useState("Select");
-const [restaurantDirection, setRestaurantDirection] = useState("Select");
-const [vipSuite, setVipSuite] = useState("Select");
-const [conferenceDirection, setconferenceDirection] = useState("Select");
-const [spaRoom, setSpaRoom] = useState("Select");
-const [swimmingPool, setSwimmingPool] = useState("Select");
-const [yoga, setYoga] = useState("Select");
-const [office, setOffice] = useState("Select");
-const [recreation, setRecreation] = useState("Select");
-const [garden, setGarden] = useState("Select");
+
+const [propertyFacing, setPropertyFacing] = useState("East");
+const [masterSuitroom, setMasterSuitroom] = useState("East");
+const [kitchenRoom, setKitchenRoom] = useState("East");
+const [poojaRoom, setPoojaRoom] = useState("East");
+const [balcony, setBalcony] = useState("East");
+const [entranceDirection, setEntranceDirection] = useState("East");
+const [receptionAreaFacing, setReceptionAreaFacing] = useState("East");
+const [mainLobbyDirection, setMainLobbyDirection] = useState("East");
+const [guestRoom, setGuestRoom] = useState("East");
+const [restaurantDirection, setRestaurantDirection] = useState("East");
+const [vipSuite, setVipSuite] = useState("East");
+const [conferenceDirection, setconferenceDirection] = useState("East");
+const [spaRoom, setSpaRoom] = useState("East");
+const [swimmingPool, setSwimmingPool] = useState("East");
+const [yoga, setYoga] = useState("East");
+const [office, setOffice] = useState("East");
+const [recreation, setRecreation] = useState("East");
+const [garden, setGarden] = useState("East");
 const [resortType, setResortType] = useState("");
 const [resortOpen, setResortOpen] = useState(false);
 const [ownershipDocs, setOwnershipDocs] = useState([]);
@@ -98,6 +101,14 @@ const [focusedField, setFocusedField] = useState(null);
 const [pickerAlertVisible, setPickerAlertVisible] = useState(false);
 const [isHowto360ModalVisible, setIsHowto360ModalVisible] = useState(false);
 const [isPhotoGuideModalVisible, setIsPhotoGuideModalVisible] = useState(false);
+
+
+// Inside AddScreen component, add this helper function
+const getUserLanguage = () => {
+  const currentLang = i18n.language || 'en';
+  console.log('📝 Current app language:', currentLang);
+  return currentLang;
+};
 
   /* ---------- Helpers ---------- */
   const isAlphaNumeric = (text) => /^[a-zA-Z0-9\s]+$/.test(text);
@@ -225,33 +236,33 @@ const handleUpload = async () => {
       return;
     }
 
-    // 6. Validate Vaasthu details
-    const vaasthuFields = [
-      propertyFacing,
-      entranceDirection,
-      receptionAreaFacing,
-      mainLobbyDirection,
-      masterSuitroom,
-      guestRoom,
-      restaurantDirection,
-      vipSuite,
-      conferenceDirection,
-      spaRoom,
-      swimmingPool,
-      yoga,
-      kitchenRoom,
-      poojaRoom,
-      office,
-      recreation,
-      balcony,
-      garden,
-    ];
+    // // 6. Validate Vaasthu details
+    // const vaasthuFields = [
+    //   propertyFacing,
+    //   entranceDirection,
+    //   receptionAreaFacing,
+    //   mainLobbyDirection,
+    //   masterSuitroom,
+    //   guestRoom,
+    //   restaurantDirection,
+    //   vipSuite,
+    //   conferenceDirection,
+    //   spaRoom,
+    //   swimmingPool,
+    //   yoga,
+    //   kitchenRoom,
+    //   poojaRoom,
+    //   office,
+    //   recreation,
+    //   balcony,
+    //   garden,
+    // ];
 
-    if (vaasthuFields.includes("Select")) {
-      showToast("Please fill all Vaasthu Details");
-      setIsSubmitting(false);
-      return;
-    }
+    // if (vaasthuFields.includes("Select")) {
+    //   showToast("Please fill all Vaasthu Details");
+    //   setIsSubmitting(false);
+    //   return;
+    // }
 
     console.log('✅ Validation passed');
 
@@ -271,47 +282,55 @@ const handleUpload = async () => {
     }
 
     // 8. Prepare property data
-    const propertyData = {
-      propertyType: "Resort",
-      propertyTitle: title,
-      location,
-      description,
-      expectedPrice: priceValue,
-      ownerDetails: {
-        name: ownerName.trim(),
-        phone: phone.trim(),
-        email: email.trim(),
-      },
-      resortDetails: {
-        neighborhood: neighborhood || "",
-        rooms: Number(rooms) || 0,
-        floors: Number(floors) || 0,
-        landArea: Number(area),
-        buildArea: Number(buildArea),
-        resortType,
-        locationAdvantages: locAdvantages,
-        vaasthuDetails: {
-          propertyFacing,
-          entranceDirection,
-          receptionAreaFacing,
-          mainLobbyDirection,
-          masterSuitroom,
-          guestRoom,
-          restaurantDirection,
-          vipSuite,
-          conferenceDirection,
-          spaRoom,
-          swimmingPool,
-          yoga,
-          kitchenRoom,
-          poojaRoom,
-          office,
-          recreation,
-          balcony,
-          garden,
-        },
-      },
-    };
+// New Code (in ResortUpload/index.jsx) - Add priceDetails to propertyData (consistent with SiteUpload and AddScreen)
+const propertyData = {
+  propertyType: "Resort",
+  propertyTitle: title,
+  location,
+  area: neighborhood,  // ✅ This is the area field (neighborhood name)
+  description,
+  originalLanguage: getUserLanguage(), // ✅ ADD THIS - for translation
+  expectedPrice: priceValue,
+  ownerDetails: {
+    name: ownerName.trim(),
+    phone: phone.trim(),
+    email: email.trim(),
+  },
+  priceDetails: { // ✅ Add this block with defaults (no UI change needed)
+    allInclusive: false,
+    negotiable: false,
+    taxExcluded: false
+  },
+  resortDetails: {
+    rooms: Number(rooms) || 0,
+    floors: Number(floors) || 0,
+    landArea: Number(area),
+    buildArea: Number(buildArea),
+    resortType,
+    locationAdvantages: locAdvantages,
+    vaasthuDetails: {
+      propertyFacing,
+      entranceDirection,
+      receptionAreaFacing,
+      mainLobbyDirection,
+      masterSuitroom,
+      guestRoom,
+      restaurantDirection,
+      vipSuite,
+      conferenceDirection,
+      spaRoom,
+      swimmingPool,
+      yoga,
+      kitchenRoom,
+      poojaRoom,
+      office,
+      recreation,
+      balcony,
+      garden,
+    },
+  },
+};
+
 
     console.log('📡 Calling createProperty API...');
     console.log('📋 Final property data:', JSON.stringify(propertyData, null, 2));
