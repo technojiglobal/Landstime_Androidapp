@@ -210,10 +210,10 @@ const fetchPropertyDetails = async () => {
         {/* Resort Image */}
         <View className="items-center relative">
           <View className="relative">
-            <Image
+         <Image
   source={
     property.images && property.images.length > 0
-      ? { uri: `${process.env.EXPO_PUBLIC_IP_ADDRESS}0/${property.images[0]}` }
+      ? { uri: property.images[0] }  // ✅ CHANGED: Removed IP address prefix for base64
       : require("../../../../../assets/flatimg.jpg")
   }
   className="rounded-[17px]"

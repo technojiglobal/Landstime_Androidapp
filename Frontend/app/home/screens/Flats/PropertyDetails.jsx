@@ -224,20 +224,20 @@ const filteredProperties = properties.filter((property) => {
                 
 
 
-                  <Image
-                    source={
-                      item.images && item.images.length > 0
-                        ? { uri: `${process.env.EXPO_PUBLIC_IP_ADDRESS}/${item.images[0]}` }
-                        : require("../../../../assets/Flat1.jpg")
-                    }
-                    style={{
-                      width: CARD_WIDTH,
-                      height: 163,
-                      borderTopLeftRadius: 17,
-                      borderTopRightRadius: 17,
-                    }}
-                    resizeMode="cover"
-                  />
+                 <Image
+  source={
+    item.images && item.images.length > 0
+      ? { uri: item.images[0] }  // ✅ CHANGED: Removed IP address prefix for base64
+      : require("../../../../assets/Flat1.jpg")
+  }
+  style={{
+    width: CARD_WIDTH,
+    height: 163,
+    borderTopLeftRadius: 17,
+    borderTopRightRadius: 17,
+  }}
+  resizeMode="cover"
+/>
                 </TouchableOpacity>
 
                 {/* Bookmark Icon */}
