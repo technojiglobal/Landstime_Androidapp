@@ -17,8 +17,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import bell from "../../../assets/Bell-icon.png";
-
-const API_URL = process.env.EXPO_PUBLIC_IP_ADDRESS;
+import { API_URL } from "../../../utils/apiConfig"; // ✅ IMPORT FROM CONFIG
 
 export default function BannerCarousel({
   toggleSidebar,
@@ -49,13 +48,29 @@ export default function BannerCarousel({
       }
       const currentLang = i18n.language || 'en';
       
+      console.log('🌐 Fetching banners from:', `${API_URL}/api/banners/active`); // ✅ Debug log
+      
       const response = await axios.get(`${API_URL}/api/banners/active`, {
-        params: { language: currentLang }
+        params: { language: currentLang },
+        timeout: 10000 // ✅ Add timeout
       });
 
-      if (response.data.success && Array.isArray(response.data.data) && response.data.data.length > 0) {
-        setBanners(response.data.data);
+      console.log('✅ Banner response:', response.data); // ✅ Debug log
+
+      // ✅ FIXED: Handle both successful responses and empty banner arrays
+      if (response.data.success) {
+        if (Array.isArray(response.data.data) && response.data.data.length > 0) {
+          setBanners(response.data.data);
+        } else {
+          // No banners available - show default
+          setBanners([{
+            title: t('home_banner_title'),
+            subtitle: t('home_banner_subtitle'),
+            image: null
+          }]);
+        }
       } else {
+        // Fallback to default banner
         setBanners([{
           title: t('home_banner_title'),
           subtitle: t('home_banner_subtitle'),
@@ -63,7 +78,12 @@ export default function BannerCarousel({
         }]);
       }
     } catch (error) {
-      console.error('Error fetching banners:', error);
+      console.error('❌ Error fetching banners:', error);
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        config: error.config?.url
+      });
       setBanners([{
         title: t('home_banner_title'),
         subtitle: t('home_banner_subtitle'),

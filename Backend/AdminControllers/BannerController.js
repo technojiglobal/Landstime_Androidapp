@@ -35,7 +35,7 @@ export const createBanner = async (req, res) => {
     const banner = new Banner({
       title: bannerData.title,
       subtitle: bannerData.subtitle,
-      image: bannerData.image, // Directly use the base64 string
+      image: bannerData.image,
       isActive: bannerData.isActive !== undefined ? bannerData.isActive : true,
       order: bannerData.order || 0,
       ctaText: bannerData.ctaText,
@@ -100,6 +100,7 @@ export const getAllBanners = async (req, res) => {
 };
 
 // Get active banners (for mobile app)
+// ✅ FIXED: Return 200 with empty array instead of 404
 export const getActiveBanners = async (req, res) => {
   try {
     const { language = 'en' } = req.query;
@@ -110,10 +111,13 @@ export const getActiveBanners = async (req, res) => {
     const banners = await Banner.find({ isActive: true })
       .sort({ order: 1, createdAt: -1 });
 
+    // ✅ CHANGED: Return empty array with 200 status instead of 404
     if (!banners || banners.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'No active banners found'
+      console.log('⚠️ No active banners found - returning empty array');
+      return res.status(200).json({
+        success: true,
+        data: [],
+        message: 'No active banners available'
       });
     }
 
@@ -205,7 +209,7 @@ export const updateBanner = async (req, res) => {
     // Update banner fields
     if (updateData.title) banner.title = updateData.title;
     if (updateData.subtitle) banner.subtitle = updateData.subtitle;
-    if (updateData.image) banner.image = updateData.image; // Expects base64 string
+    if (updateData.image) banner.image = updateData.image;
     if (updateData.isActive !== undefined) banner.isActive = updateData.isActive;
     if (updateData.order !== undefined) banner.order = updateData.order;
     if (updateData.ctaText) banner.ctaText = updateData.ctaText;
@@ -335,7 +339,7 @@ export const updateBannerOrder = async (req, res) => {
   try {
     console.log('🔢 Updating banner order');
 
-    const { banners } = req.body; // Array of { id, order }
+    const { banners } = req.body;
 
     if (!Array.isArray(banners)) {
       return res.status(400).json({
