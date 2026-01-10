@@ -325,7 +325,7 @@ useEffect(() => {
 
     return (
         <View className="flex-1 bg-white">
-            <View className="flex-row items-center mt-7 mt-4 mb-3 ml-4">
+            <View className="flex-row items-center mt-4 mb-3 ml-4">
                     <TouchableOpacity
                         onPress={handleBack}
                         className="p-2"

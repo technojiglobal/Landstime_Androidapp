@@ -1,5 +1,5 @@
-//Resorts//Property.jsx
-import React, { useRef, useState } from "react";
+// Frontend/app/home/screens/Resorts/PropertyDetails.jsx
+import React, { useRef, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,11 +7,24 @@ import {
   Image,
   TouchableOpacity,
   Animated,
-  Dimensions,StatusBar
+  Dimensions,
+  StatusBar,
+  ActivityIndicator
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
+import { getApprovedProperties } from "../../../../utils/propertyApi";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from "react-i18next";
+import i18n from "../../../../i18n/index";
+
+// ✅ Helper function OUTSIDE component
+const getLocalizedText = (field, language) => {
+  if (!field) return '';
+  if (typeof field === 'string') return field;
+  return field[language] || field.en || field.te || field.hi || '';
+};
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const CARD_WIDTH = 345;
@@ -21,88 +34,72 @@ export default function PropertyListScreen() {
   const scrollY = useRef(new Animated.Value(0)).current;
   const [contentHeight, setContentHeight] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const { area } = useLocalSearchParams();
+  const { t } = useTranslation();
+  const { areaKey, districtKey } = useLocalSearchParams();
 
-  // All properties data mapped to locations
-  const allProperties = [
-    {
-      id: 1,
-      title: "Paradise Beach Resort",
-      subtitle: "Luxury Beach Resort",
-      rating: 4.8,
-      reviews: 245,
-      location: "Akkayapalem",
-      price: "₹1Cr–5Cr",
-      image: require("../../../../assets/Flat1.jpg"),
-    },
-    {
-      id: 2,
-      title: "Hill View Retreat",
-      subtitle: "Mountain Resort",
-      rating: 4.6,
-      reviews: 178,
-      location: "Anandapuram",
-      price: "₹80L–3Cr",
-      image: require("../../../../assets/Flat2.jpg"),
-    },
-    {
-      id: 3,
-      title: "Royal Palm Resort",
-      subtitle: "Premium Resort & Spa",
-      rating: 4.9,
-      reviews: 312,
-      location: "Boyapalem",
-      price: "₹1.5Cr–6Cr",
-      image: require("../../../../assets/Flat3.jpg"),
-    },
-    {
-      id: 4,
-      title: "Garden Valley Resort",
-      subtitle: "Nature Resort",
-      rating: 4.5,
-      reviews: 156,
-      location: "Chinna Gadili",
-      price: "₹60L–2.5Cr",
-      image: require("../../../../assets/Flat1.jpg"),
-    },
-    {
-      id: 5,
-      title: "Sunrise Resort & Spa",
-      subtitle: "Wellness Resort",
-      rating: 4.7,
-      reviews: 234,
-      location: "Dwarka Nagar",
-      price: "₹1.2Cr–4Cr",
-      image: require("../../../../assets/Flat2.jpg"),
-    },
-    {
-      id: 6,
-      title: "Metro Retreat Resort",
-      subtitle: "Urban Resort",
-      rating: 4.4,
-      reviews: 189,
-      location: "Gajuwaka",
-      price: "₹70L–2.8Cr",
-      image: require("../../../../assets/Flat3.jpg"),
-    },
-    {
-      id: 7,
-      title: "Ocean Pearl Resort",
-      subtitle: "Beachfront Luxury Resort",
-      rating: 4.9,
-      reviews: 398,
-      location: "Kommadi",
-      price: "₹2Cr–8Cr",
-      image: require("../../../../assets/Flat1.jpg"),
-    },
-  ];
+  // ✅ Get current language
+  const currentLanguage = i18n.language || 'en';
+  
+  // Get translated area name from areaKey
+  const areaName = areaKey ? t(`areas.${areaKey}`) : '';
 
-  const filteredProperties = allProperties.filter(
-    (property) =>
-      property.location.toLowerCase() === String(area).toLowerCase() &&
-      property.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // ✅ FETCH REAL PROPERTIES
+  useEffect(() => {
+    fetchProperties();
+  }, [areaKey]);
+
+  // ✅ Refetch when language changes
+  useEffect(() => {
+    if (areaKey) {
+      fetchProperties();
+    }
+  }, [i18n.language]);
+
+  const fetchProperties = async () => {
+    try {
+      setLoading(true);
+      console.log('🔍 Fetching RESORTS for areaKey:', areaKey);
+      
+      // ✅ Get current language from i18next
+      const currentLang = i18n.language || 'en';
+      console.log('🌐 Fetching in language:', currentLang);
+      
+      const response = await getApprovedProperties(null, 1, currentLang);
+      
+      if (response.success) {
+        console.log('✅ All properties fetched:', response.data);
+        // ✅ FILTER BY PROPERTY TYPE = "Resort"
+        const resortProperties = (response.data.data || []).filter(
+          property => property.propertyType === 'Resort'
+        );
+        console.log('✅ Resorts filtered:', resortProperties.length);
+        setProperties(resortProperties);
+      } else {
+        console.error('❌ Failed to fetch properties:', response.error);
+      }
+    } catch (error) {
+      console.error('❌ Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ FILTER BY AREA (location)
+  const filteredProperties = properties.filter((property) => {
+    const propertyAreaKey = property.areaKey || '';
+    
+    // ✅ Use helper function to extract title
+    const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
+    
+    // Match by areaKey (consistent across all languages)
+    const matchesArea = propertyAreaKey === areaKey;
+    const matchesSearch = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    return matchesArea && matchesSearch;
+  });
 
   const scrollbarHeight = SCREEN_HEIGHT * (SCREEN_HEIGHT / contentHeight) * 0.3;
 
@@ -121,10 +118,10 @@ export default function PropertyListScreen() {
       
       {/* Header */}
       <View className="flex-row items-center px-5 py-3">
-        <TouchableOpacity  onPress={() => router.push('/home/screens/Resorts/SelectSite')}>
+        <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text className="text-xl font-semibold ml-2">{area} Properties</Text>
+        <Text className="text-xl font-semibold ml-2">{areaName} Properties</Text>
       </View>
 
       <View style={{ flex: 1, flexDirection: "row" }}>
@@ -175,14 +172,21 @@ export default function PropertyListScreen() {
               color: "#6B7280",
             }}
           >
-            {filteredProperties.length} properties found in {area}
+            {filteredProperties.length} properties found in {areaName}
           </Text>
 
-          {/* Property Cards */}
-          {filteredProperties.length > 0 ? (
+          {/* ✅ LOADING SPINNER */}
+          {loading ? (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 50 }}>
+              <ActivityIndicator size="large" color="#16A34A" />
+              <Text style={{ marginTop: 16, fontFamily: "Poppins-Regular", color: '#6B7280' }}>
+                Loading properties...
+              </Text>
+            </View>
+          ) : filteredProperties.length > 0 ? (
             filteredProperties.map((item, index) => (
               <View
-                key={item.id}
+                key={item._id}
                 style={{
                   width: CARD_WIDTH,
                   height: CARD_HEIGHT,
@@ -199,21 +203,28 @@ export default function PropertyListScreen() {
                   borderColor: "#E5E7EB",
                 }}
               >
-                {/* Image (Clickable) */}
+                {/* ✅ REAL IMAGE with fallback */}
                 <TouchableOpacity
                   activeOpacity={0.8}
-                  onPress={() => router.push("/home/screens/Resorts/(Property)")}
+                  onPress={() => router.push({
+                    pathname: '/home/screens/Resorts/(Property)',
+                    params: { propertyId: item._id }
+                  })}
                 >
-                  <Image
-                    source={item.image}
-                    style={{
-                      width: CARD_WIDTH,
-                      height: 163,
-                      borderTopLeftRadius: 17,
-                      borderTopRightRadius: 17,
-                    }}
-                    resizeMode="cover"
-                  />
+                 <Image
+  source={
+    item.images && item.images.length > 0
+      ? { uri: item.images[0] }  // ✅ CHANGED: Removed IP address prefix for base64
+      : require("../../../../assets/resort.jpg")
+  }
+  style={{
+    width: CARD_WIDTH,
+    height: 163,
+    borderTopLeftRadius: 17,
+    borderTopRightRadius: 17,
+  }}
+  resizeMode="cover"
+/>
                 </TouchableOpacity>
 
                 {/* Bookmark Icon */}
@@ -232,10 +243,13 @@ export default function PropertyListScreen() {
 
                 {/* Card Content */}
                 <View style={{ paddingHorizontal: 12, paddingTop: 10 }}>
-                  {/* Title (Clickable) */}
+                  {/* ✅ REAL TITLE */}
                   <TouchableOpacity
                     activeOpacity={0.6}
-                    onPress={() => router.push("/home/screens/Resorts/(Property)")}
+                    onPress={() => router.push({
+                      pathname: '/home/screens/Resorts/(Property)',
+                      params: { propertyId: item._id }
+                    })}
                   >
                     <Text
                       style={{
@@ -246,7 +260,7 @@ export default function PropertyListScreen() {
                         marginTop: 5,
                       }}
                     >
-                      {item.title}
+                      {getLocalizedText(item.propertyTitle, currentLanguage) || 'Property'}
                     </Text>
                   </TouchableOpacity>
 
@@ -258,6 +272,7 @@ export default function PropertyListScreen() {
                       marginTop: 3,
                     }}
                   >
+                    {/* ✅ REAL PROPERTY TYPE */}
                     <Text
                       style={{
                         fontFamily: "Poppins-Regular",
@@ -266,7 +281,7 @@ export default function PropertyListScreen() {
                         maxWidth: "60%",
                       }}
                     >
-                      {item.subtitle}
+                      {item.resortDetails?.resortType || 'Resort'}
                     </Text>
                     <Image
                       source={require("../../../../assets/verify.png")}
@@ -274,6 +289,7 @@ export default function PropertyListScreen() {
                     />
                   </View>
 
+                  {/* ✅ RATING - Using dummy data for now */}
                   <View
                     style={{
                       flexDirection: "row",
@@ -293,10 +309,11 @@ export default function PropertyListScreen() {
                         marginLeft: 6,
                       }}
                     >
-                      {item.rating} ({item.reviews} reviews)
+                      4.5 (0 reviews)
                     </Text>
                   </View>
 
+                  {/* ✅ REAL LOCATION */}
                   <View className="flex-row items-center mt-1">
                     <Image
                       source={require("../../../../assets/location.png")}
@@ -310,10 +327,11 @@ export default function PropertyListScreen() {
                         marginLeft: 4,
                       }}
                     >
-                      {item.location}
+                      {getLocalizedText(item.area, currentLanguage) || getLocalizedText(item.location, currentLanguage) || areaName}
                     </Text>
                   </View>
 
+                  {/* ✅ REAL PRICE */}
                   <View
                     style={{
                       position: "absolute",
@@ -338,7 +356,7 @@ export default function PropertyListScreen() {
                           paddingTop: 2,
                         }}
                       >
-                        {item.price}
+                        ₹{item.expectedPrice ? (item.expectedPrice / 100000).toFixed(0) + 'L' : 'N/A'}
                       </Text>
                     </View>
                   </View>

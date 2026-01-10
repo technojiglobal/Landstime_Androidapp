@@ -1,6 +1,3 @@
-
-
-
 //Frontend/components/interior/DesignCard.jsx
 import React, { useState } from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
@@ -20,23 +17,25 @@ import star3d from "../../assets/star-3d.png";
 import profileImg from "../../assets/profile.jpg";
 import { API_URL } from '../../utils/apiConfig';
 
-
-const BASE_URL = `${process.env.EXPO_PUBLIC_IP_ADDRESS}`;
-
-
-
-
 export default function DesignCard({ data }) {
   const router = useRouter();
   const [saved, setSaved] = useState(false);
   const [rated, setRated] = useState(false);
+
+  // Safely get the image URL
+  const getImageUrl = () => {
+    if (data.images && data.images.length > 0 && data.images[0]) {
+      return `${API_URL}${data.images[0]}`;
+    }
+    return "https://via.placeholder.com/600x400"; // Fallback placeholder
+  };
 
   return (
     <TouchableOpacity
       onPress={() =>
         router.push({
           pathname: "/home/screens/Sidebar/RoomOverview",
-          params: { id: data._id }, // ✅ PASS ID ONLY
+          params: { id: data._id },
         })
       }
       className="rounded-lg border border-gray-200 overflow-hidden shadow-sm bg-white w-full"
@@ -46,11 +45,7 @@ export default function DesignCard({ data }) {
         {/* ---------- IMAGE SECTION ---------- */}
         <View className="relative m-2">
           <Image
-            source={{
-              uri: data.images?.[0]
-                ? `${BASE_URL}${data.images[0]}`
-                : "https://via.placeholder.com/400x300",
-            }}
+            source={{ uri: getImageUrl() }}
             className="w-full h-56 rounded-xxl"
             resizeMode="cover"
           />
@@ -132,7 +127,6 @@ export default function DesignCard({ data }) {
               <Text className="text-sm font-medium text-gray-700">
                 {data.avgRating?.toFixed(1) || "0.0"}
               </Text>
-
             </View>
           </View>
 
@@ -161,13 +155,14 @@ export default function DesignCard({ data }) {
             </Text>
 
             <View className="flex-row">
-              <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-md px-2 mx-2"
+              <TouchableOpacity 
+                className="flex-row items-center border border-gray-300 rounded-md px-2 mx-2"
                 onPress={() =>
                   router.push({
                     pathname: "/home/screens/Sidebar/RoomOverview",
-                    params: { id: data._id }, // ✅ PASS ID ONLY
-                  })}
-
+                    params: { id: data._id },
+                  })
+                }
               >
                 <Image source={viewIcon} className="w-5 h-5 m-1" />
                 <Text className="text-sm text-gray-700">View</Text>
@@ -190,4 +185,4 @@ export default function DesignCard({ data }) {
       </View>
     </TouchableOpacity>
   );
-}
+} 

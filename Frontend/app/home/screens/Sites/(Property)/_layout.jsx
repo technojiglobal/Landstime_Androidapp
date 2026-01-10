@@ -1,22 +1,26 @@
+//app//home//screens//Sites//(Property)//_layout.jsx
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Slot, useRouter, usePathname } from "expo-router";
+import { Slot, useRouter, usePathname, useLocalSearchParams } from "expo-router"; // ✅ ADD useLocalSearchParams
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PropertyLayout() {
   const router = useRouter();
   const pathname = usePathname() ?? "";
+  const { propertyId } = useLocalSearchParams(); // ✅ GET propertyId from params
+
+  console.log('📋 Layout - propertyId:', propertyId); // ✅ DEBUG
 
   const tabs = [
-    { label: "Overview", route: "/home/screens/Sites/(Property)" },
-    { label: "Reviews(27)", route: "/home/screens/Sites/(Property)/Review" },
-    { label: "Write Review", route: "/home/screens/Sites/(Property)/WriteReview" },
+    { label: "Overview", route: "/home/screens/Sites/(Property)", params: { propertyId } }, // ✅ ADD params
+    { label: "Reviews(27)", route: "/home/screens/Sites/(Property)/Review", params: { propertyId } }, // ✅ ADD params
+    { label: "Write Review", route: "/home/screens/Sites/(Property)/WriteReview", params: { propertyId } }, // ✅ ADD params
   ];
 
   // ✅ Tab detection logic
   const isReview = pathname.includes("/Review");
   const isWriteReview = pathname.includes("/WriteReview");
-  const isOverview = !isReview && !isWriteReview ;
+  const isOverview = !isReview && !isWriteReview;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -30,9 +34,9 @@ export default function PropertyLayout() {
           marginBottom: 8,
         }}
       >
-        <TouchableOpacity onPress={() => router.push("/home/screens/Sites/SelectSite")}>
-          <Ionicons name="chevron-back-outline" size={22} color="black" />
-        </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.back()}>
+  <Ionicons name="chevron-back-outline" size={22} color="black" />
+</TouchableOpacity>
 
         <Text
           style={{
@@ -56,23 +60,26 @@ export default function PropertyLayout() {
           borderBottomColor: "#E5E7EB",
         }}
       >
-        {tabs.map((tab, idx) => {
-          const isActive =
-            (tab.route.endsWith("/Review") && isReview) ||
-            (tab.route.endsWith("/WriteReview") && isWriteReview) ||
-            (tab.route === "/home/screens/Flats/(Property)" && isOverview);
+       {tabs.map((tab, idx) => {
+  const isActive =
+    (tab.route.endsWith("/Review") && isReview) ||
+    (tab.route.endsWith("/WriteReview") && isWriteReview) ||
+    (tab.route === "/home/screens/Sites/(Property)" && isOverview); // ✅ FIXED: Changed from Flats to Sites
 
-          return (
-            <TouchableOpacity
-              key={idx}
-              onPress={() => !isActive && router.push(tab.route)}
-              activeOpacity={0.7}
-              style={{
-                alignItems: "center",
-                paddingVertical: 10,
-                paddingHorizontal: 8,
-              }}
-            >
+  return (
+    <TouchableOpacity
+      key={idx}
+      onPress={() => !isActive && router.push({
+        pathname: tab.route,
+        params: tab.params // ✅ PASS propertyId when navigating
+      })}
+      activeOpacity={0.7}
+      style={{
+        alignItems: "center",
+        paddingVertical: 10,
+        paddingHorizontal: 8,
+      }}
+    >
               <Text
                 style={{
                   fontSize: 13,
