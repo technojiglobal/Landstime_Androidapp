@@ -1,17 +1,153 @@
-//Flats//(Property)//index.jsx
-import React, { useState } from "react";
-import { View, Text, Image, ScrollView, TouchableOpacity,StatusBar } from "react-native";
-import { useRouter } from "expo-router";
+//Frontend/app/home/screens/Sites/(Property)/index.jsx
+
+import React, { useState, useEffect } from "react";
+import { View, Text, Image, ScrollView, TouchableOpacity, StatusBar, ActivityIndicator } from "react-native";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import TopAlert from "../../../../../components/TopAlert";
 import VastuModal from "../../../../../components/VastuModal";
+import { getPropertyById } from "../../../../../utils/propertyApi";
+import i18n from "../../../../../i18n/index";
+
+// ✅ Helper function
+const getLocalizedText = (field, language) => {
+  if (!field) return '';
+  if (typeof field === 'string') return field;
+  return field[language] || field.en || field.te || field.hi || '';
+};
 
 export default function OverviewScreen() {
   const router = useRouter();
+  const { propertyId } = useLocalSearchParams();
   const [showAlert, setShowAlert] = useState(false);
   const [showVastuModal, setShowVastuModal] = useState(false);
+  const [property, setProperty] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const currentLanguage = i18n.language || 'en';
+
+  // ✅ Fetch on mount and when language changes
+  useEffect(() => {
+    console.log('🔄 Effect triggered - propertyId:', propertyId, 'language:', i18n.language);
+    if (propertyId) {
+      fetchPropertyDetails();
+    } else {
+      console.error('❌ No propertyId available');
+      setLoading(false);
+    }
+  }, [propertyId, i18n.language]);
+
+  const fetchPropertyDetails = async () => {
+    try {
+      setLoading(true);
+      const currentLang = i18n.language || 'en';
+      console.log('🔍 Fetching property:', propertyId);
+      console.log('🌐 Current language:', currentLang);
+      
+      const response = await getPropertyById(propertyId, currentLang);
+      
+      if (response.success) {
+        console.log('✅ Property fetched:', response.data);
+        setProperty(response.data.data);
+      } else {
+        console.error('❌ Failed to fetch property:', response.error);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching property:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleBrochurePress = () => setShowAlert(true);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color="#22C55E" />
+        <Text style={{ marginTop: 16, color: '#6B7280', fontFamily: 'Poppins' }}>
+          Loading property details...
+        </Text>
+      </View>
+    );
+  }
+
+  if (!property) {
+    return (
+      <View style={{ flex: 1, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center' }}>
+        <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
+        <Text style={{ marginTop: 16, color: '#6B7280', fontFamily: 'Poppins' }}>
+          Property not found
+        </Text>
+        <TouchableOpacity 
+          onPress={() => router.back()}
+          style={{ marginTop: 16, backgroundColor: '#22C55E', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
+        >
+          <Text style={{ color: 'white', fontFamily: 'Poppins' }}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  // Get property-specific details
+  const getPropertyDetails = () => {
+    switch (property.propertyType) {
+      case 'House':
+        return property.houseDetails || {};
+      case 'Site/Plot/Land':
+        return property.siteDetails || {};
+      case 'Commercial':
+        return property.commercialDetails || {};
+      case 'Resort':
+        return property.resortDetails || {};
+      default:
+        return {};
+    }
+  };
+
+  const details = getPropertyDetails();
+  
+  // Prepare stats based on property type
+  const getStats = () => {
+    if (property.propertyType === 'House' && property.houseDetails) {
+      return [
+        { label: "Area", value: `${property.houseDetails.area || 0} ${property.houseDetails.areaUnit || 'sqft'}` },
+        { label: "Bedrooms", value: property.houseDetails.bedrooms || 0 },
+        { label: "Bathrooms", value: property.houseDetails.bathrooms || 0 },
+        { label: "Floors", value: property.houseDetails.floors || 0 },
+      ];
+    } else if (property.propertyType === 'Site/Plot/Land' && property.siteDetails) {
+      return [
+        { label: "Area", value: `${property.siteDetails.area || 0} ${property.siteDetails.areaUnit || 'sqft'}` },
+        { label: "Length", value: `${property.siteDetails.length || 0} ft` },
+        { label: "Breadth", value: `${property.siteDetails.breadth || 0} ft` },
+        { label: "Floors Allowed", value: property.siteDetails.floorsAllowed || 0 },
+      ];
+    } else if (property.propertyType === 'Resort' && property.resortDetails) {
+      return [
+        { label: "Area", value: `${property.resortDetails.area || 0} ${property.resortDetails.areaUnit || 'acres'}` },
+        { label: "Rooms", value: property.resortDetails.rooms || 0 },
+        { label: "Buildings", value: 3 },
+        { label: "Built", value: new Date(property.createdAt).getFullYear() },
+      ];
+    } else if (property.propertyType === 'Commercial' && property.commercialDetails) {
+      const officeDetails = property.commercialDetails.officeDetails || {};
+      return [
+        { label: "Area", value: `${officeDetails.area || 0} ${officeDetails.areaUnit || 'sqft'}` },
+        { label: "Cabins", value: officeDetails.cabins || 0 },
+        { label: "Seats", value: officeDetails.seats || 0 },
+        { label: "Floors", value: officeDetails.totalFloors || 0 },
+      ];
+    }
+    return [
+      { label: "Area", value: "N/A" },
+      { label: "Info", value: "N/A" },
+      { label: "Type", value: property.propertyType },
+      { label: "Year", value: new Date(property.createdAt).getFullYear() },
+    ];
+  };
+
+  const stats = getStats();
 
   return (
     <View className="flex-1 bg-white relative">
@@ -24,13 +160,13 @@ export default function OverviewScreen() {
           pointerEvents={"auto"}
         />
       )}
-      {( showVastuModal) && (
+      {(showVastuModal) && (
         <View
           className="absolute inset-0 bg-black/40"
-          //style={{ zIndex: 10 }}
           pointerEvents={"auto"}
         />
       )}
+
       <ScrollView
         className="flex-1 bg-white"
         scrollEnabled={!showAlert && !showVastuModal}
@@ -40,11 +176,15 @@ export default function OverviewScreen() {
           paddingBottom: 90,
         }}
       >
-        {/* Resort Image */}
-        <View className="items-center  relative">
+        {/* Property Image */}
+        <View className="items-center relative">
           <View className="relative">
             <Image
-              source={require("../../../../../assets/Green-Valley-Site.jpg")}
+              source={
+                property.images && property.images.length > 0
+                  ? { uri: `http://10.37.92.184:8000/${property.images[0]}` }
+                  : require("../../../../../assets/Green-Valley-Site.jpg")
+              }
               className="rounded-[17px]"
               style={{ height: 223, width: 330, resizeMode: "cover" }}
             />
@@ -73,8 +213,8 @@ export default function OverviewScreen() {
           {/* Name + Location + Rating */}
           <View className="flex-row items-start justify-between">
             <View>
-              <Text className="text-[20px] text-green-500 font-semibold" style={{ fontFamily: "Poppins",fontWeight:"bold" }}>
-                Green Valley Plot
+              <Text className="text-[20px] text-green-500 font-semibold" style={{ fontFamily: "Poppins", fontWeight: "bold" }}>
+                {getLocalizedText(property.propertyTitle, currentLanguage) || 'Property'}
               </Text>
               <View className="flex-row items-center mt-1">
                 <Image
@@ -82,7 +222,7 @@ export default function OverviewScreen() {
                   style={{ width: 12, height: 12, resizeMode: "contain" }}
                 />
                 <Text className="text-[12px] text-[#72707090] ml-1" style={{ fontFamily: "Poppins" }}>
-                  Visakhapatnam
+                  {getLocalizedText(property.location, currentLanguage) || 'Location'}
                 </Text>
               </View>
             </View>
@@ -94,17 +234,13 @@ export default function OverviewScreen() {
                   4.3
                 </Text>
               </View>
-
-             
-                
-              
             </View>
           </View>
 
           {/* Price + Vaastu */}
           <View className="mt-2 flex-row items-center justify-between">
             <Text className="text-[24px] font-semibold text-[#22C55E]" style={{ fontFamily: "Poppins" }}>
-              ₹ 85,00,000
+              ₹ {property.expectedPrice ? property.expectedPrice.toLocaleString('en-IN') : '0'}
             </Text>
 
             <TouchableOpacity
@@ -112,8 +248,8 @@ export default function OverviewScreen() {
               className="flex-row items-center px-2 py-[2px] rounded-md"
               style={{ borderWidth: 0.5, borderColor: "#FFA50066" }}
             >
-                <Image
-                  source={require("../../../../../assets/vastu.png")}
+              <Image
+                source={require("../../../../../assets/vastu.png")}
                 style={{ width: 12, height: 12, resizeMode: "contain" }}
               />
               <Text className="ml-1 text-[12px] font-bold text-[#FFA500]" style={{ fontFamily: "Poppins" }}>
@@ -124,12 +260,7 @@ export default function OverviewScreen() {
 
           {/* Stats */}
           <View className="flex-row justify-between mt-5">
-            {[
-              { label: "Acres", value: "2.5" },
-              { label: "Rooms", value: "15" },
-              { label: "Buildings", value: "3" },
-              { label: "Built", value: "2018" },
-            ].map((item, idx) => (
+            {stats.map((item, idx) => (
               <View key={idx} className="items-center">
                 <Text className="text-[14px] font-semibold" style={{ fontFamily: "Poppins" }}>
                   {item.value}
@@ -147,9 +278,7 @@ export default function OverviewScreen() {
               Description
             </Text>
             <Text className="text-[14px] text-[#00000091]" style={{ fontFamily: "Poppins" }}>
-              Luxurious resort property nestled in the heart of Araku’s tea plantations. Features
-              modern amenities, panoramic valley views, and excellent connectivity to major
-              attractions.
+              {getLocalizedText(property.description, currentLanguage) || 'No description available'}
             </Text>
           </View>
 

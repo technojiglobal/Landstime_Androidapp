@@ -1,3 +1,5 @@
+// Frontend/app/home/screens/Sites/SelectSite.jsx
+
 import React, { useState, useRef } from 'react';
 import {
   View,
@@ -11,7 +13,7 @@ import {
   Animated,
   PanResponder,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ChevronLeft,
   Search,
@@ -20,25 +22,27 @@ import {
   MapPin,
   ChevronRight,
 } from 'lucide-react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router'; // ✅ Added useLocalSearchParams
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
+// ✅ Use keys for areas
 const sitesData = [
-  { name: 'Akkayapalem', properties: 1247 },
-  { name: 'Anandapuram', properties: 892 },
-  { name: 'Boyapalem', properties: 2156 },
-  { name: 'Chinna Gadili', properties: 892 },
-  { name: 'Dwarka Nagar', properties: 445 },
-  { name: 'Gajuwaka', properties: 3021 },
-  { name: 'Kommadi', properties: 3021 },
+  { key: 'akkayapalem', properties: 1247 },
+  { key: 'anandapuram', properties: 892 },
+  { key: 'boyapalem', properties: 2156 },
+  { key: 'chinnagadili', properties: 892 },
+  { key: 'dwarkanagar', properties: 445 },
+  { key: 'gajuwaka', properties: 3021 },
+  { key: 'kommadi', properties: 3021 },
 ];
 
 const { width } = Dimensions.get('window');
 const itemWidth = width * 0.9;
 
 const SelectSiteScreen = () => {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { district } = useLocalSearchParams(); // ✅ Receive district from previous screen
+  const { t } = useTranslation();
+  const { districtKey } = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [contentHeight, setContentHeight] = useState(1);
   const [scrollViewHeight, setScrollViewHeight] = useState(0);
@@ -46,10 +50,11 @@ const SelectSiteScreen = () => {
   const scrollViewRef = useRef(null);
   const scrollPositionOnDragStart = useRef(0);
 
-  // Filter data based on search query
-  const filteredData = sitesData.filter((site) =>
-    site.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // ✅ Filter using translated names
+  const filteredData = sitesData.filter((site) => {
+    const translatedName = t(`areas.${site.key}`);
+    return translatedName.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   const scrollIndicatorHeight =
     scrollViewHeight > 0 ? ((scrollViewHeight / contentHeight) * scrollViewHeight) * 0.5 : 0;
@@ -90,7 +95,7 @@ const SelectSiteScreen = () => {
     })
   ).current;
 
-  const districtName = district || 'Vizag'; // fallback if no district is passed
+  const districtName = districtKey ? t(`districts.${districtKey}`) : t('districts.visakhapatnam');
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white', paddingTop: 8 }}>
@@ -99,13 +104,12 @@ const SelectSiteScreen = () => {
       {/* Header */}
       <View className="bg-white">
         <View className="flex-row items-center py-3 px-4">
-          <TouchableOpacity className="p-1" onPress={() => router.push('/home/screens/Resorts')}>
+          <TouchableOpacity className="p-1" onPress={() => router.push('/home/screens/Sites')}>
             <ChevronLeft color="black" size={25} />
           </TouchableOpacity>
 
-          {/* ✅ Dynamic district name */}
           <Text className="text-2xl font-bold ml-3">
-            Select Site from {districtName}
+            {t('selectSite.title')} {districtName}
           </Text>
         </View>
 
@@ -115,22 +119,16 @@ const SelectSiteScreen = () => {
             <Search color="#888" size={20} />
             <TextInput
               className="flex-1 text-base h-full ml-2"
-              placeholder={`Search properties in ${districtName}...`}
+              placeholder={`${t('selectSite.searchPlaceholder')} ${districtName}...`}
               placeholderTextColor="#888"
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
-            <TouchableOpacity
-              className="p-2"
-              onPress={() => router.push('/home/screens/Resorts/Voice')}
-            >
+            <TouchableOpacity className="p-2">
               <Mic color="#888" size={20} />
             </TouchableOpacity>
             <View className="w-px h-6 bg-gray-300 mx-2" />
-            <TouchableOpacity
-              className="p-2"
-              onPress={() => router.push('/home/screens/Resorts/Filter')}
-            >
+            <TouchableOpacity className="p-2">
               <SlidersHorizontal color="#888" size={20} />
             </TouchableOpacity>
           </View>
@@ -153,7 +151,7 @@ const SelectSiteScreen = () => {
           {filteredData.length === 0 && (
             <View style={{ padding: 20, alignItems: 'center' }}>
               <Text style={{ color: '#888', fontSize: 16 }}>
-                No properties found for "{searchQuery}"
+                {t('selectSite.noResults')} "{searchQuery}"
               </Text>
             </View>
           )}
@@ -161,22 +159,27 @@ const SelectSiteScreen = () => {
           {/* Site Items */}
           {filteredData.map((site) => (
             <TouchableOpacity
-              key={site.name}
+              key={site.key}
               style={[styles.siteItem, { borderLeftColor: '#22C55E', width: itemWidth }]}
               onPress={() =>
                 router.push({
                   pathname: '/home/screens/Sites/PropertyDetails',
-                  params: { area: site.name, district: districtName }, // ✅ Pass both
+                  params: { 
+                    areaKey: site.key,
+                    districtKey: districtKey
+                  },
                 })
               }
               activeOpacity={0.85}
             >
               <View className="flex-col">
-                <Text className="text-lg font-semibold text-gray-800">{site.name}</Text>
+                <Text className="text-lg font-semibold text-gray-800">
+                  {t(`areas.${site.key}`)}
+                </Text>
                 <View className="flex-row items-center mt-1">
                   <MapPin color="#22C55E" size={14} />
                   <Text className="text-sm text-gray-500 ml-1">
-                    {site.properties.toLocaleString()} properties available
+                    {site.properties.toLocaleString()} {t('selectDistrict.propertiesAvailable')}
                   </Text>
                 </View>
               </View>
@@ -202,7 +205,7 @@ const SelectSiteScreen = () => {
           <Animated.View
             {...panResponder.panHandlers}
             style={{
-              backgroundColor: '#22C55E',
+              backgroundColor: '#cbddd2ff',
               width: '100%',
               height: scrollIndicatorHeight,
               borderRadius: 4,
@@ -240,7 +243,6 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
     borderLeftWidth: 8,
     backgroundColor: '#fff',
-    
     elevation: 6,
   },
 });

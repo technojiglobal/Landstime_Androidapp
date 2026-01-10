@@ -1,5 +1,10 @@
-//Sites//PropertyDetails.jsx
-import React, { useRef, useState } from "react";
+
+
+
+
+
+// Frontend/app/home/screens/Sites/PropertyDetails.jsx
+import React, { useRef, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,105 +12,86 @@ import {
   Image,
   TouchableOpacity,
   Animated,
-  Dimensions,StatusBar
+  Dimensions,
+  StatusBar,
+  ActivityIndicator
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
-
+import { getApprovedProperties } from "../../../../utils/propertyApi";
+import { useTranslation } from "react-i18next";
+import i18n from "../../../../i18n/index";
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const CARD_WIDTH = 345;
 const CARD_HEIGHT = 298;
-
+// ✅ Helper function
+const getLocalizedText = (field, language) => {
+  if (!field) return '';
+  if (typeof field === 'string') return field;
+  return field[language] || field.en || field.te || field.hi || '';
+};
 export default function PropertyListScreen() {
   const scrollY = useRef(new Animated.Value(0)).current;
   const [contentHeight, setContentHeight] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const { area } = useLocalSearchParams();
+  const { t } = useTranslation();
+  const { areaKey, districtKey } = useLocalSearchParams();
+  const currentLanguage = i18n.language || 'en';
+  const areaName = areaKey ? t(`areas.${areaKey}`) : '';
+  // ✅ Fetch on mount
+  useEffect(() => {
+    fetchProperties();
+  }, [areaKey]);
+  // ✅ Refetch when language changes
+  useEffect(() => {
+    if (areaKey) {
+      fetchProperties();
+    }
+  }, [i18n.language]);
+const fetchProperties = async () => {
+  try {
+    setLoading(true);
+    console.log('🔍 Fetching SITES for areaKey:', areaKey);
+   
+    const currentLang = i18n.language || 'en';
+    console.log('🌐 Fetching in language:', currentLang);
+   
+    const response = await getApprovedProperties(null, 1, currentLang);
+   
+    if (response.success) {
+      console.log('✅ All properties fetched:', response.data);
+      // ✅ FILTER BY PROPERTY TYPE = "Site/Plot/Land"
+      const siteProperties = (response.data.data || []).filter(
+        property => property.propertyType === 'Site/Plot/Land'
+      );
+      console.log('✅ Sites filtered:', siteProperties.length);
+      setProperties(siteProperties);
+    } else {
+      console.error('❌ Failed to fetch properties:', response.error);
+    }
+  } catch (error) {
+    console.error('❌ Error:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
-  // All properties data mapped to locations
-  const allProperties = [
-    {
-      id: 1,
-      title: "Green Valley Site",
-      subtitle: "Residential Plot Development",
-      rating: 4.8,
-      reviews: 124,
-      location: "Akkayapalem",
-      price: "₹5L–45L",
-      image: require("../../../../assets/Flat1.jpg"),
-    },
-    {
-      id: 2,
-      title: "Palm Grove Plots",
-      subtitle: "Premium Land Parcels",
-      rating: 4.5,
-      reviews: 98,
-      location: "Anandapuram",
-      price: "₹8L–35L",
-      image: require("../../../../assets/Flat2.jpg"),
-    },
-    {
-      id: 3,
-      title: "Sunrise Estates",
-      subtitle: "Gated Community Plots",
-      rating: 4.6,
-      reviews: 156,
-      location: "Boyapalem",
-      price: "₹12L–60L",
-      image: require("../../../../assets/Flat3.jpg"),
-    },
-    {
-      id: 4,
-      title: "Heritage Gardens",
-      subtitle: "Villa Plots",
-      rating: 4.3,
-      reviews: 87,
-      location: "Chinna Gadili",
-      price: "₹6L–28L",
-      image: require("../../../../assets/Flat1.jpg"),
-    },
-    {
-      id: 5,
-      title: "Royal Enclave",
-      subtitle: "Premium Residential Land",
-      rating: 4.7,
-      reviews: 203,
-      location: "Dwarka Nagar",
-      price: "₹15L–75L",
-      image: require("../../../../assets/Flat2.jpg"),
-    },
-    {
-      id: 6,
-      title: "Metro Park Sites",
-      subtitle: "Investment Plots",
-      rating: 4.4,
-      reviews: 134,
-      location: "Gajuwaka",
-      price: "₹10L–50L",
-      image: require("../../../../assets/Flat3.jpg"),
-    },
-    {
-      id: 7,
-      title: "Coastal Paradise",
-      subtitle: "Beach Side Plots",
-      rating: 4.9,
-      reviews: 278,
-      location: "Kommadi",
-      price: "₹25L–1.5Cr",
-      image: require("../../../../assets/Flat1.jpg"),
-    },
-  ];
 
-  const filteredProperties = allProperties.filter(
-    (property) =>
-      property.location.toLowerCase() === String(area).toLowerCase() &&
-      property.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
+  // ✅ Filter by areaKey
+  const filteredProperties = properties.filter((property) => {
+    const propertyAreaKey = property.areaKey || '';
+    const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
+   
+    const matchesArea = propertyAreaKey === areaKey;
+    const matchesSearch = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
+   
+    return matchesArea && matchesSearch;
+  });
   const scrollbarHeight = SCREEN_HEIGHT * (SCREEN_HEIGHT / contentHeight) * 0.3;
-
   const scrollIndicator = Animated.multiply(
     scrollY,
     SCREEN_HEIGHT / contentHeight
@@ -114,19 +100,17 @@ export default function PropertyListScreen() {
     outputRange: [0, SCREEN_HEIGHT - scrollbarHeight],
     extrapolate: "clamp",
   });
-
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      
+     
       {/* Header */}
       <View className="flex-row items-center px-5 py-3">
-        <TouchableOpacity onPress={() => router.push("/home/screens/Sites")}>
+        <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text className="text-xl font-semibold ml-2">{area} Properties</Text>
+        <Text className="text-xl font-semibold ml-2">{areaName} Properties</Text>
       </View>
-
       <View style={{ flex: 1, flexDirection: "row" }}>
         {/* Scrollable Content */}
         <Animated.ScrollView
@@ -162,7 +146,6 @@ export default function PropertyListScreen() {
             <Ionicons name="mic-outline" size={18} />
             <Ionicons name="options-outline" size={18} style={{ marginLeft: 8 }} />
           </View>
-
           {/* Property Count */}
           <Text
             className="text-gray-400 text-sm mt-3 self-start"
@@ -175,14 +158,20 @@ export default function PropertyListScreen() {
               color: "#6B7280",
             }}
           >
-            {filteredProperties.length} properties found in {area}
+            {filteredProperties.length} properties found in {areaName}
           </Text>
-
-          {/* Property Cards */}
-          {filteredProperties.length > 0 ? (
+          {/* Loading Spinner */}
+          {loading ? (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 50 }}>
+              <ActivityIndicator size="large" color="#16A34A" />
+              <Text style={{ marginTop: 16, fontFamily: "Poppins-Regular", color: '#6B7280' }}>
+                Loading properties...
+              </Text>
+            </View>
+          ) : filteredProperties.length > 0 ? (
             filteredProperties.map((item, index) => (
               <View
-                key={item.id}
+                key={item._id}
                 style={{
                   width: CARD_WIDTH,
                   height: CARD_HEIGHT,
@@ -192,6 +181,7 @@ export default function PropertyListScreen() {
                   shadowColor: "#000",
                   shadowOffset: { width: 0, height: 6 },
                   shadowOpacity: 0.15,
+                  shadowRadius: 0.15,
                   shadowRadius: 6,
                   elevation: 6,
                   overflow: "hidden",
@@ -199,13 +189,23 @@ export default function PropertyListScreen() {
                   borderColor: "#E5E7EB",
                 }}
               >
-                {/* Image (Clickable) */}
+                {/* Image */}
                 <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => router.push("/home/screens/Sites/(Property)")}
-                >
+  activeOpacity={0.8}
+  onPress={() => {
+    console.log('🔍 Navigating to property:', item._id);
+    router.push({
+      pathname: '/home/screens/Sites/(Property)',
+      params: { propertyId: item._id }
+    });
+  }}
+>
                   <Image
-                    source={item.image}
+                    source={
+                      item.images && item.images.length > 0
+                        ? { uri: `http://10.37.92.184:8000/${item.images[0]}` }
+                        : require("../../../../assets/Flat1.jpg")
+                    }
                     style={{
                       width: CARD_WIDTH,
                       height: 163,
@@ -215,7 +215,6 @@ export default function PropertyListScreen() {
                     resizeMode="cover"
                   />
                 </TouchableOpacity>
-
                 {/* Bookmark Icon */}
                 <View
                   style={{
@@ -229,14 +228,19 @@ export default function PropertyListScreen() {
                 >
                   <Ionicons name="bookmark-outline" size={20} color="#16A34A" />
                 </View>
-
                 {/* Card Content */}
                 <View style={{ paddingHorizontal: 12, paddingTop: 10 }}>
-                  {/* Title (Clickable) */}
+                  {/* Title */}
                   <TouchableOpacity
-                    activeOpacity={0.6}
-                    onPress={() => router.push("/home/screens/Sites/(Property)")}
-                  >
+                   activeOpacity={0.6}
+  onPress={() => {
+    console.log('🔍 Navigating to property:', item._id);
+    router.push({
+      pathname: '/home/screens/Sites/(Property)',
+      params: { propertyId: item._id }
+    });
+  }}
+>
                     <Text
                       style={{
                         fontFamily: "Poppins-Medium",
@@ -246,10 +250,9 @@ export default function PropertyListScreen() {
                         marginTop: 5,
                       }}
                     >
-                      {item.title}
+                      {getLocalizedText(item.propertyTitle, currentLanguage) || 'Property'}
                     </Text>
                   </TouchableOpacity>
-
                   <View
                     style={{
                       flexDirection: "row",
@@ -266,14 +269,14 @@ export default function PropertyListScreen() {
                         maxWidth: "60%",
                       }}
                     >
-                      {item.subtitle}
+                      {item.propertyType || 'Property Type'}
                     </Text>
                     <Image
                       source={require("../../../../assets/verify.png")}
                       style={{ width: 45, height: 16, resizeMode: "contain", marginTop: 1 }}
                     />
                   </View>
-
+                  {/* Rating */}
                   <View
                     style={{
                       flexDirection: "row",
@@ -293,10 +296,10 @@ export default function PropertyListScreen() {
                         marginLeft: 6,
                       }}
                     >
-                      {item.rating} ({item.reviews} reviews)
+                      4.5 (0 reviews)
                     </Text>
                   </View>
-
+                  {/* Location */}
                   <View className="flex-row items-center mt-1">
                     <Image
                       source={require("../../../../assets/location.png")}
@@ -310,10 +313,10 @@ export default function PropertyListScreen() {
                         marginLeft: 4,
                       }}
                     >
-                      {item.location}
+                      {getLocalizedText(item.area, currentLanguage) || getLocalizedText(item.location, currentLanguage) || areaName}
                     </Text>
                   </View>
-
+                  {/* Price */}
                   <View
                     style={{
                       position: "absolute",
@@ -338,7 +341,7 @@ export default function PropertyListScreen() {
                           paddingTop: 2,
                         }}
                       >
-                        {item.price}
+                        ₹{item.expectedPrice ? (item.expectedPrice / 100000).toFixed(0) + 'L' : 'N/A'}
                       </Text>
                     </View>
                   </View>
@@ -353,32 +356,9 @@ export default function PropertyListScreen() {
                 justifyContent: "center",
                 paddingVertical: 80,
               }}
-            >
-              <Ionicons name="search-outline" size={64} color="#D1D5DB" />
-              <Text
-                style={{
-                  color: "#6B7280",
-                  fontSize: 16,
-                  marginTop: 16,
-                  fontFamily: "Poppins-Regular",
-                }}
-              >
-                No properties found
-              </Text>
-              <Text
-                style={{
-                  color: "#9CA3AF",
-                  fontSize: 14,
-                  marginTop: 8,
-                  fontFamily: "Poppins-Regular",
-                }}
-              >
-                Try adjusting your search
-              </Text>
-            </View>
+            ><Ionicons name="search-outline" size={64} color="#D1D5DB" /><Text style={{ color: "#6B7280", fontSize: 16, marginTop: 16, fontFamily: "Poppins-Regular", }} > No properties found </Text><Text style={{ color: "#9CA3AF", fontSize: 14, marginTop: 8, fontFamily: "Poppins-Regular", }} > Try adjusting your search </Text></View>
           )}
         </Animated.ScrollView>
-
         {/* Custom Green Scroll Bar */}
         <View
           style={{

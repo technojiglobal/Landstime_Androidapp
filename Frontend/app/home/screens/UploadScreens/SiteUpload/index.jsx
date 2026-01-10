@@ -1,6 +1,7 @@
 
 //Frontend//app/home/screens/UploadScreens/SiteUpload//index.jsx (new)
 import React, { useState } from "react";
+import {useTranslation } from "react-i18next"
 import {
   View,
   Text,
@@ -34,6 +35,8 @@ import { Linking,Platform } from "react-native";
 import OwnerDetails from "components/OwnersDetails";
 
 export default function UploadPropertyScreen() {
+
+  const {i18n} = useTranslation();
   const params = useLocalSearchParams();
   const [propertyType, setPropertyType] = useState("Site/Plot/Land");
   const [propertyTitle, setPropertyTitle] = useState(params.propertyTitle || "");
@@ -94,6 +97,12 @@ const [email, setEmail] = useState("");
   const [pickerAlertVisible, setPickerAlertVisible] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
   
+  const getUserLanguage = () => {
+    const currentLang = i18n.language || 'en';
+    console.log('📝 Current app language:', currentLang);
+    return currentLang;
+  };
+
   const toggleArray = (arr, setArr, item) => {
     if (arr.includes(item)) setArr(arr.filter((i) => i !== item));
     else setArr([...arr, item]);
@@ -320,60 +329,63 @@ const [email, setEmail] = useState("");
           })
         );
       }
-    const propertyData = {
+
+      
+const propertyData = {
   propertyType: "Site/Plot/Land",
   propertyTitle,
   location,
+  area: neighborhood,  // ✅ NOW sending the neighborhood name (like House)
   description,
+  originalLanguage: getUserLanguage(), // ✅ Store original language
   ownerDetails: {
     name: ownerName.trim(),
     phone: phone.trim(),
     email: email.trim(),
   },
-
   expectedPrice: parseFloat(expectedPrice),
   priceDetails: {
     allInclusive: selectedPrices.includes("All inclusive price"),
     negotiable: selectedPrices.includes("Price Negotiable"),
     taxExcluded: selectedPrices.includes("Tax and Govt.charges excluded")
   },
-siteDetails: {
-  neighborhood,              // UI-only, mongoose will ignore
-  area: area !== "" ? Number(area) : undefined,
-  areaUnit: unit,
-  length: length !== "" ? Number(length) : undefined,
-  breadth: breadth !== "" ? Number(breadth) : undefined,
-  floorsAllowed: floorsAllowed ? Number(floorsAllowed) : 0,
-  boundaryWall: boundaryWall === "Yes",
-  openSides: openSides ? Number(openSides) : 0,
-  constructionDone: constructionDone === "yes",
-  constructionType,
-  possessionBy,
-  ownership: ownership || "Freehold",
-  approvedBy,
-  amenities,
-  propertyFacing: propertyFacing || "East",
-  overlooking,
-  inGatedSociety: selectedOverlooking.includes("In a Gated Society"),
-  cornerProperty: selectedOverlooking.includes("Corner Property"),
-  locationAdvantages,
-  roadWidth: roadWidth ? Number(roadWidth) : 0,
-  roadWidthUnit: roadUnit,
-  vaasthuDetails: {
-    plotFacing,
-    mainEntryDirection,
-    plotSlope,
-    openSpace,
-    plotShape,
-    roadPosition,
-    waterSource,
-    drainageDirection,
-    compoundWallHeight,
-    existingStructures
+  siteDetails: {
+    area: area !== "" ? Number(area) : undefined,  // ✅ This is the sqft numeric value
+    areaUnit: unit,
+    length: length !== "" ? Number(length) : undefined,
+    breadth: breadth !== "" ? Number(breadth) : undefined,
+    floorsAllowed: floorsAllowed ? Number(floorsAllowed) : 0,
+    boundaryWall: boundaryWall === "Yes",
+    openSides: openSides ? Number(openSides) : 0,
+    constructionDone: constructionDone === "yes",
+    constructionType,
+    possessionBy,
+    ownership: ownership || "Freehold",
+    approvedBy,
+    amenities,
+    propertyFacing: propertyFacing || "East",
+    overlooking,
+    inGatedSociety: selectedOverlooking.includes("In a Gated Society"),
+    cornerProperty: selectedOverlooking.includes("Corner Property"),
+    locationAdvantages,
+    roadWidth: roadWidth ? Number(roadWidth) : 0,
+    roadWidthUnit: roadUnit,
+    vaasthuDetails: {
+      plotFacing,
+      mainEntryDirection,
+      plotSlope,
+      openSpace,
+      plotShape,
+      roadPosition,
+      waterSource,
+      drainageDirection,
+      compoundWallHeight,
+      existingStructures
+    }
   }
-}
-
 };
+
+
 
 console.log('📡 Calling createProperty API...');
 console.log('📋 Final property data:', JSON.stringify(propertyData, null, 2));
