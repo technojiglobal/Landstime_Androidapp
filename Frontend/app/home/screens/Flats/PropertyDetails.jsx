@@ -69,7 +69,7 @@ useEffect(() => {
 const fetchProperties = async () => {
   try {
     setLoading(true);
-    console.log('🔍 Fetching properties for areaKey:', areaKey);
+    console.log('🔍 Fetching HOUSES for areaKey:', areaKey);
     
     // ✅ Get current language from i18next (not AsyncStorage)
     const currentLang = i18n.language || 'en';
@@ -79,7 +79,12 @@ const fetchProperties = async () => {
     
     if (response.success) {
       console.log('✅ All properties fetched:', response.data);
-      setProperties(response.data.data || []);
+      // ✅ FILTER BY PROPERTY TYPE = "House"
+      const houseProperties = (response.data.data || []).filter(
+        property => property.propertyType === 'House'
+      );
+      console.log('✅ Houses filtered:', houseProperties.length);
+      setProperties(houseProperties);
     } else {
       console.error('❌ Failed to fetch properties:', response.error);
     }

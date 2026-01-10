@@ -103,6 +103,44 @@ if (propertyData.propertyType === "House") {
   });
 }
 
+// ✅ ADD THIS NEW CODE FOR SITE/PLOT/LAND PROPERTIES
+if (propertyData.propertyType === "Site/Plot/Land") {
+  finalData.location = propertyData.location;
+  finalData.area = propertyData.area; // This is the neighborhood name from frontend
+  
+  console.log('🏞️ Site property data:', {
+    location: finalData.location,
+    area: finalData.area,
+    sqft: propertyData.siteDetails?.area
+  });
+  
+  finalData.siteDetails = {
+    area: propertyData.siteDetails?.area !== "" ? Number(propertyData.siteDetails.area) : undefined,
+    areaUnit: propertyData.siteDetails?.areaUnit,
+    length: propertyData.siteDetails?.length !== "" ? Number(propertyData.siteDetails.length) : undefined,
+    breadth: propertyData.siteDetails?.breadth !== "" ? Number(propertyData.siteDetails.breadth) : undefined,
+    floorsAllowed: propertyData.siteDetails?.floorsAllowed ? Number(propertyData.siteDetails.floorsAllowed) : 0,
+    boundaryWall: propertyData.siteDetails?.boundaryWall,
+    openSides: propertyData.siteDetails?.openSides ? Number(propertyData.siteDetails.openSides) : 0,
+    constructionDone: propertyData.siteDetails?.constructionDone,
+    constructionType: propertyData.siteDetails?.constructionType || [],
+    possessionBy: propertyData.siteDetails?.possessionBy,
+    ownership: propertyData.siteDetails?.ownership || "Freehold",
+    approvedBy: propertyData.siteDetails?.approvedBy || [],
+    amenities: propertyData.siteDetails?.amenities || [],
+    propertyFacing: propertyData.siteDetails?.propertyFacing || "East",
+    overlooking: propertyData.siteDetails?.overlooking || [],
+    inGatedSociety: propertyData.siteDetails?.inGatedSociety || false,
+    cornerProperty: propertyData.siteDetails?.cornerProperty || false,
+    locationAdvantages: propertyData.siteDetails?.locationAdvantages || [],
+    roadWidth: propertyData.siteDetails?.roadWidth ? Number(propertyData.siteDetails.roadWidth) : 0,
+    roadWidthUnit: propertyData.siteDetails?.roadWidthUnit,
+    vaasthuDetails: propertyData.siteDetails?.vaasthuDetails || {}
+  };
+}
+
+
+
 if (propertyData.propertyType === "Commercial") {
   // Commercial handling code...
   const { commercialDetails } = propertyData;
