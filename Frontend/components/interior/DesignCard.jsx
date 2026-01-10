@@ -20,7 +20,8 @@ import star3d from "../../assets/star-3d.png";
 import profileImg from "../../assets/profile.jpg";
 import { API_URL } from '../../utils/apiConfig';
 
-const BASE_URL = API_URL;
+
+const BASE_URL = `${process.env.EXPO_PUBLIC_IP_ADDRESS}`;
 
 
 
