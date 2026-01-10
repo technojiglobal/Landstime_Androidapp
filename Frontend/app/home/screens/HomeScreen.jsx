@@ -1,23 +1,18 @@
 // Frontend/app/home/screens/HomeScreen.jsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { changeLanguage } from "../../../i18n/index";
-import axios from "axios";
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
-  ImageBackground,
   Image,
   TextInput,
   Modal,
   FlatList,
   Pressable,
-  ActivityIndicator,
-  Linking,
-  useWindowDimensions,
-  Animated
+  RefreshControl,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { StyleSheet } from "react-native";
@@ -26,64 +21,58 @@ import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useResponsive } from "../../../utils/responsive";
 import { useNotifications } from "../../../context/NotificationContext";
-import bell from "../../../assets/Bell-icon.png";
-const API_URL = process.env.EXPO_PUBLIC_IP_ADDRESS
+import BannerCarousel from "./BannerCarousel";
+
+
 export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
   const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalBox: {
-    backgroundColor: "white",
-    width: "90%",
-    borderRadius: 16,
-    padding: 16,
-    maxHeight: "80%",
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  languageButton: {
-    width: "48%",
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    marginBottom: 10,
-    position: "relative",
-  },
-  languageButtonSelected: {
-    borderColor: "#22C55E",
-    backgroundColor: "rgba(34,197,94,0.1)",
-  },
-  languageButtonDisabled: {
-    backgroundColor: "#f3f4f6",
-  },
-  languageText: {
-    fontSize: 14,
-    textAlign: "center",
-  },
-  dot: {
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#22C55E",
-    marginHorizontal: 4,
-  },
-});
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.4)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalBox: {
+      backgroundColor: "white",
+      width: "90%",
+      borderRadius: 16,
+      padding: 16,
+      maxHeight: "80%",
+    },
+    modalHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 12,
+    },
+    modalTitle: {
+      fontSize: 16,
+      fontWeight: "bold",
+    },
+    languageButton: {
+      width: "48%",
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: "#e5e7eb",
+      marginBottom: 10,
+      position: "relative",
+    },
+    languageButtonSelected: {
+      borderColor: "#22C55E",
+      backgroundColor: "rgba(34,197,94,0.1)",
+    },
+    languageButtonDisabled: {
+      backgroundColor: "#f3f4f6",
+    },
+    languageText: {
+      fontSize: 14,
+      textAlign: "center",
+    },
+  });
 
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
   const { scaleWidth, scaleHeight } = useResponsive();
   const { t, i18n } = useTranslation();
   const router = useRouter();
@@ -93,12 +82,7 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
 
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState(i18n.language.toUpperCase());
-  const [banners, setBanners] = useState([]);
-  const [bannerLoading, setBannerLoading] = useState(true);
-  const [activeBannerIndex, setActiveBannerIndex] = useState(0);
-const flatListRef = useRef(null);
-const isFetchingRef = useRef(false);
-const [isRefreshing, setIsRefreshing] = useState(false); // ✅ Add this
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Helper functions for font sizing
   const getFontSize = (baseSize) => {
@@ -123,24 +107,7 @@ const [isRefreshing, setIsRefreshing] = useState(false); // ✅ Add this
     const currentLang = i18n.language.toUpperCase();
     setSelectedLanguage(currentLang);
   }, [i18n.language]);
-useEffect(() => {
-  if (banners.length <= 1) return;
 
-  const interval = setInterval(() => {
-    setActiveBannerIndex((prevIndex) => {
-      const nextIndex = (prevIndex + 1) % banners.length;
-      
-      flatListRef.current?.scrollToIndex({
-        index: nextIndex,
-        animated: true,
-      });
-      
-      return nextIndex;
-    });
-  }, 4000); // Change every 4 seconds
-
-  return () => clearInterval(interval);
-}, [banners.length]);
   // Force re-render when language changes
   useEffect(() => {
     const handleLanguageChange = () => {
@@ -170,38 +137,7 @@ useEffect(() => {
     { code: "ja", label: "日本語", enabled: false },
     { code: "bn", label: "বাংলা", enabled: false },
   ];
- const fetchBanners = async () => {
-  try {
-    setBannerLoading(true);
-    const currentLang = i18n.language || 'en';
-    
-    const response = await axios.get(`${API_URL}/api/banners/active`, {
-      params: { language: currentLang }
-    });
 
-    if (response.data.success && Array.isArray(response.data.data)) {
-      setBanners(response.data.data);
-    } else {
-      setBanners([{
-        title: t('home_banner_title'),
-        subtitle: t('home_banner_subtitle'),
-        image: null
-      }]);
-    }
-  } catch (error) {
-    console.error('Error fetching banners:', error);
-    setBanners([{
-      title: t('home_banner_title'),
-      subtitle: t('home_banner_subtitle'),
-      image: null
-    }]);
-  } finally {
-    setBannerLoading(false);
-  }
-};
-useEffect(() => {
-  fetchBanners();
-}, [i18n.language]);
   const categories = [
     { 
       key: 'Sites',
@@ -254,203 +190,37 @@ useEffect(() => {
     router.push("/home/screens/Notifications");
   };
 
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    // Banner refresh is handled internally by BannerCarousel component
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsRefreshing(false);
+  };
+
   return (
     <View className="flex-1 bg-black">
-      <View 
+      <ScrollView 
         className="flex-1 bg-white" 
         style={{ 
           marginTop: insets.top,
-          //marginBottom: insets.bottom  
         }}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+        }
       >
-        {/* Banner Carousel */}
-        <View style={{ height: scaleHeight(300) }}>
-          {bannerLoading ? (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-              <ActivityIndicator size="large" color="white" />
-            </View>
-          ) : (
-            <>
-              <FlatList
-               ref={flatListRef}
-                data={banners}
-                renderItem={({ item: banner }) => (
-                  <ImageBackground
-                    source={
-                      banner?.image
-                        ? { uri: banner.image }
-                        : require("../../../assets/homescreen_banner.png")
-                    }
-                    resizeMode="cover"
-                    style={{ width: width, height: scaleHeight(300), justifyContent: "center" }}
-                  >
-                    {/* Hamburger */}
-                    {!sidebarOpen && (
-                      <TouchableOpacity
-                        onPress={toggleSidebar}
-                        style={{
-                          position: "absolute",
-                          top: scaleHeight(4),
-                          left: 20,
-                          zIndex: 20,
-                        }}
-                      >
-                        <Ionicons name="menu" size={scaleWidth(28)} color="white" />
-                      </TouchableOpacity>
-                    )}
-
-                    {/* Notification with Badge */}
-                    <TouchableOpacity
-                      onPress={handleNotificationPress}
-                      style={{
-                        position: "absolute",
-                        top: scaleHeight(10),
-                        right: 20,
-                        backgroundColor: "white",
-                        width: scaleWidth(36),
-                        height: scaleWidth(36),
-                        borderRadius: 18,
-                        justifyContent: "center",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Image source={bell} style={{ width: 18, height: 18 }} />
-
-                      {/* Badge */}
-                      {unreadCount > 0 && (
-                        <View
-                          style={{
-                            position: "absolute",
-                            top: -4,
-                            right: -4,
-                            backgroundColor: "#EF4444",
-                            borderRadius: 10,
-                            minWidth: 20,
-                            height: 20,
-                            justifyContent: "center",
-                            alignItems: "center",
-                            paddingHorizontal: 4,
-                            borderWidth: 2,
-                            borderColor: "white",
-                          }}
-                        >
-                          <Text
-                            style={{
-                              color: "white",
-                              fontSize: 10,
-                              fontWeight: "bold",
-                            }}
-                          >
-                            {unreadCount > 99 ? "99+" : unreadCount}
-                          </Text>
-                        </View>
-                      )}
-
-                      {/* Loading indicator */}
-                      {notificationLoading && (
-                        <View
-                          style={{
-                            position: "absolute",
-                            top: -2,
-                            right: -2,
-                          }}
-                        >
-                          <ActivityIndicator size="small" color="#22C55E" />
-                        </View>
-                      )}
-                    </TouchableOpacity>
-                    
-                    <Text
-                      className="text-white font-bold ml-6 mt-1"
-                      style={{
-                        fontSize: getFontSize(24),
-                        lineHeight: getLineHeight() + 8,
-                      }}
-                    >
-                      {banner?.title || t('home_banner_title')}
-                    </Text>
-                    <Text
-                      className="text-white font-semibold ml-6 mt-2"
-                      style={{
-                        fontSize: getFontSize(16),
-                        lineHeight: getLineHeight(),
-                      }}
-                    >
-                      {banner?.subtitle || t('home_banner_subtitle')}
-                    </Text>
-
-                    {/* CTA Button */}
-                    {banner?.ctaText && banner?.ctaLink && (
-                      <TouchableOpacity
-                        onPress={async () => {
-                          try {
-                            const supported = await Linking.canOpenURL(banner.ctaLink);
-                            if (supported) {
-                              await Linking.openURL(banner.ctaLink);
-                            } else {
-                              console.warn(`Don't know how to open this URL: ${banner.ctaLink}`);
-                            }
-                          } catch (error) {
-                            console.error('Failed to open link:', error);
-                          }
-                        }}
-                        style={{
-                          backgroundColor: '#22C55E',
-                          paddingHorizontal: 20,
-                          paddingVertical: 10,
-                          borderRadius: 25,
-                          alignSelf: 'flex-start',
-                          marginLeft: 24,
-                          marginTop: 16,
-                          shadowColor: '#000',
-                          shadowOffset: { width: 0, height: 2 },
-                          shadowOpacity: 0.3,
-                          shadowRadius: 4,
-                          elevation: 5,
-                        }}
-                      >
-                        <Text style={{ color: 'white', fontWeight: 'bold', fontSize: getFontSize(14) }}>
-                          {banner.ctaText}
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-                  </ImageBackground>
-                )}
-                keyExtractor={(item) => item._id}
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                onScroll={({ nativeEvent }) => {
-  const slide = Math.ceil(nativeEvent.contentOffset.x / nativeEvent.layoutMeasurement.width);
-  if (slide !== activeBannerIndex) {
-    setActiveBannerIndex(slide);
-  }
-}}
-onScrollToIndexFailed={(info) => {
-  const wait = new Promise(resolve => setTimeout(resolve, 500));
-  wait.then(() => {
-    flatListRef.current?.scrollToIndex({ index: info.index, animated: true });
-  });
-}}
-              />
-              {/* Pagination Dots */}
-              <View style={{ flexDirection: 'row', position: 'absolute', bottom: 10, alignSelf: 'center' }}>
-                {banners.map((_, index) => (
-                  <View
-                    key={index}
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: 4,
-                      backgroundColor: activeBannerIndex === index ? 'white' : 'gray',
-                      margin: 3,
-                    }}
-                  />
-                ))}
-              </View>
-            </>
-          )}
-        </View>
+        {/* Banner Carousel Component */}
+        <BannerCarousel
+          toggleSidebar={toggleSidebar}
+          sidebarOpen={sidebarOpen}
+          handleNotificationPress={handleNotificationPress}
+          unreadCount={unreadCount}
+          notificationLoading={notificationLoading}
+          scaleHeight={scaleHeight}
+          scaleWidth={scaleWidth}
+          getFontSize={getFontSize}
+          getLineHeight={getLineHeight}
+          refreshCount={refreshCount}
+        />
 
         {/* Search Bar */}
         <View className="flex-row items-center bg-white mx-10 mt-[-40] p-2 rounded-xl shadow-md z-10">
@@ -620,32 +390,7 @@ onScrollToIndexFailed={(info) => {
             </View>
           </View>
         </Modal>
-      </View>
+      </ScrollView>
     </View>
   );
 }
-
-const Paginator = ({ data, scrollX }) => {
-  const { width } = useWindowDimensions();
-  return (
-    <View style={{ flexDirection: 'row', height: 64 }}>
-      {data.map((_, i) => {
-        const inputRange = [(i - 1) * width, i * width, (i + 1) * width];
-
-        const dotWidth = scrollX.interpolate({
-          inputRange,
-          outputRange: [10, 20, 10],
-          extrapolate: 'clamp',
-        });
-
-        const opacity = scrollX.interpolate({
-          inputRange,
-          outputRange: [0.3, 1, 0.3],
-          extrapolate: 'clamp',
-        });
-
-        return <Animated.View style={[styles.dot, { width: dotWidth, opacity }]} key={i.toString()} />;
-      })}
-    </View>
-  );
-};

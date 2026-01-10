@@ -69,7 +69,7 @@ useEffect(() => {
 const fetchProperties = async () => {
   try {
     setLoading(true);
-    console.log('🔍 Fetching properties for areaKey:', areaKey);
+    console.log('🔍 Fetching HOUSES for areaKey:', areaKey);
     
     // ✅ Get current language from i18next (not AsyncStorage)
     const currentLang = i18n.language || 'en';
@@ -78,8 +78,18 @@ const fetchProperties = async () => {
     const response = await getApprovedProperties(null, 1, currentLang);
     
     if (response.success) {
+<<<<<<< HEAD
      // console.log('✅ All properties fetched:', response.data);
       setProperties(response.data.data || []);
+=======
+      console.log('✅ All properties fetched:', response.data);
+      // ✅ FILTER BY PROPERTY TYPE = "House"
+      const houseProperties = (response.data.data || []).filter(
+        property => property.propertyType === 'House'
+      );
+      console.log('✅ Houses filtered:', houseProperties.length);
+      setProperties(houseProperties);
+>>>>>>> 135ff17428121f1520ca5af3ef885a2593302469
     } else {
       console.error('❌ Failed to fetch properties:', response.error);
     }
@@ -219,20 +229,20 @@ const filteredProperties = properties.filter((property) => {
                 
 
 
-                  <Image
-                    source={
-                      item.images && item.images.length > 0
-                        ? { uri: `${process.env.EXPO_PUBLIC_IP_ADDRESS}/${item.images[0]}` }
-                        : require("../../../../assets/Flat1.jpg")
-                    }
-                    style={{
-                      width: CARD_WIDTH,
-                      height: 163,
-                      borderTopLeftRadius: 17,
-                      borderTopRightRadius: 17,
-                    }}
-                    resizeMode="cover"
-                  />
+                 <Image
+  source={
+    item.images && item.images.length > 0
+      ? { uri: item.images[0] }  // ✅ CHANGED: Removed IP address prefix for base64
+      : require("../../../../assets/Flat1.jpg")
+  }
+  style={{
+    width: CARD_WIDTH,
+    height: 163,
+    borderTopLeftRadius: 17,
+    borderTopRightRadius: 17,
+  }}
+  resizeMode="cover"
+/>
                 </TouchableOpacity>
 
                 {/* Bookmark Icon */}
