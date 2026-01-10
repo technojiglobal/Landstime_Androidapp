@@ -800,7 +800,7 @@ export default function PropertyListScreen() {
                   <Image
                     source={
                       item.images && item.images.length > 0
-                        ? { uri: `http://10.37.92.184:8000/${item.images[0]}` }
+                        ? { uri: `10.10.2.144/${item.images[0]}` }
                         : require("../../../../assets/Flat1.jpg")
                     }
                     style={{

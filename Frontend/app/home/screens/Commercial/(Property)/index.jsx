@@ -365,7 +365,7 @@ export default function OverviewScreen() {
             <Image
               source={
                 property.images && property.images.length > 0
-                  ? { uri: `http://10.37.92.184:8000/${property.images[0]}` }
+                  ? { uri: `${process.env.EXPO_PUBLIC_IP_ADDRESS}/${property.images[0]}` }
                   : require("../../../../../assets/CommercialHub.jpg")
               }
               className="rounded-[17px]"

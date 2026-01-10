@@ -1181,6 +1181,9 @@ export const adminUpdateProperty = async (req, res) => {
       });
     }
    
+    // ✅ ADD THIS LINE - Define updateData from request body
+    const updateData = req.body;
+   
     const updatedProperty = await Property.findByIdAndUpdate(
       req.params.id,
       { $set: updateData },
