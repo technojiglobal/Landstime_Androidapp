@@ -74,7 +74,8 @@ export const uploadPropertyImages = async (propertyId, imageFiles) => {
 };
 
 // Delete property image
-export const deletePropertyImage = async (propertyId, imagePath) => {
+// Delete property image
+export const deletePropertyImage = async (propertyId, imageIndex) => {
   try {
     const response = await fetch(
       `${import.meta.env.VITE_API_URL}/api/properties/admin/${propertyId}/delete-image`,
@@ -84,7 +85,7 @@ export const deletePropertyImage = async (propertyId, imagePath) => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('adminToken')}`
         },
-        body: JSON.stringify({ imagePath })
+        body: JSON.stringify({ imageIndex })  // ✅ FIXED: Send index, not path
       }
     );
     
@@ -124,7 +125,8 @@ export const uploadPropertyDocuments = async (propertyId, documentFiles, documen
 };
 
 // Delete property document
-export const deletePropertyDocument = async (propertyId, documentPath, documentType) => {
+// Delete property document
+export const deletePropertyDocument = async (propertyId, documentIndex, documentType) => {
   try {
     const response = await fetch(
       `${import.meta.env.VITE_API_URL}/api/properties/admin/${propertyId}/delete-document`,
@@ -134,7 +136,7 @@ export const deletePropertyDocument = async (propertyId, documentPath, documentT
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('adminToken')}`
         },
-        body: JSON.stringify({ documentPath, documentType })
+        body: JSON.stringify({ documentIndex, documentType })
       }
     );
     
