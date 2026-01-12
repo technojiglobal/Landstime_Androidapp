@@ -1,0 +1,58 @@
+// Backend/middleware/uploadMiddleware.js
+import multer from 'multer';
+
+// Use memory storage instead of disk storage
+const storage = multer.memoryStorage();
+
+const allowedTypes = [
+  'image/jpeg',
+  'image/png',
+  'image/jpg',
+  'application/pdf'
+];
+
+const fileFilter = (req, file, cb) => {
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only JPG, PNG, or PDF files are allowed'), false);
+  }
+};
+
+// Middleware to upload multiple images (max 10)
+export const uploadImages = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+}).fields([
+  { name: 'images', maxCount: 10 },
+  { name: 'ownershipDocs', maxCount: 5 },
+  { name: 'identityDocs', maxCount: 5 }
+]);
+
+// Error handling middleware for multer
+export const handleUploadError = (err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({
+        success: false,
+        message: 'File size too large. Max 5MB per file.'
+      });
+    }
+    if (err.code === 'LIMIT_FILE_COUNT') {
+      return res.status(400).json({
+        success: false,
+        message: 'Too many files. Max 10 images allowed.'
+      });
+    }
+  }
+
+  if (err) {
+    return res.status(400).json({
+      success: false,
+      message: err.message
+    });
+  }
+
+  next();
+};
