@@ -3,6 +3,7 @@ import StatCard from "../components/properties/StatCard";
 import PropertyModal from "../components/properties/PropertyModal";
 import Toast from "../components/UserManagement/Toast";
 import Loading from "../components/Loading";
+import PropertyUploadModal from "../components/properties/PropertyUploadModal";
 import {
   Search,
   Eye,
@@ -36,6 +37,7 @@ const getTranslatedText = (value, fallback = 'N/A') => {
 };
 
 export default function Properties() {
+const [isUploadModalOpen, setIsUploadModalOpen] = useState(true);
 const [properties, setProperties] = useState([]);
 const [search, setSearch] = useState("");
 const [pageSize, setPageSize] = useState(30);
@@ -244,11 +246,16 @@ const [filterApprovalStatus, setFilterApprovalStatus] = useState("All");
       {/* Upload Button */}
       <div className="flex justify-end">
         <button
-          onClick={() => alert("Upload Property Clicked")}
+          onClick={() => setIsUploadModalOpen(true)}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
         >
           <Plus size={16} /> Upload Property
         </button>
+        <PropertyUploadModal
+      isOpen={isUploadModalOpen}
+      onClose={() => setIsUploadModalOpen(false)}
+      onSubmit={handlePropertySubmit}
+    />
       </div>
 
     {/* Search + Filters + Page Size */}
