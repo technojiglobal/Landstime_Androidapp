@@ -1,13 +1,25 @@
 // Landstime_Androidapp/admin/src/components/properties/PropertyModal.jsx
-import { X, FileText, Download, Edit2, Save, Upload, Trash2 } from "lucide-react";
+import { X, FileText, Download, Edit2, Upload, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { translateText } from "../../services/translationService"; // Add this line
+import { translateText } from "../../services/translationService";
+
 import {
   uploadPropertyImages,
   deletePropertyImage,
   uploadPropertyDocuments,
   deletePropertyDocument
 } from "../../services/propertyService";
+
+// Helper to get English text from multilingual object
+const getEnglishText = (field, fallback = 'N/A') => {
+  if (!field) return fallback;
+  if (typeof field === 'string') return field;
+  if (typeof field === 'object') {
+    return field.en || field.te || field.hi || fallback;
+  }
+  return fallback;
+};
+
 export default function PropertyModal({ property, onClose, onUpdate }) {
   const safeDescription =
     typeof property.description === "string"
@@ -27,12 +39,8 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
       typeof property.price === "string"
         ? property.price.replace("₹", "")
         : property.price || "",
-    location: typeof property.raw.location === 'string'
-      ? property.raw.location
-      : property.raw.location?.en || '',
-    area: typeof property.raw.area === 'string' 
-      ? property.raw.area 
-      : property.raw.area?.en || '',
+   location: getEnglishText(property.raw.location, ''),
+    area: getEnglishText(property.raw.area, ''),
     // Owner details
     'ownerDetails.name': property.raw.ownerDetails?.name || '',
     'ownerDetails.email': property.raw.ownerDetails?.email || '',
@@ -61,12 +69,34 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
       ),
     }),
     // Site details
-    ...(property.raw.siteDetails && {
-      'siteDetails.area': property.raw.siteDetails.area || '',
-      'siteDetails.length': property.raw.siteDetails.length || '',
-      'siteDetails.breadth': property.raw.siteDetails.breadth || '',
-      'siteDetails.floorsAllowed': property.raw.siteDetails.floorsAllowed || '',
-    }),
+ 
+...(property.raw.siteDetails && {
+  'siteDetails.area': property.raw.siteDetails.area || '',
+  'siteDetails.length': property.raw.siteDetails.length || '',
+  'siteDetails.breadth': property.raw.siteDetails.breadth || '',
+  'siteDetails.floorsAllowed': property.raw.siteDetails.floorsAllowed || '',
+  'siteDetails.boundaryWall': property.raw.siteDetails.boundaryWall ? 'Yes' : 'No',
+  'siteDetails.openSides': property.raw.siteDetails.openSides || '',
+  'siteDetails.roadWidth': property.raw.siteDetails.roadWidth || '',
+  'siteDetails.propertyFacing': property.raw.siteDetails.propertyFacing || '',
+  'siteDetails.constructionDone': property.raw.siteDetails.constructionDone ? 'Yes' : 'No',
+  'siteDetails.constructionType': property.raw.siteDetails.constructionType?.join(', ') || '',
+  'siteDetails.possessionBy': property.raw.siteDetails.possessionBy || '',
+  'siteDetails.ownership': property.raw.siteDetails.ownership || '',
+  'siteDetails.approvedBy': property.raw.siteDetails.approvedBy?.join(', ') || '',
+  'siteDetails.inGatedSociety': property.raw.siteDetails.inGatedSociety ? 'Yes' : 'No',
+  'siteDetails.cornerProperty': property.raw.siteDetails.cornerProperty ? 'Yes' : 'No',
+  'siteDetails.amenities': property.raw.siteDetails.amenities?.join(', ') || '',
+  'siteDetails.overlooking': property.raw.siteDetails.overlooking?.join(', ') || '',
+  'siteDetails.locationAdvantages': property.raw.siteDetails.locationAdvantages?.join(', ') || '',
+  // ADD VASTU DETAILS
+  ...(property.raw.siteDetails.vaasthuDetails && 
+    Object.keys(property.raw.siteDetails.vaasthuDetails).reduce((acc, key) => {
+      acc[`siteDetails.vaasthuDetails.${key}`] = property.raw.siteDetails.vaasthuDetails[key] || '';
+      return acc;
+    }, {})
+  ),
+}),
     // Commercial details
     ...(property.raw.commercialDetails?.officeDetails && {
       'commercialDetails.officeDetails.area': property.raw.commercialDetails.officeDetails.carpetArea || '',
@@ -135,14 +165,43 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
           }
         };
       }
-      else if (property.type === 'Site/Plot/Land' || property.raw.propertyType === 'Site/Plot/Land') {
-        formattedData.siteDetails = {
-          area: parseFloat(editData['siteDetails.area']) || 0,
-          length: parseFloat(editData['siteDetails.length']) || 0,
-          breadth: parseFloat(editData['siteDetails.breadth']) || 0,
-          floorsAllowed: parseInt(editData['siteDetails.floorsAllowed']) || 0,
-        };
-      }
+
+ else if (property.type === 'Site/Plot/Land' || property.raw.propertyType === 'Site/Plot/Land') {
+  formattedData.siteDetails = {
+    area: parseFloat(editData['siteDetails.area']) || 0,
+    length: parseFloat(editData['siteDetails.length']) || 0,
+    breadth: parseFloat(editData['siteDetails.breadth']) || 0,
+    floorsAllowed: parseInt(editData['siteDetails.floorsAllowed']) || 0,
+    boundaryWall: editData['siteDetails.boundaryWall'] === 'Yes',
+    openSides: parseInt(editData['siteDetails.openSides']) || 0,
+    roadWidth: parseFloat(editData['siteDetails.roadWidth']) || 0,
+    propertyFacing: editData['siteDetails.propertyFacing'] || '',
+    constructionDone: editData['siteDetails.constructionDone'] === 'Yes',
+    constructionType: editData['siteDetails.constructionType']?.split(',').map(s => s.trim()).filter(Boolean) || [],
+    possessionBy: editData['siteDetails.possessionBy'] || '',
+    ownership: editData['siteDetails.ownership'] || '',
+    approvedBy: editData['siteDetails.approvedBy']?.split(',').map(s => s.trim()).filter(Boolean) || [],
+    inGatedSociety: editData['siteDetails.inGatedSociety'] === 'Yes',
+    cornerProperty: editData['siteDetails.cornerProperty'] === 'Yes',
+    amenities: editData['siteDetails.amenities']?.split(',').map(s => s.trim()).filter(Boolean) || [],
+    overlooking: editData['siteDetails.overlooking']?.split(',').map(s => s.trim()).filter(Boolean) || [],
+    locationAdvantages: editData['siteDetails.locationAdvantages']?.split(',').map(s => s.trim()).filter(Boolean) || [],
+    // ADD VASTU DETAILS
+    vaasthuDetails: {
+      plotFacing: editData['siteDetails.vaasthuDetails.plotFacing'] || '',
+      mainEntryDirection: editData['siteDetails.vaasthuDetails.mainEntryDirection'] || '',
+      plotSlope: editData['siteDetails.vaasthuDetails.plotSlope'] || '',
+      openSpace: editData['siteDetails.vaasthuDetails.openSpace'] || '',
+      plotShape: editData['siteDetails.vaasthuDetails.plotShape'] || '',
+      roadPosition: editData['siteDetails.vaasthuDetails.roadPosition'] || '',
+      waterSource: editData['siteDetails.vaasthuDetails.waterSource'] || '',
+      drainageDirection: editData['siteDetails.vaasthuDetails.drainageDirection'] || '',
+      compoundWallHeight: editData['siteDetails.vaasthuDetails.compoundWallHeight'] || '',
+      existingStructures: editData['siteDetails.vaasthuDetails.existingStructures'] || '',
+    }
+  };
+}
+
       else if (property.type === 'Commercial' || property.raw.propertyType === 'Commercial') {
         formattedData.commercialDetails = {
           officeDetails: {
@@ -180,9 +239,12 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
           }
         };
       }
-      console.log('💾 Sending update data:', formattedData);
+       console.log('💾 Sending update data:', formattedData);
       await onUpdate(property.id, formattedData);
       setIsEditing(false);
+      
+      // ✅ Show success message
+      alert('✅ Property updated successfully!');
     } catch (error) {
       console.error('❌ Save error:', error);
       alert('Failed to update property: ' + (error.response?.data?.message || error.message));
@@ -271,45 +333,144 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
         });
       }
     }
-    if (raw.propertyType === 'Site/Plot/Land' && raw.siteDetails) {
-      const s = raw.siteDetails;
-      if (s.area) details.push({
-        label: 'Plot Area',
-        value: `${s.area} ${s.areaUnit || 'sqft'}`,
-        editKey: 'siteDetails.area'
-      });
-      if (s.length && s.breadth) details.push({
-        label: 'Dimensions',
-        value: `${s.length} x ${s.breadth}`
-      });
-      if (s.length) details.push({
-        label: 'Length',
-        value: s.length,
-        editKey: 'siteDetails.length'
-      });
-      if (s.breadth) details.push({
-        label: 'Breadth',
-        value: s.breadth,
-        editKey: 'siteDetails.breadth'
-      });
-      if (s.floorsAllowed) details.push({
-        label: 'Floors Allowed',
-        value: s.floorsAllowed,
-        editKey: 'siteDetails.floorsAllowed'
-      });
-      if (s.boundaryWall !== undefined) details.push({
-        label: 'Boundary Wall',
-        value: s.boundaryWall ? 'Yes' : 'No'
-      });
-      if (s.openSides) details.push({
-        label: 'Open Sides',
-        value: s.openSides
-      });
-      if (s.roadWidth) details.push({
-        label: 'Road Width',
-        value: `${s.roadWidth} ${s.roadWidthUnit || 'ft'}`
-      });
-    }
+
+   if (raw.propertyType === 'Site/Plot/Land' && raw.siteDetails) {
+  const s = raw.siteDetails;
+  
+  // Area & Dimensions
+  if (s.area) details.push({
+    label: 'Plot Area',
+    value: `${s.area} ${s.areaUnit || 'sqft'}`,
+    editKey: 'siteDetails.area',
+    showInEdit: true
+  });
+  if (s.length) details.push({
+    label: 'Length',
+    value: `${s.length} ft`,
+    editKey: 'siteDetails.length',
+    showInEdit: true
+  });
+  if (s.breadth) details.push({
+    label: 'Breadth',
+    value: `${s.breadth} ft`,
+    editKey: 'siteDetails.breadth',
+    showInEdit: true
+  });
+  if (s.floorsAllowed) details.push({
+    label: 'Floors Allowed',
+    value: s.floorsAllowed,
+    editKey: 'siteDetails.floorsAllowed',
+    showInEdit: true
+  });
+  
+  // Property Features
+  if (s.boundaryWall !== undefined) details.push({
+    label: 'Boundary Wall',
+    value: s.boundaryWall ? 'Yes' : 'No',
+    editKey: 'siteDetails.boundaryWall',
+    showInEdit: true,
+    fieldType: 'select',
+    options: ['Yes', 'No']
+  });
+  if (s.openSides) details.push({
+    label: 'Open Sides',
+    value: s.openSides,
+    editKey: 'siteDetails.openSides',
+    showInEdit: true
+  });
+  if (s.roadWidth) details.push({
+    label: 'Road Width',
+    value: `${s.roadWidth} ${s.roadWidthUnit || 'ft'}`,
+    editKey: 'siteDetails.roadWidth',
+    showInEdit: true
+  });
+  if (s.propertyFacing) details.push({
+    label: 'Property Facing',
+    value: s.propertyFacing,
+    editKey: 'siteDetails.propertyFacing',
+    showInEdit: true,
+    fieldType: 'select',
+    options: ['North', 'South', 'East', 'West', 'North-East', 'North-West', 'South-East', 'South-West']
+  });
+  
+  // Construction Details
+  if (s.constructionDone !== undefined) details.push({
+    label: 'Construction Done',
+    value: s.constructionDone ? 'Yes' : 'No',
+    editKey: 'siteDetails.constructionDone',
+    showInEdit: true,
+    fieldType: 'select',
+    options: ['Yes', 'No']
+  });
+  if (s.constructionType && s.constructionType.length > 0) details.push({
+    label: 'Construction Type',
+    value: s.constructionType.join(', '),
+    editKey: 'siteDetails.constructionType',
+    showInEdit: true
+  });
+  
+  // Legal & Ownership
+  if (s.possessionBy) details.push({
+    label: 'Possession By',
+    value: s.possessionBy,
+    editKey: 'siteDetails.possessionBy',
+    showInEdit: true
+  });
+  if (s.ownership) details.push({
+    label: 'Ownership',
+    value: s.ownership,
+    editKey: 'siteDetails.ownership',
+    showInEdit: true,
+    fieldType: 'select',
+    options: ['Freehold', 'Leasehold', 'Co-operative Society', 'Power of Attorney']
+  });
+  if (s.approvedBy && s.approvedBy.length > 0) details.push({
+    label: 'Approved By',
+    value: s.approvedBy.join(', '),
+    editKey: 'siteDetails.approvedBy',
+    showInEdit: true
+  });
+  
+  // Additional Features
+  if (s.inGatedSociety !== undefined) details.push({
+    label: 'In Gated Society',
+    value: s.inGatedSociety ? 'Yes' : 'No',
+    editKey: 'siteDetails.inGatedSociety',
+    showInEdit: true,
+    fieldType: 'select',
+    options: ['Yes', 'No']
+  });
+  if (s.cornerProperty !== undefined) details.push({
+    label: 'Corner Property',
+    value: s.cornerProperty ? 'Yes' : 'No',
+    editKey: 'siteDetails.cornerProperty',
+    showInEdit: true,
+    fieldType: 'select',
+    options: ['Yes', 'No']
+  });
+  
+  // Amenities & Advantages
+  if (s.amenities && s.amenities.length > 0) details.push({
+    label: 'Amenities',
+    value: s.amenities.join(', '),
+    editKey: 'siteDetails.amenities',
+    showInEdit: true
+  });
+  if (s.overlooking && s.overlooking.length > 0) details.push({
+    label: 'Overlooking',
+    value: s.overlooking.join(', '),
+    editKey: 'siteDetails.overlooking',
+    showInEdit: true
+  });
+  if (s.locationAdvantages && s.locationAdvantages.length > 0) details.push({
+    label: 'Location Advantages',
+    value: s.locationAdvantages.join(', '),
+    editKey: 'siteDetails.locationAdvantages',
+    showInEdit: true
+  });
+}
+
+
     if (raw.propertyType === 'Commercial' && raw.commercialDetails) {
       const c = raw.commercialDetails;
       if (c.subType) details.push({
@@ -407,30 +568,26 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
                 />
               </div>
             ) : (
-              <div className="mt-1">
-                <p className="text-sm text-gray-600">
-                  {typeof property.location === 'string' 
-                    ? property.location 
-                    : property.raw.location?.en || property.location}
-                </p>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  {typeof property.area === 'string'
-                    ? property.area
-                    : property.raw.area?.en || property.area}
-                </p>
-              </div>
+             <div className="mt-1">
+  <p className="text-sm text-gray-600">
+    {getEnglishText(property.raw.location || property.location)}
+  </p>
+  <p className="text-xs text-gray-500 mt-0.5">
+    {getEnglishText(property.raw.area || property.area)}
+  </p>
+</div>
             )}
           </div>
 
 
           <div className="flex gap-2 ml-4">
-            {isEditing ? (
+           {isEditing ? (
               <button
                 onClick={handleSave}
-                className="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2"
                 title="Save Changes"
               >
-                <Save size={18} />
+                <span className="font-medium">Save</span>
               </button>
             ) : (
               <button
@@ -585,28 +742,115 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
           </div>
         )}
 
-        {/* Site Vastu Details */}
-        {property.raw.siteDetails?.vaasthuDetails && (
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 pb-2 border-b flex items-center gap-2">
-              <span>📐 Site Vastu Details</span>
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-              {Object.entries(property.raw.siteDetails.vaasthuDetails).map(([key, value]) => {
-                if (!value) return null;
-                const label = key
-                  .replace(/([A-Z])/g, ' $1')
-                  .replace(/^./, str => str.toUpperCase());
-                return (
-                  <div key={key}>
-                    <p className="text-gray-500 text-xs mb-1">{label}</p>
-                    <p className="font-medium text-gray-800">{value}</p>
-                  </div>
-                );
-              })}
-            </div>
+      {/* Site Vastu Details - Make Editable */}
+{property.raw.siteDetails?.vaasthuDetails && (
+  <div className="mb-6">
+    <h3 className="text-sm font-semibold text-gray-700 mb-3 pb-2 border-b flex items-center gap-2">
+      <span>📐 Site Vastu Details</span>
+    </h3>
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+      {Object.entries(property.raw.siteDetails.vaasthuDetails).map(([key, value]) => {
+        if (!value) return null;
+        const label = key
+          .replace(/([A-Z])/g, ' $1')
+          .replace(/^./, str => str.toUpperCase());
+        
+        // Define dropdown options based on field type
+        const getOptionsForField = (fieldKey) => {
+          const directionOptions = ['North', 'South', 'East', 'West', 'North-East', 'North-West', 'South-East', 'South-West'];
+          const slopeOptions = ['Towards North', 'Towards South', 'Towards East', 'Towards West', 'Level/Flat'];
+          const spaceOptions = ['Balanced open space', 'More in North-East', 'More in South-West'];
+          const shapeOptions = ['Square', 'Rectangle', 'Irregular', 'L-Shaped', 'T-Shaped'];
+          const roadOptions = ['North', 'South', 'East', 'West', 'North-East', 'South-West', 'Multiple sides'];
+          const waterOptions = ['Water source in North', 'Water source in North-East', 'Bore well in North-East', 'Well in North-East'];
+          const drainageOptions = ['North-East', 'North', 'East', 'South-East'];
+          const heightOptions = ['Higher in West', 'Higher in South', 'Uniform height', 'Lower in North'];
+          const structureOptions = ['No structures', 'Shed/Garage', 'Small room', 'Boundary wall only'];
+          
+          switch(fieldKey) {
+            case 'plotFacing':
+            case 'mainEntryDirection':
+            case 'roadPosition':
+            case 'drainageDirection':
+              return directionOptions;
+            case 'plotSlope':
+              return slopeOptions;
+            case 'openSpace':
+              return spaceOptions;
+            case 'plotShape':
+              return shapeOptions;
+            case 'waterSource':
+              return waterOptions;
+            case 'compoundWallHeight':
+              return heightOptions;
+            case 'existingStructures':
+              return structureOptions;
+            default:
+              return directionOptions;
+          }
+        };
+        
+        return (
+          <div key={key}>
+            <p className="text-gray-500 text-xs mb-1">{label}</p>
+            {isEditing ? (
+              <select
+                value={editData[`siteDetails.vaasthuDetails.${key}`] || value}
+                onChange={(e) => setEditData({ 
+                  ...editData, 
+                  [`siteDetails.vaasthuDetails.${key}`]: e.target.value 
+                })}
+                className="w-full font-medium border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-blue-500"
+              >
+                {getOptionsForField(key).map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            ) : (
+              <p className="font-medium text-gray-800">{value}</p>
+            )}
           </div>
-        )}
+        );
+      })}
+    </div>
+  </div>
+)}
+
+
+        {/* Site Vastu Details - Make Editable */}
+{/* {property.raw.siteDetails?.vaasthuDetails && (
+  <div className="mb-6">
+    <h3 className="text-sm font-semibold text-gray-700 mb-3 pb-2 border-b flex items-center gap-2">
+      <span>📐 Site Vastu Details</span>
+    </h3>
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+      {Object.entries(property.raw.siteDetails.vaasthuDetails).map(([key, value]) => {
+        if (!value) return null;
+        const label = key
+          .replace(/([A-Z])/g, ' $1')
+          .replace(/^./, str => str.toUpperCase());
+        return (
+          <div key={key}>
+            <p className="text-gray-500 text-xs mb-1">{label}</p>
+            {isEditing ? (
+              <input
+                type="text"
+                value={editData[`siteDetails.vaasthuDetails.${key}`] || value}
+                onChange={(e) => setEditData({ 
+                  ...editData, 
+                  [`siteDetails.vaasthuDetails.${key}`]: e.target.value 
+                })}
+                className="w-full font-medium border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-blue-500"
+              />
+            ) : (
+              <p className="font-medium text-gray-800">{value}</p>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  </div>
+)} */}
 
 
         {/* Property Type Specific Details */}
@@ -653,21 +897,33 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
                     </div>
                   );
                 }
-                return (
-                  <div key={idx}>
-                    <p className="text-gray-500 text-xs mb-1">{detail.label}</p>
-                    {isEditing && fieldKey ? (
-                      <input
-                        type="text"
-                        value={editData[fieldKey] || ''}
-                        onChange={(e) => setEditData({ ...editData, [fieldKey]: e.target.value })}
-                        className="font-medium border-b border-gray-300 focus:outline-none w-full focus:border-blue-500 py-1"
-                      />
-                    ) : (
-                      <p className="font-medium text-gray-800">{detail.value}</p>
-                    )}
-                  </div>
-                );
+               return (
+  <div key={idx}>
+    <p className="text-gray-500 text-xs mb-1">{detail.label}</p>
+    {isEditing && fieldKey ? (
+      detail.fieldType === 'select' ? (
+        <select
+          value={editData[fieldKey] || ''}
+          onChange={(e) => setEditData({ ...editData, [fieldKey]: e.target.value })}
+          className="font-medium border border-gray-300 rounded px-2 py-1 focus:outline-none w-full focus:border-blue-500"
+        >
+          {detail.options?.map(opt => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+        </select>
+      ) : (
+        <input
+          type="text"
+          value={editData[fieldKey] || ''}
+          onChange={(e) => setEditData({ ...editData, [fieldKey]: e.target.value })}
+          className="font-medium border-b border-gray-300 focus:outline-none w-full focus:border-blue-500 py-1"
+        />
+      )
+    ) : (
+      <p className="font-medium text-gray-800">{detail.value}</p>
+    )}
+  </div>
+);
               })}
             </div>
           </div>
@@ -844,10 +1100,10 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
                     />
                     {isEditing && (
                       <button
-                        onClick={async () => {
-                          if (window.confirm('Delete this image?')) {
-                            try {
-                              const result = await deletePropertyImage(property.id, { imageIndex: idx });
+                       onClick={async () => {
+                        if (window.confirm('Delete this image?')) {
+                          try {
+                            const result = await deletePropertyImage(property.id, idx);  // ✅ FIXED: Pass index directly
                               if (result.success) {
                                 alert('Image deleted successfully!');
                                 onUpdate(property.id, {}); // Trigger refresh
@@ -901,28 +1157,89 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
                     Ownership Documents:
                   </p>
                   <div className="space-y-2">
-                    {property.documents.ownership.map((doc, idx) => {
-                      const docUrl = doc.startsWith('data:') ? doc : doc.startsWith('http') ? doc : `${import.meta.env.VITE_API_URL}/${doc}`;
-                      return (
-                        <div key={idx} className="flex items-center justify-between group bg-white p-2 rounded border border-gray-200">
-                          <a
-                            href={docUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-sm text-blue-600 hover:underline flex-1"
-                          >
-                            <FileText size={16} />
-                            <span>Ownership Document {idx + 1}</span>
-                            <Download size={14} className="ml-auto" />
-                          </a>
+
+                {property.documents.ownership.map((doc, idx) => {
+  const docUrl = doc.startsWith('data:') 
+    ? doc  // Base64 document
+    : doc.startsWith('http') 
+    ? doc 
+    : `${import.meta.env.VITE_API_URL}/${doc.replace(/\\/g, '/')}`;
+  
+  const isPDF = doc.startsWith('data:application/pdf') || doc.endsWith('.pdf');
+  const isImage = doc.startsWith('data:image/') || /\.(jpg|jpeg|png)$/i.test(doc);
+  
+  const handleDocumentClick = () => {
+    if (doc.startsWith('data:')) {
+      // Handle base64 documents properly
+      const newWindow = window.open();
+      if (newWindow) {
+        if (isPDF) {
+          newWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <title>Ownership Document ${idx + 1}</title>
+                <style>
+                  body { margin: 0; padding: 0; }
+                  iframe { width: 100vw; height: 100vh; border: none; }
+                </style>
+              </head>
+              <body>
+                <iframe src="${docUrl}"></iframe>
+              </body>
+            </html>
+          `);
+        } else if (isImage) {
+          newWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <title>Ownership Document ${idx + 1}</title>
+                <style>
+                  body { margin: 0; display: flex; justify-content: center; align-items: center; background: #000; }
+                  img { max-width: 100%; max-height: 100vh; }
+                </style>
+              </head>
+              <body>
+                <img src="${docUrl}" alt="Document ${idx + 1}" />
+              </body>
+            </html>
+          `);
+        }
+        newWindow.document.close();
+      }
+    } else {
+      // Regular URL - open directly
+      window.open(docUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+  
+  return (
+    <div key={idx} className="flex items-center justify-between group bg-white p-2 rounded border border-gray-200">
+      <button
+        onClick={handleDocumentClick}
+        className="flex items-center gap-2 text-sm text-blue-600 hover:underline flex-1 text-left"
+      >
+        <FileText size={16} />
+        <span>Ownership Document {idx + 1}</span>
+      </button>
                           {isEditing && (
-                            <button
-                              onClick={() => {
-                                if (window.confirm('Delete this document?')) {
-                                  console.log('Delete document:', doc);
-                                  alert('Document deletion - to be implemented with backend API');
-                                }
-                              }}
+  <button
+    onClick={async () => {
+      if (window.confirm('Delete this document?')) {
+        try {
+          const result = await deletePropertyDocument(property.id, idx, 'ownership');
+          if (result.success) {
+            alert('Document deleted successfully!');
+            onUpdate(property.id, {});
+          } else {
+            alert('Failed to delete document: ' + result.message);
+          }
+        } catch (error) {
+          alert('Error deleting document');
+        }
+      }
+    }}
                               className="text-red-600 hover:text-red-800 opacity-0 group-hover:opacity-100 transition-opacity ml-2 p-1"
                               title="Delete Document"
                             >
@@ -935,35 +1252,115 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
                   </div>
                 </div>
               )}
-              {property.documents.identity?.length > 0 && (
-                <div>
-                  <p className="text-xs font-semibold text-gray-700 mb-2">
-                    Identity Documents:
-                  </p>
-                  <div className="space-y-2">
-                    {property.documents.identity.map((doc, idx) => {
-                      const docUrl = doc.startsWith('data:') ? doc : doc.startsWith('http') ? doc : `${import.meta.env.VITE_API_URL}/${doc}`;
-                      return (
-                        <div key={idx} className="bg-white p-2 rounded border border-gray-200">
-                          <a
-                            href={docUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-sm text-blue-600 hover:underline"
-                          >
-                            <FileText size={16} />
-                            <span>Identity Document {idx + 1}</span>
-                            <Download size={14} className="ml-auto" />
-                          </a>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+
+             {property.documents.identity?.length > 0 && (
+  <div>
+    <p className="text-xs font-semibold text-gray-700 mb-2">
+      Identity Documents:
+    </p>
+    <div className="space-y-2">
+      {property.documents.identity.map((doc, idx) => {
+        const docUrl = doc.startsWith('data:') 
+          ? doc 
+          : doc.startsWith('http') 
+            ? doc 
+            : `${import.meta.env.VITE_API_URL}/${doc.replace(/\\/g, '/')}`;
+        
+        return (
+          <div key={idx} className="flex items-center justify-between group bg-white p-2 rounded border border-gray-200">
+          <button
+  onClick={() => {
+    const docUrl = doc.startsWith('data:') 
+      ? doc 
+      : doc.startsWith('http') 
+        ? doc 
+        : `${import.meta.env.VITE_API_URL}/${doc.replace(/\\/g, '/')}`;
+    
+    const isPDF = doc.startsWith('data:application/pdf') || doc.endsWith('.pdf');
+    const isImage = doc.startsWith('data:image/') || /\.(jpg|jpeg|png)$/i.test(doc);
+    
+    if (doc.startsWith('data:')) {
+      const newWindow = window.open();
+      if (newWindow) {
+        if (isPDF) {
+          newWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <title>Identity Document ${idx + 1}</title>
+                <style>
+                  body { margin: 0; padding: 0; }
+                  iframe { width: 100vw; height: 100vh; border: none; }
+                </style>
+              </head>
+              <body>
+                <iframe src="${docUrl}"></iframe>
+              </body>
+            </html>
+          `);
+        } else if (isImage) {
+          newWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <title>Identity Document ${idx + 1}</title>
+                <style>
+                  body { margin: 0; display: flex; justify-content: center; align-items: center; background: #000; }
+                  img { max-width: 100%; max-height: 100vh; }
+                </style>
+              </head>
+              <body>
+                <img src="${docUrl}" alt="Document ${idx + 1}" />
+              </body>
+            </html>
+          `);
+        }
+        newWindow.document.close();
+      }
+    } else {
+      window.open(docUrl, '_blank', 'noopener,noreferrer');
+    }
+  }}
+  className="flex items-center gap-2 text-sm text-blue-600 hover:underline flex-1 text-left"
+>
+  <FileText size={16} />
+  <span>Identity Document {idx + 1}</span>
+</button>
+            {isEditing && (
+              <button
+                onClick={async () => {
+                  if (window.confirm('Delete this document?')) {
+                    try {
+                      const result = await deletePropertyDocument(property.id, idx, 'identity');
+                      if (result.success) {
+                        alert('Document deleted successfully!');
+                        onUpdate(property.id, {});
+                      } else {
+                        alert('Failed to delete document: ' + result.message);
+                      }
+                    } catch (error) {
+                      alert('Error deleting document');
+                    }
+                  }
+                }}
+                className="text-red-600 hover:text-red-800 opacity-0 group-hover:opacity-100 transition-opacity ml-2 p-1"
+                title="Delete Document"
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  </div>
+)}
+
             </div>
           </div>
         )}
+
+        
         {/* Timestamps */}
         {property.raw && (
           <div className="text-xs text-gray-400 pt-4 border-t flex justify-between">

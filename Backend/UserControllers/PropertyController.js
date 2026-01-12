@@ -1256,6 +1256,7 @@ export const updatePropertyAvailability = async (req, res) => {
     });
   }
 };
+
 export const adminUpdateProperty = async (req, res) => {
   try {
     console.log('📝 Admin updating property:', req.params.id);
@@ -1281,6 +1282,12 @@ export const adminUpdateProperty = async (req, res) => {
         // Admin edited English text, need to translate
         fieldsToTranslate[field] = updateData[field];
       }
+    }
+    
+    // ✅ NEW: Update areaKey if area is being changed
+    if (updateData.area && typeof updateData.area === 'string') {
+      updateData.areaKey = normalizeAreaKey(updateData.area);
+      console.log('🔑 Updated areaKey:', updateData.areaKey);
     }
     
     // Translate if any fields need it
