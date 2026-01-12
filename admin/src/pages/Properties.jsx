@@ -1,3 +1,5 @@
+//admin//src//pages//Properties.jsx
+
 import { useEffect, useMemo, useState } from "react";
 import StatCard from "../components/properties/StatCard";
 import PropertyModal from "../components/properties/PropertyModal";
@@ -332,7 +334,7 @@ const [filterApprovalStatus, setFilterApprovalStatus] = useState("All");
         <table className="min-w-[900px] w-full text-sm">
           <thead className="bg-gray-50">
             <tr>
-              {["Property", "Type", "Price", "Status", "Property Status", "Uploaded", "Owner", "Subscription", "Phone", "Actions"].map(
+              {["Property", "Type", "Details", "Price", "Status", "Property Status", "Uploaded", "Owner", "Subscription", "Phone", "Actions"].map(
                 (h) => (
                   <th
                     key={h}
@@ -353,6 +355,20 @@ const [filterApprovalStatus, setFilterApprovalStatus] = useState("All");
                   <p className="text-xs text-gray-500">{p.location}</p>
                 </td>
                 <td className="px-4 py-3">{p.type}</td>
+                <td className="px-4 py-3 text-xs text-gray-600">
+                  {p.type === 'House' && p.raw.houseDetails && (
+                    <span>{p.raw.houseDetails.bedrooms || 0} BHK, {p.raw.houseDetails.area || 0} sqft</span>
+                  )}
+                  {p.type === 'Resort' && p.raw.resortDetails && (
+                    <span>{p.raw.resortDetails.resortType}, {p.raw.resortDetails.rooms || 0} rooms</span>
+                  )}
+                  {p.type === 'Site/Plot/Land' && p.raw.siteDetails && (
+                    <span>{p.raw.siteDetails.area || 0} {p.raw.siteDetails.areaUnit || 'sqft'}</span>
+                  )}
+                  {p.type === 'Commercial' && p.raw.commercialDetails && (
+                    <span>{p.raw.commercialDetails.subType}</span>
+                  )}
+                </td>
                 <td className="px-4 py-3">{p.price}</td>
                 <td className="px-4 py-3">
                   <span
