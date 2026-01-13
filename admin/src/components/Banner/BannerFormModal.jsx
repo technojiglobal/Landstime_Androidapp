@@ -2,6 +2,7 @@ import { useState } from "react";
 import { X, Image as ImageIcon, Eye, EyeOff } from "lucide-react";
 
 export default function BannerFormModal({ banner, onClose, onSave }) {
+  const [imageFile, setImageFile] = useState(null);
   const [form, setForm] = useState({
     id: banner?._id,
     heading: banner?.title?.en || "",
@@ -16,6 +17,8 @@ export default function BannerFormModal({ banner, onClose, onSave }) {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    setImageFile(file);
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -148,7 +151,7 @@ export default function BannerFormModal({ banner, onClose, onSave }) {
             Cancel
           </button>
           <button
-            onClick={() => onSave(form)}
+            onClick={() => onSave(form, imageFile)}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
           >
             {form.id ? "Update Banner" : "Create Banner"}
