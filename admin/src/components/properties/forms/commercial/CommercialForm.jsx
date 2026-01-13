@@ -1,0 +1,45 @@
+  import React from 'react';
+import CommercialBasicDetails from '../../sections/CommercialBasicDetails';
+import OfficeForm from './OfficeForm';
+import StorageForm from './StorageForm';
+import HospitalityForm from './HospitalityForm';
+import CommercialSiteForm from './CommercialSiteForm';
+import OtherCommercialForm from './OtherCommercialForm';
+
+const CommercialForm = ({ formData, updateField }) => {
+  const commercialSubType = formData.commercialSubType;
+
+  const renderCommercialSubForm = () => {
+    switch (commercialSubType) {
+      case 'Office':
+        return <OfficeForm formData={formData} updateField={updateField} />;
+      case 'Storage':
+        return <StorageForm formData={formData} updateField={updateField} />;
+      case 'Hospitality':
+        return <HospitalityForm formData={formData} updateField={updateField} />;
+      case 'Site':
+        return <CommercialSiteForm formData={formData} updateField={updateField} />;
+      case 'Other':
+        return <OtherCommercialForm formData={formData} updateField={updateField} />;
+      case 'Retail':
+      case 'Plot/Land':
+      case 'Industry':
+        return (
+          <div className="text-center py-8 text-gray-500">
+            {commercialSubType} form coming soon...
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="space-y-6 border-t pt-6">
+      <CommercialBasicDetails formData={formData} updateField={updateField} />
+      {commercialSubType && renderCommercialSubForm()}
+    </div>
+  );
+};
+
+export default CommercialForm;

@@ -162,4 +162,93 @@ export const LIVING_STRUCTURE = [
   'Shed',
   'Terrace'
 ];
+export const OFFICE_TYPES = [
+  'Ready to move office space',
+  'Bare shell office space',
+  'Co-working office space'
+];
+
+export const COMMERCIAL_SUB_TYPES = [
+  'Office',
+  'Retail',
+  'Plot/Land',
+  'Storage',
+  'Industry',
+  'Hospitality',
+  'Other'
+];
+
+// Office Setup Features
+export const OFFICE_FEATURES = [
+  { name: 'Conference Room', hasCount: true },
+  { name: 'Wash Room', hasSubTypes: ['Public Washroom', 'Private Washroom'] },
+  { name: 'Reception Area', hasCount: false },
+  { name: 'Pantry', hasSubTypes: ['Private', 'Shared'] }
+];
+
+export const FURNISHING_ITEMS = [
+  'Furnishing',
+  'Central AC',
+  'Oxygen Duct',
+  'UPS'
+];
+
+export const FIRE_SAFETY = [
+  'Fire Extinguisher',
+  'Fire Sensors',
+  'Sprinklers',
+  'Fire Hose'
+];
+
+export const PARKING_TYPES = [
+  'Available',
+  'Not Available'
+];
+
+export const PARKING_LOCATIONS = [
+  'Private Parking in Basement',
+  'Private Parking Outside',
+  'Public Parking'
+];
+
+export const OWNERSHIP_TYPES = [
+  'Freehold',
+  'Leasehold',
+  'Co-operative Society',
+  'Power of Attorney'
+];
+
+// Office Amenities
+export const OFFICE_AMENITIES = [
+  'Maintenance Staff',
+  'Water Storage',
+  'Water Disposal',
+  'ATM',
+  'Shopping Center',
+  'Wheelchair Accessibility',
+  'Cafeteria/Foodcourt',
+  'DG Availability',
+  'CCTV Surveillance',
+  'Grocery shop',
+  'Visitor Parking',
+  'Power Backup',
+  'Lift(s)'
+];
+
+// Vaasthu Directions for Office
+export const OFFICE_VAASTHU_FIELDS = [
+  { name: 'officeFacing', label: 'Office Facing' },
+  { name: 'mainEntranceDirection', label: 'Main Entrance Direction' },
+  { name: 'ownerCabinDirection', label: 'Owner/MD/Manager Cabin Direction' },
+  { name: 'workstationsDirection', label: 'Workstations/Employee Seating Direction' },
+  { name: 'meetingRoomDirection', label: 'Conference/Meeting Room Direction' },
+  { name: 'receptionDirection', label: 'Reception Area Direction' },
+  { name: 'accountsDirection', label: 'Accounts/Finance Department Direction' },
+  { name: 'pantryDirection', label: 'Pantry/Cafeteria Direction' },
+  { name: 'serverRoomDirection', label: 'Server/IT/Electrical Room Direction' },
+  { name: 'washroomDirection', label: 'Washrooms/Toilets Direction' },
+  { name: 'staircaseDirection', label: 'Staircase/Lift Direction' },
+  { name: 'storageDirection', label: 'Storage/Records Room Direction' },
+  { name: 'cashLockerDirection', label: 'Cash Locker/Safe Direction' }
+];
 
