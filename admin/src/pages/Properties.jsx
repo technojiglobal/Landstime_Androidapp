@@ -24,6 +24,7 @@ import {
   updatePropertyAvailability, 
   updatePropertyDetails,
 } from "../services/propertyService";
+import PropertyUploadModal from "../components/properties/PropertyUploadModal";
 
 // Helper function remains the same...
 const getTranslatedText = (value, fallback = 'N/A') => {
@@ -46,7 +47,7 @@ const [isLoading, setIsLoading] = useState(true);
 const [filterPropertyType, setFilterPropertyType] = useState("All");
 const [filterPropertyStatus, setFilterPropertyStatus] = useState("All");
 const [filterApprovalStatus, setFilterApprovalStatus] = useState("All");
-
+const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   useEffect(() => {
     loadProperties();
@@ -135,7 +136,19 @@ const [filterApprovalStatus, setFilterApprovalStatus] = useState("All");
       setToast('Failed to update status');
     }
   };
-
+  const handlePropertySubmit = async (propertyData) => {
+  try {
+    // Your API call to create property
+    // await createProperty(propertyData);
+    console.log('Property Data:', propertyData);
+    setToast('Property uploaded successfully!');
+    loadProperties();
+    setIsUploadModalOpen(false);
+  } catch (error) {
+    console.error('Error uploading property:', error);
+    setToast('Failed to upload property');
+  }
+};
   const loadProperties = async () => {
     setIsLoading(true);
     try {
@@ -241,16 +254,21 @@ const [filterApprovalStatus, setFilterApprovalStatus] = useState("All");
         ))}
       </div>
 
-      {/* Upload Button */}
-      <div className="flex justify-end">
-        <button
-          onClick={() => alert("Upload Property Clicked")}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-        >
-          <Plus size={16} /> Upload Property
-        </button>
-      </div>
+    <div className="flex justify-end">
+  <button
+    onClick={() => setIsUploadModalOpen(true)}
+    className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+  >
+    <Plus size={16} /> Upload Property
+  </button>
+</div>
 
+{/* Move modal here - outside the div */}
+<PropertyUploadModal
+  isOpen={isUploadModalOpen}
+  onClose={() => setIsUploadModalOpen(false)}
+  onSubmit={handlePropertySubmit}
+/>
     {/* Search + Filters + Page Size */}
 <div className="flex flex-col lg:flex-row lg:items-center gap-4">
   

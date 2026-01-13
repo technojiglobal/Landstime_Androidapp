@@ -274,6 +274,16 @@ if (response?.success && response?.data?.success) {
       otpRefs.current[index + 1]?.focus();
     }
   };
+   const handleOtpKeyPress = (e, index) => {
+  if (e.nativeEvent.key === "Backspace") {
+    if (otp[index] === "" && index > 0) {
+      const newOtp = [...otp];
+      newOtp[index - 1] = "";
+      setOtp(newOtp);
+      otpRefs.current[index - 1]?.focus();
+    }
+  }
+};
 
   const handleBackToPhone = () => {
     setStep('enterPhone');
@@ -378,22 +388,22 @@ if (response?.success && response?.data?.success) {
         ) : (
           <>
             {/* OTP Inputs */}
-            <View className="flex-row justify-between mb-6">
-              {otp.map((digit, index) => (
-                <TextInput
-                  key={index}
-                  ref={(ref) => (otpRefs.current[index] = ref)}
-                  className="w-16 h-16 bg-green-50 text-green-600 text-2xl font-bold rounded-xl text-center"
-                  keyboardType="number-pad"
-                  maxLength={1}
-                  value={digit}
-                  onChangeText={(text) => handleOtpChange(text, index)}
-                  style={{
-                    fontSize: getFontSize(24),
-                  }}
-                />
-              ))}
-            </View>
+          <View className="flex-row justify-between mb-6">
+  {otp.map((digit, index) => (
+    <TextInput
+      key={index}
+      ref={(ref) => (otpRefs.current[index] = ref)}
+      className="w-16 h-16 bg-green-50 text-green-600 text-2xl font-bold rounded-xl text-center"
+      keyboardType="number-pad"
+      maxLength={1}
+      value={digit}
+      onChangeText={(text) => handleOtpChange(text, index)}
+      onKeyPress={(e) => handleOtpKeyPress(e, index)}  // 👈 HERE
+      style={{ fontSize: getFontSize(24) }}
+    />
+  ))}
+</View>
+
 
             {/* Timer and Resend */}
             <View className="items-center mb-6">
