@@ -19,15 +19,7 @@ const SitePlotForm = ({ formData, updateField }) => (
   <div className="space-y-6 border-t pt-6">
     <h3 className="text-lg font-semibold text-left">Basic Details</h3>
 
-    {/* Property Type Dropdown */}
-    <SelectField
-      label="Property Type"
-      name="propertySubType"
-      value={formData.propertySubType}
-      onChange={(value) => updateField('propertySubType', value)}
-      options={['', 'Surya Teja Sites']}
-      placeholder="-- Select --"
-    />
+   
 
     {/* Price and Area Grid */}
     <div className="grid grid-cols-2 gap-4">
