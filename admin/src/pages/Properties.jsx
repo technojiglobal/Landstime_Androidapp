@@ -5,6 +5,7 @@ import StatCard from "../components/properties/StatCard";
 import PropertyModal from "../components/properties/PropertyModal";
 import Toast from "../components/UserManagement/Toast";
 import Loading from "../components/Loading";
+import PropertyUploadModal from "../components/properties/PropertyUploadModal";
 import {
   Search,
   Eye,
@@ -26,7 +27,7 @@ import {
   updatePropertyAvailability, 
   updatePropertyDetails,
 } from "../services/propertyService";
-import PropertyUploadModal from "../components/properties/PropertyUploadModal";
+
 
 // Helper function remains the same...
 const getTranslatedText = (value, fallback = 'N/A') => {
@@ -39,6 +40,7 @@ const getTranslatedText = (value, fallback = 'N/A') => {
 };
 
 export default function Properties() {
+const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 const [properties, setProperties] = useState([]);
 const [search, setSearch] = useState("");
 const [pageSize, setPageSize] = useState(30);
@@ -49,7 +51,7 @@ const [isLoading, setIsLoading] = useState(true);
 const [filterPropertyType, setFilterPropertyType] = useState("All");
 const [filterPropertyStatus, setFilterPropertyStatus] = useState("All");
 const [filterApprovalStatus, setFilterApprovalStatus] = useState("All");
-const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+
 
   useEffect(() => {
     loadProperties();
@@ -223,6 +225,7 @@ const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
       setIsLoading(false);
     }
   };
+  
 
   /* ---------- STATS ---------- */
   const stats = useMemo(() => {
@@ -259,14 +262,17 @@ const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
         ))}
       </div>
 
-    <div className="flex justify-end">
-  <button
-    onClick={() => setIsUploadModalOpen(true)}
-    className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-  >
-    <Plus size={16} /> Upload Property
-  </button>
-</div>
+      {/* Upload Button */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => setIsUploadModalOpen(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+        >
+          <Plus size={16} /> Upload Property
+        </button>
+        
+      </div>
+     
 
 {/* Move modal here - outside the div */}
 <PropertyUploadModal

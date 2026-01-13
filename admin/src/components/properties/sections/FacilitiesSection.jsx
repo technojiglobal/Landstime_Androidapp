@@ -1,4 +1,4 @@
-import React from 'react';
+  import React from 'react';
 import CheckboxGroup from '../fields/CheckboxGroup';
 import { FACILITIES } from '../../../constants/propertyConstants';
 

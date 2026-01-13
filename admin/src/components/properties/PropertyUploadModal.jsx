@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import BasicDetailsSection from "./forms/BasicDetailsSection";
 import CommonFields from "./forms/CommonFields";
 import HouseForm from "./forms/HouseForm";
-
+import SitePlotForm from './forms/SitePlotForm';
 import usePropertyForm from "../../hooks/usePropertyForm";
 import ResortForm from "./forms/ResortForm";
 const PropertyUploadModal = ({ isOpen, onClose, onSubmit }) => {

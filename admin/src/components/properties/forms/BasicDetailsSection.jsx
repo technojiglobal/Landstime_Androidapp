@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ImageUpload from '../fields/ImageUpload';
 import TextField from '../fields/TextField';
@@ -8,7 +9,7 @@ const BasicDetailsSection = ({ propertyType, setPropertyType, formData, updateFi
   <div>
     <div className="flex items-center justify-between mb-4">
       <h3 className="font-semibold">Property Details</h3>
-      <button type="button" className="text-[#22C55E] text-sm ">
+      <button type="button" className="text-green-600 text-sm hover:text-green-700">
         View Guidelines
       </button>
     </div>

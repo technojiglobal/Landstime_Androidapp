@@ -78,6 +78,10 @@ const fetchProperties = async () => {
     const response = await getApprovedProperties(null, 1, currentLang);
     
     if (response.success) {
+<<<<<<< HEAD
+     // console.log('✅ All properties fetched:', response.data);
+      setProperties(response.data.data || []);
+=======
       console.log('✅ All properties fetched:', response.data);
       // ✅ FILTER BY PROPERTY TYPE = "House"
       const houseProperties = (response.data.data || []).filter(
@@ -85,6 +89,7 @@ const fetchProperties = async () => {
       );
       console.log('✅ Houses filtered:', houseProperties.length);
       setProperties(houseProperties);
+>>>>>>> 135ff17428121f1520ca5af3ef885a2593302469
     } else {
       console.error('❌ Failed to fetch properties:', response.error);
     }

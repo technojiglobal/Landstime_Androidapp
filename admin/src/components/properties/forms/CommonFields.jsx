@@ -1,9 +1,10 @@
 import React from 'react';
-import { MapPin } from 'lucide-react';
 import SelectField from '../fields/SelectField';
-import TextAreaField from '../fields/TextAreaField';
-import TextField from '../fields/TextField';
+import PricingSection from '../sections/PricingSection';
+import LocationSection from '../sections/LocationSection';
+import DescriptionSection from '../sections/DescriptionSection';
 import OwnershipDocuments from '../sections/OwnershipDocuments';
+import TextField from '../fields/TextField';
 import { POSSESSION_OPTIONS } from '../../../constants/propertyConstants';
 
 const CommonFields = ({ formData, updateField }) => (
@@ -18,36 +19,8 @@ const CommonFields = ({ formData, updateField }) => (
         options={POSSESSION_OPTIONS}
       />
       
-      <div className="mt-3 space-y-2">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={formData.allInclusivePrice || false}
-            onChange={(e) => updateField('allInclusivePrice', e.target.checked)}
-            className="w-4 h-4 text-green-600 rounded"
-          />
-          <span className="text-sm">All inclusive price</span>
-        </label>
-        
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={formData.priceNegotiable || false}
-            onChange={(e) => updateField('priceNegotiable', e.target.checked)}
-            className="w-4 h-4 text-green-600 rounded"
-          />
-          <span className="text-sm">Price Negotiable</span>
-        </label>
-        
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={formData.taxCharges || false}
-            onChange={(e) => updateField('taxCharges', e.target.checked)}
-            className="w-4 h-4 text-green-600 rounded"
-          />
-          <span className="text-sm">Tax and Govt charges excluded</span>
-        </label>
+      <div className="mt-3">
+        <PricingSection formData={formData} updateField={updateField} />
       </div>
       
       <button type="button" className="text-[#22C55E] text-sm mt-2 hover:text-green-700">
@@ -56,29 +29,10 @@ const CommonFields = ({ formData, updateField }) => (
     </div>
 
     {/* Location */}
-    <div>
-      <label className="block text-sm font-medium mb-2">Location</label>
-      <div className="relative">
-        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-        <input
-          type="text"
-          placeholder="Enter Property Location"
-          value={formData.location || ''}
-          onChange={(e) => updateField('location', e.target.value)}
-          className="w-full pl-10 pr-4 py-2 outline-none border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
-        />
-      </div>
-    </div>
+    <LocationSection formData={formData} updateField={updateField} />
 
     {/* Description */}
-    <TextAreaField
-      label="Description"
-      name="description"
-      value={formData.description}
-      onChange={(value) => updateField('description', value)}
-      placeholder="Describe your property"
-      rows={4}
-    />
+    <DescriptionSection formData={formData} updateField={updateField} />
 
     {/* Ownership Documents */}
     <OwnershipDocuments formData={formData} updateField={updateField} />
