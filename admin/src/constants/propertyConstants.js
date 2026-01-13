@@ -80,3 +80,69 @@ export const LOCATION_ADVANTAGES = [
   'Close to Mall',
   'Close to Highway'
 ];
+
+  export const AMENITIES = [
+  'Landscaping/Govt',
+  'Nearby Road',
+  'Park/Green Belt',
+  'Children Play',
+  'CCTV',
+  'Pathway',
+  'Avenue Tree Plantation',
+  'Sewage',
+  'Solar Light',
+  'Compound Wall',
+  'Street Light',
+  'Drinking Water',
+  'Rain Water',
+  'Drainage',
+  'Electricity',
+  'Bordering'
+];
+
+export const OUTSTANDING_OPTIONS = [
+  'No Outstanding',
+  'Outstandings',
+  'Government Outstanding',
+  'Private Outstanding'
+];
+
+export const PLOT_RATING = [
+  '1 Star',
+  '2 Star', 
+  '3 Star',
+  '4 Star',
+  '5 Star'
+];
+
+export const WATER_FACING_OPTIONS = [
+  'Canal',
+  'Stream',
+  'Pond/Lake',
+  'River'
+];
+
+export const ROAD_POSITION = [
+  'Corner',
+  'T-Junction',
+  'Dead End',
+  'Y-Junction',
+  'Middle'
+];
+
+export const COMPOUND_WALL_TYPE = [
+  'Barbed Wire',
+  'Chain Link',
+  'Caste Iron',
+  'RCC Wall',
+  'Brick Wall',
+  'No Compound Wall'
+];
+
+export const LIVING_STRUCTURE = [
+  'No Structure',
+  'Rooms',
+  'Shed',
+  'Terrace'
+];
+

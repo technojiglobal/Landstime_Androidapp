@@ -37,7 +37,7 @@ const getTranslatedText = (value, fallback = 'N/A') => {
 };
 
 export default function Properties() {
-const [isUploadModalOpen, setIsUploadModalOpen] = useState(true);
+const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 const [properties, setProperties] = useState([]);
 const [search, setSearch] = useState("");
 const [pageSize, setPageSize] = useState(30);
@@ -207,6 +207,19 @@ const [filterApprovalStatus, setFilterApprovalStatus] = useState("All");
       setIsLoading(false);
     }
   };
+  const handlePropertySubmit = async (propertyData) => {
+  try {
+    // Your API call to create property
+    // await createProperty(propertyData);
+    console.log('Property Data:', propertyData);
+    setToast('Property uploaded successfully!');
+    loadProperties();
+    setIsUploadModalOpen(false);
+  } catch (error) {
+    console.error('Error uploading property:', error);
+    setToast('Failed to upload property');
+  }
+};
 
   /* ---------- STATS ---------- */
   const stats = useMemo(() => {
@@ -251,12 +264,13 @@ const [filterApprovalStatus, setFilterApprovalStatus] = useState("All");
         >
           <Plus size={16} /> Upload Property
         </button>
-        <PropertyUploadModal
+        
+      </div>
+      <PropertyUploadModal
       isOpen={isUploadModalOpen}
       onClose={() => setIsUploadModalOpen(false)}
       onSubmit={handlePropertySubmit}
     />
-      </div>
 
     {/* Search + Filters + Page Size */}
 <div className="flex flex-col lg:flex-row lg:items-center gap-4">
