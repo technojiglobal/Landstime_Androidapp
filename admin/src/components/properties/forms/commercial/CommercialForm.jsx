@@ -5,6 +5,7 @@ import StorageForm from './StorageForm';
 import HospitalityForm from './HospitalityForm';
 import CommercialSiteForm from './CommercialSiteForm';
 import OtherCommercialForm from './OtherCommercialForm';
+import RetailForm from './RetailForm';
 
 const CommercialForm = ({ formData, updateField }) => {
   const commercialSubType = formData.commercialSubType;
@@ -21,7 +22,8 @@ const CommercialForm = ({ formData, updateField }) => {
         return <CommercialSiteForm formData={formData} updateField={updateField} />;
       case 'Other':
         return <OtherCommercialForm formData={formData} updateField={updateField} />;
-      case 'Retail':
+      case 'Retail' :
+        return <RetailForm formData={formData} updateField={updateField} />;
       case 'Plot/Land':
       case 'Industry':
         return (

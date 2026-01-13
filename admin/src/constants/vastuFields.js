@@ -44,3 +44,29 @@ export const sitePlotVaasthuFields = [
   { label: "Compound Wall Height", name: "compoundWallHeight" },
   { label: "Existing Structures", name: "existingStructures" },
 ];
+
+export const officeVaasthuFields = [
+  { label: "Office Facing", name: "officeFacing" },
+  { label: "Main Entrance Direction", name: "mainEntranceDirection" },
+  { label: "Reception Area Direction", name: "receptionDirection" },
+  { label: "Manager/Owner Cabin Direction", name: "managerCabinDirection" },
+  { label: "Conference Room Direction", name: "conferenceRoomDirection" },
+  { label: "Employee Seating Area Direction", name: "employeeSeatingDirection" },
+  { label: "Pantry/Kitchen Direction", name: "pantryDirection" },
+  { label: "Server Room Direction", name: "serverRoomDirection" },
+  { label: "Storage/File Room Direction", name: "storageDirection" },
+  { label: "Washroom Direction", name: "washroomDirection" },
+];
+
+export const retailVaasthuFields = [
+  { label: "Shop Facing(Mandatory)", name: "mainFacing" },
+  { label: "Main Entrance Direction", name: "mainEntranceDirection" },
+  { label: "Cash Counter/Billing Area Direction", name: "cashCounterDirection" },
+  { label: "Cash Locker/Safe Keeping Direction", name: "cashLockerDirection" },
+  { label: "Owner/Manager Seating Direction", name: "ownerSeatingDirection" },
+  { label: "Staff Seating Direction", name: "staffSeatingDirection" },
+  { label: "Storage/Stock Room Direction", name: "storageDirection" },
+  { label: "Electrical/Inverter/Generator Direction", name: "electricityDirection" }, 
+  { label: "Pantry/Wash Area Direction(if any)", name: "pantryDirection" },
+  { label: "Staircase/Lift Direction(If inside shop)", name: "Staircase/Lift Direction(If inside shop)" },
+];

@@ -14,7 +14,7 @@ import OfficeSetupSection from '../../sections/OfficeSetupSection';
 import OfficeFurnishingSection from '../../sections/OfficeFurnishingSection';
 import OfficeFloorDetailsSection from '../../sections/OfficeFloorDetailsSection';
 import OfficeParkingSection from '../../sections/OfficeParkingSection';
-import OfficeVaasthuSection from '../../sections/OfficeVaasthuSection';
+import VaasthuDetails from '../../sections/VaasthuDetails';
 import OfficePricingDetailsSection from '../../sections/OfficePricingDetailsSection';
 import { 
   OFFICE_AMENITIES, 
@@ -22,6 +22,7 @@ import {
   OWNERSHIP_TYPES, 
   POSSESSION_OPTIONS 
 } from '../../../../constants/propertyConstants';
+import { officeVaasthuFields } from '../../../../constants/vastuFields';
 
 const OfficeForm = ({ formData, updateField }) => {
   return (
@@ -69,7 +70,7 @@ const OfficeForm = ({ formData, updateField }) => {
 
       {/* ==================== AREA SECTION ==================== */}
       <div className="border-t pt-6">
-        <h3 className="font-semibold mb-4">Area (sqft)</h3>
+        <h3 className="text-lg font-semibold text-left mb-4">Area (sqft)</h3>
         <div className="grid grid-cols-2 gap-4">
           <NumberField
             label="Carpet Area"
@@ -122,7 +123,7 @@ const OfficeForm = ({ formData, updateField }) => {
 
       {/* ==================== OWNERSHIP ==================== */}
       <div className="border-t pt-6">
-        <h3 className="font-semibold mb-3">Ownership</h3>
+        <h3 className="text-lg font-semibold text-left mb-3">Ownership</h3>
         <div className="flex flex-wrap gap-2">
           {OWNERSHIP_TYPES.map((type) => (
             <button
@@ -146,7 +147,7 @@ const OfficeForm = ({ formData, updateField }) => {
 
       {/* ==================== AMENITIES ==================== */}
       <div className="border-t pt-6">
-        <h3 className="font-semibold mb-4">Amenities</h3>
+        <h3 className="text-lg font-semibold text-left mb-4">Amenities</h3>
         <CheckboxGroup
           name="amenities"
           selected={formData.amenities || []}
@@ -157,7 +158,7 @@ const OfficeForm = ({ formData, updateField }) => {
 
       {/* ==================== LOCATION ADVANTAGES ==================== */}
       <div className="border-t pt-6">
-        <h3 className="font-semibold mb-4">Location Advantages</h3>
+        <h3 className="text-lg font-semibold text-left mb-4">Location Advantages</h3>
         <CheckboxGroup
           name="locationAdvantages"
           selected={formData.locationAdvantages || []}
@@ -167,11 +168,14 @@ const OfficeForm = ({ formData, updateField }) => {
       </div>
 
       {/* ==================== VAASTHU DETAILS SECTION ==================== */}
-      <OfficeVaasthuSection formData={formData} updateField={updateField} />
+      <VaasthuDetails 
+        formData={formData} 
+        updateField={updateField} 
+        fields={officeVaasthuFields}
+      />
 
     </div>
   );
 };
 
 export default OfficeForm;
-
