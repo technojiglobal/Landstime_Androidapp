@@ -1,3 +1,5 @@
+//admin//src//pages//Properties.jsx
+
 import { useEffect, useMemo, useState } from "react";
 import StatCard from "../components/properties/StatCard";
 import PropertyModal from "../components/properties/PropertyModal";
@@ -25,6 +27,7 @@ import {
   updatePropertyAvailability, 
   updatePropertyDetails,
 } from "../services/propertyService";
+import PropertyUploadModal from "../components/properties/PropertyUploadModal";
 
 // Helper function remains the same...
 const getTranslatedText = (value, fallback = 'N/A') => {
@@ -48,7 +51,7 @@ const [isLoading, setIsLoading] = useState(true);
 const [filterPropertyType, setFilterPropertyType] = useState("All");
 const [filterPropertyStatus, setFilterPropertyStatus] = useState("All");
 const [filterApprovalStatus, setFilterApprovalStatus] = useState("All");
-
+const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   useEffect(() => {
     loadProperties();
@@ -137,11 +140,26 @@ const [filterApprovalStatus, setFilterApprovalStatus] = useState("All");
       setToast('Failed to update status');
     }
   };
-
+  const handlePropertySubmit = async (propertyData) => {
+  try {
+    // Your API call to create property
+    // await createProperty(propertyData);
+    console.log('Property Data:', propertyData);
+    setToast('Property uploaded successfully!');
+    loadProperties();
+    setIsUploadModalOpen(false);
+  } catch (error) {
+    console.error('Error uploading property:', error);
+    setToast('Failed to upload property');
+  }
+};
   const loadProperties = async () => {
     setIsLoading(true);
+    const startTime = performance.now();
+    
     try {
       const data = await fetchAllProperties();
+      console.log(`✅ Fetched ${data.length} properties in ${(performance.now() - startTime).toFixed(0)}ms`);
 
       const formatted = data.map((p) => {
         let subscriptionDisplay = 'Freemium';
@@ -152,11 +170,11 @@ const [filterApprovalStatus, setFilterApprovalStatus] = useState("All");
                                'Active';
         }
 
-        return {
+       return {
           id: p._id,
-          title: getTranslatedText(p.propertyTitle, 'Untitled Property'),
-          location: getTranslatedText(p.location, 'Unknown Location'),
-          area: getTranslatedText(p.area, 'Unknown Area'),
+          title: typeof p.propertyTitle === 'string' ? p.propertyTitle : (p.propertyTitle?.en || 'Untitled Property'),
+          location: typeof p.location === 'string' ? p.location : (p.location?.en || 'Unknown Location'),
+          area: typeof p.area === 'string' ? p.area : (p.area?.en || ''),  // ✅ FIXED
           type: p.propertyType || 'N/A',
           price: `₹${p.expectedPrice || 0}`,
           status: p.status || 'pending',
@@ -258,6 +276,12 @@ const [filterApprovalStatus, setFilterApprovalStatus] = useState("All");
     />
       </div>
 
+{/* Move modal here - outside the div */}
+<PropertyUploadModal
+  isOpen={isUploadModalOpen}
+  onClose={() => setIsUploadModalOpen(false)}
+  onSubmit={handlePropertySubmit}
+/>
     {/* Search + Filters + Page Size */}
 <div className="flex flex-col lg:flex-row lg:items-center gap-4">
   
@@ -360,6 +384,7 @@ const [filterApprovalStatus, setFilterApprovalStatus] = useState("All");
                   <p className="text-xs text-gray-500">{p.location}</p>
                 </td>
                 <td className="px-4 py-3">{p.type}</td>
+                
                 <td className="px-4 py-3">{p.price}</td>
                 <td className="px-4 py-3">
                   <span

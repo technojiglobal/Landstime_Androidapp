@@ -1,15 +1,32 @@
-
-// ============================================
-// FILE 1: src/admin/constants/propertyConstants.js
-// ============================================
-
 export const PROPERTY_TYPES = [
   { value: 'House/Flat', label: 'House/Flat' },
   { value: 'Site/Plot(Land)', label: 'Site/Plot(Land)' },
   { value: 'Commercial', label: 'Commercial' },
   { value: 'Resort', label: 'Resort' }
 ];
+export const RESORT_TYPES = [
+  { value: 'Beachfront Resort', label: 'Beachfront Resort' },
+  { value: 'Hill Station / Mountain Resort', label: 'Hill Station / Mountain Resort' },
+  { value: 'Forest / Jungle Retreat', label: 'Forest / Jungle Retreat' },
+  { value: 'Lakefront Resort', label: 'Lakefront Resort' },
+  { value: 'Desert Resort', label: 'Desert Resort' },
+  { value: 'Eco-Resort', label: 'Eco-Resort' },
+  { value: 'Island Resort', label: 'Island Resort' },
+  { value: 'Wellness / Spa Resort', label: 'Wellness / Spa Resort' },
+  { value: 'Luxury Resort', label: 'Luxury Resort' },
+  { value: 'Family Resort', label: 'Family Resort' },
+  { value: 'Adventure / Activity Resort', label: 'Adventure / Activity Resort' },
+  { value: 'Safari / Wildlife Resort', label: 'Safari / Wildlife Resort' },
+  { value: 'Water Park Resort', label: 'Water Park Resort' },
+  { value: 'Golf Resort', label: 'Golf Resort' },
+    { value: 'Riverfront Resort', label: 'Riverfront Resort' },
+    { value: 'Farm / Agri-Resort', label: 'Farm / Agri-Resort' },
+    { value: 'Business / Conference Resort', label: 'Business / Conference Resort' },
+    { value: 'City Resort', label: 'City Resort' },
+    { value: 'Eco-Lodge / Nature Retreat', label: 'Eco-Lodge / Nature Retreat' }
 
+ 
+];
 export const COMMERCIAL_TYPES = [
   { value: 'Office', label: 'Office' },
   { value: 'Storage', label: 'Storage' },

@@ -47,4 +47,8 @@ const OwnershipDocuments = ({ formData, updateField }) => (
   </div>
 );
 
+<<<<<<< HEAD
 export default OwnershipDocuments;
+=======
+export default OwnershipDocuments;
+>>>>>>> 6e81891b8b8443d7e853f6202f31b63c22d10d8a

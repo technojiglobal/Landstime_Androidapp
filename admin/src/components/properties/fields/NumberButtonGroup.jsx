@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 const NumberButtonGroup = ({ label, name, value, onChange, options, required = false }) => (

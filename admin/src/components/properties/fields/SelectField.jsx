@@ -11,7 +11,7 @@ const SelectField = ({ label, name, value, onChange, options, placeholder, requi
         name={name}
         value={value || ''}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-4 py-2 border border-gray-300 rounded-lg appearance-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+        className="w-full px-4 py-2 outline-none border border-gray-200 rounded-lg appearance-none focus:ring-2 focus:ring-[#22C55E] focus:border-transparent"
       >
         <option value="">{placeholder || 'Select...'}</option>
         {options.map((option) => (
