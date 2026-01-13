@@ -167,7 +167,11 @@ export const OFFICE_TYPES = [
   'Bare shell office space',
   'Co-working office space'
 ];
-
+export const RETAIL_TYPES = [
+  'Commercial Shops',
+  'Commercial Showrooms',
+  
+];
 export const COMMERCIAL_SUB_TYPES = [
   'Office',
   'Retail',
@@ -252,3 +256,14 @@ export const OFFICE_VAASTHU_FIELDS = [
   { name: 'cashLockerDirection', label: 'Cash Locker/Safe Direction' }
 ];
 
+export const RETAIL_AMENITIES = [
+  'Lift',
+  'Fire Safety',
+  'AC',
+  'Parking',
+  'Security',
+  'Power Backup',
+  'CCTV',
+  'WiFi',
+  'Canteen/Food Court'
+];

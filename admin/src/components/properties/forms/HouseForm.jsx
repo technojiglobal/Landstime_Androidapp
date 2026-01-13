@@ -48,7 +48,7 @@ const HouseForm = ({ formData, updateField }) => (
       onChange={(value) => updateField('balconies', value)}
     />
 
-    <TextAreaField
+    <NumberField
       label="Floor Details"
       name="floorDetails"
       value={formData.floorDetails}
