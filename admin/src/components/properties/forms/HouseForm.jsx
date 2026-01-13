@@ -12,6 +12,7 @@ import {
   AGE_OF_PROPERTY,
   FURNISHING_OPTIONS
 } from '../../../constants/propertyConstants';
+import { normalVaasthuFields } from '../../../constants/vastuFields';
 
 const HouseForm = ({ formData, updateField }) => (
   <div className="space-y-6 border-t pt-6">
@@ -89,7 +90,7 @@ const HouseForm = ({ formData, updateField }) => (
 
     <ParkingSection formData={formData} updateField={updateField} />
     <FacilitiesSection formData={formData} updateField={updateField} />
-    <VaasthuDetails formData={formData} updateField={updateField} />
+    <VaasthuDetails formData={formData} updateField={updateField} fields={normalVaasthuFields} />
   </div>
 );
 

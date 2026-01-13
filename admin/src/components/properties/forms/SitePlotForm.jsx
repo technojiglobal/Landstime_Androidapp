@@ -1,4 +1,4 @@
- import React from 'react';
+import React from 'react';
 import NumberField from '../fields/NumberField';
 import TextField from '../fields/TextField';
 import RadioButtons from '../fields/RadioButtons';
@@ -10,16 +10,14 @@ import {
   AMENITIES,
   OUTSTANDING_OPTIONS,
   PLOT_RATING,
-  DIRECTIONS,
-  WATER_FACING_OPTIONS,
-  ROAD_POSITION,
-  COMPOUND_WALL_TYPE,
   LIVING_STRUCTURE
 } from '../../../constants/propertyConstants';
+import VaasthuDetails from '../sections/VaasthuDetails';
+import { sitePlotVaasthuFields } from '../../../constants/vastuFields';
 
 const SitePlotForm = ({ formData, updateField }) => (
   <div className="space-y-6 border-t pt-6">
-    <h3 className="font-semibold">Basic Details</h3>
+    <h3 className="text-lg font-semibold text-left">Basic Details</h3>
 
     {/* Property Type Dropdown */}
     <SelectField
@@ -112,7 +110,7 @@ const SitePlotForm = ({ formData, updateField }) => (
 
     {/* Amenities */}
     <div className="border-t pt-6">
-      <h3 className="font-semibold mb-4">Amenities</h3>
+      <h3 className="text-lg font-semibold text-left mb-4">Amenities</h3>
       <CheckboxGroup
         name="amenities"
         selected={formData.amenities || []}
@@ -123,7 +121,7 @@ const SitePlotForm = ({ formData, updateField }) => (
 
     {/* Outstanding */}
     <div className="border-t pt-6">
-      <h3 className="font-semibold mb-4">Outstanding</h3>
+      <h3 className="text-lg font-semibold text-left mb-4">Outstanding</h3>
       <CheckboxGroup
         name="outstanding"
         selected={formData.outstanding || []}
@@ -134,7 +132,7 @@ const SitePlotForm = ({ formData, updateField }) => (
 
     {/* Plot Rating */}
     <div className="border-t pt-6">
-      <h3 className="font-semibold mb-4">Plot Rating</h3>
+      <h3 className="text-lg font-semibold text-left mb-4">Plot Rating</h3>
       <CheckboxGroup
         name="plotRating"
         selected={formData.plotRating || []}
@@ -156,7 +154,7 @@ const SitePlotForm = ({ formData, updateField }) => (
 
     {/* Location Advantages */}
     <div className="border-t pt-6">
-      <h3 className="font-semibold mb-4">Location Advantages</h3>
+      <h3 className="text-lg font-semibold text-left mb-4">Location Advantages</h3>
       <CheckboxGroup
         name="locationAdvantages"
         selected={formData.locationAdvantages || []}
@@ -165,105 +163,9 @@ const SitePlotForm = ({ formData, updateField }) => (
       />
     </div>
 
-    {/* Vaasthu Details */}
-    <div className="border-t pt-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold">Vaasthu Details</h3>
-        <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-sm">
-          😊
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <SelectField
-          label="Plot Facing"
-          name="plotFacing"
-          value={formData.plotFacing}
-          onChange={(value) => updateField('plotFacing', value)}
-          options={DIRECTIONS}
-          placeholder="North-East"
-        />
-        
-        <SelectField
-          label="Main Door/Step Direction"
-          name="mainDoorDirection"
-          value={formData.mainDoorDirection}
-          onChange={(value) => updateField('mainDoorDirection', value)}
-          options={DIRECTIONS}
-          placeholder="Complete North"
-        />
-        
-        <SelectField
-          label="Plot Stage Direction"
-          name="plotStageDirection"
-          value={formData.plotStageDirection}
-          onChange={(value) => updateField('plotStageDirection', value)}
-          options={DIRECTIONS}
-          placeholder="Complete North"
-        />
-        
-        <SelectField
-          label="Open Well/Bore well"
-          name="openWell"
-          value={formData.openWell}
-          onChange={(value) => updateField('openWell', value)}
-          options={DIRECTIONS}
-          placeholder="South-East"
-        />
-        
-        <SelectField
-          label="Storage"
-          name="storage"
-          value={formData.storage}
-          onChange={(value) => updateField('storage', value)}
-          options={DIRECTIONS}
-        />
-        
-        <SelectField
-          label="Road Position"
-          name="roadPosition"
-          value={formData.roadPosition}
-          onChange={(value) => updateField('roadPosition', value)}
-          options={ROAD_POSITION}
-        />
-        
-        <SelectField
-          label="Water Source Location"
-          name="waterSourceLocation"
-          value={formData.waterSourceLocation}
-          onChange={(value) => updateField('waterSourceLocation', value)}
-          options={DIRECTIONS}
-        />
-        
-        <SelectField
-          label="Drainage Direction"
-          name="drainageDirection"
-          value={formData.drainageDirection}
-          onChange={(value) => updateField('drainageDirection', value)}
-          options={DIRECTIONS}
-        />
-        
-        <SelectField
-          label="Compound Wall Height"
-          name="compoundWallHeight"
-          value={formData.compoundWallHeight}
-          onChange={(value) => updateField('compoundWallHeight', value)}
-          options={['', '3 feet', '4 feet', '5 feet', '6 feet', '7+ feet']}
-        />
-        
-        <SelectField
-          label="Compound Wall Length"
-          name="compoundWallLength"
-          value={formData.compoundWallLength}
-          onChange={(value) => updateField('compoundWallLength', value)}
-          options={['', 'All Sides', 'North-East', 'North-West', 'South-East', 'South-West']}
-        />
-      </div>
-    </div>
-
     {/* Living Structure */}
     <div className="border-t pt-6">
-      <h3 className="font-semibold mb-4">Living Structure</h3>
+      <h3 className="text-lg font-semibold text-left mb-4">Living Structure</h3>
       <p className="text-sm text-gray-600 mb-4">
         Structure present in plots such as room, roof, shade, etc
       </p>
@@ -274,6 +176,13 @@ const SitePlotForm = ({ formData, updateField }) => (
         options={LIVING_STRUCTURE}
       />
     </div>
+
+    {/* Vaasthu Details - Now using the component with sitePlotVaasthuFields */}
+    <VaasthuDetails 
+      formData={formData} 
+      updateField={updateField} 
+      fields={sitePlotVaasthuFields}
+    />
   </div>
 );
 
