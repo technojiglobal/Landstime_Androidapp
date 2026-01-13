@@ -1256,6 +1256,7 @@ export const updatePropertyAvailability = async (req, res) => {
     });
   }
 };
+
 export const adminUpdateProperty = async (req, res) => {
   try {
     console.log('📝 Admin updating property:', req.params.id);
@@ -1270,8 +1271,37 @@ export const adminUpdateProperty = async (req, res) => {
       });
     }
    
-    // ✅ ADD THIS LINE - Define updateData from request body
-    const updateData = req.body;
+    let updateData = req.body;
+    
+    // ✅ AUTO-TRANSLATE multilingual fields if they're strings (edited by admin)
+    const multilingualFields = ['propertyTitle', 'description', 'location', 'area'];
+    const fieldsToTranslate = {};
+    
+    for (const field of multilingualFields) {
+      if (updateData[field] && typeof updateData[field] === 'string') {
+        // Admin edited English text, need to translate
+        fieldsToTranslate[field] = updateData[field];
+      }
+    }
+    
+    // ✅ NEW: Update areaKey if area is being changed
+    if (updateData.area && typeof updateData.area === 'string') {
+      updateData.areaKey = normalizeAreaKey(updateData.area);
+      console.log('🔑 Updated areaKey:', updateData.areaKey);
+    }
+    
+    // Translate if any fields need it
+    if (Object.keys(fieldsToTranslate).length > 0) {
+      console.log('🌐 Auto-translating fields:', Object.keys(fieldsToTranslate));
+      const translated = await translatePropertyFields(fieldsToTranslate, 'en');
+      
+      // Replace string values with multilingual objects
+      for (const field in translated) {
+        updateData[field] = translated[field];
+      }
+      
+      console.log('✅ Translation complete');
+    }
    
     const updatedProperty = await Property.findByIdAndUpdate(
       req.params.id,

@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 const CheckboxGroup = ({ label, name, selected = [], onChange, options, required = false }) => {

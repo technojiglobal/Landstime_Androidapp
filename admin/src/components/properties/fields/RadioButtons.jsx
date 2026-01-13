@@ -24,4 +24,4 @@ const RadioButtons = ({ label, name, value, onChange, options, required = false 
   </div>
 );
 
-export default RadioButtons
+export default RadioButtons;
