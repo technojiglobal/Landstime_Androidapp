@@ -6,6 +6,7 @@ import HouseForm from "./forms/HouseForm";
 import SitePlotForm from './forms/SitePlotForm';
 import usePropertyForm from "../../hooks/usePropertyForm";
 import ResortForm from "./forms/ResortForm";
+import CommercialForm from "./forms/commercial/CommercialForm";
 const PropertyUploadModal = ({ isOpen, onClose, onSubmit }) => {
   const [propertyType, setPropertyType] = useState("");
   const { formData, updateField, resetForm } = usePropertyForm();
@@ -32,11 +33,7 @@ const PropertyUploadModal = ({ isOpen, onClose, onSubmit }) => {
       case "Site/Plot(Land)":
         return <SitePlotForm formData={formData} updateField={updateField} />;
       case "Commercial":
-        return (
-          <div className="text-center py-8 text-gray-500">
-            Commercial form coming soon...
-          </div>
-        );
+        return <CommercialForm formData={formData} updateField={updateField} />;
       case "Resort":
         return (
           <div className="text-center py-8 text-gray-500">
