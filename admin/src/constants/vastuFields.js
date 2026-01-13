@@ -31,3 +31,16 @@ export const resortVaasthuFields = [
   { label: "Balcony/Deck/Veranda", name: "balconyDirection" },
   { label: "Garden/Open Space/Lawn", name: "gardenDirection" },
 ];
+
+export const sitePlotVaasthuFields = [
+  { label: "Plot Facing", name: "plotFacing" },
+  { label: "Main Entry/Gate Direction", name: "mainDoorDirection" },
+  { label: "Plot Stage Direction", name: "plotStageDirection" },
+  { label: "Open Space as per Vastu", name: "openSpaceVastu" },
+  { label: "Shape", name: "shape" },
+  { label: "Road Position", name: "roadPosition" },
+  { label: "Water Source Location", name: "waterSourceLocation" },
+  { label: "Drainage Direction", name: "drainageDirection" },
+  { label: "Compound Wall Height", name: "compoundWallHeight" },
+  { label: "Existing Structures", name: "existingStructures" },
+];
