@@ -1,16 +1,13 @@
-// FILE 2: src/admin/hooks/usePropertyForm.js
-// ============================================
-
 import { useState } from 'react';
 
 const usePropertyForm = () => {
   const [formData, setFormData] = useState({
-    // Basic
+    // ================= BASIC =================
     photos: [],
     propertyTitle: '',
     propertyType: '',
-    
-    // House/Flat
+
+    // ================= HOUSE / FLAT =================
     noOfFloors: '',
     area: '',
     bedrooms: '',
@@ -23,8 +20,8 @@ const usePropertyForm = () => {
     furnishing: '',
     parking: [],
     facilities: [],
-    
-    // Vaasthu
+
+    // ================= VAASHTU =================
     plotFacing: '',
     mainDoorDirection: '',
     masterBedroom: '',
@@ -33,8 +30,8 @@ const usePropertyForm = () => {
     kitchenRoom: '',
     poojaRoom: '',
     balconyDirection: '',
-    
-    // Site/Plot
+
+    // ================= SITE / PLOT =================
     pricePerCent: '',
     pricePerAcre: '',
     length: '',
@@ -44,8 +41,8 @@ const usePropertyForm = () => {
     openSides: '',
     construction: '',
     locationAdvantages: [],
-    
-    // Common
+
+    // ================= COMMON =================
     possessionBy: 'Immediate',
     allInclusivePrice: false,
     priceNegotiable: false,
@@ -55,10 +52,75 @@ const usePropertyForm = () => {
     ownershipDocs: [],
     saleConveyance: [],
     ownerIdentity: [],
-    
-    // Owner Details
+
+    // ================= OWNER =================
     ownerName: '',
-    mobileNumber: ''
+    mobileNumber: '',
+
+    // ================= COMMERCIAL =================
+    commercialSubType: '',
+    officeType: '',
+
+    // Office Setup
+    noCabins: '',
+    noMeetingRooms: '',
+    noSeats: '',
+    maxSeats: '',
+    hasConferenceRoom: false,
+    conferenceRoomCount: '',
+    hasWashRoom: false,
+    washRoomCount: '',
+    washRoomType: '',
+    hasReceptionArea: false,
+    hasPantry: false,
+    pantryType: '',
+
+    // Furnishing
+    furnishingItems: [],
+    fireSafety: [],
+
+    // Floor Details
+    floorNumber: '',
+    yourFloorNo: '',
+    noStairCases: '',
+    liftsAvailable: '',
+    passengerLifts: 0,
+    serviceLifts: 0,
+
+    // Parking
+    parkingAvailable: '',
+    parkingLocations: [],
+    noParking: '',
+
+    // Pricing
+    expectedPrice: '',
+    preLeased: '',
+    currentRent: '',
+    leaseTenure: '',
+    fireNOC: '',
+    occupancyCertificate: '',
+    previouslyUsedFor: '',
+
+    // Office Vaasthu
+    officeFacing: '',
+    mainEntranceDirection: '',
+    ownerCabinDirection: '',
+    workstationsDirection: '',
+    meetingRoomDirection: '',
+    receptionDirection: '',
+    accountsDirection: '',
+    pantryDirection: '',
+    serverRoomDirection: '',
+    washroomDirection: '',
+    staircaseDirection: '',
+    storageDirection: '',
+    cashLockerDirection: '',
+
+    // Location
+    locatedInside: '',
+    zoneType: '',
+    carpetArea: '',
+    ownershipType: ''
   });
 
   const updateField = (name, value) => {
@@ -70,24 +132,19 @@ const usePropertyForm = () => {
   };
 
   const resetForm = () => {
-    setFormData({
+    setFormData(prev => ({
+      ...prev,
       photos: [],
       propertyTitle: '',
       propertyType: '',
       availabilityStatus: 'Ready to Move',
-      possessionBy: 'Immediate',
-      otherRooms: [],
-      ageOfProperty: [],
-      parking: [],
-      facilities: [],
-      locationAdvantages: [],
-      allInclusivePrice: false,
-      priceNegotiable: false,
-      taxCharges: false
-    });
+      possessionBy: 'Immediate'
+    }));
   };
 
   return { formData, updateField, updateMultipleFields, resetForm };
 };
 
 export default usePropertyForm;
+
+
