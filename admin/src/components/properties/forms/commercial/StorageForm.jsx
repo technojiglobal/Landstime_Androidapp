@@ -153,30 +153,72 @@ const StorageForm = ({ formData, updateField }) => {
         </div>
       )}
 
-      {/* ==================== POSSESSION BY ==================== */}
+          {/* ==================== AVAILABILITY STATUS ==================== */}
       <div className="border-t pt-6">
-        <h3 className="text-lg font-semibold text-left mb-4">Possession By</h3>
-        
-        <div className="grid grid-cols-2 gap-4">
-          <TextField
-            label="Year"
-            name="possessionYear"
-            value={formData.possessionYear}
-            onChange={(value) => updateField('possessionYear', value)}
-            placeholder="By 2017"
-          />
-          
-          {formData.possessionYear && (
-            <TextField
-              label="Month"
-              name="possessionMonth"
-              value={formData.possessionMonth}
-              onChange={(value) => updateField('possessionMonth', value)}
-              placeholder="Month"
-            />
-          )}
-        </div>
+        <ToggleButtons
+          label="Availability Status"
+          name="availabilityStatus"
+          value={formData.availabilityStatus || ''}
+          onChange={(value) => updateField('availabilityStatus', value)}
+          options={['Ready to move', 'Under Construction']}
+        />
       </div>
+
+      {/* ==================== AGE OF PROPERTY (Only shown when Ready to move) ==================== */}
+      {formData.availabilityStatus === 'Ready to move' && (
+        <div className="border-t pt-6">
+          <h3 className="text-lg font-semibold text-left mb-4">Age of property</h3>
+          
+          <div className="grid grid-cols-2 gap-3">
+            {['Less than a year', '1-3 years', '3-5 years', '5-10 years', '10+ years'].map((age) => (
+              <button
+                key={age}
+                type="button"
+                onClick={() => updateField('ageOfProperty', age)}
+                className={`px-4 py-2 rounded-lg border text-sm transition-colors ${
+                  formData.ageOfProperty === age
+                    ? 'bg-green-500 text-white border-green-500'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                {age}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ==================== POSSESSION BY (Only shown when Under Construction) ==================== */}
+      {formData.availabilityStatus === 'Under Construction' && (
+        <>
+          <div className="border-t pt-6">
+            <h3 className="text-lg font-semibold text-left mb-4">Possession By</h3>
+            
+            <TextField
+  label="Year"
+  name="possessionYear"
+  value={formData.possessionYear}
+  onChange={(value) => updateField('possessionYear', value)}
+  placeholder="Enter year (e.g., 2025)"
+/>
+          </div>
+
+          {/* Show month field only when year is selected */}
+          {formData.possessionYear && (
+           
+            
+  <TextField
+    label="Month"
+    name="possessionMonth"
+    value={formData.possessionMonth}
+    onChange={(value) => updateField('possessionMonth', value)}
+    placeholder="Enter month (e.g., March)"
+  />
+
+           
+          )}
+        </>
+      )}
 
       {/* ==================== OWNERSHIP ==================== */}
       <div className="border-t pt-6">

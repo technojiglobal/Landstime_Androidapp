@@ -28,11 +28,7 @@ const CommonFields = ({ formData, updateField }) => (
       </button>
     </div>
 
-    {/* Location */}
-    <LocationSection formData={formData} updateField={updateField} />
 
-    {/* Description */}
-    <DescriptionSection formData={formData} updateField={updateField} />
 
     {/* Ownership Documents */}
     <OwnershipDocuments formData={formData} updateField={updateField} />

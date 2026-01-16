@@ -36,7 +36,7 @@ const PropertyUploadModal = ({ isOpen, onClose, onSubmit }) => {
         return <CommercialForm formData={formData} updateField={updateField} />;
       case "Resort":
         return (
-          <div className="text-center py-8 text-gray-500">
+          <div className="py-8 text-gray-500">
            <ResortForm formData={formData} updateField={updateField} />
           </div>
         );
