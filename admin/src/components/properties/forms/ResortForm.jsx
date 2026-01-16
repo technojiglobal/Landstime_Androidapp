@@ -7,14 +7,12 @@ import RadioButtons from '../fields/RadioButtons';
 import VaasthuDetails from '../sections/VaasthuDetails';
 import FacilitiesSection from '../sections/FacilitiesSection';
 import ParkingSection from '../sections/ParkingSection';
-import {
-  OTHER_ROOMS,
-  AGE_OF_PROPERTY,
-  FURNISHING_OPTIONS
-} from '../../../constants/propertyConstants';
+
 import SelectField from '../fields/SelectField';
 import { RESORT_TYPES } from '../../../constants/propertyConstants';
 import { resortVaasthuFields } from '../../../constants/vastuFields';
+import LocationSection from '../sections/LocationSection';
+import DescriptionSection from '../sections/DescriptionSection';
 
 const ResortForm = ({ propertyType, setPropertyType, formData, updateField }) => (
   <>
@@ -24,7 +22,7 @@ const ResortForm = ({ propertyType, setPropertyType, formData, updateField }) =>
       value={propertyType}
       onChange={setPropertyType}
       options={RESORT_TYPES}
-      placeholder="Select Resort Type"
+      placeholder="Beachfront"
       required
     />
   <div className="space-y-6 border-t pt-3">
@@ -68,7 +66,8 @@ const ResortForm = ({ propertyType, setPropertyType, formData, updateField }) =>
       value={formData.price}
       onChange={(value) => updateField('price', value)}
     />
-    
+    <LocationSection formData={formData} updateField={updateField} />
+    <DescriptionSection formData={formData} updateField={updateField} />
     <VaasthuDetails 
       formData={formData} 
       updateField={updateField}
