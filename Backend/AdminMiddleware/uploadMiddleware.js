@@ -23,39 +23,35 @@ const allowedTypes = [
   'image/jpeg',
   'image/png',
   'image/jpg',
-  'image/webp'
+  'image/webp',
+  'application/pdf'
 ];
 
 const fileFilter = (req, file, cb) => {
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Only JPG, PNG, WEBP images are allowed'), false);
+    cb(new Error('Only JPG, PNG, WEBP images and PDF files are allowed'), false);
   }
 };
 
-// Middleware to upload multiple images (max 10)
+// Middleware to upload multiple files (unlimited)
 export const uploadInteriorImages = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB per image
-}).array('images', 10);
+  limits: { 
+    fileSize: Infinity, // Unlimited file size
+    files: Infinity     // Unlimited number of files
+  }
+}).array('images');
 
 // Error handling middleware for multer
 export const handleInteriorUploadError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
-    if (err.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({
-        success: false,
-        message: 'File size too large. Max 5MB per image.'
-      });
-    }
-    if (err.code === 'LIMIT_FILE_COUNT') {
-      return res.status(400).json({
-        success: false,
-        message: 'Too many files. Max 10 images allowed.'
-      });
-    }
+    return res.status(400).json({
+      success: false,
+      message: `Upload error: ${err.message}`
+    });
   }
 
   if (err) {
