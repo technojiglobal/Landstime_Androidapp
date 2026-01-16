@@ -1,24 +1,18 @@
-// ============================================
-// FILE: src/admin/components/properties/forms/commercial/OfficeForm.jsx
-// COMPLETE OFFICE FORM WITH ALL SECTIONS
+// FILE 3: src/admin/components/properties/forms/commercial/OfficeForm.jsx
+// UPDATED OFFICE FORM - USING COMBINED SECTIONS
 // ============================================
 
 import React from 'react';
 import NumberField from '../../fields/NumberField';
 import SelectField from '../../fields/SelectField';
-import TextField from '../../fields/TextField';
-import CheckboxGroup from '../../fields/CheckboxGroup';
 import ToggleButtons from '../../fields/ToggleButtons';
 import LocationSection from '../../sections/LocationSection';
-import OfficeSetupSection from '../../sections/OfficeSetupSection';
-import OfficeFurnishingSection from '../../sections/OfficeFurnishingSection';
-import OfficeFloorDetailsSection from '../../sections/OfficeFloorDetailsSection';
-import OfficeParkingSection from '../../sections/OfficeParkingSection';
-import VaasthuDetails from '../../sections/VaasthuDetails';
+import OfficeDetailsSection from '../../sections/OfficeDetailsSection';
 import OfficePricingDetailsSection from '../../sections/OfficePricingDetailsSection';
+import DescriptionSection from '../../sections/DescriptionSection';
+import VaasthuDetails from '../../sections/VaasthuDetails';
+import AvailabilityStatus from '../../sections/AvailabilityStatus';
 import { 
-  OFFICE_AMENITIES, 
-  LOCATION_ADVANTAGES, 
   OWNERSHIP_TYPES, 
   POSSESSION_OPTIONS 
 } from '../../../../constants/propertyConstants';
@@ -89,37 +83,12 @@ const OfficeForm = ({ formData, updateField }) => {
         </div>
       </div>
 
-      {/* ==================== OFFICE SETUP SECTION ==================== */}
-      <OfficeSetupSection formData={formData} updateField={updateField} />
-
-      {/* ==================== FURNISHING SECTION ==================== */}
-      <OfficeFurnishingSection formData={formData} updateField={updateField} />
-
-      {/* ==================== FLOOR DETAILS SECTION ==================== */}
-      <OfficeFloorDetailsSection formData={formData} updateField={updateField} />
-
-      {/* ==================== PARKING SECTION ==================== */}
-      <OfficeParkingSection formData={formData} updateField={updateField} />
+      {/* ==================== COMBINED OFFICE DETAILS ==================== */}
+      {/* Setup + Furnishing + Floor + Parking all in one */}
+      <OfficeDetailsSection formData={formData} updateField={updateField} />
 
       {/* ==================== AVAILABILITY STATUS ==================== */}
-      <div className="border-t pt-6">
-        <ToggleButtons
-          label="Availability Status"
-          name="availabilityStatus"
-          value={formData.availabilityStatus || 'Ready to move'}
-          onChange={(value) => updateField('availabilityStatus', value)}
-          options={['Ready to move', 'Under Construction']}
-        />
-      </div>
-
-      {/* ==================== POSSESSION BY ==================== */}
-      <SelectField
-        label="Possession By"
-        name="possessionBy"
-        value={formData.possessionBy}
-        onChange={(value) => updateField('possessionBy', value)}
-        options={POSSESSION_OPTIONS}
-      />
+      <AvailabilityStatus formData={formData} updateField={updateField} />
 
       {/* ==================== OWNERSHIP ==================== */}
       <div className="border-t pt-6">
@@ -145,27 +114,8 @@ const OfficeForm = ({ formData, updateField }) => {
       {/* ==================== PRICING DETAILS SECTION ==================== */}
       <OfficePricingDetailsSection formData={formData} updateField={updateField} />
 
-      {/* ==================== AMENITIES ==================== */}
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-semibold text-left mb-4">Amenities</h3>
-        <CheckboxGroup
-          name="amenities"
-          selected={formData.amenities || []}
-          onChange={(value) => updateField('amenities', value)}
-          options={OFFICE_AMENITIES}
-        />
-      </div>
-
-      {/* ==================== LOCATION ADVANTAGES ==================== */}
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-semibold text-left mb-4">Location Advantages</h3>
-        <CheckboxGroup
-          name="locationAdvantages"
-          selected={formData.locationAdvantages || []}
-          onChange={(value) => updateField('locationAdvantages', value)}
-          options={LOCATION_ADVANTAGES}
-        />
-      </div>
+      {/* ==================== DESCRIPTION + AMENITIES + LOCATION ==================== */}
+      <DescriptionSection formData={formData} updateField={updateField} />
 
       {/* ==================== VAASTHU DETAILS SECTION ==================== */}
       <VaasthuDetails 
