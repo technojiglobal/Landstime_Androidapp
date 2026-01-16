@@ -12,9 +12,11 @@ import OfficePricingDetailsSection from '../../sections/OfficePricingDetailsSect
 import DescriptionSection from '../../sections/DescriptionSection';
 import VaasthuDetails from '../../sections/VaasthuDetails';
 import AvailabilityStatus from '../../sections/AvailabilityStatus';
+
+import CheckboxGroup from '../../fields/CheckboxGroup';
 import { 
   OWNERSHIP_TYPES, 
-  POSSESSION_OPTIONS 
+  POSSESSION_OPTIONS ,OFFICE_AMENITIES
 } from '../../../../constants/propertyConstants';
 import { officeVaasthuFields } from '../../../../constants/vastuFields';
 
@@ -116,6 +118,17 @@ const OfficeForm = ({ formData, updateField }) => {
 
       {/* ==================== DESCRIPTION + AMENITIES + LOCATION ==================== */}
       <DescriptionSection formData={formData} updateField={updateField} />
+        {/* ==================== AMENITIES ==================== */}
+    <div className="border-t pt-6">
+      <h3 className="text-lg font-semibold text-left mb-4">Amenities</h3>
+      <CheckboxGroup
+        name="amenities"
+        selected={formData.amenities || []}
+        onChange={(value) => updateField('amenities', value)}
+        options={OFFICE_AMENITIES}
+      />
+    </div>
+
 
       {/* ==================== VAASTHU DETAILS SECTION ==================== */}
       <VaasthuDetails 

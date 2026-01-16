@@ -16,6 +16,7 @@ import {
 } from '../../../../constants/propertyConstants';
 import { retailVaasthuFields } from '../../../../constants/vastuFields';
 import LocationSection from '../../sections/LocationSection';
+import AvailabilityStatus from '../../sections/AvailabilityStatus';
 
 const RetailForm = ({ formData, updateField }) => {
   return (
@@ -42,7 +43,7 @@ const RetailForm = ({ formData, updateField }) => {
           ]}
           placeholder="Select location type"
         />
-
+       
        
       </div>
       
@@ -88,7 +89,7 @@ const RetailForm = ({ formData, updateField }) => {
         </div>
       </div>
 
-      {/* ==================== WASHROOM DETAILS ==================== */}
+     {/* ==================== WASHROOM DETAILS ==================== */}
       <div className="border-t pt-6">
         <h3 className="text-lg font-semibold text-left mb-4">Washroom details</h3>
         
@@ -103,7 +104,7 @@ const RetailForm = ({ formData, updateField }) => {
                 updateField('washroomTypes', [...current, 'Private']);
               }
             }}
-            className={`px-6 py-3 rounded-full border text-sm transition-colors ${
+            className={`px-4 py-2 rounded-full border text-sm transition-colors ${
               (formData.washroomTypes || []).includes('Private')
                 ? 'bg-white text-gray-700 border-gray-300'
                 : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
@@ -122,7 +123,7 @@ const RetailForm = ({ formData, updateField }) => {
                 updateField('washroomTypes', [...current, 'Public']);
               }
             }}
-            className={`px-6 py-3 rounded-full border text-sm transition-colors ${
+            className={`px-4 py-2 rounded-full border text-sm transition-colors ${
               (formData.washroomTypes || []).includes('Public')
                 ? 'bg-white text-gray-700 border-gray-300'
                 : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
@@ -134,7 +135,7 @@ const RetailForm = ({ formData, updateField }) => {
           <button
             type="button"
             onClick={() => updateField('washroomTypes', [])}
-            className={`px-6 py-3 rounded-full border text-sm transition-colors ${
+            className={`px-4 py-2 rounded-full border text-sm transition-colors ${
               (formData.washroomTypes || []).length === 0
                 ? 'bg-white text-gray-700 border-gray-300'
                 : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
@@ -147,7 +148,7 @@ const RetailForm = ({ formData, updateField }) => {
 
       {/* ==================== FLOOR DETAILS ==================== */}
       <div className="border-t pt-6">
-        <h3 className="text-lg font-semibold text-left mb-4">Floor Details(Retail)</h3>
+        <h3 className="text-lg font-semibold text-left mb-4">Floor Details(Optional)</h3>
         
         <div className="grid grid-cols-2 gap-4">
           <NumberField
@@ -158,17 +159,11 @@ const RetailForm = ({ formData, updateField }) => {
             placeholder="0"
           />
           
-          <NumberField
-            label="Floor No(where it is located)"
-            name="floorNumber"
-            value={formData.floorNumber}
-            onChange={(value) => updateField('floorNumber', value)}
-            placeholder="0"
-          />
+         
         </div>
       </div>
 
-      {/* ==================== LICENSED RECOGNITION ==================== */}
+      {/* ==================== LICENSED RECOGNITION ====================
       <div className="border-t pt-6">
         <h3 className="text-lg font-semibold text-left mb-4">Licensed Recognition(s)</h3>
         
@@ -195,107 +190,87 @@ const RetailForm = ({ formData, updateField }) => {
             </button>
           ))}
         </div>
-      </div>
+      </div> */}
 
-      {/* ==================== PARKING TYPE ==================== */}
+    {/* ==================== PARKING TYPE ==================== */}
       <div className="border-t pt-6">
         <h3 className="text-lg font-semibold text-left mb-4">Parking Type</h3>
         
-        <div className="grid grid-cols-2 gap-3">
-          {['Car Parking', 'Bike Parking'].map((type) => (
-            <button
-              key={type}
-              type="button"
-              onClick={() => updateField('parkingType', type)}
-              className={`px-4 py-2 rounded-lg border text-sm transition-colors ${
-                formData.parkingType === type
-                  ? 'bg-green-500 text-white border-green-500'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
-              }`}
-            >
-              {type}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ==================== LOCATION ADVANTAGES ==================== */}
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-semibold text-left mb-4">Location Advantages</h3>
-        <CheckboxGroup
-          name="locationAdvantages"
-          selected={formData.locationAdvantages || []}
-          onChange={(value) => updateField('locationAdvantages', value)}
-          options={LOCATION_ADVANTAGES}
-        />
-      </div>
-
-      {/* ==================== AVAILABILITY STATUS ==================== */}
-      <div className="border-t pt-6">
-        <ToggleButtons
-          label="Availability Status"
-          name="availabilityStatus"
-          value={formData.availabilityStatus || ''}
-          onChange={(value) => updateField('availabilityStatus', value)}
-          options={['Ready to move', 'Under Construction']}
-        />
-      </div>
-
-      {/* ==================== AGE OF PROPERTY (Only shown when Ready to move) ==================== */}
-      {formData.availabilityStatus === 'Ready to move' && (
-        <div className="border-t pt-6">
-          <h3 className="text-lg font-semibold text-left mb-4">Age of property</h3>
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              const current = formData.parkingType || [];
+              if (current.includes('Private Parking')) {
+                updateField('parkingType', current.filter(t => t !== 'Private Parking'));
+              } else {
+                updateField('parkingType', [...current, 'Private Parking']);
+              }
+            }}
+            className={`px-4 py-2 rounded-full border text-sm transition-colors ${
+              (formData.parkingType || []).includes('Private Parking')
+                ? 'bg-white text-gray-700 border-gray-300'
+                : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
+            }`}
+          >
+            + Private Parking
+          </button>
           
-          <div className="grid grid-cols-2 gap-3">
-            {['Less than a year', '1-3 years', '3-5 years', '5-10 years', '10+ years'].map((age) => (
-              <button
-                key={age}
-                type="button"
-                onClick={() => updateField('ageOfProperty', age)}
-                className={`px-4 py-2 rounded-lg border text-sm transition-colors ${
-                  formData.ageOfProperty === age
-                    ? 'bg-green-500 text-white border-green-500'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
-                }`}
-              >
-                {age}
-              </button>
-            ))}
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const current = formData.parkingType || [];
+              if (current.includes('Public Parking')) {
+                updateField('parkingType', current.filter(t => t !== 'Public Parking'));
+              } else {
+                updateField('parkingType', [...current, 'Public Parking']);
+              }
+            }}
+            className={`px-4 py-2 rounded-full border text-sm transition-colors ${
+              (formData.parkingType || []).includes('Public Parking')
+                ? 'bg-white text-gray-700 border-gray-300'
+                : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
+            }`}
+          >
+            + Public Parking
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => {
+              const current = formData.parkingType || [];
+              if (current.includes('Multilevel Parking')) {
+                updateField('parkingType', current.filter(t => t !== 'Multilevel Parking'));
+              } else {
+                updateField('parkingType', [...current, 'Multilevel Parking']);
+              }
+            }}
+            className={`px-4 py-2 rounded-full border text-sm transition-colors ${
+              (formData.parkingType || []).includes('Multilevel Parking')
+                ? 'bg-white text-gray-700 border-gray-300'
+                : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
+            }`}
+          >
+            + Multilevel Parking
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => updateField('parkingType', [])}
+            className={`px-4 py-2 rounded-full border text-sm transition-colors ${
+              (formData.parkingType || []).length === 0
+                ? 'bg-white text-gray-700 border-gray-300'
+                : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
+            }`}
+          >
+            Not Available
+          </button>
         </div>
-      )}
+      </div>
 
-      {/* ==================== POSSESSION BY (Only shown when Under Construction) ==================== */}
-      {formData.availabilityStatus === 'Under Construction' && (
-        <>
-          <div className="border-t pt-6">
-            <h3 className="text-lg font-semibold text-left mb-4">Possession By</h3>
-            
-            <TextField
-  label="Year"
-  name="possessionYear"
-  value={formData.possessionYear}
-  onChange={(value) => updateField('possessionYear', value)}
-  placeholder="Enter year (e.g., 2025)"
-/>
-          </div>
-
-          {/* Show month field only when year is selected */}
-          {formData.possessionYear && (
-           
-            
-  <TextField
-    label="Month"
-    name="possessionMonth"
-    value={formData.possessionMonth}
-    onChange={(value) => updateField('possessionMonth', value)}
-    placeholder="Enter month (e.g., March)"
-  />
-
-           
-          )}
-        </>
-      )}
+     
+      {/* ==================== AVAILABILITY STATUS ==================== */}
+      <AvailabilityStatus formData={formData} updateField={updateField} />
 
       {/* ==================== SUITABLE FOR BUSINESS TYPE ==================== */}
       <div className="border-t pt-6">
@@ -429,7 +404,11 @@ const RetailForm = ({ formData, updateField }) => {
           />
         </div>
       </div>
-
+      <VaasthuDetails 
+        formData={formData} 
+        updateField={updateField} 
+        fields={retailVaasthuFields}
+      />
       {/* ==================== AMENITIES ==================== */}
       <div className="border-t pt-6">
         <h3 className="text-lg font-semibold text-left mb-4">Amenities</h3>
@@ -440,13 +419,18 @@ const RetailForm = ({ formData, updateField }) => {
           options={RETAIL_AMENITIES}
         />
       </div>
-
+      {/* ==================== LOCATION ADVANTAGES ==================== */}
+      <div className="border-t pt-6">
+        <h3 className="text-lg font-semibold text-left mb-4">Location Advantages</h3>
+        <CheckboxGroup
+          name="locationAdvantages"
+          selected={formData.locationAdvantages || []}
+          onChange={(value) => updateField('locationAdvantages', value)}
+          options={LOCATION_ADVANTAGES}
+        />
+      </div>
       {/* ==================== VAASTHU DETAILS ==================== */}
-      <VaasthuDetails 
-        formData={formData} 
-        updateField={updateField} 
-        fields={retailVaasthuFields}
-      />
+     
 
     </div>
   );
