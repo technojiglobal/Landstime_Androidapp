@@ -3,18 +3,18 @@ import LocationSection from '../../sections/LocationSection';
 import NumberField from '../../fields/NumberField';
 import TextField from '../../fields/TextField';
 import SelectField from '../../fields/SelectField';
-import TextAreaField from '../../fields/TextAreaField';
+
 import ToggleButtons from '../../fields/ToggleButtons';
 import RadioButtons from '../../fields/RadioButtons';
 import CheckboxGroup from '../../fields/CheckboxGroup';
 import NumberButtonGroup from '../../fields/NumberButtonGroup';
 import PricingSection from '../../sections/PricingSection';
+import DescriptionSection from '../../sections/DescriptionSection';
 import { 
   AGE_OF_PROPERTY,
   POSSESSION_MONTHS,
   OWNERSHIP_TYPES,
-  HOSPITALITY_AMENITIES,
-  LOCATION_ADVANTAGES,
+  
   FLOORING_TYPES,
   FURNISHING_OPTIONS
 } from '../../../../constants/propertyConstants';
@@ -100,62 +100,7 @@ const HospitalityForm = ({ formData, updateField }) => {
         />
       </div>
 
-      {/* ==================== AVAILABILITY STATUS ==================== */}
-      <div className="border-t pt-6">
-        <ToggleButtons
-          label="Availability Status"
-          name="availabilityStatus"
-          value={formData.availabilityStatus || 'Ready to move'}
-          onChange={(value) => {
-            updateField('availabilityStatus', value);
-            // Clear conditional fields when switching
-            if (value === 'Ready to move') {
-              updateField('possessionYear', '');
-              updateField('possessionMonth', '');
-            } else {
-              updateField('ageOfProperty', []);
-            }
-          }}
-          options={['Ready to move', 'Under construction']}
-        />
-
-        {/* Show Age of Property only for Ready to Move */}
-        {isReadyToMove && (
-          <div className="mt-6">
-            <CheckboxGroup
-              label="Age of Property"
-              name="ageOfProperty"
-              selected={formData.ageOfProperty || []}
-              onChange={(value) => updateField('ageOfProperty', value)}
-              options={AGE_OF_PROPERTY}
-            />
-          </div>
-        )}
-
-        {/* Show Possession By only for Under Construction */}
-        {isUnderConstruction && (
-          <div className="mt-6">
-            <h4 className="font-medium mb-3">Possession By</h4>
-            <div className="grid grid-cols-2 gap-4">
-              <SelectField
-                name="possessionYear"
-                value={formData.possessionYear}
-                onChange={(value) => updateField('possessionYear', value)}
-                options={['2024', '2025', '2026', '2027', '2028', '2029', '2030']}
-                placeholder="2032"
-              />
-              <SelectField
-                name="possessionMonth"
-                value={formData.possessionMonth}
-                onChange={(value) => updateField('possessionMonth', value)}
-                options={POSSESSION_MONTHS}
-                placeholder="Month"
-              />
-            </div>
-          </div>
-        )}
-      </div>
-
+    
       {/* ==================== OWNERSHIP ==================== */}
       <div className="border-t pt-6">
         <h3 className="font-semibold mb-3">Ownership</h3>
@@ -254,27 +199,8 @@ const HospitalityForm = ({ formData, updateField }) => {
         </div>
       )}
 
-      {/* ==================== DESCRIPTION ==================== */}
-      <TextAreaField
-        label="Description"
-        name="description"
-        value={formData.description}
-        onChange={(value) => updateField('description', value)}
-        placeholder="Write here what makes your property unique"
-        rows={4}
-      />
-
-      {/* ==================== AMENITIES ==================== */}
-      <div className="border-t pt-6">
-        <h3 className="font-semibold mb-4">Amenities</h3>
-        <CheckboxGroup
-          name="amenities"
-          selected={formData.amenities || []}
-          onChange={(value) => updateField('amenities', value)}
-          options={HOSPITALITY_AMENITIES}
-        />
-      </div>
-
+      {/* ====================  ==================== */}
+     
       {/* ==================== OTHER FEATURES ==================== */}
       <div className="border-t pt-6">
         <h3 className="font-semibold mb-4">Other Features</h3>
@@ -301,16 +227,8 @@ const HospitalityForm = ({ formData, updateField }) => {
         />
       </div>
 
-      {/* ==================== LOCATION ADVANTAGES ==================== */}
-      <div className="border-t pt-6">
-        <h3 className="font-semibold mb-4">Location Advantages</h3>
-        <CheckboxGroup
-          name="locationAdvantages"
-          selected={formData.locationAdvantages || []}
-          onChange={(value) => updateField('locationAdvantages', value)}
-          options={LOCATION_ADVANTAGES}
-        />
-      </div>
+      {/* ==================== DESCRIPTION ==================== */}
+     <DescriptionSection formData={formData} updateField={updateField} />
 
     </div>
   );
