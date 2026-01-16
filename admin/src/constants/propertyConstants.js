@@ -176,6 +176,12 @@ export const RETAIL_TYPES = [
   'Commercial Showrooms',
   
 ];
+export const PLOT_TYPES = [
+  'commercial Land/Inst.Land',
+  'Agricultural/Farm Land',
+  'Industrial Lands/Plots',
+  
+];
 export const COMMERCIAL_SUB_TYPES = [
   'Office',
   'Retail',
@@ -242,7 +248,33 @@ export const OFFICE_AMENITIES = [
   'Power Backup',
   'Lift(s)'
 ];
-
+// Office Amenities
+export const PLOT_AMENITIES = [
+  'Maintenance Staff',
+  'Water Storage',
+  'Water Disposal',
+  'ATM',
+  'Shopping Center',
+  'Wheelchair Accessibility',
+  'Cafeteria/Foodcourt',
+  'DG Availability',
+  'CCTV Surveillance',
+  'Grocery shop',
+  'Visitor Parking',
+  'Power Backup',
+  'Lift(s)'
+];
+// PLOT Amenities
+export const STORAGE_AMENITIES = [
+  'Water Storage',
+  'Centrally Air Conditioned',
+  'Visitor Parking ',
+  
+  'Vaastu Compliant',
+  
+  'Security Fire Alarm',
+  
+];
 // Vaasthu Directions for Office
 export const OFFICE_VAASTHU_FIELDS = [
   { name: 'officeFacing', label: 'Office Facing' },

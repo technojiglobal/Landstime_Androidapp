@@ -34,8 +34,8 @@ export const resortVaasthuFields = [
 
 export const sitePlotVaasthuFields = [
   { label: "Plot Facing", name: "plotFacing" },
-  { label: "Main Entry/Gate Direction", name: "mainDoorDirection" },
-  { label: "Plot Stage Direction", name: "plotStageDirection" },
+  { label: "Main Entry/Gate Direction", name: "mainEntryDirection" },
+  { label: "Plot Slope Direction", name: "plotSlopeDirection" },
   { label: "Open Space as per Vastu", name: "openSpaceVastu" },
   { label: "Shape", name: "shape" },
   { label: "Road Position", name: "roadPosition" },
@@ -82,5 +82,20 @@ export const retailVaasthuFields = [
   { label: "Electrical/Generator/Boiler Area Direction", name: "electricityDirection" },
   { label: "Water Source/Tank Direction", name: "waterSourceDirection" },
   { label: "Waste/Scrap Area Direction", name: "wasteAreaDirection" },
- ]
  
+ 
+  { label: "Staircase/Lift Direction(If inside shop)", name: "staircaseDirection" },
+];
+
+export const storageVaasthuFields = [
+  { label: "Storage Building Facing", name: "storageBuildingFacing" },
+  { label: "Main Entrance/Shutter Direction", name: "mainEntranceDirection" },
+  { label: "Storage Area Direction(Heavy Goods)", name: "storageAreaDirection" },
+  { label: "Light Goods/Empty Space Direction", name: "lightGoodsDirection" },
+  { label: "Loading/Unloading Area Direction", name: "loadingUnloadingDirection" },
+  { label: "Office/Admin Area Direction(If any)", name: "officeAreaDirection" },
+  { label: "Electrical/Generator/Equipment Direction", name: "electricalDirection" },
+  { label: "Water Source Direction(If any)", name: "waterSourceDirection" },
+  { label: "Washroom/Toilet Direction(If any)", name: "washroomDirection" },
+  { label: "Height & Level", name: "heightLevel" },
+];
