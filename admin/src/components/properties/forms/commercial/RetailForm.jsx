@@ -15,26 +15,15 @@ import {
   RETAIL_AMENITIES,
 } from '../../../../constants/propertyConstants';
 import { retailVaasthuFields } from '../../../../constants/vastuFields';
+import LocationSection from '../../sections/LocationSection';
 
 const RetailForm = ({ formData, updateField }) => {
   return (
     <div className="space-y-6 border-t pt-6">
       
-     
-
-      {/* ==================== LOCATION ==================== */}
-      <div className="pt-3">
-        <h3 className="text-lg font-semibold text-left mb-4">Location</h3>
-        
-        <TextField
-          label="Enter Property Location"
-          name="location"
-          value={formData.location}
-          onChange={(value) => updateField('location', value)}
-          placeholder="Enter location"
-          required
-        />
-      </div>
+     {/* ==================== LOCATION SECTION ==================== */}
+      <LocationSection formData={formData} updateField={updateField} />
+          
       {/* ==================== LOCATION DETAILS ==================== */}
       <div className="grid grid-cols-1 gap-4">
         <SelectField

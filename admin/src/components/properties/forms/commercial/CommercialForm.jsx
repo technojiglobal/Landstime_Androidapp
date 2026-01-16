@@ -3,9 +3,9 @@ import CommercialBasicDetails from '../../sections/CommercialBasicDetails';
 import OfficeForm from './OfficeForm';
 import StorageForm from './StorageForm';
 import HospitalityForm from './HospitalityForm';
-import CommercialSiteForm from './CommercialSiteForm';
 import OtherCommercialForm from './OtherCommercialForm';
 import RetailForm from './RetailForm';
+import PlotForm from './PlotForm';
 
 const CommercialForm = ({ formData, updateField }) => {
   const commercialSubType = formData.commercialSubType;
@@ -17,14 +17,13 @@ const CommercialForm = ({ formData, updateField }) => {
       case 'Storage':
         return <StorageForm formData={formData} updateField={updateField} />;
       case 'Hospitality':
-        return <HospitalityForm formData={formData} updateField={updateField} />;
-      case 'Site':
-        return <CommercialSiteForm formData={formData} updateField={updateField} />;
+        return <HospitalityForm formData={formData} updateField={updateField} />;  
       case 'Other':
         return <OtherCommercialForm formData={formData} updateField={updateField} />;
       case 'Retail' :
         return <RetailForm formData={formData} updateField={updateField} />;
       case 'Plot/Land':
+        return <PlotForm formData={formData} updateField={updateField} />;
       case 'Industry':
         return (
           <div className="text-center py-8 text-gray-500">

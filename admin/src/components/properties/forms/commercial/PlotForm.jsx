@@ -9,13 +9,13 @@ import RadioButtons from '../../fields/RadioButtons';
 import LocationSection from '../../sections/LocationSection';
 import {
   LOCATION_ADVANTAGES,
-  OWNERSHIP_TYPES,STORAGE_AMENITIES
+  OWNERSHIP_TYPES,PLOT_AMENITIES,
 } from '../../../../constants/propertyConstants';
 import VaasthuDetails from '../../sections/VaasthuDetails';
-import { storageVaasthuFields } from '../../../../constants/vastuFields';
+import { sitePlotVaasthuFields } from '../../../../constants/vastuFields';
 import OfficePricingDetailsSection from '../../sections/OfficePricingDetailsSection';
 
-const StorageForm = ({ formData, updateField }) => {
+const PlotForm = ({ formData, updateField }) => {
   return (
     <div className="space-y-6 border-t pt-6">
       
@@ -246,16 +246,7 @@ const StorageForm = ({ formData, updateField }) => {
 
      <OfficePricingDetailsSection formData={formData} updateField={updateField} />
 
-      {/* ==================== IS IT PRE-LEASED? PRE-RESELLED? ==================== */}
-      <div className="border-t pt-6">
-        <RadioButtons
-          label="Is it Pre-leased? Pre-Reselled?"
-          name="preLeased"
-          value={formData.preLeased}
-          onChange={(value) => updateField('preLeased', value)}
-          options={['Yes', 'No']}
-        />
-      </div>
+      
 
       {/* ==================== DESCRIPTION ==================== */}
       <div className="border-t pt-6">
@@ -284,14 +275,14 @@ const StorageForm = ({ formData, updateField }) => {
         />
       </div>
 
-     {/* ==================== AMENITIES ==================== */}
+    {/* ==================== AMENITIES ==================== */}
       <div className="border-t pt-6">
         <h3 className="text-lg font-semibold text-left mb-4">Amenities</h3>
         <CheckboxGroup
           name="amenities"
           selected={formData.amenities || []}
           onChange={(value) => updateField('amenities', value)}
-          options={STORAGE_AMENITIES}
+          options={PLOT_AMENITIES}
         />
       </div>
 
@@ -310,10 +301,10 @@ const StorageForm = ({ formData, updateField }) => {
       <VaasthuDetails
         formData={formData} 
         updateField={updateField} 
-        fields={storageVaasthuFields}
+        fields={sitePlotVaasthuFields}
       />
     </div>
   );
 };
 
-export default StorageForm;
+export default PlotForm;
