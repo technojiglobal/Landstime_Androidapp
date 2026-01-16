@@ -1,4 +1,4 @@
-  import React from 'react';
+import React from 'react';
 import NumberField from '../fields/NumberField';
 import TextField from '../fields/TextField';
 import RadioButtons from '../fields/RadioButtons';
