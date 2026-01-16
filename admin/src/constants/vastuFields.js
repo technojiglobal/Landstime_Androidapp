@@ -70,3 +70,17 @@ export const retailVaasthuFields = [
   { label: "Pantry/Wash Area Direction(if any)", name: "pantryDirection" },
   { label: "Staircase/Lift Direction(If inside shop)", name: "Staircase/Lift Direction(If inside shop)" },
 ];
+ export const industrialVaasthuFields = [
+  { label: "Industry Facing", name: "industryFacing" },
+  { label: "Main Entrance Direction", name: "mainEntranceDirection" },
+  { label: "Heavy Machinery Placement Direction", name: "machineryDirection" },
+  { label: "Production/Manufacturing Area Direction", name: "productionAreaDirection" },
+  { label: "Raw Material Storage/Warehouse Direction", name: "storageDirection" },
+  { label: "Finished Goods Storage Direction", name: "finishedGoodsDirection" },
+  { label: "Office/Admin Area Direction", name: "officeAreaDirection" },
+  { label: "Washroom Direction", name: "washroomDirection" },
+  { label: "Electrical/Generator/Boiler Area Direction", name: "electricityDirection" },
+  { label: "Water Source/Tank Direction", name: "waterSourceDirection" },
+  { label: "Waste/Scrap Area Direction", name: "wasteAreaDirection" },
+ ]
+ 

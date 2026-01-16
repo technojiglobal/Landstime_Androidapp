@@ -45,6 +45,10 @@ export const POSSESSION_OPTIONS = [
   'By 2029',
   'By 2030'
 ];
+export const POSSESSION_MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
 
 export const DIRECTIONS = [
   'North', 'South', 'East', 'West',
@@ -267,3 +271,70 @@ export const RETAIL_AMENITIES = [
   'WiFi',
   'Canteen/Food Court'
 ];
+export const INDUSTRY_TYPES = [
+  'Ready to move industry',
+  'Under construction industry'
+];
+
+export const INDUSTRY_AMENITIES = [
+  'Water Storage',
+  'Service/Goods Lift',
+  'Visitor Parking',
+  'Vaastu Compliant',
+  'Security/Fire Alarm',
+  'ATM',
+  'Maintenance Staff',
+  'Water Disposal',
+  'Rain Water Harvesting',
+  'Security Guard'
+];
+
+export const INDUSTRY_TYPES_APPROVED = [
+  'Manufacturing',
+  'Warehouse',
+  'Processing Plant',
+  'Assembly Unit',
+  'Packaging Unit',
+  'Cold Storage',
+  'Logistics Hub',
+  'Other'
+];
+
+export const ROOM_TYPES = [
+  'None',
+  'Shared',
+  '1',
+  '2',
+  '3',
+  '4+'
+];
+export const HOSPITALITY_TYPES = [
+  'Ready to move hospitality',
+  'Under construction hospitality'
+];
+
+export const HOSPITALITY_AMENITIES = [
+  'Water Storage',
+  'Conference Room',
+  'Intercom Facility',
+  'Cafeteria/Food Court',
+  'Central Air Conditioned',
+  'Lift(s)',
+  'Maintenance Staff',
+  'Water Disposal',
+  'Rain Water Harvesting',
+  'Access to High Speed Internet'
+];
+
+export const FLOORING_TYPES = [
+  'Marble',
+  'Vitrified',
+  'Wooden',
+  'Ceramic',
+  'Granite',
+  'Mosaic',
+  'Concrete',
+  'Other'
+];
+
+

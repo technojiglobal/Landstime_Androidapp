@@ -6,6 +6,7 @@ import HospitalityForm from './HospitalityForm';
 import CommercialSiteForm from './CommercialSiteForm';
 import OtherCommercialForm from './OtherCommercialForm';
 import RetailForm from './RetailForm';
+import IndustryForm from './IndustryForm';
 
 const CommercialForm = ({ formData, updateField }) => {
   const commercialSubType = formData.commercialSubType;
@@ -24,13 +25,11 @@ const CommercialForm = ({ formData, updateField }) => {
         return <OtherCommercialForm formData={formData} updateField={updateField} />;
       case 'Retail' :
         return <RetailForm formData={formData} updateField={updateField} />;
-      case 'Plot/Land':
+      
+        
+      
       case 'Industry':
-        return (
-          <div className="text-center py-8 text-gray-500">
-            {commercialSubType} form coming soon...
-          </div>
-        );
+        return <IndustryForm formData={formData} updateField={updateField} />;
       default:
         return null;
     }
