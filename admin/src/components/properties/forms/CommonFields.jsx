@@ -10,7 +10,7 @@ import { POSSESSION_OPTIONS } from '../../../constants/propertyConstants';
 const CommonFields = ({ formData, updateField }) => (
   <div className="space-y-6">
     {/* Possession By */}
-    <div>
+    {/* <div>
       <SelectField
         label="Possession By"
         name="possessionBy"
@@ -26,13 +26,13 @@ const CommonFields = ({ formData, updateField }) => (
       <button type="button" className="text-[#22C55E] text-sm mt-2 hover:text-green-700">
         + Add more pricing details
       </button>
-    </div>
+    </div> */}
 
     {/* Location */}
-    <LocationSection formData={formData} updateField={updateField} />
+    {/* <LocationSection formData={formData} updateField={updateField} />
 
-    {/* Description */}
-    <DescriptionSection formData={formData} updateField={updateField} />
+   
+    <DescriptionSection formData={formData} updateField={updateField} /> */}
 
     {/* Ownership Documents */}
     <OwnershipDocuments formData={formData} updateField={updateField} />

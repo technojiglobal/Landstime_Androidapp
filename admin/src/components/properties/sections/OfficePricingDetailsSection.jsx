@@ -1,6 +1,6 @@
 import React from 'react';
 import NumberField from '../fields/NumberField';
-import TextField from '../fields/TextField';
+
 import RadioButtons from '../fields/RadioButtons';
 import SelectField from '../fields/SelectField';
 import TextAreaField from '../fields/TextAreaField';
