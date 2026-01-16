@@ -21,17 +21,7 @@ const DescriptionSection = ({ formData, updateField }) => (
       rows={4}
     />
 
-    {/* ==================== AMENITIES ==================== */}
-    <div className="border-t pt-6">
-      <h3 className="text-lg font-semibold text-left mb-4">Amenities</h3>
-      <CheckboxGroup
-        name="amenities"
-        selected={formData.amenities || []}
-        onChange={(value) => updateField('amenities', value)}
-        options={OFFICE_AMENITIES}
-      />
-    </div>
-
+  
     {/* ==================== LOCATION ADVANTAGES ==================== */}
     <div className="border-t pt-6">
       <h3 className="text-lg font-semibold text-left mb-4">Location Advantages</h3>
