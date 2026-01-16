@@ -5,6 +5,7 @@ import StorageForm from './StorageForm';
 import HospitalityForm from './HospitalityForm';
 import OtherCommercialForm from './OtherCommercialForm';
 import RetailForm from './RetailForm';
+import IndustryForm from './IndustryForm';
 import PlotForm from './PlotForm';
 
 const CommercialForm = ({ formData, updateField }) => {
@@ -22,14 +23,13 @@ const CommercialForm = ({ formData, updateField }) => {
         return <OtherCommercialForm formData={formData} updateField={updateField} />;
       case 'Retail' :
         return <RetailForm formData={formData} updateField={updateField} />;
+      
+        
+      
       case 'Plot/Land':
         return <PlotForm formData={formData} updateField={updateField} />;
       case 'Industry':
-        return (
-          <div className="text-center py-8 text-gray-500">
-            {commercialSubType} form coming soon...
-          </div>
-        );
+        return <IndustryForm formData={formData} updateField={updateField} />;
       default:
         return null;
     }

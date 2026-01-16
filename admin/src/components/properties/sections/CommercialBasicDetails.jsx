@@ -1,14 +1,20 @@
 import React from 'react';
-import SelectField from '../fields/SelectField';
-import ToggleButtonGroup from '../fields/ToggleButtonGroup';
-import { COMMERCIAL_SUB_TYPES, OFFICE_TYPES, RETAIL_TYPES,PLOT_TYPES } from '../../../constants/propertyConstants';
+import {
+  COMMERCIAL_SUB_TYPES,
+  OFFICE_TYPES,
+  RETAIL_TYPES,
+  INDUSTRY_TYPES,
+  HOSPITALITY_TYPES,
+  PLOT_TYPES
+} from '../../../constants/propertyConstants';
 
 const CommercialBasicDetails = ({ formData, updateField }) => {
   const selectedType = formData.commercialSubType;
 
   return (
     <div className="space-y-6">
-      {/* Commercial Sub Type Selection */}
+
+      {/* Commercial Sub Type */}
       <div>
         <label className="block text-sm font-medium mb-2">Select Property Type</label>
         <div className="flex flex-wrap gap-2">
@@ -29,7 +35,7 @@ const CommercialBasicDetails = ({ formData, updateField }) => {
         </div>
       </div>
 
-      {/* Office Specific - What kind of office */}
+      {/* Office */}
       {selectedType === 'Office' && (
         <div>
           <label className="block text-sm font-medium mb-2">What kind of office is it?</label>
@@ -51,18 +57,19 @@ const CommercialBasicDetails = ({ formData, updateField }) => {
           </div>
         </div>
       )}
-        {/* Retail Specific - What kind of office */}
+
+      {/* Retail */}
       {selectedType === 'Retail' && (
         <div>
-          <label className="block text-sm font-medium mb-2">What kind of office is it?</label>
+          <label className="block text-sm font-medium mb-2">What kind of retail is it?</label>
           <div className="flex flex-wrap gap-2">
             {RETAIL_TYPES.map((type) => (
               <button
                 key={type}
                 type="button"
-                onClick={() => updateField('reatilType', type)}
+                onClick={() => updateField('retailType', type)}
                 className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-                  formData.officeType === type
+                  formData.retailType === type
                     ? 'bg-green-500 text-white border-green-500'
                     : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
                 }`}
@@ -73,10 +80,11 @@ const CommercialBasicDetails = ({ formData, updateField }) => {
           </div>
         </div>
       )}
-             {/* Plot Specific - What kind of office */}
-       {selectedType === 'Plot/Land' && (
+
+      {/* Plot / Land */}
+      {selectedType === 'Plot/Land' && (
         <div>
-          <label className="block text-sm font-medium mb-2">What kind of office is it?</label>
+          <label className="block text-sm font-medium mb-2">What kind of plot is it?</label>
           <div className="flex flex-wrap gap-2">
             {PLOT_TYPES.map((type) => (
               <button
@@ -84,7 +92,7 @@ const CommercialBasicDetails = ({ formData, updateField }) => {
                 type="button"
                 onClick={() => updateField('plotType', type)}
                 className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-                  formData.officeType === type
+                  formData.plotType === type
                     ? 'bg-green-500 text-white border-green-500'
                     : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
                 }`}
@@ -95,6 +103,53 @@ const CommercialBasicDetails = ({ formData, updateField }) => {
           </div>
         </div>
       )}
+
+      {/* Industry */}
+      {selectedType === 'Industry' && (
+        <div>
+          <label className="block text-sm font-medium mb-2">What kind of industry is it?</label>
+          <div className="flex flex-wrap gap-2">
+            {INDUSTRY_TYPES.map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => updateField('industryType', type)}
+                className={`px-4 py-2 rounded-full border text-sm transition-colors ${
+                  formData.industryType === type
+                    ? 'bg-green-500 text-white border-green-500'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Hospitality */}
+      {selectedType === 'Hospitality' && (
+        <div>
+          <label className="block text-sm font-medium mb-2">What kind of hospitality is it?</label>
+          <div className="flex flex-wrap gap-2">
+            {HOSPITALITY_TYPES.map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => updateField('hospitalityType', type)}
+                className={`px-4 py-2 rounded-full border text-sm transition-colors ${
+                  formData.hospitalityType === type
+                    ? 'bg-green-500 text-white border-green-500'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

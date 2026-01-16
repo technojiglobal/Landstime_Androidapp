@@ -120,7 +120,32 @@ const usePropertyForm = () => {
     locatedInside: '',
     zoneType: '',
     carpetArea: '',
-    ownershipType: ''
+    ownershipType: '',
+
+   
+  
+  // Industry specific fields
+  industryType: '',
+  noOfWashrooms: '',
+  plotArea: '',
+  possessionYear: '',
+  possessionMonth: '',
+  approvedBy: '',
+  approvedIndustryType: '',
+  preLeased: '',
+  currentRent: '',
+  leaseTenure: '',
+  wheelchairFriendly: false,
+
+  // Hospitality specific fields
+  hospitalityType: '',
+  noOfRooms: '',
+  otherRooms: [],
+  furnishing: '',
+  flooringType: '',
+  
+  
+  
   });
 
   const updateField = (name, value) => {
@@ -144,6 +169,7 @@ const usePropertyForm = () => {
 
   return { formData, updateField, updateMultipleFields, resetForm };
 };
+
 
 export default usePropertyForm;
 

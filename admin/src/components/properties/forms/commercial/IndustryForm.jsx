@@ -10,16 +10,17 @@ import CheckboxGroup from '../../fields/CheckboxGroup';
 import NumberButtonGroup from '../../fields/NumberButtonGroup';
 import PricingSection from '../../sections/PricingSection';
 import { 
+  ROOM_TYPES,
   AGE_OF_PROPERTY,
   POSSESSION_MONTHS,
   OWNERSHIP_TYPES,
-  HOSPITALITY_AMENITIES,
-  LOCATION_ADVANTAGES,
-  FLOORING_TYPES,
-  FURNISHING_OPTIONS
+  INDUSTRY_TYPES_APPROVED,
+  INDUSTRY_AMENITIES,
+  LOCATION_ADVANTAGES
 } from '../../../../constants/propertyConstants';
-
-const HospitalityForm = ({ formData, updateField }) => {
+import { industrialVaasthuFields } from '../../../../constants/vastuFields';
+import VaasthuDetails from '../../sections/VaasthuDetails';
+const IndustryForm = ({ formData, updateField }) => {
   const isReadyToMove = formData.availabilityStatus === 'Ready to move';
   const isUnderConstruction = formData.availabilityStatus === 'Under construction';
   const isPreLeased = formData.preLeased === 'Yes';
@@ -33,71 +34,28 @@ const HospitalityForm = ({ formData, updateField }) => {
       {/* ==================== ROOM DETAILS ==================== */}
       <div className="border-t pt-6">
         <h3 className="font-semibold mb-4">Add Room Details</h3>
-        
-        <NumberField
-          label="No.of Rooms"
-          name="noOfRooms"
-          value={formData.noOfRooms}
-          onChange={(value) => updateField('noOfRooms', value)}
-          placeholder="Enter the total no.of rooms"
+        <NumberButtonGroup
+          label="No.of Washrooms"
+          name="noOfWashrooms"
+          value={formData.noOfWashrooms}
+          onChange={(value) => updateField('noOfWashrooms', value)}
+          options={ROOM_TYPES}
         />
-
-        <div className="mt-4">
-          <NumberButtonGroup
-            label="No.of Washrooms"
-            name="noOfWashrooms"
-            value={formData.noOfWashrooms}
-            onChange={(value) => updateField('noOfWashrooms', value)}
-            options={['None', 'Shared', '1', '2', '3', '4', '4+']}
-          />
-        </div>
-
-        <div className="mt-4">
-          <NumberButtonGroup
-            label="Balconies"
-            name="balconies"
-            value={formData.balconies}
-            onChange={(value) => updateField('balconies', value)}
-            options={['0', '1', '2', '3', 'More than 3']}
-          />
-        </div>
-
-        <div className="mt-4">
-          <label className="block text-sm font-medium mb-2">Other rooms (optional)</label>
-          <div className="flex flex-wrap gap-2">
-            {['Pooja Room', 'Study Room', 'Servant Room', 'Other'].map((room) => (
-              <button
-                key={room}
-                type="button"
-                onClick={() => {
-                  const current = formData.otherRooms || [];
-                  const updated = current.includes(room)
-                    ? current.filter(r => r !== room)
-                    : [...current, room];
-                  updateField('otherRooms', updated);
-                }}
-                className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-                  (formData.otherRooms || []).includes(room)
-                    ? 'bg-green-500 text-white border-green-500'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
-                }`}
-              >
-                + {room}
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
 
-      {/* ==================== FURNISHING ==================== */}
+      {/* ==================== AREA DETAILS ==================== */}
       <div className="border-t pt-6">
-        <h3 className="font-semibold mb-4">Furnishing</h3>
-        <RadioButtons
-          name="furnishing"
-          value={formData.furnishing}
-          onChange={(value) => updateField('furnishing', value)}
-          options={FURNISHING_OPTIONS}
-        />
+        <h3 className="font-semibold mb-4">Add Area Details</h3>
+        <div className="relative">
+          <NumberField
+            label="Plot Area"
+            name="plotArea"
+            value={formData.plotArea}
+            onChange={(value) => updateField('plotArea', value)}
+            placeholder="Plot Area"
+          />
+          <span className="absolute right-3 top-9 text-gray-400 text-sm">sqft</span>
+        </div>
       </div>
 
       {/* ==================== AVAILABILITY STATUS ==================== */}
@@ -186,13 +144,13 @@ const HospitalityForm = ({ formData, updateField }) => {
         placeholder="+ Local Authority"
       />
 
-      {/* ==================== INDUSTRY TYPE (For Hospitality it's optional) ==================== */}
+      {/* ==================== INDUSTRY TYPE APPROVED ==================== */}
       <SelectField
         label="Approved for Industry Type(optional)"
         name="approvedIndustryType"
         value={formData.approvedIndustryType}
         onChange={(value) => updateField('approvedIndustryType', value)}
-        options={['Hospitality', 'Hotel', 'Resort', 'Guest House', 'Restaurant', 'Other']}
+        options={INDUSTRY_TYPES_APPROVED}
         placeholder="Select Industry Type"
       />
 
@@ -271,7 +229,7 @@ const HospitalityForm = ({ formData, updateField }) => {
           name="amenities"
           selected={formData.amenities || []}
           onChange={(value) => updateField('amenities', value)}
-          options={HOSPITALITY_AMENITIES}
+          options={INDUSTRY_AMENITIES}
         />
       </div>
 
@@ -289,18 +247,6 @@ const HospitalityForm = ({ formData, updateField }) => {
         </label>
       </div>
 
-      {/* ==================== TYPE OF FLOORING ==================== */}
-      <div className="border-t pt-6">
-        <SelectField
-          label="Type of Flooring"
-          name="flooringType"
-          value={formData.flooringType}
-          onChange={(value) => updateField('flooringType', value)}
-          options={FLOORING_TYPES}
-          placeholder="Marble"
-        />
-      </div>
-
       {/* ==================== LOCATION ADVANTAGES ==================== */}
       <div className="border-t pt-6">
         <h3 className="font-semibold mb-4">Location Advantages</h3>
@@ -312,9 +258,16 @@ const HospitalityForm = ({ formData, updateField }) => {
         />
       </div>
 
+      <VaasthuDetails 
+      formData={formData} 
+      updateField={updateField} 
+      fields={industrialVaasthuFields}
+    />
+
+
     </div>
   );
 };
 
-export default HospitalityForm;
+export default IndustryForm;
 
