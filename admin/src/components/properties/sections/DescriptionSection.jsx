@@ -1,3 +1,4 @@
+//
 //FILE 2: src/admin/components/properties/sections/DescriptionSection.jsx
 // Description + Amenities + Location Advantages
 // ============================================

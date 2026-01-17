@@ -1,22 +1,20 @@
 // FILE 3: src/admin/components/properties/forms/commercial/OfficeForm.jsx
-// UPDATED OFFICE FORM - USING COMBINED SECTIONS
+// UPDATED OFFICE FORM - UI IMPROVEMENTS
 // ============================================
 
 import React from 'react';
 import NumberField from '../../fields/NumberField';
 import SelectField from '../../fields/SelectField';
-import ToggleButtons from '../../fields/ToggleButtons';
 import LocationSection from '../../sections/LocationSection';
 import OfficeDetailsSection from '../../sections/OfficeDetailsSection';
 import OfficePricingDetailsSection from '../../sections/OfficePricingDetailsSection';
 import DescriptionSection from '../../sections/DescriptionSection';
 import VaasthuDetails from '../../sections/VaasthuDetails';
 import AvailabilityStatus from '../../sections/AvailabilityStatus';
-
 import CheckboxGroup from '../../fields/CheckboxGroup';
 import { 
   OWNERSHIP_TYPES, 
-  POSSESSION_OPTIONS ,OFFICE_AMENITIES
+  OFFICE_AMENITIES
 } from '../../../../constants/propertyConstants';
 import { officeVaasthuFields } from '../../../../constants/vastuFields';
 
@@ -66,27 +64,57 @@ const OfficeForm = ({ formData, updateField }) => {
 
       {/* ==================== AREA SECTION ==================== */}
       <div className="border-t pt-6">
-        <h3 className="text-lg font-semibold text-left mb-4">Area (sqft)</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <NumberField
-            label="Carpet Area"
-            name="carpetArea"
-            value={formData.carpetArea}
-            onChange={(value) => updateField('carpetArea', value)}
-            placeholder="sqft"
-          />
-          <NumberField
-            label="Built Up Area (optional)"
-            name="builtUpArea"
-            value={formData.builtUpArea}
-            onChange={(value) => updateField('builtUpArea', value)}
-            placeholder="sqft"
-          />
+        <h3 className="text-lg font-semibold text-left mb-4">Area</h3>
+        <div className="grid grid-cols-1 gap-4">
+          {/* Carpet Area with Unit Dropdown */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Carpet Area</label>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                value={formData.carpetArea || ''}
+                onChange={(e) => updateField('carpetArea', e.target.value)}
+                placeholder="Enter area"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              />
+              <select
+                value={formData.carpetAreaUnit || 'sqft'}
+                onChange={(e) => updateField('carpetAreaUnit', e.target.value)}
+                className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              >
+                <option value="sqft">sqft</option>
+                <option value="sqm">sqm</option>
+                <option value="sqyd">sqyd</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Built Up Area with Unit Dropdown */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Built Up Area (optional)</label>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                value={formData.builtUpArea || ''}
+                onChange={(e) => updateField('builtUpArea', e.target.value)}
+                placeholder="Enter area"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              />
+              <select
+                value={formData.builtUpAreaUnit || 'sqft'}
+                onChange={(e) => updateField('builtUpAreaUnit', e.target.value)}
+                className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              >
+                <option value="sqft">sqft</option>
+                <option value="sqm">sqm</option>
+                <option value="sqyd">sqyd</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* ==================== COMBINED OFFICE DETAILS ==================== */}
-      {/* Setup + Furnishing + Floor + Parking all in one */}
       <OfficeDetailsSection formData={formData} updateField={updateField} />
 
       {/* ==================== AVAILABILITY STATUS ==================== */}
@@ -116,19 +144,19 @@ const OfficeForm = ({ formData, updateField }) => {
       {/* ==================== PRICING DETAILS SECTION ==================== */}
       <OfficePricingDetailsSection formData={formData} updateField={updateField} />
 
-      {/* ==================== DESCRIPTION + AMENITIES + LOCATION ==================== */}
+      {/* ==================== DESCRIPTION + AMENITIES ==================== */}
       <DescriptionSection formData={formData} updateField={updateField} />
-        {/* ==================== AMENITIES ==================== */}
-    <div className="border-t pt-6">
-      <h3 className="text-lg font-semibold text-left mb-4">Amenities</h3>
-      <CheckboxGroup
-        name="amenities"
-        selected={formData.amenities || []}
-        onChange={(value) => updateField('amenities', value)}
-        options={OFFICE_AMENITIES}
-      />
-    </div>
-
+      
+      {/* ==================== AMENITIES ==================== */}
+      <div className="border-t pt-6">
+        <h3 className="text-lg font-semibold text-left mb-4">Amenities</h3>
+        <CheckboxGroup
+          name="amenities"
+          selected={formData.amenities || []}
+          onChange={(value) => updateField('amenities', value)}
+          options={OFFICE_AMENITIES}
+        />
+      </div>
 
       {/* ==================== VAASTHU DETAILS SECTION ==================== */}
       <VaasthuDetails 
