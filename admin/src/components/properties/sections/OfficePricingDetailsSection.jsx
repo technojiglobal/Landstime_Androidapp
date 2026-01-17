@@ -1,7 +1,5 @@
 import React from 'react';
 import NumberField from '../fields/NumberField';
-
-import RadioButtons from '../fields/RadioButtons';
 import SelectField from '../fields/SelectField';
 import TextAreaField from '../fields/TextAreaField';
 import PricingSection from './PricingSection';
@@ -24,16 +22,29 @@ const OfficePricingDetailsSection = ({ formData, updateField }) => (
       + Add more pricing details
     </button>
 
-    <RadioButtons
-      label="Is it Pre-leased/ Pre-Reneted?"
-      name="preLeased"
-      value={formData.preLeased}
-      onChange={(value) => updateField('preLeased', value)}
-      options={['Yes', 'No']}
-    />
+    {/* Pre-leased/Pre-Rented - Pill Style */}
+    <div>
+      <label className="block text-sm font-medium mb-2">Is it Pre-leased/ Pre-Reneted?</label>
+      <div className="flex gap-2">
+        {['Yes', 'No'].map((option) => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => updateField('preLeased', option)}
+            className={`px-4 py-2 rounded-full border text-sm ${
+              formData.preLeased === option
+                ? 'bg-green-500 text-white border-green-500'
+                : 'bg-white text-gray-700 border-gray-300'
+            }`}
+          >
+            {option}
+          </button>
+        ))}
+      </div>
+    </div>
 
     {formData.preLeased === 'Yes' && (
-      <>
+      <div className="grid grid-cols-2 gap-4">
         <NumberField
           label="Current rent per month"
           name="currentRent"
@@ -48,24 +59,50 @@ const OfficePricingDetailsSection = ({ formData, updateField }) => (
           value={formData.leaseTenure}
           onChange={(value) => updateField('leaseTenure', value)}
         />
-      </>
+      </div>
     )}
 
-    <RadioButtons
-      label="Is your office fire NOC Certified?"
-      name="fireNOC"
-      value={formData.fireNOC}
-      onChange={(value) => updateField('fireNOC', value)}
-      options={['Yes', 'No']}
-    />
+    {/* Fire NOC Certified - Pill Style */}
+    <div>
+      <label className="block text-sm font-medium mb-2">Is your office fire NOC Certified?</label>
+      <div className="flex gap-2">
+        {['Yes', 'No'].map((option) => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => updateField('fireNOC', option)}
+            className={`px-4 py-2 rounded-full border text-sm ${
+              formData.fireNOC === option
+                ? 'bg-green-500 text-white border-green-500'
+                : 'bg-white text-gray-700 border-gray-300'
+            }`}
+          >
+            {option}
+          </button>
+        ))}
+      </div>
+    </div>
 
-    <RadioButtons
-      label="Occupancy Certificate"
-      name="occupancyCertificate"
-      value={formData.occupancyCertificate}
-      onChange={(value) => updateField('occupancyCertificate', value)}
-      options={['Yes', 'No']}
-    />
+    {/* Occupancy Certificate - Pill Style */}
+    <div>
+      <label className="block text-sm font-medium mb-2">Occupancy Certificate</label>
+      <div className="flex gap-2">
+        {['Yes', 'No'].map((option) => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => updateField('occupancyCertificate', option)}
+            className={`px-4 py-2 rounded-full border text-sm ${
+              formData.occupancyCertificate === option
+                ? 'bg-green-500 text-white border-green-500'
+                : 'bg-white text-gray-700 border-gray-300'
+            }`}
+          >
+            {option}
+          </button>
+        ))}
+      </div>
+    </div>
 
     <SelectField
       label="Office previously used for (optional)"
