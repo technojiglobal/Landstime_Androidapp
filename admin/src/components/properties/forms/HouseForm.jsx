@@ -7,12 +7,15 @@ import RadioButtons from '../fields/RadioButtons';
 import VaasthuDetails from '../sections/VaasthuDetails';
 import FacilitiesSection from '../sections/FacilitiesSection';
 import ParkingSection from '../sections/ParkingSection';
+import AvailabilityStatus from '../sections/AvailabilityStatus';
 import {
   OTHER_ROOMS,
   AGE_OF_PROPERTY,
   FURNISHING_OPTIONS
 } from '../../../constants/propertyConstants';
 import { normalVaasthuFields } from '../../../constants/vastuFields';
+import LocationSection from '../sections/LocationSection';
+import DescriptionSection from '../sections/DescriptionSection';
 
 const HouseForm = ({ formData, updateField }) => (
   <div className="space-y-6 border-t pt-6">
@@ -25,7 +28,12 @@ const HouseForm = ({ formData, updateField }) => (
         value={formData.noOfFloors}
         onChange={(value) => updateField('noOfFloors', value)}
       />
-
+       <NumberField
+      label="Area(Sqft)"
+      name="area"
+      value={formData.balconies}
+      onChange={(value) => updateField('area', value)}
+    />
       <NumberField
         label="Bedrooms"
         name="bedrooms"
@@ -56,13 +64,8 @@ const HouseForm = ({ formData, updateField }) => (
       rows={3}
     />
 
-    <ToggleButtons
-      label="Availability Status"
-      name="availabilityStatus"
-      value={formData.availabilityStatus}
-      onChange={(value) => updateField('availabilityStatus', value)}
-      options={['Ready to Move', 'Under Construction']}
-    />
+     {/* ==================== AVAILABILITY STATUS ==================== */}
+      <AvailabilityStatus formData={formData} updateField={updateField} />
 
     <CheckboxGroup
       label="Other Rooms"
@@ -72,13 +75,7 @@ const HouseForm = ({ formData, updateField }) => (
       options={OTHER_ROOMS}
     />
 
-    <CheckboxGroup
-      label="Age of Property"
-      name="ageOfProperty"
-      selected={formData.ageOfProperty || []}
-      onChange={(value) => updateField('ageOfProperty', value)}
-      options={AGE_OF_PROPERTY}
-    />
+  
 
     <RadioButtons
       label="Furnishing"
@@ -88,8 +85,10 @@ const HouseForm = ({ formData, updateField }) => (
       options={FURNISHING_OPTIONS}
     />
 
-    <ParkingSection formData={formData} updateField={updateField} />
-    <FacilitiesSection formData={formData} updateField={updateField} />
+    {/* <ParkingSection formData={formData} updateField={updateField} />
+    <FacilitiesSection formData={formData} updateField={updateField} /> */}
+    <LocationSection formData={formData} updateField={updateField} />
+    <DescriptionSection formData={formData} updateField={updateField} />
     <VaasthuDetails formData={formData} updateField={updateField} fields={normalVaasthuFields} />
   </div>
 );
