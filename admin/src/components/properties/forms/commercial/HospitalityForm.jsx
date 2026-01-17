@@ -1,4 +1,4 @@
-import React from 'react';
+import {useState,React} from 'react';
 import LocationSection from '../../sections/LocationSection';
 import NumberField from '../../fields/NumberField';
 import TextField from '../../fields/TextField';
@@ -10,20 +10,27 @@ import CheckboxGroup from '../../fields/CheckboxGroup';
 import NumberButtonGroup from '../../fields/NumberButtonGroup';
 import PricingSection from '../../sections/PricingSection';
 import DescriptionSection from '../../sections/DescriptionSection';
+import PricingDetailsModal from '../../PricingDetailsModal';
 import { 
-  AGE_OF_PROPERTY,
-  POSSESSION_MONTHS,
+
   OWNERSHIP_TYPES,
   
   FLOORING_TYPES,
-  FURNISHING_OPTIONS
+  FURNISHING_OPTIONS,
+  HOSPITALITY_AMENITIES
 } from '../../../../constants/propertyConstants';
-
+import AvailabilityStatus from '../../sections/AvailabilityStatus';
 const HospitalityForm = ({ formData, updateField }) => {
   const isReadyToMove = formData.availabilityStatus === 'Ready to move';
   const isUnderConstruction = formData.availabilityStatus === 'Under construction';
   const isPreLeased = formData.preLeased === 'Yes';
-
+const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+  const [pricingDetails, setPricingDetails] = useState(null);
+  const handlePricingSubmit = (data) => {
+    setPricingDetails(data);
+    console.log('Pricing details:', data);
+    // You can store this in your main form state or send to API
+  };
   return (
     <div className="space-y-6 border-t pt-6">
       
@@ -48,7 +55,7 @@ const HospitalityForm = ({ formData, updateField }) => {
             name="noOfWashrooms"
             value={formData.noOfWashrooms}
             onChange={(value) => updateField('noOfWashrooms', value)}
-            options={['None', 'Shared', '1', '2', '3', '4', '4+']}
+            options={[ '1', '2', '3', '4', '4+']}
           />
         </div>
 
@@ -58,7 +65,7 @@ const HospitalityForm = ({ formData, updateField }) => {
             name="balconies"
             value={formData.balconies}
             onChange={(value) => updateField('balconies', value)}
-            options={['0', '1', '2', '3', 'More than 3']}
+            options={['0', '1', '2', '3', '3+']}
           />
         </div>
 
@@ -99,7 +106,7 @@ const HospitalityForm = ({ formData, updateField }) => {
           options={FURNISHING_OPTIONS}
         />
       </div>
-
+<AvailabilityStatus formData={formData} updateField={updateField} />
     
       {/* ==================== OWNERSHIP ==================== */}
       <div className="border-t pt-6">
@@ -157,9 +164,18 @@ const HospitalityForm = ({ formData, updateField }) => {
           <PricingSection formData={formData} updateField={updateField} />
         </div>
 
-        <button type="button" className="text-green-600 text-sm mt-2">
+        <button 
+          type="button" 
+          className="text-green-600 text-sm mt-2"
+          onClick={() => setIsPricingModalOpen(true)}
+        >
           + Add more pricing details
         </button>
+        <PricingDetailsModal
+        isOpen={isPricingModalOpen}
+        onClose={() => setIsPricingModalOpen(false)}
+        onSubmit={handlePricingSubmit}
+      />
       </div>
 
       {/* ==================== PRE-LEASED ==================== */}
@@ -228,7 +244,17 @@ const HospitalityForm = ({ formData, updateField }) => {
       </div>
 
       {/* ==================== DESCRIPTION ==================== */}
-     <DescriptionSection formData={formData} updateField={updateField} />
+     <DescriptionSection formData={formData} updateField={updateField} />{/* ==================== AMENITIES ==================== */}
+      <div className="border-t pt-6">
+        <h3 className="font-semibold mb-4">Amenities</h3>
+        <CheckboxGroup
+          name="amenities"
+          selected={formData.amenities || []}
+          onChange={(value) => updateField('amenities', value)}
+          options={HOSPITALITY_AMENITIES}
+        />
+      </div>
+
 
     </div>
   );
