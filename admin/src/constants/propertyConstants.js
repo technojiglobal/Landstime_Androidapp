@@ -310,8 +310,8 @@ export const RETAIL_AMENITIES = [
   'Canteen/Food Court'
 ];
 export const INDUSTRY_TYPES = [
-  'Ready to move industry',
-  'Under construction industry'
+  'Manufacturing',
+  'Factory',
 ];
 
 export const INDUSTRY_AMENITIES = [
@@ -339,16 +339,16 @@ export const INDUSTRY_TYPES_APPROVED = [
 ];
 
 export const ROOM_TYPES = [
-  'None',
-  'Shared',
+  
   '1',
   '2',
   '3',
   '4+'
 ];
 export const HOSPITALITY_TYPES = [
-  'Ready to move hospitality',
-  'Under construction hospitality'
+  'Hotel/Resorts',
+  'Guest House/Banquet Halls',
+  
 ];
 
 export const HOSPITALITY_AMENITIES = [
