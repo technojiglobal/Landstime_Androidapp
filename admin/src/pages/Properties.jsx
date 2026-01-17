@@ -357,7 +357,14 @@ const loadProperties = async () => {
                   <p className="font-medium">{p.title}</p>
                   <p className="text-xs text-gray-500">{p.location}</p>
                 </td>
-                <td className="px-4 py-3">{p.type}</td>
+                <td className="px-4 py-3">
+  {p.type}
+  {p.type === 'Commercial' && p.raw.commercialDetails?.subType && (
+    <span className="block text-xs text-gray-500 mt-0.5">
+      ({p.raw.commercialDetails.subType})
+    </span>
+  )}
+</td>
                 
                 <td className="px-4 py-3">{p.price}</td>
                 <td className="px-4 py-3">

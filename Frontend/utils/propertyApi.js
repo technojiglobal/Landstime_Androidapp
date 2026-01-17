@@ -42,7 +42,11 @@ const apiRequest = async (endpoint, method = 'GET', body = null, isFormData = fa
   try {
     const token = await getToken();
     
-    console.log('🔑 Token retrieved:', token ? 'Token exists' : 'No token found');
+    const fullUrl = `${API_BASE_URL}${endpoint}`;
+    console.log('🌐 Full Request URL:', fullUrl);
+    console.log('🔑 Token exists:', !!token);
+    console.log('📤 Method:', method);
+    console.log('📦 Is FormData:', isFormData);
     
     const headers = {};
     if (!isFormData) {
@@ -51,9 +55,6 @@ const apiRequest = async (endpoint, method = 'GET', body = null, isFormData = fa
     
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
-      console.log('✅ Authorization header added');
-    } else {
-      console.error('❌ No token available for authenticated request');
     }
     
     const config = {
@@ -65,8 +66,12 @@ const apiRequest = async (endpoint, method = 'GET', body = null, isFormData = fa
       config.body = isFormData ? body : JSON.stringify(body);
     }
     
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    console.log('🚀 Sending request to:', fullUrl);
+    const response = await fetch(fullUrl, config);
+    console.log('📡 Response received. Status:', response.status);
+    
     const data = await response.json();
+    console.log('📥 Response data:', data);
     
     return {
       success: response.ok,
@@ -75,7 +80,10 @@ const apiRequest = async (endpoint, method = 'GET', body = null, isFormData = fa
     };
     
   } catch (error) {
-    console.error('API Request Error:', error);
+    console.error('❌ API Request Error:', error);
+    console.error('❌ Error name:', error.name);
+    console.error('❌ Error message:', error.message);
+    console.error('❌ Error stack:', error.stack);
     return {
       success: false,
       error: error.message,
@@ -338,4 +346,23 @@ export const updatePropertyAvailability = async (propertyId, propertyStatus) => 
 // Admin update property details
 export const adminUpdateProperty = async (propertyId, propertyData) => {
   return await apiRequest(`/admin/${propertyId}`, 'PUT', propertyData);
+};
+
+// Add this test function at the bottom
+export const testBackendConnection = async () => {
+  try {
+    console.log('🧪 Testing backend connection...');
+    console.log('🎯 API_URL:', API_URL);
+    console.log('🎯 Full URL:', `${API_URL}/api/properties/approved`);
+    
+    const response = await fetch(`${API_URL}/api/properties/approved`);
+    console.log('✅ Response status:', response.status);
+    
+    const data = await response.json();
+    console.log('✅ Backend is reachable!', data);
+    return true;
+  } catch (error) {
+    console.error('❌ Backend connection failed:', error.message);
+    return false;
+  }
 };

@@ -255,44 +255,40 @@ const handleNext = () => {
     return;
   }
 
-  // ✅ BUILD COMPLETE commercialDetails OBJECT
 const commercialDetails = {
   subType: "Office",
 
   officeDetails: {
-    ...officeDetails, // ✅ This preserves officeKind from previous screen
+    ...officeDetails, // ✅ This preserves all fields from Office.jsx
     
-    // ✅ ADD NEW FIELDS from this screen (don't overwrite old ones)
-    expectedPrice: Number(expectedPrice), // ✅ This includes: location, carpetArea, cabins, etc.
-      
-      // ✅ ADD NEW FIELDS from this screen
-      expectedPrice: Number(expectedPrice),
-      
-      priceDetails: {
-        allInclusive,
-        negotiable: priceNegotiable,
-        taxExcluded,
-      },
-      
-      preLeased,
-      leaseDuration: leaseDuration || undefined,
-      monthlyRent: monthlyRent ? Number(monthlyRent) : undefined,
-      
-      nocCertified,
-      occupancyCertified,
-      
-      previouslyUsedFor: prevUsedFor,
-      
-      description: describeProperty,
-      
-      amenities,
-      locationAdvantages: locAdvantages,
-    },
-
-    propertyTitle: officeDetails.propertyTitle || params.propertyTitle,
-    area: params.area, // ✅ Neighborhood area
+    // ✅ ADD NEW FIELDS from this screen (OfficeNext.jsx)
     expectedPrice: Number(expectedPrice),
-  };
+    
+    priceDetails: {
+      allInclusive,
+      negotiable: priceNegotiable,
+      taxExcluded,
+    },
+    
+    preLeased,
+    leaseDuration: leaseDuration || undefined,
+    monthlyRent: monthlyRent ? Number(monthlyRent) : undefined,
+    
+    nocCertified,
+    occupancyCertified,
+    
+    previouslyUsedFor: prevUsedFor,
+    
+    description: describeProperty,
+    
+    amenities,
+    locationAdvantages: locAdvantages,
+  },
+
+  propertyTitle: officeDetails.propertyTitle || params.propertyTitle,
+  area: params.area,
+  expectedPrice: Number(expectedPrice),
+};
 
   console.log('🔄 Passing to OfficeVaastu:', {
     hasCommercialDetails: !!commercialDetails,

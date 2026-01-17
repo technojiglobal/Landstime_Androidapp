@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import {useTranslation } from "react-i18next";
+import i18n from "../../../../../i18n/index"; // ✅ ADD THIS LINE
 import {
   View,
   Text,
@@ -52,11 +53,11 @@ const PillButton = ({ label, selected, onPress }) => (
 
 /* ---------- Screen ---------- */
 export default function PropertyFormScreen() {
-  const {i18n} = useTranslation();
+  const { t } = useTranslation();
   const router = useRouter();
 
   const [title, setTitle] = useState("");
-  const [propertyType, setPropertyType] = useState("Resort");
+  const [propertyType, setPropertyType] = useState(t("resort"));
   const [visible, setVisible] = useState(null);
   const [rooms, setRooms] = useState("");
   const [floors, setFloors] = useState("");
@@ -72,24 +73,24 @@ export default function PropertyFormScreen() {
    const [isSubmitting, setIsSubmitting] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
 
-const [propertyFacing, setPropertyFacing] = useState("East");
-const [masterSuitroom, setMasterSuitroom] = useState("East");
-const [kitchenRoom, setKitchenRoom] = useState("East");
-const [poojaRoom, setPoojaRoom] = useState("East");
-const [balcony, setBalcony] = useState("East");
-const [entranceDirection, setEntranceDirection] = useState("East");
-const [receptionAreaFacing, setReceptionAreaFacing] = useState("East");
-const [mainLobbyDirection, setMainLobbyDirection] = useState("East");
-const [guestRoom, setGuestRoom] = useState("East");
-const [restaurantDirection, setRestaurantDirection] = useState("East");
-const [vipSuite, setVipSuite] = useState("East");
-const [conferenceDirection, setconferenceDirection] = useState("East");
-const [spaRoom, setSpaRoom] = useState("East");
-const [swimmingPool, setSwimmingPool] = useState("East");
-const [yoga, setYoga] = useState("East");
-const [office, setOffice] = useState("East");
-const [recreation, setRecreation] = useState("East");
-const [garden, setGarden] = useState("East");
+const [propertyFacing, setPropertyFacing] = useState(t("east"));
+const [masterSuitroom, setMasterSuitroom] = useState(t("east"));
+const [kitchenRoom, setKitchenRoom] = useState(t("east"));
+const [poojaRoom, setPoojaRoom] = useState(t("east"));
+const [balcony, setBalcony] = useState(t("east"));
+const [entranceDirection, setEntranceDirection] = useState(t("east"));
+const [receptionAreaFacing, setReceptionAreaFacing] = useState(t("east"));
+const [mainLobbyDirection, setMainLobbyDirection] = useState(t("east"));
+const [guestRoom, setGuestRoom] = useState(t("east"));
+const [restaurantDirection, setRestaurantDirection] = useState(t("east"));
+const [vipSuite, setVipSuite] = useState(t("east"));
+const [conferenceDirection, setconferenceDirection] = useState(t("east"));
+const [spaRoom, setSpaRoom] = useState(t("east"));
+const [swimmingPool, setSwimmingPool] = useState(t("east"));
+const [yoga, setYoga] = useState(t("east"));
+const [office, setOffice] = useState(t("east"));
+const [recreation, setRecreation] = useState(t("east"));
+const [garden, setGarden] = useState(t("east"));
 const [resortType, setResortType] = useState("");
 const [resortOpen, setResortOpen] = useState(false);
 const [ownershipDocs, setOwnershipDocs] = useState([]);
@@ -117,7 +118,7 @@ const getUserLanguage = () => {
 const showToast = (message) => {
   Toast.show({
     type: 'error',
-    text1: 'Error',
+    text1: t('error'),
     text2: message,
     position: 'top',
     visibilityTime: 3000,
@@ -134,14 +135,14 @@ const handleUpload = async () => {
     
     if (!token) {
       Alert.alert(
-        "Login Required",
-        "Please login to upload properties",
+        t("login_required"),
+        t("please_login_to_upload_properties"),
         [
           {
-            text: "Go to Login",
+            text: t("go_to_login"),
             onPress: () => router.push('/(tabs)/profile')
           },
-          { text: "Cancel", style: "cancel" }
+          { text: t("cancel"), style: "cancel" }
         ]
       );
       return;
@@ -153,85 +154,85 @@ const handleUpload = async () => {
     // 2. Validate images first
     if (images.length === 0) {
       console.log('❌ No images selected');
-      showToast("Please upload at least one property image");
+      showToast(t("add_at_least_one_image"));
       setIsSubmitting(false);
       return;
     }
 
     // 3. Validate documents
     if (ownershipDocs.length === 0 || identityDocs.length === 0) {
-      showToast("Please upload required documents");
+      showToast(t("upload_required_documents"));
       setIsSubmitting(false);
       return;
     }
 
     // 4. Validate owner details
     if (!ownerName?.trim()) {
-      showToast("Owner name is required");
+      showToast(t("owner_name_required"));
       setIsSubmitting(false);
       return;
     }
 
     if (!phone?.trim()) {
-      showToast("Owner phone number is required");
+      showToast(t("phone_number_required"));
       setIsSubmitting(false);
       return;
     }
 
     if (!email?.trim()) {
-      showToast("Owner email is required");
+      showToast(t("email_required"));
       setIsSubmitting(false);
       return;
     }
 
     // 5. Validate property details
     if (!title?.trim()) {
-      showToast("Resort title is required");
+      showToast(t("resort_title_required"));
       setIsSubmitting(false);
       return;
     }
 
     if (!location?.trim()) {
-      showToast("Location is required");
+      showToast(t("location_required"));
       setIsSubmitting(false);
       return;
     }
 
     const priceValue = parseFloat(price);
-    console.log('💰 Price validation:', { price, priceValue, isValid: !isNaN(priceValue) && priceValue > 0 });
+    console.log("💰 Price validation:", { price, priceValue, isValid: !isNaN(priceValue) && priceValue > 0 });
 
     if (!price || isNaN(priceValue) || priceValue <= 0) {
-      showToast("Valid price is required");
+      showToast(t("valid_price_required"));
       setIsSubmitting(false);
       return;
     }
 
     if (!neighborhood?.trim()) {
-      showToast("Area/Neighborhood is required");
+      showToast(t("area_required"));
       setIsSubmitting(false);
       return;
     }
 
     if (!area || Number(area) <= 0) {
-      showToast("Land area is required");
+      showToast(t("land_area_required"));
       setIsSubmitting(false);
       return;
     }
 
     if (!buildArea || Number(buildArea) <= 0) {
-      showToast("Build area is required");
+      showToast(t("build_area_required"));
       setIsSubmitting(false);
       return;
     }
 
     if (!resortType) {
-      showToast("Please select resort type");
+      showToast(t("select_resort_type"));
       setIsSubmitting(false);
       return;
     }
 
     if (!description?.trim()) {
-      showToast("Description is required");
+      showToast(t("description_required"));
       setIsSubmitting(false);
       return;
     }
@@ -350,11 +351,11 @@ const propertyData = {
     // 10. Handle response
    if (result?.data?.success) {
   Alert.alert(
-    "Success",
-    "Property uploaded successfully and sent for approval",
+    t("success"),
+    t("upload_success"),
     [
       {
-        text: "OK",
+        text: t("ok"),
         onPress: () => {
           router.replace("/(tabs)/home");
         },
@@ -363,12 +364,12 @@ const propertyData = {
   );
 }else {
       console.error('❌ Upload failed:', result);
-      showToast(result.data?.message || result.error || "Failed to upload property");
+      showToast(result.data?.message || result.error || t("failed_to_upload_property"));
     }
 
   } catch (error) {
     console.error("❌ Upload error:", error);
-    showToast(error.message || "Something went wrong. Please try again.");
+    showToast(error.message || t("something_went_wrong"));
   } finally {
     setIsSubmitting(false); // ✅ Always reset loading state
   }
@@ -376,60 +377,60 @@ const propertyData = {
 
 
 const RESORT_TYPES = [
-  "Beachfront Resort",
-  "Hill Station / Mountain Resort",
-  "Forest / Jungle Retreat",
-  "Lakefront Resort",
-  "Desert Resort",
-  "Eco-Resort",
-  "Island Resort",
-  "Wellness / Spa Resort",
-  "Luxury Resort",
-  "Boutique Resort",
-  "Family Resort",
-  "Adventure / Activity Resort",
-  "Safari / Wildlife Resort",
-  "Water Park Resort",
-  "Golf Resort",
-  "Riverfront Resort",
-  "Farm / Agri-Resort",
-  "Theme Resort",
-  "Business / Conference Resort",
-  "Eco-Lodge / Nature Retreat",
+  t("beachfront_resort"),
+  t("hill_station_mountain_resort"),
+  t("forest_jungle_retreat"),
+  t("lakefront_resort"),
+  t("desert_resort"),
+  t("eco_resort"),
+  t("island_resort"),
+  t("wellness_spa_resort"),
+  t("luxury_resort"),
+  t("boutique_resort"),
+  t("family_resort"),
+  t("adventure_activity_resort"),
+  t("safari_wildlife_resort"),
+  t("water_park_resort"),
+  t("golf_resort"),
+  t("riverfront_resort"),
+  t("farm_agri_resort"),
+  t("theme_resort"),
+  t("business_conference_resort"),
+  t("eco_lodge_nature_retreat"),
 ];
 
   const locationAdvantages = [
-    "+Close to Metro Station",
-    "+Close to School",
-    "+Close to Hospital",
-    "+Close to Market",
-    "+Close to Railway Station",
-    "+Close to Airport",
-    "+Close to Mall",
-    "+Close to Highway",
+    t("close_to_metro_station"),
+    t("close_to_school"),
+    t("close_to_hospital"),
+    t("close_to_market"),
+    t("close_to_railway_station"),
+    t("close_to_airport"),
+    t("close_to_mall"),
+    t("close_to_highway"),
   ];
- const directions = ["North-East", "South-West", "East", "West"];
+ const directions = [t("north_east"), t("south_west"), t("east"), t("west")];
    const fields = [
-    { key: "propertyFacing", label: "Property Facing", value: propertyFacing, setValue: setPropertyFacing },
-    { key: "entranceDirection", label: "Entrance Direction", value: entranceDirection, setValue: setEntranceDirection },
-    { key: "receptionAreaFacing", label: "Reception Area Facing", value: receptionAreaFacing, setValue: setReceptionAreaFacing },
-    { key: "mainLobbyDirection", label: "Main Lobby Direction", value: mainLobbyDirection, setValue: setMainLobbyDirection },
+    { key: "propertyFacing", label: t("property_facing"), value: propertyFacing, setValue: setPropertyFacing },
+    { key: "entranceDirection", label: t("entrance_direction"), value: entranceDirection, setValue: setEntranceDirection },
+    { key: "receptionAreaFacing", label: t("reception_facing"), value: receptionAreaFacing, setValue: setReceptionAreaFacing },
+    { key: "mainLobbyDirection", label: t("main_lobby"), value: mainLobbyDirection, setValue: setMainLobbyDirection },
 
-    { key: "masterSuitroom", label: "Master Suitroom Direction", value: masterSuitroom, setValue: setMasterSuitroom },
+    { key: "masterSuitroom", label: t("master_suite"), value: masterSuitroom, setValue: setMasterSuitroom },
    // { key: "masterBedroom", label: "Master Bedroom", value: masterBedroom, setValue: setMasterBedroom },
-   { key: "guestRoom", label: "Guest Room Direction", value: guestRoom, setValue: setGuestRoom },
-    { key: "restaurantDirection", label: "Restaurant Direction", value: restaurantDirection, setValue: setRestaurantDirection },
-    { key: "vipSuite", label: "VIP Suite Direction(if applicable)", value: vipSuite, setValue: setVipSuite },
-    { key: "conferenceDirection", label: "Conference/Banquet Hall Direction", value: conferenceDirection, setValue: setconferenceDirection},
-    { key: "spaRoom", label: "Spa/Wellness Center Direction", value: spaRoom, setValue: setSpaRoom },
-    { key: "swimmingPool", label: "Swimming Pool Direction", value: swimmingPool, setValue: setSwimmingPool },
-    { key: "yoga", label: "Yoga/Meditation Area Direction", value: yoga, setValue: setYoga },
-    { key: "kitchenRoom", label: "Kitchen Direction", value: kitchenRoom, setValue: setKitchenRoom },
-    { key: "poojaRoom", label: "Prayer/Pooja/Meditation Room Direction", value: poojaRoom, setValue: setPoojaRoom },
-    { key: "office", label: "Office/Administration Room Direction", value: office, setValue: setOffice },
-    { key: "recreation", label: "Recreation/Activity Area Direction", value: recreation, setValue: setRecreation },
-     { key: "balcony", label: "Balcony/Deck/Veranda", value: balcony, setValue: setBalcony },
-     { key: "garden", label: "Garden/Open Space/Lawn", value: garden, setValue: setGarden },
+   { key: "guestRoom", label: t("guest_room"), value: guestRoom, setValue: setGuestRoom },
+    { key: "restaurantDirection", label: t("restaurant_direction"), value: restaurantDirection, setValue: setRestaurantDirection },
+    { key: "vipSuite", label: t("vip_suite"), value: vipSuite, setValue: setVipSuite },
+    { key: "conferenceDirection", label: t("conference_direction"), value: conferenceDirection, setValue: setconferenceDirection},
+    { key: "spaRoom", label: t("spa_direction"), value: spaRoom, setValue: setSpaRoom },
+    { key: "swimmingPool", label: t("swimming_pool"), value: swimmingPool, setValue: setSwimmingPool },
+    { key: "yoga", label: t("yoga_area"), value: yoga, setValue: setYoga },
+    { key: "kitchenRoom", label: t("kitchen_direction"), value: kitchenRoom, setValue: setKitchenRoom },
+    { key: "poojaRoom", label: t("pooja_room"), value: poojaRoom, setValue: setPoojaRoom },
+    { key: "office", label: t("office_direction"), value: office, setValue: setOffice },
+    { key: "recreation", label: t("recreation_area"), value: recreation, setValue: setRecreation },
+     { key: "balcony", label: t("balcony"), value: balcony, setValue: setBalcony },
+     { key: "garden", label: t("garden"), value: garden, setValue: setGarden },
   ];
   const toggleArrayItem = (setter, array, value) => {
     setter(
@@ -447,8 +448,8 @@ const takePhoto = async () => {
     permission = await ImagePicker.requestCameraPermissionsAsync();
     if (permission.status !== "granted") {
       Alert.alert(
-        "Permission Required",
-        "You need to grant camera permissions to use this feature."
+        t("permission_required"),
+        t("grant_camera_permissions")
       );
       return;
     }
@@ -471,8 +472,8 @@ const pickFromGallery = async () => {
     permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permission.status !== "granted") {
       Alert.alert(
-        "Permission Required",
-        "You need to grant access to your photo library."
+        t("permission_required"),
+        t("grant_photo_library_access")
       );
       return;
     }
@@ -540,10 +541,10 @@ const handleOpenPlayStore = () => {
           </TouchableOpacity>
           <View className="ml-2">
             <Text className="text-[16px] font-semibold">
-              Upload Your Resort
+              {t('upload_your_resort')}
             </Text>
             <Text className="text-[12px] text-[#00000066]">
-              Add your property details
+              {t('add_property_details')}
             </Text>
           </View>
         </View>
@@ -564,13 +565,13 @@ const handleOpenPlayStore = () => {
 
         {/* ---------- Basic Details ---------- */}
         <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
-          <Text className="text-[16px] font-bold mb-4">Basic Details</Text>
+          <Text className="text-[16px] font-bold mb-4">{t('basic_details')}</Text>
 
          <Text className="text-[14px] font-bold text-gray-600 mb-2">
-          Resort Title <Text style={{ color: "red" }}>*</Text>
+          {t('resort_title')} <Text style={{ color: "red" }}>*</Text>
          </Text>
           <TextInput
-            placeholder="Ocean Breeze Paradise"
+            placeholder={t('resort_title_placeholder')}
             value={title}
             onChangeText={(text) => {
     if (text === "" || isAlphaNumeric(text)) {
@@ -583,14 +584,14 @@ const handleOpenPlayStore = () => {
            {/* Property Type */}
                         <View className="px-1">
                           <Text className="text-gray-500 font-semibold mb-2">
-                            Property Type
+                            {t('property_type')}
                           </Text>
                           <TouchableOpacity
                             onPress={() => setVisible(visible === "propertyType" ? null : "propertyType")}
                             className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 "
                           >
                             <Text className="text-gray-800 text-left">
-                              {propertyType || "House"}
+                              {propertyType || t("resort")}
                             </Text>
                             <Ionicons name="chevron-down" size={24} color="#888" />
                           </TouchableOpacity>
@@ -599,7 +600,7 @@ const handleOpenPlayStore = () => {
                               className="bg-white rounded-lg shadow-lg -mt-3 mb-4"
                               style={{ borderWidth: 1, borderColor: "#0000001A" }}
                             >
-                              {["House", "Site/Plot", "Commercial", "Resort"].map((type) => (
+                              {["House", "Site/Plot/Land", "Commercial", "Resort"].map((type) => (
                                 <TouchableOpacity
                                   key={type}
                                   onPress={() => {
@@ -625,12 +626,12 @@ const handleOpenPlayStore = () => {
                           )}
                         </View>
          {/* Resort Type */}
-<Text  className="text-[14px] font-bold text-gray-500 mt-1 mb-2">Resort Type <Text style={{ color: "red" }}>*</Text></Text>
+<Text  className="text-[14px] font-bold text-gray-500 mt-1 mb-2">{t('resort_type')} <Text style={{ color: "red" }}>*</Text></Text>
 
 {/* Dropdown Trigger */}
 <TouchableOpacity onPress={() => setResortOpen(!resortOpen)}
   className="bg-[#D9D9D91C]  rounded-lg p-3 flex-row justify-between items-center border border-gray-300">
-  <Text>{resortType || "Select Resort Type"}</Text>
+  <Text>{resortType || t('select_resort_type')}</Text>
    <Ionicons name="chevron-down" size={20} color="#888" />
 </TouchableOpacity>
 
@@ -686,7 +687,7 @@ const handleOpenPlayStore = () => {
            {/* Rooms & Area */}
                       <View className="flex-row gap-2 mb-4 mt-3">
                         <View className="flex-1">
-                          <Text className="text-gray-500 font-semibold mb-2 text-left">Rooms</Text>
+                          <Text className="text-gray-500 font-semibold mb-2 text-left">{t('rooms')}</Text>
                           <TextInput
                             placeholder="0"
                             
@@ -701,7 +702,7 @@ const handleOpenPlayStore = () => {
                           />
                         </View>
                         <View className="flex-1">
-                          <Text className="text-gray-500 font-semibold mb-2 text-left">LandArea (sqft)<Text style={{ color: "red" }}>*</Text></Text>
+                          <Text className="text-gray-500 font-semibold mb-2 text-left">{t('land_area')}<Text style={{ color: "red" }}>*</Text></Text>
                           <TextInput
                             placeholder="0"
                             value={area}
@@ -718,7 +719,7 @@ const handleOpenPlayStore = () => {
               {/* Floors & BuildArea */}
                       <View className="flex-row gap-2 mb-4">
                         <View className="flex-1">
-                          <Text className="text-gray-500 font-semibold mb-2 text-left">Floors</Text>
+                          <Text className="text-gray-500 font-semibold mb-2 text-left">{t('floors')}</Text>
                           <TextInput
                             placeholder="0"
                             value={floors}
@@ -732,7 +733,7 @@ const handleOpenPlayStore = () => {
                           />
                         </View>
                         <View className="flex-1">
-                          <Text className="text-gray-500 font-semibold mb-2 text-left">BuildArea (sqft)<Text style={{ color: "red" }}>*</Text></Text>
+                          <Text className="text-gray-500 font-semibold mb-2 text-left">{t('build_area')}<Text style={{ color: "red" }}>*</Text></Text>
                           <TextInput
                             placeholder="0"
                             value={buildArea}
@@ -748,7 +749,7 @@ const handleOpenPlayStore = () => {
                         </View>
                       </View>
                       <Text className="text-[14px] font-bold text-gray-600 mb-2">
-            Price(₹) <Text style={{ color: "red" }}>*</Text>
+            {t('price')} <Text style={{ color: "red" }}>*</Text>
 
           </Text>
           <TextInput
@@ -786,7 +787,7 @@ const handleOpenPlayStore = () => {
         {/* ---------- Location ---------- */}
         <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
           <Text className="text-[15px] font-bold text-gray-600 mb-3">
-            Location <Text style={{ color: "red" }}>*</Text>
+            {t('location')} <Text style={{ color: "red" }}>*</Text>
           </Text>
         
           <View className="flex-row items-center bg-[#D9D9D91C]  border border-gray-200 focus:border-green-500 focus:ring-[#22C55E] rounded-md p-3 mb-4">
@@ -795,7 +796,7 @@ const handleOpenPlayStore = () => {
               style={{ width: 18, height: 18, marginRight: 8 }}
             />
             <TextInput
-              placeholder="Enter Property Location"
+              placeholder={t('enter_property_location')}
               className="flex-1"
               value={location}
               onChangeText={setLocation}
@@ -807,7 +808,7 @@ const handleOpenPlayStore = () => {
                       {/* Area */}
         <View className="border border-gray-300 rounded-lg bg-white ml-5 mt-5 mr-4 mb-3 p-5">
           <Text className="text-gray-500 font-semibold mb-2 text-left">
-            Area <Text className="text-red-500">*</Text>
+            {t('area')} <Text className="text-red-500">*</Text>
           </Text>
           <View
             style={{
@@ -823,7 +824,7 @@ const handleOpenPlayStore = () => {
           >
             <Ionicons name="location-outline" size={20} color="#22C55E" />
             <TextInput
-              placeholder="Enter Area/Neighborhood (e.g., Akkayapalem)"
+              placeholder={t('enter_area')}
               placeholderTextColor="#888"
               value={neighborhood}
               onChangeText={(text) => setNeighborhood(text)}
@@ -836,13 +837,13 @@ const handleOpenPlayStore = () => {
          {/* ---------- Description ---------- */}
         <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
           <Text className="text-[15px] font-bold text-gray-600 mb-3 ">
-            Description <Text style={{ color: "red" }}>*</Text>
+            {t('description')} <Text style={{ color: "red" }}>*</Text>
           </Text>
         
           <View className="flex-row items-center bg-[#D9D9D91C]  border border-gray-200 focus:border-green-500 focus:ring-[#22C55E] rounded-md p-3 mb-4">
 
             <TextInput
-              placeholder="Describe your property ........"
+              placeholder={t('describe_property')}
               className="flex-1 "
               value={description}
               onChangeText={setDescription}
@@ -864,7 +865,7 @@ const handleOpenPlayStore = () => {
                           numberOfLines={1}
                           ellipsizeMode="tail"
                         >
-                          Vaasthu Details <Text style={{ color: "red" }}>*</Text>
+                          {t('vaasthu_details')} <Text style={{ color: "red" }}>*</Text>
                         </Text>
                         <Image source={require("../../../../../assets/vastu.png")} style={{ width: 30, height: 30 }} />
                       </View>
@@ -909,8 +910,8 @@ const handleOpenPlayStore = () => {
                     </View>
                 <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
   <DocumentUpload
-    title="Property Ownership"
-    subtitle="Verify ownership to publish your property listing securely."
+    title={t('property_ownership')}
+    subtitle={t('ownership_verify')}
     files={ownershipDocs}
     setFiles={setOwnershipDocs}
     required
@@ -919,8 +920,8 @@ const handleOpenPlayStore = () => {
 
 <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
   <DocumentUpload
-    title="Owner Identity"
-    subtitle="Upload PAN, Aadhaar, Passport or Driver’s License"
+    title={t('owner_identity')}
+    subtitle={t('upload_identity')}
     files={identityDocs}
     setFiles={setIdentityDocs}
     required
@@ -939,7 +940,7 @@ const handleOpenPlayStore = () => {
  />
 
           <Text className="text-[15px] font-bold text-gray-600 mb-3">
-            Location Advantages
+            {t('location_advantages')}
           </Text>
 
           <View className="flex-row flex-wrap">
@@ -970,7 +971,7 @@ const handleOpenPlayStore = () => {
         <View className="flex-row justify-end gap-4">
           <TouchableOpacity className="bg-gray-200 px-5 py-3 rounded-lg"
          onPress={() => router.back()}>
-            <Text className="font-semibold">Cancel</Text>
+            <Text className="font-semibold">{t('cancel')}</Text>
           </TouchableOpacity>
 
         {/* Upload Property Button */}
@@ -985,7 +986,7 @@ const handleOpenPlayStore = () => {
           disabled={isSubmitting}
         >
           <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
-            {isSubmitting ? "Uploading..." : "Upload Property"}
+            {isSubmitting ? t('uploading') : t('upload_property')}
           </Text>
         </TouchableOpacity>
 

@@ -401,11 +401,29 @@ useEffect(() => {
                         keyboardType="numeric"
                     />
 
-                    <Checkbox
-                        label="DG & UPS Price included"
-                        selected={allInclusive}
-                        onPress={() => setAllInclusive(!allInclusive)}
-                    />
+                    <TouchableOpacity
+    onPress={() => setAllInclusive(!allInclusive)}
+    className="flex-row items-center mb-3"
+>
+    <Checkbox selected={allInclusive} />
+    <Text className="text-gray-700">DG & UPS Price included</Text>
+</TouchableOpacity>
+
+<TouchableOpacity
+    onPress={() => setPriceNegotiable(!priceNegotiable)}
+    className="flex-row items-center mb-3"
+>
+    <Checkbox selected={priceNegotiable} />
+    <Text className="text-gray-700">Price Negotiable</Text>
+</TouchableOpacity>
+
+<TouchableOpacity
+    onPress={() => setTaxExcluded(!taxExcluded)}
+    className="flex-row items-center mb-3"
+>
+    <Checkbox selected={taxExcluded} />
+    <Text className="text-gray-700">Tax and Govt. charges excluded</Text>
+</TouchableOpacity>
                     <Checkbox
                         label="Price Negotiable"
                         selected={priceNegotiable}
