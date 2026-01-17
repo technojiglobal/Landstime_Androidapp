@@ -1,36 +1,168 @@
 // //Frontend/app/home/screens/Commercial/(Property)/index.jsx
-// import React, { useState } from "react";
-// import { View, Text, Image, ScrollView, TouchableOpacity,SafeAreaView,StatusBar } from "react-native";
-// import { useRouter } from "expo-router";
+// import React, { useState, useEffect } from "react";
+// import { View, Text, Image, ScrollView, TouchableOpacity, SafeAreaView, StatusBar, ActivityIndicator } from "react-native";
+// import { useRouter, useLocalSearchParams } from "expo-router";
 // import { Ionicons, Feather } from "@expo/vector-icons";
 // import TopAlert from "../../../../../components/TopAlert";
 // import VastuModal from "../../../../../components/VastuModal";
+// import { getPropertyById } from "../../../../../utils/propertyApi";
+// import { useTranslation } from "react-i18next";
+// import i18n from "../../../../../i18n/index";
 
 // export default function OverviewScreen() {
 //   const router = useRouter();
+//   const { propertyId } = useLocalSearchParams();
 //   const [showAlert, setShowAlert] = useState(false);
 //   const [showVastuModal, setShowVastuModal] = useState(false);
+//   const [property, setProperty] = useState(null);
+//   const [loading, setLoading] = useState(true);
+
+//   useEffect(() => {
+//     if (propertyId) {
+//       fetchPropertyDetails();
+//     }
+//   }, [propertyId]);
+
+//   useEffect(() => {
+//     if (propertyId) {
+//       fetchPropertyDetails();
+//     }
+//   }, [i18n.language]);
+
+//   const fetchPropertyDetails = async () => {
+//     try {
+//       setLoading(true);
+//       const currentLang = i18n.language || 'en';
+//       console.log('🔍 Fetching commercial property:', propertyId);
+//       console.log('🌐 Current language:', currentLang);
+      
+//       const response = await getPropertyById(propertyId, currentLang);
+      
+//       if (response.success) {
+//         console.log('✅ Property fetched:', response.data);
+//         setProperty(response.data.data);
+//       } else {
+//         console.error('❌ Failed to fetch property:', response.error);
+//       }
+//     } catch (error) {
+//       console.error('❌ Error fetching property:', error);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
 
 //   const handleBrochurePress = () => setShowAlert(true);
 
+//   if (loading) {
+//     return (
+//       <View style={{ flex: 1, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center' }}>
+//         <ActivityIndicator size="large" color="#22C55E" />
+//         <Text style={{ marginTop: 16, color: '#6B7280', fontFamily: 'Poppins' }}>
+//           Loading property details...
+//         </Text>
+//       </View>
+//     );
+//   }
+
+//   if (!property) {
+//     return (
+//       <View style={{ flex: 1, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center' }}>
+//         <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
+//         <Text style={{ marginTop: 16, color: '#6B7280', fontFamily: 'Poppins' }}>
+//           Property not found
+//         </Text>
+//         <TouchableOpacity 
+//           onPress={() => router.back()}
+//           style={{ marginTop: 16, backgroundColor: '#22C55E', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
+//         >
+//           <Text style={{ color: 'white', fontFamily: 'Poppins' }}>Go Back</Text>
+//         </TouchableOpacity>
+//       </View>
+//     );
+//   }
+
+//   // ✅ Get sub-type for display
+//   const subType = property.commercialDetails?.subType || '';
+
+//   // ✅ Get details based on sub-type
+//   const getPropertyDetails = () => {
+//     const commercialDetails = property.commercialDetails || {};
+    
+//     switch (subType) {
+//       case 'Office':
+//         return commercialDetails.officeDetails || {};
+//       case 'Retail':
+//         return commercialDetails.retailDetails || {};
+//       case 'Storage':
+//         return commercialDetails.storageDetails || {};
+//       case 'Industry':
+//         return commercialDetails.industryDetails || {};
+//       case 'Hospitality':
+//         return commercialDetails.hospitalityDetails || {};
+//       case 'Plot/Land':
+//         return commercialDetails.plotDetails || {};
+//       default:
+//         return commercialDetails.otherDetails || {};
+//     }
+//   };
+
+//   const details = getPropertyDetails();
+
+//   // ✅ Get stats based on sub-type
+//   const getStats = () => {
+//     if (subType === 'Office' && property.commercialDetails?.officeDetails) {
+//       const officeDetails = property.commercialDetails.officeDetails;
+//       return [
+//         { label: "Area", value: `${officeDetails.area || 0} ${officeDetails.areaUnit || 'sqft'}` },
+//         { label: "Cabins", value: officeDetails.cabins || 0 },
+//         { label: "Seats", value: officeDetails.seats || 0 },
+//         { label: "Floors", value: officeDetails.totalFloors || 0 },
+//       ];
+//     } else if (subType === 'Retail' && property.commercialDetails?.retailDetails) {
+//       const retailDetails = property.commercialDetails.retailDetails;
+//       return [
+//         { label: "Area", value: `${retailDetails.area || 0} ${retailDetails.areaUnit || 'sqft'}` },
+//         { label: "Floors", value: retailDetails.totalFloors || 0 },
+//         { label: "Type", value: retailDetails.shopType || 'N/A' },
+//         { label: "Built", value: new Date(property.createdAt).getFullYear() },
+//       ];
+//     } else if (subType === 'Storage' && property.commercialDetails?.storageDetails) {
+//       const storageDetails = property.commercialDetails.storageDetails;
+//       return [
+//         { label: "Area", value: `${storageDetails.storageArea?.value || 0} ${storageDetails.storageArea?.unit || 'sqft'}` },
+//         { label: "Type", value: storageDetails.storageType || 'N/A' },
+//         { label: "Floors", value: storageDetails.totalFloors || 0 },
+//         { label: "Built", value: new Date(property.createdAt).getFullYear() },
+//       ];
+//     }
+    
+//     return [
+//       { label: "Area", value: "N/A" },
+//       { label: "Type", value: subType },
+//       { label: "Info", value: "N/A" },
+//       { label: "Year", value: new Date(property.createdAt).getFullYear() },
+//     ];
+//   };
+
+//   const stats = getStats();
+
 //   return (
-//     <SafeAreaView className="flex-1 bg-white relative ">
+//     <SafeAreaView className="flex-1 bg-white relative">
 //       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       
-//      {(showAlert) && (
-//              <View
-//                className="absolute inset-0 bg-black/40"
-//                style={{ zIndex: 10 }}
-//                pointerEvents={"auto"}
-//              />
-//            )}
-//            {( showVastuModal) && (
-//              <View
-//                className="absolute inset-0 bg-black/40"
-//                //style={{ zIndex: 10 }}
-//                pointerEvents={"auto"}
-//              />
-//            )}
+//       {(showAlert) && (
+//         <View
+//           className="absolute inset-0 bg-black/40"
+//           style={{ zIndex: 10 }}
+//           pointerEvents={"auto"}
+//         />
+//       )}
+//       {(showVastuModal) && (
+//         <View
+//           className="absolute inset-0 bg-black/40"
+//           pointerEvents={"auto"}
+//         />
+//       )}
 
 //       <ScrollView
 //         className="flex-1 bg-white"
@@ -41,11 +173,14 @@
 //           paddingBottom: 90,
 //         }}
 //       >
-//         {/* Commercial Image */}
-//         <View className="items-center  relative">
+//         <View className="items-center relative">
 //           <View className="relative">
 //             <Image
-//               source={require("../../../../../assets/CommercialHub.jpg")}
+//               source={
+//                 property.images && property.images.length > 0
+//                   ? { uri: `${process.env.EXPO_PUBLIC_IP_ADDRESS}/${property.images[0]}` }
+//                   : require("../../../../../assets/CommercialHub.jpg")
+//               }
 //               className="rounded-[17px]"
 //               style={{ height: 223, width: 330, resizeMode: "cover" }}
 //             />
@@ -69,13 +204,14 @@
 //           </View>
 //         </View>
 
-//         {/* Property Info */}
 //         <View className="px-5 mt-5">
-//           {/* Name + Location + Rating */}
 //           <View className="flex-row items-start justify-between">
 //             <View>
-//               <Text className="text-[20px] text-green-500 font-semibold" style={{ fontFamily: "Poppins",fontWeight:"bold" }}>
-//                 Green Valley Commercial Hub
+//               <Text className="text-[20px] text-green-500 font-semibold" style={{ fontFamily: "Poppins", fontWeight: "bold" }}>
+//                 {typeof property.propertyTitle === 'string' 
+//                   ? property.propertyTitle 
+//                   : (property.propertyTitle?.en || property.propertyTitle?.te || property.propertyTitle?.hi || 'Property')}
+//                 {subType && ` (${subType})`}
 //               </Text>
 //               <View className="flex-row items-center mt-1">
 //                 <Image
@@ -83,7 +219,9 @@
 //                   style={{ width: 12, height: 12, resizeMode: "contain" }}
 //                 />
 //                 <Text className="text-[12px] text-[#72707090] ml-1" style={{ fontFamily: "Poppins" }}>
-//                   Visakhapatnam
+//                   {typeof property.location === 'string' 
+//                     ? property.location 
+//                     : (property.location?.en || property.location?.te || property.location?.hi || 'Location')}
 //                 </Text>
 //               </View>
 //             </View>
@@ -95,15 +233,12 @@
 //                   4.3
 //                 </Text>
 //               </View>
-
-              
 //             </View>
 //           </View>
 
-//           {/* Price + Vaastu */}
 //           <View className="mt-2 flex-row items-center justify-between">
 //             <Text className="text-[24px] font-semibold text-[#22C55E]" style={{ fontFamily: "Poppins" }}>
-//               ₹ 85,00,000
+//               ₹ {property.expectedPrice ? property.expectedPrice.toLocaleString('en-IN') : '0'}
 //             </Text>
 
 //             <TouchableOpacity
@@ -111,8 +246,8 @@
 //               className="flex-row items-center px-2 py-[2px] rounded-md"
 //               style={{ borderWidth: 0.5, borderColor: "#FFA50066" }}
 //             >
-//                 <Image
-//                   source={require("../../../../../assets/vastu.png")}
+//               <Image
+//                 source={require("../../../../../assets/vastu.png")}
 //                 style={{ width: 12, height: 12, resizeMode: "contain" }}
 //               />
 //               <Text className="ml-1 text-[12px] font-bold text-[#FFA500]" style={{ fontFamily: "Poppins" }}>
@@ -121,14 +256,8 @@
 //             </TouchableOpacity>
 //           </View>
 
-//           {/* Stats */}
 //           <View className="flex-row justify-between mt-5">
-//             {[
-//               { label: "Acres", value: "2.5" },
-//               { label: "Rooms", value: "15" },
-//               { label: "Buildings", value: "3" },
-//               { label: "Built", value: "2018" },
-//             ].map((item, idx) => (
+//             {stats.map((item, idx) => (
 //               <View key={idx} className="items-center">
 //                 <Text className="text-[14px] font-semibold" style={{ fontFamily: "Poppins" }}>
 //                   {item.value}
@@ -140,17 +269,17 @@
 //             ))}
 //           </View>
 
-//           {/* Description */}
 //           <View className="mt-6">
 //             <Text className="text-[20px] font-semibold mb-1" style={{ fontFamily: "Poppins" }}>
 //               Description
 //             </Text>
 //             <Text className="text-[14px] text-[#00000091]" style={{ fontFamily: "Poppins" }}>
-//               Prime commercial plot strategically located on themain highway with excellent visibility and accessibility. Perfect for retail outlets,showrooms,offices,or mixed-use development.RERA approvedwith clear titles and ready for immediate development.
+//               {typeof property.description === 'string' 
+//                 ? property.description 
+//                 : (property.description?.en || property.description?.te || property.description?.hi || 'No description available')}
 //             </Text>
 //           </View>
 
-//           {/* Buttons */}
 //           <View className="flex-row justify-between mt-8 mb-10">
 //             <TouchableOpacity
 //               onPress={handleBrochurePress}
@@ -176,12 +305,11 @@
 //         </View>
 //       </ScrollView>
 
-//       {/* Alerts / Modals */}
 //       <TopAlert visible={showAlert} onHide={() => setShowAlert(false)} />
 //       <VastuModal visible={showVastuModal} onClose={() => setShowVastuModal(false)} />
-//     </SafeAreaView>
-//   );
-// }
+//        </SafeAreaView>
+//    );
+//  }
 
 
 
@@ -196,6 +324,13 @@ import { getPropertyById } from "../../../../../utils/propertyApi";
 import { useTranslation } from "react-i18next";
 import i18n from "../../../../../i18n/index";
 
+// ✅ Helper function OUTSIDE component
+const getLocalizedText = (field, language) => {
+  if (!field) return '';
+  if (typeof field === 'string') return field;
+  return field[language] || field.en || field.te || field.hi || '';
+};
+
 export default function OverviewScreen() {
   const router = useRouter();
   const { propertyId } = useLocalSearchParams();
@@ -203,18 +338,13 @@ export default function OverviewScreen() {
   const [showVastuModal, setShowVastuModal] = useState(false);
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
+  const currentLanguage = i18n.language || 'en';
 
   useEffect(() => {
     if (propertyId) {
       fetchPropertyDetails();
     }
-  }, [propertyId]);
-
-  useEffect(() => {
-    if (propertyId) {
-      fetchPropertyDetails();
-    }
-  }, [i18n.language]);
+  }, [propertyId, i18n.language]);
 
   const fetchPropertyDetails = async () => {
     try {
@@ -300,7 +430,7 @@ export default function OverviewScreen() {
     if (subType === 'Office' && property.commercialDetails?.officeDetails) {
       const officeDetails = property.commercialDetails.officeDetails;
       return [
-        { label: "Area", value: `${officeDetails.area || 0} ${officeDetails.areaUnit || 'sqft'}` },
+        { label: "Area", value: `${officeDetails.carpetArea || 0} ${officeDetails.carpetAreaUnit || 'sqft'}` },
         { label: "Cabins", value: officeDetails.cabins || 0 },
         { label: "Seats", value: officeDetails.seats || 0 },
         { label: "Floors", value: officeDetails.totalFloors || 0 },
@@ -308,9 +438,9 @@ export default function OverviewScreen() {
     } else if (subType === 'Retail' && property.commercialDetails?.retailDetails) {
       const retailDetails = property.commercialDetails.retailDetails;
       return [
-        { label: "Area", value: `${retailDetails.area || 0} ${retailDetails.areaUnit || 'sqft'}` },
-        { label: "Floors", value: retailDetails.totalFloors || 0 },
-        { label: "Type", value: retailDetails.shopType || 'N/A' },
+        { label: "Area", value: `${retailDetails.carpetArea || 0} ${retailDetails.carpetAreaUnit || 'sqft'}` },
+        { label: "Floors", value: retailDetails.floorDetails || 0 },
+        { label: "Type", value: retailDetails.suitableFor?.[0] || 'N/A' },
         { label: "Built", value: new Date(property.createdAt).getFullYear() },
       ];
     } else if (subType === 'Storage' && property.commercialDetails?.storageDetails) {
@@ -318,8 +448,32 @@ export default function OverviewScreen() {
       return [
         { label: "Area", value: `${storageDetails.storageArea?.value || 0} ${storageDetails.storageArea?.unit || 'sqft'}` },
         { label: "Type", value: storageDetails.storageType || 'N/A' },
-        { label: "Floors", value: storageDetails.totalFloors || 0 },
+        { label: "Height", value: storageDetails.ceilingHeight ? `${storageDetails.ceilingHeight}ft` : 'N/A' },
         { label: "Built", value: new Date(property.createdAt).getFullYear() },
+      ];
+    } else if (subType === 'Industry' && property.commercialDetails?.industryDetails) {
+      const industryDetails = property.commercialDetails.industryDetails;
+      return [
+        { label: "Area", value: `${industryDetails.area?.value || 0} ${industryDetails.area?.unit || 'sqft'}` },
+        { label: "Length", value: industryDetails.dimensions?.length ? `${industryDetails.dimensions.length}ft` : 'N/A' },
+        { label: "Breadth", value: industryDetails.dimensions?.breadth ? `${industryDetails.dimensions.breadth}ft` : 'N/A' },
+        { label: "Age", value: industryDetails.ageOfProperty || 'N/A' },
+      ];
+    } else if (subType === 'Hospitality' && property.commercialDetails?.hospitalityDetails) {
+      const hospitalityDetails = property.commercialDetails.hospitalityDetails;
+      return [
+        { label: "Area", value: `${hospitalityDetails.area?.value || 0} ${hospitalityDetails.area?.unit || 'sqft'}` },
+        { label: "Rooms", value: hospitalityDetails.rooms || 0 },
+        { label: "Furnishing", value: hospitalityDetails.furnishingType || 'Unfurnished' },
+        { label: "Age", value: hospitalityDetails.ageOfProperty || 'N/A' },
+      ];
+    } else if (subType === 'Plot/Land' && property.commercialDetails?.plotDetails) {
+      const plotDetails = property.commercialDetails.plotDetails;
+      return [
+        { label: "Area", value: `${plotDetails.area || 0} ${plotDetails.areaUnit || 'sqft'}` },
+        { label: "Type", value: plotDetails.plotKind || plotDetails.plotType || 'N/A' },
+        { label: "Floors", value: plotDetails.floorsAllowed || 0 },
+        { label: "Road", value: plotDetails.roadWidth ? `${plotDetails.roadWidth}${plotDetails.roadWidthUnit || 'ft'}` : 'N/A' },
       ];
     }
     
@@ -365,7 +519,7 @@ export default function OverviewScreen() {
             <Image
               source={
                 property.images && property.images.length > 0
-                  ? { uri: `${process.env.EXPO_PUBLIC_IP_ADDRESS}/${property.images[0]}` }
+                  ? { uri: property.images[0] }
                   : require("../../../../../assets/CommercialHub.jpg")
               }
               className="rounded-[17px]"
@@ -395,9 +549,7 @@ export default function OverviewScreen() {
           <View className="flex-row items-start justify-between">
             <View>
               <Text className="text-[20px] text-green-500 font-semibold" style={{ fontFamily: "Poppins", fontWeight: "bold" }}>
-                {typeof property.propertyTitle === 'string' 
-                  ? property.propertyTitle 
-                  : (property.propertyTitle?.en || property.propertyTitle?.te || property.propertyTitle?.hi || 'Property')}
+                {getLocalizedText(property.propertyTitle, currentLanguage) || 'Property'}
                 {subType && ` (${subType})`}
               </Text>
               <View className="flex-row items-center mt-1">
@@ -406,9 +558,7 @@ export default function OverviewScreen() {
                   style={{ width: 12, height: 12, resizeMode: "contain" }}
                 />
                 <Text className="text-[12px] text-[#72707090] ml-1" style={{ fontFamily: "Poppins" }}>
-                  {typeof property.location === 'string' 
-                    ? property.location 
-                    : (property.location?.en || property.location?.te || property.location?.hi || 'Location')}
+                  {getLocalizedText(property.location, currentLanguage) || 'Location'}
                 </Text>
               </View>
             </View>
@@ -461,9 +611,7 @@ export default function OverviewScreen() {
               Description
             </Text>
             <Text className="text-[14px] text-[#00000091]" style={{ fontFamily: "Poppins" }}>
-              {typeof property.description === 'string' 
-                ? property.description 
-                : (property.description?.en || property.description?.te || property.description?.hi || 'No description available')}
+              {getLocalizedText(property.description, currentLanguage) || 'No description available'}
             </Text>
           </View>
 
@@ -494,6 +642,6 @@ export default function OverviewScreen() {
 
       <TopAlert visible={showAlert} onHide={() => setShowAlert(false)} />
       <VastuModal visible={showVastuModal} onClose={() => setShowVastuModal(false)} />
-       </SafeAreaView>
-   );
- }
+    </SafeAreaView>
+  );
+}
