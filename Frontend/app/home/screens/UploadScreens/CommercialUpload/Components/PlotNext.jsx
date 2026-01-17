@@ -231,7 +231,7 @@ useEffect(() => {
       amenities, locationAdvantages]);
 
   /* ---------------- VALIDATION ---------------- */
-  const handleNext = () => {
+ const handleNext = () => {
     if (!expectedPrice.trim()) {
       Toast.show({
         type: 'error',
@@ -262,7 +262,7 @@ useEffect(() => {
       ...plotDetailsFromPrev,
       propertyTitle,
       expectedPrice: Number(expectedPrice),
-      description,
+      description : description,
       priceDetails: {
         allInclusive,
         negotiable,
@@ -271,13 +271,14 @@ useEffect(() => {
       pricingExtras: {
         ownership,
         authority,
-        industryType,
+        industryType: industryType || '', // ✅ CHANGED: Ensure it's always defined
         preLeased,
-        leaseDuration,
-        monthlyRent,
+        leaseDuration: leaseDuration || '', // ✅ CHANGED: Ensure it's always defined
+        monthlyRent: monthlyRent ? Number(monthlyRent) : 0, // ✅ CHANGED: Convert to number
         cornerProperty,
         amenities,
         locationAdvantages,
+        description:description
       },
     };
 
@@ -384,15 +385,22 @@ const handleBack = () => {
             onBlur={() => setFocusedField(null)}
           />
 
-          {/* INDUSTRY TYPE */}
-          <Text className="font-semibold mb-2">
-            Approved for Industry Type (optional)
-          </Text>
-          <TouchableOpacity className="border border-gray-300 rounded-lg px-3 py-3 flex-row justify-between mb-4">
-            <Text className="text-gray-500 text-sm">
-              {industryType || "Select Industry Type"}
-            </Text>
-          </TouchableOpacity>
+         {/* INDUSTRY TYPE */}
+<Text className="font-semibold mb-2">
+  Approved for Industry Type (optional)
+</Text>
+<TextInput
+  placeholder="Select Industry Type"
+  value={industryType}
+  onChangeText={setIndustryType}
+  className="border rounded-lg px-3 py-3 mb-4 text-sm"
+  style={{
+    borderWidth: 2,
+    borderColor: focusedField === "industryType" ? "#22C55E" : "#d1d5db",
+  }}
+  onFocus={() => setFocusedField("industryType")}
+  onBlur={() => setFocusedField(null)}
+/>
 
           {/* PRICE */}
           <Text className="font-semibold mb-2">Expected Price Details <Text className="text-red-500">*</Text></Text>

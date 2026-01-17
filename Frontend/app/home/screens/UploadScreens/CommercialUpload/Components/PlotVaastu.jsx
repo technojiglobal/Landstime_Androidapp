@@ -115,9 +115,9 @@ const handleBack = () => {
 
   // ✅ Save current Vaastu form data before going back
   const updatedCommercialDetails = {
-    ...commercialDetailsFromPrev,
-    vaastuDetails: form, // ✅ Keep current form data
-  };
+  ...commercialDetailsFromPrev,
+  vastuDetails: form, // ✅ FIXED: Match DB field name (single 'a')
+};
 
   console.log('🔙 Going back to PlotNext with Vaastu data:', form);
 
@@ -140,23 +140,35 @@ const handleNext = () => {
 
   const updatedCommercialDetails = {
     ...commercialDetailsFromPrev,
-    vaastuDetails: form,
+    vastuDetails: form,
+    // ✅ PRESERVE all critical fields from previous screens
+    description: commercialDetailsFromPrev.description,
+    expectedPrice: commercialDetailsFromPrev.expectedPrice,
+    priceDetails: commercialDetailsFromPrev.priceDetails,
+    pricingExtras: {
+      ...commercialDetailsFromPrev.pricingExtras,
+      // ✅ Ensure description is also in pricingExtras
+      description: commercialDetailsFromPrev.pricingExtras?.description || commercialDetailsFromPrev.description,
+    },
   };
 
-  console.log("➡️ Plot Vastu → Owner payload:", updatedCommercialDetails);
+  console.log("➡️ Plot Vastu → Owner payload:", {
+    ...updatedCommercialDetails,
+    hasDescription: !!updatedCommercialDetails.description,
+    descriptionValue: updatedCommercialDetails.description,
+  });
 
-router.push({
-  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
-  params: {
-    commercialDetails: JSON.stringify(updatedCommercialDetails),
-    images: JSON.stringify(images),
-    area: params.area,
-    propertyTitle: commercialDetails?.propertyTitle || params.propertyTitle,
-    plotKind: params.plotKind, // ✅ ADD THIS
-  },
-});
-    
-  };
+  router.push({
+    pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
+    params: {
+      commercialDetails: JSON.stringify(updatedCommercialDetails),
+      images: JSON.stringify(images),
+      area: params.area,
+      propertyTitle: commercialDetails?.propertyTitle || params.propertyTitle,
+      plotKind: params.plotKind,
+    },
+  });
+};
 
   return (
     <View className="flex-1 bg-white">

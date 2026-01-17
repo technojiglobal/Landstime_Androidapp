@@ -1325,17 +1325,19 @@ router.push({
 router.push({
   pathname: "/home/screens/UploadScreens/CommercialUpload",
   params: {
-    officeDetails: JSON.stringify(currentData),
+    officeDetails: JSON.stringify(currentOfficeData), // ✅ FIXED
     images: JSON.stringify(images),
-    area: neighborhoodArea.trim(), // ✅ FIXED
+    area: neighborhoodArea.trim(),
     propertyTitle: baseDetails?.propertyTitle,
     commercialBaseDetails: JSON.stringify({
-  subType: "Office",
-  officeKind: officeKindFromBase || currentOfficeData.officeKind, // ✅ REMOVED officeKinds[0]
-  propertyTitle: baseDetails?.propertyTitle,
-}),
+      subType: "Office",
+      officeKind: officeKindFromBase || currentOfficeData.officeKind,
+      propertyTitle: baseDetails?.propertyTitle,
+    }),
   },
 });
+
+
 
   }}
 >

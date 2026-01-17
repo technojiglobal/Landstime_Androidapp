@@ -97,19 +97,74 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
     }, {})
   ),
 }),
-    // Commercial details
+   // Commercial Office details
     ...(property.raw.commercialDetails?.officeDetails && {
-      'commercialDetails.officeDetails.area': property.raw.commercialDetails.officeDetails.carpetArea || '',
+      'commercialDetails.officeDetails.officeKind': property.raw.commercialDetails.officeDetails.officeKind || '',
+      'commercialDetails.officeDetails.location': property.raw.commercialDetails.officeDetails.location || '',
+      'commercialDetails.officeDetails.locatedInside': property.raw.commercialDetails.officeDetails.locatedInside || '',
+      'commercialDetails.officeDetails.zoneType': property.raw.commercialDetails.officeDetails.zoneType || '',
+      'commercialDetails.officeDetails.neighborhoodArea': property.raw.commercialDetails.officeDetails.neighborhoodArea || '',
+      'commercialDetails.officeDetails.carpetArea': property.raw.commercialDetails.officeDetails.carpetArea || '',
+      'commercialDetails.officeDetails.carpetAreaUnit': property.raw.commercialDetails.officeDetails.carpetAreaUnit || 'sqft',
       'commercialDetails.officeDetails.cabins': property.raw.commercialDetails.officeDetails.cabins || '',
       'commercialDetails.officeDetails.meetingRooms': property.raw.commercialDetails.officeDetails.meetingRooms || '',
+      'commercialDetails.officeDetails.seats': property.raw.commercialDetails.officeDetails.seats || '',
+      'commercialDetails.officeDetails.maxSeats': property.raw.commercialDetails.officeDetails.maxSeats || '',
+      'commercialDetails.officeDetails.conferenceRooms': property.raw.commercialDetails.officeDetails.conferenceRooms || '',
+      'commercialDetails.officeDetails.washrooms.public': property.raw.commercialDetails.officeDetails.washrooms?.public || '',
+      'commercialDetails.officeDetails.washrooms.private': property.raw.commercialDetails.officeDetails.washrooms?.private || '',
+      'commercialDetails.officeDetails.receptionArea': property.raw.commercialDetails.officeDetails.receptionArea || false,
+      'commercialDetails.officeDetails.furnishing': property.raw.commercialDetails.officeDetails.furnishing || false,
+      'commercialDetails.officeDetails.pantry': property.raw.commercialDetails.officeDetails.pantry || false,
+      'commercialDetails.officeDetails.pantryType': property.raw.commercialDetails.officeDetails.pantryType || '',
+      'commercialDetails.officeDetails.pantrySize': property.raw.commercialDetails.officeDetails.pantrySize || '',
+      'commercialDetails.officeDetails.additionalFeatures': property.raw.commercialDetails.officeDetails.additionalFeatures?.join(', ') || '',
+      'commercialDetails.officeDetails.fireSafetyMeasures': property.raw.commercialDetails.officeDetails.fireSafetyMeasures?.join(', ') || '',
+      'commercialDetails.officeDetails.totalFloors': property.raw.commercialDetails.officeDetails.totalFloors || '',
+      'commercialDetails.officeDetails.floorNo': property.raw.commercialDetails.officeDetails.floorNo || '',
+      'commercialDetails.officeDetails.staircases': property.raw.commercialDetails.officeDetails.staircases || '',
+      'commercialDetails.officeDetails.lift': property.raw.commercialDetails.officeDetails.lift || '',
+      'commercialDetails.officeDetails.passengerLifts': property.raw.commercialDetails.officeDetails.passengerLifts || 0,
+      'commercialDetails.officeDetails.serviceLifts': property.raw.commercialDetails.officeDetails.serviceLifts || 0,
+      'commercialDetails.officeDetails.parking.type': property.raw.commercialDetails.officeDetails.parking?.type || '',
+      'commercialDetails.officeDetails.parking.count': property.raw.commercialDetails.officeDetails.parking?.count || '',
+      'commercialDetails.officeDetails.parking.options.basement': property.raw.commercialDetails.officeDetails.parking?.options?.basement || false,
+      'commercialDetails.officeDetails.parking.options.outside': property.raw.commercialDetails.officeDetails.parking?.options?.outside || false,
+      'commercialDetails.officeDetails.parking.options.private': property.raw.commercialDetails.officeDetails.parking?.options?.private || false,
+      'commercialDetails.officeDetails.availability': property.raw.commercialDetails.officeDetails.availability || '',
+      'commercialDetails.officeDetails.ageOfProperty': property.raw.commercialDetails.officeDetails.ageOfProperty || '',
+      'commercialDetails.officeDetails.possessionBy': property.raw.commercialDetails.officeDetails.possessionBy || '',
+      'commercialDetails.officeDetails.ownership': property.raw.commercialDetails.officeDetails.ownership || '',
+      'commercialDetails.officeDetails.expectedPrice': property.raw.commercialDetails.officeDetails.expectedPrice || '',
+      'commercialDetails.officeDetails.priceDetails.allInclusive': property.raw.commercialDetails.officeDetails.priceDetails?.allInclusive || false,
+      'commercialDetails.officeDetails.priceDetails.negotiable': property.raw.commercialDetails.officeDetails.priceDetails?.negotiable || false,
+      'commercialDetails.officeDetails.priceDetails.taxExcluded': property.raw.commercialDetails.officeDetails.priceDetails?.taxExcluded || false,
+      'commercialDetails.officeDetails.preLeased': property.raw.commercialDetails.officeDetails.preLeased || '',
+      'commercialDetails.officeDetails.leaseDuration': property.raw.commercialDetails.officeDetails.leaseDuration || '',
+      'commercialDetails.officeDetails.monthlyRent': property.raw.commercialDetails.officeDetails.monthlyRent || '',
+      'commercialDetails.officeDetails.nocCertified': property.raw.commercialDetails.officeDetails.nocCertified || '',
+      'commercialDetails.officeDetails.occupancyCertified': property.raw.commercialDetails.officeDetails.occupancyCertified || '',
+      'commercialDetails.officeDetails.previouslyUsedFor': property.raw.commercialDetails.officeDetails.previouslyUsedFor || '',
+      'commercialDetails.officeDetails.description': property.raw.commercialDetails.officeDetails.description || '',
+      'commercialDetails.officeDetails.amenities': property.raw.commercialDetails.officeDetails.amenities?.join(', ') || '',
+      'commercialDetails.officeDetails.locationAdvantages': property.raw.commercialDetails.officeDetails.locationAdvantages?.join(', ') || '',
+      // ADD VASTU DETAILS
+      ...(property.raw.commercialDetails.officeDetails.vaasthuDetails && 
+        Object.keys(property.raw.commercialDetails.officeDetails.vaasthuDetails).reduce((acc, key) => {
+          acc[`commercialDetails.officeDetails.vaasthuDetails.${key}`] = property.raw.commercialDetails.officeDetails.vaasthuDetails[key] || '';
+          return acc;
+        }, {})
+      ),
     }),
-    // Resort details
-       ...(property.raw.resortDetails && {
+
+   // Resort details
+    ...(property.raw.resortDetails && {
       'resortDetails.resortType': property.raw.resortDetails.resortType || '',
       'resortDetails.landArea': property.raw.resortDetails.landArea || '',
       'resortDetails.buildArea': property.raw.resortDetails.buildArea || '',
       'resortDetails.rooms': property.raw.resortDetails.rooms || '',
       'resortDetails.floors': property.raw.resortDetails.floors || '',
+      'resortDetails.locationAdvantages': property.raw.resortDetails.locationAdvantages?.join(', ') || '',
       // ADD VASTU DETAILS
       ...(property.raw.resortDetails.vaasthuDetails && 
         Object.keys(property.raw.resortDetails.vaasthuDetails).reduce((acc, key) => {
@@ -118,6 +173,124 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
         }, {})
       ),
     }),
+
+
+// Commercial Plot/Land details - FIXED: Load from plotDetails directly
+...(property.raw.commercialDetails?.plotDetails && {
+  // Plot Kind
+  'commercialDetails.plotDetails.plotKind': property.raw.commercialDetails.plotDetails.plotKind || '',
+  
+  // Location Details
+  'commercialDetails.plotDetails.location': property.raw.commercialDetails.plotDetails.location || '',
+  'commercialDetails.plotDetails.locality': property.raw.commercialDetails.plotDetails.locality || '',
+  'commercialDetails.plotDetails.neighborhoodArea': property.raw.commercialDetails.plotDetails.neighborhoodArea || '',
+  
+  // Area & Dimensions
+  'commercialDetails.plotDetails.area': property.raw.commercialDetails.plotDetails.area || '',
+  'commercialDetails.plotDetails.dimensions.length': property.raw.commercialDetails.plotDetails.dimensions?.length || '',
+  'commercialDetails.plotDetails.dimensions.breadth': property.raw.commercialDetails.plotDetails.dimensions?.breadth || '',
+  
+  // Road & Construction
+  'commercialDetails.plotDetails.roadWidth': property.raw.commercialDetails.plotDetails.roadWidth || '',
+  'commercialDetails.plotDetails.openSides': property.raw.commercialDetails.plotDetails.openSides || '',
+  'commercialDetails.plotDetails.floorsAllowed': property.raw.commercialDetails.plotDetails.floorsAllowed || 0,
+  'commercialDetails.plotDetails.constructionDone': property.raw.commercialDetails.plotDetails.constructionDone || '',
+  'commercialDetails.plotDetails.constructionTypes': property.raw.commercialDetails.plotDetails.constructionTypes?.join(', ') || '',
+  
+  // Possession
+  'commercialDetails.plotDetails.possession.month': property.raw.commercialDetails.plotDetails.possession?.month || '',
+  'commercialDetails.plotDetails.possession.year': property.raw.commercialDetails.plotDetails.possession?.year || '',
+  
+  // Ownership & Approvals - DIRECTLY from plotDetails (like your DB)
+  'commercialDetails.plotDetails.ownership': property.raw.commercialDetails.plotDetails.ownership || '',
+  'commercialDetails.plotDetails.approvedBy': property.raw.commercialDetails.plotDetails.approvedBy || '',
+  'commercialDetails.plotDetails.industryType': property.raw.commercialDetails.plotDetails.industryType || '',
+  
+  // Pre-Leased Details
+  'commercialDetails.plotDetails.preLeased': property.raw.commercialDetails.plotDetails.preLeased || '',
+  'commercialDetails.plotDetails.leaseDuration': property.raw.commercialDetails.plotDetails.leaseDuration || '',
+  'commercialDetails.plotDetails.monthlyRent': property.raw.commercialDetails.plotDetails.monthlyRent || '',
+  
+  // Property Features
+  'commercialDetails.plotDetails.cornerProperty': property.raw.commercialDetails.plotDetails.cornerProperty || false,
+  'commercialDetails.plotDetails.amenities': property.raw.commercialDetails.plotDetails.amenities?.join(', ') || '',
+  'commercialDetails.plotDetails.locationAdvantages': property.raw.commercialDetails.plotDetails.locationAdvantages?.join(', ') || '',
+  
+  // Vastu Details - at commercialDetails level (matching your DB)
+  ...(property.raw.commercialDetails.vastuDetails && 
+    Object.keys(property.raw.commercialDetails.vastuDetails).reduce((acc, key) => {
+      acc[`commercialDetails.vastuDetails.${key}`] = property.raw.commercialDetails.vastuDetails[key] || '';
+      return acc;
+    }, {})
+  ),
+}),
+// Hospitality details - FIXED: Remove pricing nesting
+...(property.raw.commercialDetails?.hospitalityDetails && {
+  'commercialDetails.hospitalityDetails.location': property.raw.commercialDetails.hospitalityDetails.location || '',
+  'commercialDetails.hospitalityDetails.neighborhoodArea': property.raw.commercialDetails.hospitalityDetails.neighborhoodArea || '',
+  'commercialDetails.hospitalityDetails.rooms': property.raw.commercialDetails.hospitalityDetails.rooms || '',
+  'commercialDetails.hospitalityDetails.washroomType': property.raw.commercialDetails.hospitalityDetails.washroomType || '',
+  'commercialDetails.hospitalityDetails.balconies': property.raw.commercialDetails.hospitalityDetails.balconies || '',
+  'commercialDetails.hospitalityDetails.otherRooms': property.raw.commercialDetails.hospitalityDetails.otherRooms?.join(', ') || '',
+  'commercialDetails.hospitalityDetails.area.value': property.raw.commercialDetails.hospitalityDetails.area?.value || '',
+  'commercialDetails.hospitalityDetails.furnishingType': property.raw.commercialDetails.hospitalityDetails.furnishingType || '',
+  'commercialDetails.hospitalityDetails.furnishingDetails': property.raw.commercialDetails.hospitalityDetails.furnishingDetails?.join(', ') || '',
+  'commercialDetails.hospitalityDetails.availability': property.raw.commercialDetails.hospitalityDetails.availability || '',
+  'commercialDetails.hospitalityDetails.ageOfProperty': property.raw.commercialDetails.hospitalityDetails.ageOfProperty || '',
+  'commercialDetails.hospitalityDetails.possessionBy': property.raw.commercialDetails.hospitalityDetails.possessionBy || '',
+  'commercialDetails.hospitalityDetails.expectedMonth': property.raw.commercialDetails.hospitalityDetails.expectedMonth || '',
+  // Pricing fields - FLAT structure (no pricing object)
+  'commercialDetails.hospitalityDetails.ownership': property.raw.commercialDetails.hospitalityDetails.ownership || '',
+  'commercialDetails.hospitalityDetails.IndustryApprovedBy': property.raw.commercialDetails.hospitalityDetails.IndustryApprovedBy || '',
+  'commercialDetails.hospitalityDetails.approvedIndustryType': property.raw.commercialDetails.hospitalityDetails.approvedIndustryType || '',
+  'commercialDetails.hospitalityDetails.expectedPrice': property.raw.commercialDetails.hospitalityDetails.expectedPrice || '',
+  'commercialDetails.hospitalityDetails.priceDetails.allInclusive': property.raw.commercialDetails.hospitalityDetails.priceDetails?.allInclusive || false,
+  'commercialDetails.hospitalityDetails.priceDetails.negotiable': property.raw.commercialDetails.hospitalityDetails.priceDetails?.negotiable || false,
+  'commercialDetails.hospitalityDetails.priceDetails.taxExcluded': property.raw.commercialDetails.hospitalityDetails.priceDetails?.taxExcluded || false,
+  'commercialDetails.hospitalityDetails.preLeased': property.raw.commercialDetails.hospitalityDetails.preLeased || '',
+  'commercialDetails.hospitalityDetails.leaseDuration': property.raw.commercialDetails.hospitalityDetails.leaseDuration || '',
+  'commercialDetails.hospitalityDetails.monthlyRent': property.raw.commercialDetails.hospitalityDetails.monthlyRent || '',
+  'commercialDetails.hospitalityDetails.description': property.raw.commercialDetails.hospitalityDetails.description || '',
+  'commercialDetails.hospitalityDetails.amenities': property.raw.commercialDetails.hospitalityDetails.amenities?.join(', ') || '',
+  'commercialDetails.hospitalityDetails.locationAdvantages': property.raw.commercialDetails.hospitalityDetails.locationAdvantages?.join(', ') || '',
+  'commercialDetails.hospitalityDetails.wheelchairFriendly': property.raw.commercialDetails.hospitalityDetails.wheelchairFriendly || false,
+  'commercialDetails.hospitalityDetails.flooringType': property.raw.commercialDetails.hospitalityDetails.flooringType || '',
+  // Vastu details
+  ...(property.raw.commercialDetails.hospitalityDetails.vastuDetails && 
+    Object.keys(property.raw.commercialDetails.hospitalityDetails.vastuDetails).reduce((acc, key) => {
+      acc[`commercialDetails.hospitalityDetails.vastuDetails.${key}`] = property.raw.commercialDetails.hospitalityDetails.vastuDetails[key] || '';
+      return acc;
+    }, {})
+  ),
+}),
+
+// Industry details
+    ...(property.raw.commercialDetails?.industryDetails && {
+      'commercialDetails.industryDetails.location': property.raw.commercialDetails.industryDetails.location || '',
+      'commercialDetails.industryDetails.neighborhoodArea': property.raw.commercialDetails.industryDetails.neighborhoodArea || '',
+      'commercialDetails.industryDetails.area.value': property.raw.commercialDetails.industryDetails.area?.value || '',
+      'commercialDetails.industryDetails.dimensions.length': property.raw.commercialDetails.industryDetails.dimensions?.length || '',
+      'commercialDetails.industryDetails.dimensions.breadth': property.raw.commercialDetails.industryDetails.dimensions?.breadth || '',
+      'commercialDetails.industryDetails.washroomType': property.raw.commercialDetails.industryDetails.washroomType || '',
+      'commercialDetails.industryDetails.availability': property.raw.commercialDetails.industryDetails.availability || '',
+      'commercialDetails.industryDetails.ageOfProperty': property.raw.commercialDetails.industryDetails.ageOfProperty || '',
+      'commercialDetails.industryDetails.possessionBy': property.raw.commercialDetails.industryDetails.possessionBy || '',
+      // Pricing details
+      'commercialDetails.industryDetails.pricing.ownership': property.raw.commercialDetails.industryDetails.pricing?.ownership || '',
+      'commercialDetails.industryDetails.pricing.expectedPrice': property.raw.commercialDetails.industryDetails.pricing?.expectedPrice || '',
+      'commercialDetails.industryDetails.pricing.approvedBy': property.raw.commercialDetails.industryDetails.pricing?.approvedBy || '',
+      'commercialDetails.industryDetails.pricing.approvedIndustryType': property.raw.commercialDetails.industryDetails.pricing?.approvedIndustryType || '',
+      'commercialDetails.industryDetails.pricing.preLeased': property.raw.commercialDetails.industryDetails.pricing?.preLeased || '',
+      'commercialDetails.industryDetails.pricing.leaseDuration': property.raw.commercialDetails.industryDetails.pricing?.leaseDuration || '',
+      'commercialDetails.industryDetails.pricing.monthlyRent': property.raw.commercialDetails.industryDetails.pricing?.monthlyRent || '',
+      // Inside the Industry editData spread
+      'commercialDetails.industryDetails.pricing.description': property.raw.commercialDetails.industryDetails.pricing?.description || '',
+      'commercialDetails.industryDetails.pricing.amenities': property.raw.commercialDetails.industryDetails.pricing?.amenities?.join(', ') || '',
+      'commercialDetails.industryDetails.pricing.locationAdvantages': property.raw.commercialDetails.industryDetails.pricing?.locationAdvantages?.join(', ') || '',
+      'commercialDetails.industryDetails.pricing.wheelchairFriendly': property.raw.commercialDetails.industryDetails.pricing?.wheelchairFriendly || false,
+    }),
+
+
 
   });
   const handleSave = async () => {
@@ -202,21 +375,95 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
   };
 }
 
-      else if (property.type === 'Commercial' || property.raw.propertyType === 'Commercial') {
+    else if (property.type === 'Commercial' || property.raw.propertyType === 'Commercial') {
         formattedData.commercialDetails = {
+          subType: property.raw.commercialDetails.subType,
           officeDetails: {
-            carpetArea: parseFloat(editData['commercialDetails.officeDetails.area']) || 0,
+            officeKind: editData['commercialDetails.officeDetails.officeKind'] || '',
+            location: editData['commercialDetails.officeDetails.location'] || '',
+            locatedInside: editData['commercialDetails.officeDetails.locatedInside'] || '',
+            zoneType: editData['commercialDetails.officeDetails.zoneType'] || '',
+            neighborhoodArea: editData['commercialDetails.officeDetails.neighborhoodArea'] || '',
+            carpetArea: parseFloat(editData['commercialDetails.officeDetails.carpetArea']) || 0,
+            carpetAreaUnit: editData['commercialDetails.officeDetails.carpetAreaUnit'] || 'sqft',
             cabins: parseInt(editData['commercialDetails.officeDetails.cabins']) || 0,
             meetingRooms: parseInt(editData['commercialDetails.officeDetails.meetingRooms']) || 0,
+            seats: parseInt(editData['commercialDetails.officeDetails.seats']) || 0,
+            maxSeats: parseInt(editData['commercialDetails.officeDetails.maxSeats']) || 0,
+            conferenceRooms: editData['commercialDetails.officeDetails.conferenceRooms'] || '',
+            washrooms: {
+              public: parseInt(editData['commercialDetails.officeDetails.washrooms.public']) || 0,
+              private: parseInt(editData['commercialDetails.officeDetails.washrooms.private']) || 0,
+            },
+            receptionArea: editData['commercialDetails.officeDetails.receptionArea'] || false,
+            furnishing: editData['commercialDetails.officeDetails.furnishing'] || false,
+            pantry: editData['commercialDetails.officeDetails.pantry'] || false,
+            pantryType: editData['commercialDetails.officeDetails.pantryType'] || '',
+            pantrySize: parseInt(editData['commercialDetails.officeDetails.pantrySize']) || 0,
+            additionalFeatures: editData['commercialDetails.officeDetails.additionalFeatures']?.split(',').map(s => s.trim()).filter(Boolean) || [],
+            fireSafetyMeasures: editData['commercialDetails.officeDetails.fireSafetyMeasures']?.split(',').map(s => s.trim()).filter(Boolean) || [],
+            totalFloors: parseInt(editData['commercialDetails.officeDetails.totalFloors']) || 0,
+            floorNo: parseInt(editData['commercialDetails.officeDetails.floorNo']) || 0,
+            staircases: editData['commercialDetails.officeDetails.staircases'] || '',
+            lift: editData['commercialDetails.officeDetails.lift'] || '',
+            passengerLifts: parseInt(editData['commercialDetails.officeDetails.passengerLifts']) || 0,
+            serviceLifts: parseInt(editData['commercialDetails.officeDetails.serviceLifts']) || 0,
+            parking: {
+              type: editData['commercialDetails.officeDetails.parking.type'] || '',
+              count: parseInt(editData['commercialDetails.officeDetails.parking.count']) || 0,
+              options: {
+                basement: editData['commercialDetails.officeDetails.parking.options.basement'] || false,
+                outside: editData['commercialDetails.officeDetails.parking.options.outside'] || false,
+                private: editData['commercialDetails.officeDetails.parking.options.private'] || false,
+              }
+            },
+            availability: editData['commercialDetails.officeDetails.availability'] || '',
+            ageOfProperty: editData['commercialDetails.officeDetails.ageOfProperty'] || '',
+            possessionBy: editData['commercialDetails.officeDetails.possessionBy'] || '',
+            ownership: editData['commercialDetails.officeDetails.ownership'] || '',
+            expectedPrice: parseFloat(editData['commercialDetails.officeDetails.expectedPrice']) || 0,
+            priceDetails: {
+              allInclusive: editData['commercialDetails.officeDetails.priceDetails.allInclusive'] || false,
+              negotiable: editData['commercialDetails.officeDetails.priceDetails.negotiable'] || false,
+              taxExcluded: editData['commercialDetails.officeDetails.priceDetails.taxExcluded'] || false,
+            },
+            preLeased: editData['commercialDetails.officeDetails.preLeased'] || '',
+            leaseDuration: editData['commercialDetails.officeDetails.leaseDuration'] || '',
+            monthlyRent: parseFloat(editData['commercialDetails.officeDetails.monthlyRent']) || 0,
+            nocCertified: editData['commercialDetails.officeDetails.nocCertified'] || '',
+            occupancyCertified: editData['commercialDetails.officeDetails.occupancyCertified'] || '',
+            previouslyUsedFor: editData['commercialDetails.officeDetails.previouslyUsedFor'] || '',
+            description: editData['commercialDetails.officeDetails.description'] || '',
+            amenities: editData['commercialDetails.officeDetails.amenities']?.split(',').map(s => s.trim()).filter(Boolean) || [],
+            locationAdvantages: editData['commercialDetails.officeDetails.locationAdvantages']?.split(',').map(s => s.trim()).filter(Boolean) || [],
+            vaasthuDetails: {
+              officeFacing: editData['commercialDetails.officeDetails.vaasthuDetails.officeFacing'] || '',
+              entrance: editData['commercialDetails.officeDetails.vaasthuDetails.entrance'] || '',
+              cabin: editData['commercialDetails.officeDetails.vaasthuDetails.cabin'] || '',
+              workstations: editData['commercialDetails.officeDetails.vaasthuDetails.workstations'] || '',
+              conference: editData['commercialDetails.officeDetails.vaasthuDetails.conference'] || '',
+              reception: editData['commercialDetails.officeDetails.vaasthuDetails.reception'] || '',
+              accounts: editData['commercialDetails.officeDetails.vaasthuDetails.accounts'] || '',
+              pantry: editData['commercialDetails.officeDetails.vaasthuDetails.pantry'] || '',
+              server: editData['commercialDetails.officeDetails.vaasthuDetails.server'] || '',
+              washrooms: editData['commercialDetails.officeDetails.vaasthuDetails.washrooms'] || '',
+              staircase: editData['commercialDetails.officeDetails.vaasthuDetails.staircase'] || '',
+              storage: editData['commercialDetails.officeDetails.vaasthuDetails.storage'] || '',
+              cashLocker: editData['commercialDetails.officeDetails.vaasthuDetails.cashLocker'] || '',
+            }
           }
         };
       }
+
       else if (property.type === 'Resort' || property.raw.propertyType === 'Resort') {
         formattedData.resortDetails = {
+          resortType: editData['resortDetails.resortType'] || '',
           landArea: parseFloat(editData['resortDetails.landArea']) || 0,
           buildArea: parseFloat(editData['resortDetails.buildArea']) || 0,
           rooms: parseInt(editData['resortDetails.rooms']) || 0,
-          // ADD VASTU DETAILS
+          floors: parseInt(editData['resortDetails.floors']) || 0,
+          locationAdvantages: editData['resortDetails.locationAdvantages']?.split(',').map(s => s.trim()).filter(Boolean) || [],
+          // ADD COMPLETE VASTU DETAILS
           vaasthuDetails: {
             propertyFacing: editData['resortDetails.vaasthuDetails.propertyFacing'] || '',
             entranceDirection: editData['resortDetails.vaasthuDetails.entranceDirection'] || '',
@@ -239,6 +486,195 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
           }
         };
       }
+
+
+else if (property.type === 'Commercial' && property.raw.commercialDetails?.subType === 'Hospitality') {
+  formattedData.commercialDetails = {
+    subType: 'Hospitality',
+    hospitalityDetails: {
+      // Basic Info
+      location: editData['commercialDetails.hospitalityDetails.location'] || '',
+      neighborhoodArea: editData['commercialDetails.hospitalityDetails.neighborhoodArea'] || '',
+      
+      // Room Details
+      rooms: parseInt(editData['commercialDetails.hospitalityDetails.rooms']) || 0,
+      washroomType: editData['commercialDetails.hospitalityDetails.washroomType'] || '',
+      balconies: editData['commercialDetails.hospitalityDetails.balconies'] || '',
+      otherRooms: editData['commercialDetails.hospitalityDetails.otherRooms']?.split(',').map(s => s.trim()).filter(Boolean) || [],
+      
+      // Area
+      area: {
+        value: parseFloat(editData['commercialDetails.hospitalityDetails.area.value']) || 0,
+        unit: 'sqft',
+      },
+      
+      // Furnishing
+      furnishingType: editData['commercialDetails.hospitalityDetails.furnishingType'] || 'Unfurnished',
+      furnishingDetails: editData['commercialDetails.hospitalityDetails.furnishingDetails']?.split(',').map(s => s.trim()).filter(Boolean) || [],
+      
+      // Availability
+      availability: editData['commercialDetails.hospitalityDetails.availability'] || '',
+      ageOfProperty: editData['commercialDetails.hospitalityDetails.ageOfProperty'] || '',
+      possessionBy: editData['commercialDetails.hospitalityDetails.possessionBy'] || '',
+      expectedMonth: editData['commercialDetails.hospitalityDetails.expectedMonth'] || '',
+      
+      // Pricing - FLAT structure (no pricing object)
+      ownership: editData['commercialDetails.hospitalityDetails.ownership'] || '',
+      IndustryApprovedBy: editData['commercialDetails.hospitalityDetails.IndustryApprovedBy'] || '',
+      approvedIndustryType: editData['commercialDetails.hospitalityDetails.approvedIndustryType'] || '',
+      expectedPrice: parseFloat(editData['commercialDetails.hospitalityDetails.expectedPrice']) || 0,
+      priceDetails: {
+        allInclusive: editData['commercialDetails.hospitalityDetails.priceDetails.allInclusive'] || false,
+        negotiable: editData['commercialDetails.hospitalityDetails.priceDetails.negotiable'] || false,
+        taxExcluded: editData['commercialDetails.hospitalityDetails.priceDetails.taxExcluded'] || false,
+      },
+      
+      // Pre-Leased
+      preLeased: editData['commercialDetails.hospitalityDetails.preLeased'] || '',
+      leaseDuration: editData['commercialDetails.hospitalityDetails.leaseDuration'] || '',
+      monthlyRent: parseFloat(editData['commercialDetails.hospitalityDetails.monthlyRent']) || 0,
+      
+      // Description & Features
+      description: editData['commercialDetails.hospitalityDetails.description'] || '',
+      amenities: editData['commercialDetails.hospitalityDetails.amenities']?.split(',').map(s => s.trim()).filter(Boolean) || [],
+      locationAdvantages: editData['commercialDetails.hospitalityDetails.locationAdvantages']?.split(',').map(s => s.trim()).filter(Boolean) || [],
+      wheelchairFriendly: editData['commercialDetails.hospitalityDetails.wheelchairFriendly'] || false,
+      flooringType: editData['commercialDetails.hospitalityDetails.flooringType'] || '',
+      
+      // Vastu Details
+      vastuDetails: {
+        buildingFacing: editData['commercialDetails.hospitalityDetails.vastuDetails.buildingFacing'] || '',
+        entrance: editData['commercialDetails.hospitalityDetails.vastuDetails.entrance'] || '',
+        reception: editData['commercialDetails.hospitalityDetails.vastuDetails.reception'] || '',
+        adminOffice: editData['commercialDetails.hospitalityDetails.vastuDetails.adminOffice'] || '',
+        guestRooms: editData['commercialDetails.hospitalityDetails.vastuDetails.guestRooms'] || '',
+        banquet: editData['commercialDetails.hospitalityDetails.vastuDetails.banquet'] || '',
+        kitchen: editData['commercialDetails.hospitalityDetails.vastuDetails.kitchen'] || '',
+        dining: editData['commercialDetails.hospitalityDetails.vastuDetails.dining'] || '',
+        cashCounter: editData['commercialDetails.hospitalityDetails.vastuDetails.cashCounter'] || '',
+        electrical: editData['commercialDetails.hospitalityDetails.vastuDetails.electrical'] || '',
+        waterStructure: editData['commercialDetails.hospitalityDetails.vastuDetails.waterStructure'] || '',
+        washroom: editData['commercialDetails.hospitalityDetails.vastuDetails.washroom'] || '',
+        storage: editData['commercialDetails.hospitalityDetails.vastuDetails.storage'] || '',
+      }
+    }
+  };
+}
+
+else if (property.type === 'Commercial' && property.raw.commercialDetails?.subType === 'Industry') {
+        formattedData.commercialDetails = {
+          subType: 'Industry',
+          industryDetails: {
+            location: editData['commercialDetails.industryDetails.location'] || '',
+            neighborhoodArea: editData['commercialDetails.industryDetails.neighborhoodArea'] || '',
+            area: {
+              value: parseFloat(editData['commercialDetails.industryDetails.area.value']) || 0,
+              unit: 'sqft',
+            },
+            dimensions: {
+              length: parseFloat(editData['commercialDetails.industryDetails.dimensions.length']) || 0,
+              breadth: parseFloat(editData['commercialDetails.industryDetails.dimensions.breadth']) || 0,
+            },
+            washroomType: editData['commercialDetails.industryDetails.washroomType'] || '',
+            availability: editData['commercialDetails.industryDetails.availability'] || '',
+            ageOfProperty: editData['commercialDetails.industryDetails.ageOfProperty'] || '',
+            possessionBy: editData['commercialDetails.industryDetails.possessionBy'] || '',
+            pricing: {
+              ownership: editData['commercialDetails.industryDetails.pricing.ownership'] || '',
+              expectedPrice: parseFloat(editData['commercialDetails.industryDetails.pricing.expectedPrice']) || 0,
+              priceDetails: {
+                allInclusive: editData['commercialDetails.industryDetails.pricing.priceDetails.allInclusive'] || false,
+                negotiable: editData['commercialDetails.industryDetails.pricing.priceDetails.negotiable'] || false,
+                taxExcluded: editData['commercialDetails.industryDetails.pricing.priceDetails.taxExcluded'] || false,
+              },
+              approvedBy: editData['commercialDetails.industryDetails.pricing.approvedBy'] || '',
+              approvedIndustryType: editData['commercialDetails.industryDetails.pricing.approvedIndustryType'] || '',
+              preLeased: editData['commercialDetails.industryDetails.pricing.preLeased'] || '',
+              leaseDuration: editData['commercialDetails.industryDetails.pricing.leaseDuration'] || '',
+              monthlyRent: parseFloat(editData['commercialDetails.industryDetails.pricing.monthlyRent']) || 0,
+              description: editData['commercialDetails.industryDetails.pricing.description'] || '',
+              amenities: editData['commercialDetails.industryDetails.pricing.amenities']?.split(',').map(s => s.trim()).filter(Boolean) || [],
+              locationAdvantages: editData['commercialDetails.industryDetails.pricing.locationAdvantages']?.split(',').map(s => s.trim()).filter(Boolean) || [],
+              wheelchairFriendly: editData['commercialDetails.industryDetails.pricing.wheelchairFriendly'] || false,
+            },
+            vastuDetails: {
+              buildingFacing: editData['commercialDetails.industryDetails.vastuDetails.buildingFacing'] || '',
+              entrance: editData['commercialDetails.industryDetails.vastuDetails.entrance'] || '',
+              machinery: editData['commercialDetails.industryDetails.vastuDetails.machinery'] || '',
+              production: editData['commercialDetails.industryDetails.vastuDetails.production'] || '',
+              rawMaterial: editData['commercialDetails.industryDetails.vastuDetails.rawMaterial'] || '',
+              finishedGoods: editData['commercialDetails.industryDetails.vastuDetails.finishedGoods'] || '',
+              office: editData['commercialDetails.industryDetails.vastuDetails.office'] || '',
+              electrical: editData['commercialDetails.industryDetails.vastuDetails.electrical'] || '',
+              water: editData['commercialDetails.industryDetails.vastuDetails.water'] || '',
+              waste: editData['commercialDetails.industryDetails.vastuDetails.waste'] || '',
+              washroom: editData['commercialDetails.industryDetails.vastuDetails.washroom'] || '',
+            }
+          }
+        };
+      }
+
+       // Commercial Plot/Land
+     // Commercial Plot/Land - FIXED: Correct structure
+else if (property.type === 'Commercial' && property.raw.commercialDetails?.subType === 'Plot/Land') {
+  formattedData.commercialDetails = {
+    subType: 'Plot/Land',
+    
+    plotDetails: {
+      // Plot Kind - ADD THIS
+      plotKind: editData['commercialDetails.plotDetails.plotKind'] || property.raw.commercialDetails.plotDetails.plotKind,
+      
+      location: editData['commercialDetails.plotDetails.location'] || '',
+      locality: editData['commercialDetails.plotDetails.locality'] || '',
+      neighborhoodArea: editData['commercialDetails.plotDetails.neighborhoodArea'] || '',
+      
+      // Area & Dimensions
+      area: parseFloat(editData['commercialDetails.plotDetails.area']) || 0,
+      dimensions: {
+        length: parseFloat(editData['commercialDetails.plotDetails.dimensions.length']) || 0,
+        breadth: parseFloat(editData['commercialDetails.plotDetails.dimensions.breadth']) || 0,
+      },
+      
+      roadWidth: parseFloat(editData['commercialDetails.plotDetails.roadWidth']) || 0,
+      openSides: editData['commercialDetails.plotDetails.openSides'] || '',
+      constructionDone: editData['commercialDetails.plotDetails.constructionDone'] || '',
+      constructionTypes: editData['commercialDetails.plotDetails.constructionTypes']?.split(',').map(s => s.trim()).filter(Boolean) || [],
+      
+      possession: {
+        month: editData['commercialDetails.plotDetails.possession.month'] || '',
+        year: editData['commercialDetails.plotDetails.possession.year'] || '',
+      },
+      
+      // ✅ FIXED: Save these at plotDetails level (matching your DB structure)
+      ownership: editData['commercialDetails.plotDetails.ownership'] || '',
+      approvedBy: editData['commercialDetails.plotDetails.approvedBy'] || '',
+      industryType: editData['commercialDetails.plotDetails.industryType'] || '',
+      preLeased: editData['commercialDetails.plotDetails.preLeased'] || '',
+      leaseDuration: editData['commercialDetails.plotDetails.leaseDuration'] || '',
+      monthlyRent: parseFloat(editData['commercialDetails.plotDetails.monthlyRent']) || 0,
+      cornerProperty: editData['commercialDetails.plotDetails.cornerProperty'] || false,
+      amenities: editData['commercialDetails.plotDetails.amenities']?.split(',').map(s => s.trim()).filter(Boolean) || [],
+      locationAdvantages: editData['commercialDetails.plotDetails.locationAdvantages']?.split(',').map(s => s.trim()).filter(Boolean) || [],
+    },
+    
+// ✅ Save vastuDetails at commercialDetails level (matching DB)
+  vastuDetails: {
+  plotFacing: editData['commercialDetails.vastuDetails.plotFacing'] || editData['commercialDetails.vaastuDetails.plotFacing'] || '',
+  mainEntry: editData['commercialDetails.vastuDetails.mainEntry'] || editData['commercialDetails.vaastuDetails.mainEntry'] || '',
+  plotSlope: editData['commercialDetails.vastuDetails.plotSlope'] || editData['commercialDetails.vaastuDetails.plotSlope'] || '',
+  openSpace: editData['commercialDetails.vastuDetails.openSpace'] || editData['commercialDetails.vaastuDetails.openSpace'] || '',
+  shape: editData['commercialDetails.vastuDetails.shape'] || editData['commercialDetails.vaastuDetails.shape'] || '',
+  roadPosition: editData['commercialDetails.vastuDetails.roadPosition'] || editData['commercialDetails.vaastuDetails.roadPosition'] || '',
+  waterSource: editData['commercialDetails.vastuDetails.waterSource'] || editData['commercialDetails.vaastuDetails.waterSource'] || '',
+  drainage: editData['commercialDetails.vastuDetails.drainage'] || editData['commercialDetails.vaastuDetails.drainage'] || '',
+  compoundWall: editData['commercialDetails.vastuDetails.compoundWall'] || editData['commercialDetails.vaastuDetails.compoundWall'] || '',
+  structures: editData['commercialDetails.vastuDetails.structures'] || editData['commercialDetails.vaastuDetails.structures'] || '',
+}
+  };
+}
+
+
+
        console.log('💾 Sending update data:', formattedData);
       await onUpdate(property.id, formattedData);
       setIsEditing(false);
@@ -470,68 +906,912 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
   });
 }
 
+// Hospitality details - FIXED: Flat structure
+if (property.raw.commercialDetails?.hospitalityDetails) {
+  const h = property.raw.commercialDetails.hospitalityDetails;
+  
+  // Location
+  if (h.location) details.push({
+    label: 'Hospitality Location',
+    value: h.location,
+    editKey: 'commercialDetails.hospitalityDetails.location',
+    showInEdit: true
+  });
+  
+  if (h.neighborhoodArea) details.push({
+    label: 'Area/Neighborhood',
+    value: h.neighborhoodArea,
+    editKey: 'commercialDetails.hospitalityDetails.neighborhoodArea',
+    showInEdit: true
+  });
+  
+  // Room Details
+  if (h.rooms) details.push({
+    label: 'Number of Rooms',
+    value: h.rooms,
+    editKey: 'commercialDetails.hospitalityDetails.rooms',
+    showInEdit: true
+  });
+  
+  if (h.washroomType) details.push({
+    label: 'Washroom Type',
+    value: h.washroomType,
+    editKey: 'commercialDetails.hospitalityDetails.washroomType',
+    showInEdit: true
+  });
+  
+  if (h.balconies) details.push({
+    label: 'Balconies',
+    value: h.balconies,
+    editKey: 'commercialDetails.hospitalityDetails.balconies',
+    showInEdit: true
+  });
+  
+  if (h.otherRooms && h.otherRooms.length > 0) details.push({
+    label: 'Other Rooms',
+    value: h.otherRooms.join(', '),
+    editKey: 'commercialDetails.hospitalityDetails.otherRooms',
+    showInEdit: true
+  });
+  
+  // Area
+  if (h.area?.value) details.push({
+    label: 'Total Area',
+    value: `${h.area.value} ${h.area.unit || 'sqft'}`,
+    editKey: 'commercialDetails.hospitalityDetails.area.value',
+    showInEdit: true
+  });
+  
+  // Furnishing
+  if (h.furnishingType) details.push({
+    label: 'Furnishing Type',
+    value: h.furnishingType,
+    editKey: 'commercialDetails.hospitalityDetails.furnishingType',
+    showInEdit: true,
+    fieldType: 'select',
+    options: ['Unfurnished', 'Semi-furnished', 'Furnished']
+  });
+  
+  if (h.furnishingDetails && h.furnishingDetails.length > 0) details.push({
+    label: 'Furnishing Details',
+    value: h.furnishingDetails.join(', '),
+    editKey: 'commercialDetails.hospitalityDetails.furnishingDetails',
+    showInEdit: true
+  });
+  
+  // Availability
+  if (h.availability) details.push({
+    label: 'Availability',
+    value: h.availability === 'Ready' ? 'Ready to Move' : 'Under Construction',
+    editKey: 'commercialDetails.hospitalityDetails.availability',
+    showInEdit: true
+  });
+  
+  if (h.ageOfProperty) details.push({
+    label: 'Property Age',
+    value: h.ageOfProperty,
+    editKey: 'commercialDetails.hospitalityDetails.ageOfProperty',
+    showInEdit: true
+  });
+  
+  if (h.possessionBy) details.push({
+    label: 'Possession By',
+    value: h.possessionBy,
+    editKey: 'commercialDetails.hospitalityDetails.possessionBy',
+    showInEdit: true
+  });
+  
+  if (h.expectedMonth) details.push({
+    label: 'Expected Month',
+    value: h.expectedMonth,
+    editKey: 'commercialDetails.hospitalityDetails.expectedMonth',
+    showInEdit: true
+  });
+  
+  // Pricing - FLAT structure
+  if (h.ownership) details.push({
+    label: 'Ownership',
+    value: h.ownership,
+    editKey: 'commercialDetails.hospitalityDetails.ownership',
+    showInEdit: true,
+    fieldType: 'select',
+    options: ['Freehold', 'Leasehold', 'Company Owned', 'Other']
+  });
+  
+  if (h.IndustryApprovedBy) details.push({
+    label: 'Approved By',
+    value: h.IndustryApprovedBy,
+    editKey: 'commercialDetails.hospitalityDetails.IndustryApprovedBy',
+    showInEdit: true
+  });
+  
+  if (h.approvedIndustryType) details.push({
+    label: 'Approved Industry Type',
+    value: h.approvedIndustryType,
+    editKey: 'commercialDetails.hospitalityDetails.approvedIndustryType',
+    showInEdit: true
+  });
+  
+  if (h.expectedPrice) details.push({
+    label: 'Expected Price',
+    value: `₹${h.expectedPrice}`,
+    editKey: 'commercialDetails.hospitalityDetails.expectedPrice',
+    showInEdit: true
+  });
+  
+  if (h.priceDetails) {
+    if (h.priceDetails.allInclusive) details.push({
+      label: 'All Inclusive',
+      value: 'Yes',
+      editKey: 'commercialDetails.hospitalityDetails.priceDetails.allInclusive',
+      showInEdit: true,
+      fieldType: 'checkbox'
+    });
+    
+    if (h.priceDetails.negotiable) details.push({
+      label: 'Price Negotiable',
+      value: 'Yes',
+      editKey: 'commercialDetails.hospitalityDetails.priceDetails.negotiable',
+      showInEdit: true,
+      fieldType: 'checkbox'
+    });
+    
+    if (h.priceDetails.taxExcluded) details.push({
+      label: 'Tax Excluded',
+      value: 'Yes',
+      editKey: 'commercialDetails.hospitalityDetails.priceDetails.taxExcluded',
+      showInEdit: true,
+      fieldType: 'checkbox'
+    });
+  }
+  
+  if (h.preLeased) details.push({
+    label: 'Pre-Leased',
+    value: h.preLeased,
+    editKey: 'commercialDetails.hospitalityDetails.preLeased',
+    showInEdit: true
+  });
+  
+  if (h.leaseDuration) details.push({
+    label: 'Lease Duration',
+    value: h.leaseDuration,
+    editKey: 'commercialDetails.hospitalityDetails.leaseDuration',
+    showInEdit: true
+  });
+  
+  if (h.monthlyRent) details.push({
+    label: 'Monthly Rent',
+    value: `₹${h.monthlyRent}`,
+    editKey: 'commercialDetails.hospitalityDetails.monthlyRent',
+    showInEdit: true
+  });
+  
+  // Description
+  if (h.description) details.push({
+    label: 'Description',
+    value: h.description,
+    editKey: 'commercialDetails.hospitalityDetails.description',
+    showInEdit: true,
+    isTextarea: true
+  });
+  
+  // Features
+  if (h.amenities && h.amenities.length > 0) details.push({
+    label: 'Amenities',
+    value: h.amenities.join(', '),
+    editKey: 'commercialDetails.hospitalityDetails.amenities',
+    showInEdit: true
+  });
+  
+  if (h.locationAdvantages && h.locationAdvantages.length > 0) details.push({
+    label: 'Location Advantages',
+    value: h.locationAdvantages.join(', '),
+    editKey: 'commercialDetails.hospitalityDetails.locationAdvantages',
+    showInEdit: true
+  });
+  
+  if (h.wheelchairFriendly !== undefined) details.push({
+    label: 'Wheelchair Friendly',
+    value: h.wheelchairFriendly ? 'Yes' : 'No',
+    editKey: 'commercialDetails.hospitalityDetails.wheelchairFriendly',
+    showInEdit: true,
+    fieldType: 'checkbox'
+  });
+  
+  if (h.flooringType) details.push({
+    label: 'Flooring Type',
+    value: h.flooringType,
+    editKey: 'commercialDetails.hospitalityDetails.flooringType',
+    showInEdit: true
+  });
+}
 
-    if (raw.propertyType === 'Commercial' && raw.commercialDetails) {
+
+// Industry details
+if (property.raw.commercialDetails?.industryDetails) {
+  const ind = property.raw.commercialDetails.industryDetails;
+  
+  // Basic Info
+  if (ind.location) details.push({
+    label: 'Industry Location',
+    value: ind.location,
+    editKey: 'commercialDetails.industryDetails.location',
+    showInEdit: true
+  });
+  
+  if (ind.neighborhoodArea) details.push({
+    label: 'Area/Neighborhood',
+    value: ind.neighborhoodArea,
+    editKey: 'commercialDetails.industryDetails.neighborhoodArea',
+    showInEdit: true
+  });
+  
+  // Area & Dimensions
+  if (ind.area?.value) details.push({
+    label: 'Total Area',
+    value: `${ind.area.value} ${ind.area.unit || 'sqft'}`,
+    editKey: 'commercialDetails.industryDetails.area.value',
+    showInEdit: true
+  });
+  
+  if (ind.dimensions?.length) details.push({
+    label: 'Length',
+    value: `${ind.dimensions.length} ft`,
+    editKey: 'commercialDetails.industryDetails.dimensions.length',
+    showInEdit: true
+  });
+  
+  if (ind.dimensions?.breadth) details.push({
+    label: 'Breadth',
+    value: `${ind.dimensions.breadth} ft`,
+    editKey: 'commercialDetails.industryDetails.dimensions.breadth',
+    showInEdit: true
+  });
+  
+  // Facilities
+  if (ind.washroomType) details.push({
+    label: 'Washroom Type',
+    value: ind.washroomType,
+    editKey: 'commercialDetails.industryDetails.washroomType',
+    showInEdit: true
+  });
+  
+  // Availability
+  if (ind.availability) details.push({
+    label: 'Availability',
+    value: ind.availability === 'Ready' ? 'Ready to Move' : 'Under Construction',
+    editKey: 'commercialDetails.industryDetails.availability',
+    showInEdit: true
+  });
+  
+  if (ind.ageOfProperty) details.push({
+    label: 'Property Age',
+    value: ind.ageOfProperty,
+    editKey: 'commercialDetails.industryDetails.ageOfProperty',
+    showInEdit: true
+  });
+  
+  if (ind.possessionBy) details.push({
+    label: 'Possession By',
+    value: ind.possessionBy,
+    editKey: 'commercialDetails.industryDetails.possessionBy',
+    showInEdit: true
+  });
+  
+  // Pricing (from nested pricing object)
+  if (ind.pricing) {
+    if (ind.pricing.ownership) details.push({
+      label: 'Ownership',
+      value: ind.pricing.ownership,
+      editKey: 'commercialDetails.industryDetails.pricing.ownership',
+      showInEdit: true
+    });
+    
+    if (ind.pricing.expectedPrice) details.push({
+      label: 'Expected Price',
+      value: `₹${ind.pricing.expectedPrice}`,
+      editKey: 'commercialDetails.industryDetails.pricing.expectedPrice',
+      showInEdit: true
+    });
+    
+    if (ind.pricing.approvedBy) details.push({
+      label: 'Approved By',
+      value: ind.pricing.approvedBy,
+      editKey: 'commercialDetails.industryDetails.pricing.approvedBy',
+      showInEdit: true
+    });
+    
+    if (ind.pricing.approvedIndustryType) details.push({
+      label: 'Approved Industry Type',
+      value: ind.pricing.approvedIndustryType,
+      editKey: 'commercialDetails.industryDetails.pricing.approvedIndustryType',
+      showInEdit: true
+    });
+    
+    if (ind.pricing.preLeased) details.push({
+      label: 'Pre-Leased',
+      value: ind.pricing.preLeased,
+      editKey: 'commercialDetails.industryDetails.pricing.preLeased',
+      showInEdit: true
+    });
+    
+    if (ind.pricing.leaseDuration) details.push({
+      label: 'Lease Duration',
+      value: ind.pricing.leaseDuration,
+      editKey: 'commercialDetails.industryDetails.pricing.leaseDuration',
+      showInEdit: true
+    });
+    
+    if (ind.pricing.monthlyRent) details.push({
+      label: 'Monthly Rent',
+      value: `₹${ind.pricing.monthlyRent}`,
+      editKey: 'commercialDetails.industryDetails.pricing.monthlyRent',
+      showInEdit: true
+    });
+
+    // Inside the if (property.raw.commercialDetails?.industryDetails) block
+// After pricing fields, before amenities
+
+if (ind.pricing?.description) details.push({
+  label: 'Description',
+  value: ind.pricing.description,
+  editKey: 'commercialDetails.industryDetails.pricing.description',
+  showInEdit: true,
+  isTextarea: true // Add this flag for textarea rendering
+});
+    
+    if (ind.pricing.amenities && ind.pricing.amenities.length > 0) details.push({
+      label: 'Amenities',
+      value: ind.pricing.amenities.join(', '),
+      editKey: 'commercialDetails.industryDetails.pricing.amenities',
+      showInEdit: true
+    });
+    
+    if (ind.pricing.locationAdvantages && ind.pricing.locationAdvantages.length > 0) details.push({
+      label: 'Location Advantages',
+      value: ind.pricing.locationAdvantages.join(', '),
+      editKey: 'commercialDetails.industryDetails.pricing.locationAdvantages',
+      showInEdit: true
+    });
+    
+    if (ind.pricing.wheelchairFriendly !== undefined) details.push({
+      label: 'Wheelchair Friendly',
+      value: ind.pricing.wheelchairFriendly ? 'Yes' : 'No',
+      editKey: 'commercialDetails.industryDetails.pricing.wheelchairFriendly',
+      showInEdit: true,
+      fieldType: 'checkbox'
+    });
+  }
+}
+
+
+
+
+
+// Commercial Plot/Land details
+// Commercial Plot/Land details - FIXED: Correct paths
+// Commercial Plot/Land details - FIXED: Read directly from plotDetails
+if (raw.commercialDetails?.subType === 'Plot/Land' && raw.commercialDetails?.plotDetails) {
+  const plot = raw.commercialDetails.plotDetails;
+  
+  // Plot Kind
+  if (plot.plotKind) details.push({
+    label: 'Plot Kind',
+    value: plot.plotKind,
+    editKey: 'commercialDetails.plotDetails.plotKind',
+    showInEdit: true,
+    fieldType: 'select',
+    options: ['Residential Plot', 'Commercial Plot', 'Industrial Plot', 'Agricultural Land', 'commercial Land/Inst.Land']
+  });
+  
+  // Location
+  if (plot.location) details.push({
+    label: 'Plot Location',
+    value: plot.location,
+    editKey: 'commercialDetails.plotDetails.location',
+    showInEdit: true
+  });
+  
+  if (plot.locality) details.push({
+    label: 'Locality',
+    value: plot.locality,
+    editKey: 'commercialDetails.plotDetails.locality',
+    showInEdit: true
+  });
+  
+  if (plot.neighborhoodArea) details.push({
+    label: 'Area/Neighborhood',
+    value: plot.neighborhoodArea,
+    editKey: 'commercialDetails.plotDetails.neighborhoodArea',
+    showInEdit: true
+  });
+  
+  // Area & Dimensions
+  if (plot.area) details.push({
+    label: 'Plot Area',
+    value: `${plot.area} sqft`,
+    editKey: 'commercialDetails.plotDetails.area',
+    showInEdit: true
+  });
+  
+  if (plot.dimensions?.length) details.push({
+    label: 'Length',
+    value: `${plot.dimensions.length} ft`,
+    editKey: 'commercialDetails.plotDetails.dimensions.length',
+    showInEdit: true
+  });
+  
+  if (plot.dimensions?.breadth) details.push({
+    label: 'Breadth',
+    value: `${plot.dimensions.breadth} ft`,
+    editKey: 'commercialDetails.plotDetails.dimensions.breadth',
+    showInEdit: true
+  });
+  
+  if (plot.roadWidth) details.push({
+    label: 'Road Width',
+    value: `${plot.roadWidth} ft`,
+    editKey: 'commercialDetails.plotDetails.roadWidth',
+    showInEdit: true
+  });
+  
+  if (plot.openSides) details.push({
+    label: 'Open Sides',
+    value: plot.openSides,
+    editKey: 'commercialDetails.plotDetails.openSides',
+    showInEdit: true
+  });
+  
+  // Construction
+  if (plot.constructionDone) details.push({
+    label: 'Construction Done',
+    value: plot.constructionDone,
+    editKey: 'commercialDetails.plotDetails.constructionDone',
+    showInEdit: true,
+    fieldType: 'select',
+    options: ['Yes', 'No']
+  });
+  
+  if (plot.constructionTypes?.length > 0) details.push({
+    label: 'Construction Types',
+    value: plot.constructionTypes.join(', '),
+    editKey: 'commercialDetails.plotDetails.constructionTypes',
+    showInEdit: true
+  });
+  
+  // Possession
+  if (plot.possession) details.push({
+    label: 'Possession By',
+    value: `${plot.possession.month} ${plot.possession.year}`,
+    customRender: true,
+    showInEdit: true
+  });
+  
+  // Ownership & Legal - DIRECTLY from plotDetails
+  if (plot.ownership) details.push({
+    label: 'Ownership',
+    value: plot.ownership,
+    editKey: 'commercialDetails.plotDetails.ownership',
+    showInEdit: true,
+    fieldType: 'select',
+    options: ['Freehold', 'Leasehold', 'Co-operative Society', 'Power of Attorney']
+  });
+  
+  if (plot.approvedBy) details.push({
+    label: 'Approved By',
+    value: plot.approvedBy,
+    editKey: 'commercialDetails.plotDetails.approvedBy',
+    showInEdit: true
+  });
+  
+  if (plot.industryType) details.push({
+    label: 'Industry Type',
+    value: plot.industryType,
+    editKey: 'commercialDetails.plotDetails.industryType',
+    showInEdit: true
+  });
+  
+  // Pre-Leased
+  if (plot.preLeased) details.push({
+    label: 'Pre-Leased',
+    value: plot.preLeased,
+    editKey: 'commercialDetails.plotDetails.preLeased',
+    showInEdit: true
+  });
+  
+  if (plot.leaseDuration) details.push({
+    label: 'Lease Duration',
+    value: plot.leaseDuration,
+    editKey: 'commercialDetails.plotDetails.leaseDuration',
+    showInEdit: true
+  });
+  
+  if (plot.monthlyRent) details.push({
+    label: 'Monthly Rent',
+    value: `₹${plot.monthlyRent}`,
+    editKey: 'commercialDetails.plotDetails.monthlyRent',
+    showInEdit: true
+  });
+  
+  // Features
+  if (plot.cornerProperty !== undefined) details.push({
+    label: 'Corner Property',
+    value: plot.cornerProperty ? 'Yes' : 'No',
+    editKey: 'commercialDetails.plotDetails.cornerProperty',
+    showInEdit: true,
+    fieldType: 'checkbox'
+  });
+  
+  if (plot.amenities?.length > 0) details.push({
+    label: 'Amenities',
+    value: plot.amenities.join(', '),
+    editKey: 'commercialDetails.plotDetails.amenities',
+    showInEdit: true
+  });
+  
+  if (plot.locationAdvantages?.length > 0) details.push({
+    label: 'Location Advantages',
+    value: plot.locationAdvantages.join(', '),
+    editKey: 'commercialDetails.plotDetails.locationAdvantages',
+    showInEdit: true
+  });
+}
+
+
+
+
+   if (raw.propertyType === 'Commercial' && raw.commercialDetails) {
       const c = raw.commercialDetails;
+      
+      // Commercial Sub Type
       if (c.subType) details.push({
-        label: 'Sub Type',
-        value: c.subType
+        label: 'Commercial Type',
+        value: c.subType,
+        showInEdit: false
       });
+      
       if (c.officeDetails) {
         const o = c.officeDetails;
+        
+        // Basic Office Details
         if (o.officeKind) details.push({
           label: 'Office Type',
-          value: o.officeKind
+          value: o.officeKind,
+          editKey: 'commercialDetails.officeDetails.officeKind',
+          showInEdit: true
         });
+        
+        if (o.location) details.push({
+          label: 'Office Location',
+          value: o.location,
+          editKey: 'commercialDetails.officeDetails.location',
+          showInEdit: true
+        });
+        
+        if (o.neighborhoodArea) details.push({
+          label: 'Area/Neighborhood',
+          value: o.neighborhoodArea,
+          editKey: 'commercialDetails.officeDetails.neighborhoodArea',
+          showInEdit: true
+        });
+        
+        if (o.locatedInside) details.push({
+          label: 'Located Inside',
+          value: o.locatedInside,
+          editKey: 'commercialDetails.officeDetails.locatedInside',
+          showInEdit: true,
+          fieldType: 'select',
+          options: ['IT Park', 'Business Park', 'Other']
+        });
+        
+        if (o.zoneType) details.push({
+          label: 'Zone Type',
+          value: o.zoneType,
+          editKey: 'commercialDetails.officeDetails.zoneType',
+          showInEdit: true
+        });
+        
+        // Area & Setup
         if (o.carpetArea) details.push({
           label: 'Carpet Area',
           value: `${o.carpetArea} ${o.carpetAreaUnit || 'sqft'}`,
-          editKey: 'commercialDetails.officeDetails.area'
+          editKey: 'commercialDetails.officeDetails.carpetArea',
+          showInEdit: true
         });
+        
         if (o.cabins) details.push({
           label: 'Cabins',
           value: o.cabins,
-          editKey: 'commercialDetails.officeDetails.cabins'
+          editKey: 'commercialDetails.officeDetails.cabins',
+          showInEdit: true
         });
+        
         if (o.meetingRooms) details.push({
           label: 'Meeting Rooms',
           value: o.meetingRooms,
-          editKey: 'commercialDetails.officeDetails.meetingRooms'
+          editKey: 'commercialDetails.officeDetails.meetingRooms',
+          showInEdit: true
         });
+        
         if (o.seats) details.push({
-          label: 'Seats',
-          value: o.seats
+          label: 'Seats (Min)',
+          value: o.seats,
+          editKey: 'commercialDetails.officeDetails.seats',
+          showInEdit: true
+        });
+        
+        if (o.maxSeats) details.push({
+          label: 'Max Seats',
+          value: o.maxSeats,
+          editKey: 'commercialDetails.officeDetails.maxSeats',
+          showInEdit: true
+        });
+        
+        if (o.conferenceRooms) details.push({
+          label: 'Conference Rooms',
+          value: o.conferenceRooms,
+          editKey: 'commercialDetails.officeDetails.conferenceRooms',
+          showInEdit: true
+        });
+        
+        // Washrooms
+        if (o.washrooms && (o.washrooms.public || o.washrooms.private)) {
+          details.push({
+            label: 'Washrooms',
+            value: `Public: ${o.washrooms.public || 0}, Private: ${o.washrooms.private || 0}`,
+            customRender: true,
+            showInEdit: true
+          });
+        }
+        
+        // Features
+        if (o.receptionArea !== undefined) details.push({
+          label: 'Reception Area',
+          value: o.receptionArea ? 'Yes' : 'No',
+          editKey: 'commercialDetails.officeDetails.receptionArea',
+          showInEdit: true,
+          fieldType: 'checkbox'
+        });
+        
+        if (o.furnishing !== undefined) details.push({
+          label: 'Furnishing',
+          value: o.furnishing ? 'Yes' : 'No',
+          editKey: 'commercialDetails.officeDetails.furnishing',
+          showInEdit: true,
+          fieldType: 'checkbox'
+        });
+        
+        if (o.pantry !== undefined) details.push({
+          label: 'Pantry',
+          value: o.pantry ? `Yes (${o.pantryType || 'N/A'})` : 'No',
+          editKey: 'commercialDetails.officeDetails.pantry',
+          showInEdit: true,
+          fieldType: 'checkbox'
+        });
+        
+        // Additional Features
+        if (o.additionalFeatures && o.additionalFeatures.length > 0) details.push({
+          label: 'Additional Features',
+          value: o.additionalFeatures.join(', '),
+          editKey: 'commercialDetails.officeDetails.additionalFeatures',
+          showInEdit: true
+        });
+        
+        if (o.fireSafetyMeasures && o.fireSafetyMeasures.length > 0) details.push({
+          label: 'Fire Safety Measures',
+          value: o.fireSafetyMeasures.join(', '),
+          editKey: 'commercialDetails.officeDetails.fireSafetyMeasures',
+          showInEdit: true
+        });
+        
+        // Floor Details
+        if (o.totalFloors) details.push({
+          label: 'Total Floors',
+          value: o.totalFloors,
+          editKey: 'commercialDetails.officeDetails.totalFloors',
+          showInEdit: true
+        });
+        
+        if (o.floorNo) details.push({
+          label: 'Floor Number',
+          value: o.floorNo,
+          editKey: 'commercialDetails.officeDetails.floorNo',
+          showInEdit: true
+        });
+        
+        if (o.staircases) details.push({
+          label: 'Staircases',
+          value: o.staircases,
+          editKey: 'commercialDetails.officeDetails.staircases',
+          showInEdit: true
+        });
+        
+        // Lift
+        if (o.lift) details.push({
+          label: 'Lift',
+          value: o.lift === 'Available' ? `Available (Passenger: ${o.passengerLifts || 0}, Service: ${o.serviceLifts || 0})` : 'Not Available',
+          editKey: 'commercialDetails.officeDetails.lift',
+          showInEdit: true
+        });
+        
+        // Parking
+        if (o.parking && o.parking.type) details.push({
+          label: 'Parking',
+          value: o.parking.type === 'Available' ? `Available (${o.parking.count || 0} spots)` : 'Not Available',
+          editKey: 'commercialDetails.officeDetails.parking.type',
+          showInEdit: true
+        });
+        
+        // Availability
+        if (o.availability) details.push({
+          label: 'Availability',
+          value: o.availability === 'Ready' ? 'Ready to Move' : 'Under Construction',
+          editKey: 'commercialDetails.officeDetails.availability',
+          showInEdit: true
+        });
+        
+        if (o.ageOfProperty) details.push({
+          label: 'Property Age',
+          value: o.ageOfProperty,
+          editKey: 'commercialDetails.officeDetails.ageOfProperty',
+          showInEdit: true
+        });
+        
+        if (o.possessionBy) details.push({
+          label: 'Possession By',
+          value: o.possessionBy,
+          editKey: 'commercialDetails.officeDetails.possessionBy',
+          showInEdit: true
+        });
+        
+        if (o.ownership) details.push({
+          label: 'Ownership',
+          value: o.ownership,
+          editKey: 'commercialDetails.officeDetails.ownership',
+          showInEdit: true,
+          fieldType: 'select',
+          options: ['Freehold', 'Leasehold', 'Company Owned', 'Other']
+        });
+        
+        // Price Details
+        if (o.expectedPrice) details.push({
+          label: 'Expected Price',
+          value: `₹${o.expectedPrice}`,
+          editKey: 'commercialDetails.officeDetails.expectedPrice',
+          showInEdit: true
+        });
+        
+        if (o.preLeased) details.push({
+          label: 'Pre-Leased',
+          value: o.preLeased,
+          editKey: 'commercialDetails.officeDetails.preLeased',
+          showInEdit: true
+        });
+        
+        if (o.leaseDuration) details.push({
+          label: 'Lease Duration',
+          value: o.leaseDuration,
+          editKey: 'commercialDetails.officeDetails.leaseDuration',
+          showInEdit: true
+        });
+        
+        if (o.monthlyRent) details.push({
+          label: 'Monthly Rent',
+          value: `₹${o.monthlyRent}`,
+          editKey: 'commercialDetails.officeDetails.monthlyRent',
+          showInEdit: true
+        });
+        
+        // Certifications
+        if (o.nocCertified) details.push({
+          label: 'NOC Certified',
+          value: o.nocCertified,
+          editKey: 'commercialDetails.officeDetails.nocCertified',
+          showInEdit: true
+        });
+        
+        if (o.occupancyCertified) details.push({
+          label: 'Occupancy Certified',
+          value: o.occupancyCertified,
+          editKey: 'commercialDetails.officeDetails.occupancyCertified',
+          showInEdit: true
+        });
+        
+        if (o.previouslyUsedFor) details.push({
+          label: 'Previously Used For',
+          value: o.previouslyUsedFor,
+          editKey: 'commercialDetails.officeDetails.previouslyUsedFor',
+          showInEdit: true
+        });
+        
+        // Amenities
+        if (o.amenities && o.amenities.length > 0) details.push({
+          label: 'Amenities',
+          value: o.amenities.join(', '),
+          editKey: 'commercialDetails.officeDetails.amenities',
+          showInEdit: true
+        });
+        
+        if (o.locationAdvantages && o.locationAdvantages.length > 0) details.push({
+          label: 'Location Advantages',
+          value: o.locationAdvantages.join(', '),
+          editKey: 'commercialDetails.officeDetails.locationAdvantages',
+          showInEdit: true
         });
       }
     }
-    if (raw.propertyType === 'Resort' && raw.resortDetails) {
+
+   if (raw.propertyType === 'Resort' && raw.resortDetails) {
       const r = raw.resortDetails;
+      
+      // Basic Details
       if (r.resortType) details.push({
         label: 'Resort Type',
         value: r.resortType,
-        editKey: 'resortDetails.resortType'
+        editKey: 'resortDetails.resortType',
+        showInEdit: true,
+        fieldType: 'select',
+        options: [
+          'Beachfront Resort',
+          'Hill Station / Mountain Resort',
+          'Forest / Jungle Retreat',
+          'Lakefront Resort',
+          'Desert Resort',
+          'Eco-Resort',
+          'Island Resort',
+          'Wellness / Spa Resort',
+          'Luxury Resort',
+          'Boutique Resort',
+          'Family Resort',
+          'Adventure / Activity Resort',
+          'Safari / Wildlife Resort',
+          'Water Park Resort',
+          'Golf Resort',
+          'Riverfront Resort',
+          'Farm / Agri-Resort',
+          'Theme Resort',
+          'Business / Conference Resort',
+          'Eco-Lodge / Nature Retreat'
+        ]
       });
+      
       if (r.landArea) details.push({
         label: 'Land Area',
         value: `${r.landArea} sqft`,
-        editKey: 'resortDetails.landArea'
+        editKey: 'resortDetails.landArea',
+        showInEdit: true
       });
+      
       if (r.buildArea) details.push({
         label: 'Build Area',
         value: `${r.buildArea} sqft`,
-        editKey: 'resortDetails.buildArea'
+        editKey: 'resortDetails.buildArea',
+        showInEdit: true
       });
+      
       if (r.rooms) details.push({
         label: 'Rooms',
         value: r.rooms,
-        editKey: 'resortDetails.rooms'
+        editKey: 'resortDetails.rooms',
+        showInEdit: true
       });
+      
       if (r.floors) details.push({
         label: 'Floors',
         value: r.floors,
-        editKey: 'resortDetails.floors'
+        editKey: 'resortDetails.floors',
+        showInEdit: true
+      });
+      
+      // Location Advantages
+      if (r.locationAdvantages && r.locationAdvantages.length > 0) details.push({
+        label: 'Location Advantages',
+        value: r.locationAdvantages.join(', '),
+        editKey: 'resortDetails.locationAdvantages',
+        showInEdit: true
       });
     }
+
     return details.filter(d => d.value !== undefined && d.value !== null && d.value !== '');
   };
   return (
@@ -817,14 +2097,15 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
 )}
 
 
-        {/* Site Vastu Details - Make Editable */}
-{/* {property.raw.siteDetails?.vaasthuDetails && (
+
+{/* Hospitality Vastu Details */}
+{property.raw.commercialDetails?.hospitalityDetails?.vastuDetails && (
   <div className="mb-6">
     <h3 className="text-sm font-semibold text-gray-700 mb-3 pb-2 border-b flex items-center gap-2">
-      <span>📐 Site Vastu Details</span>
+      <span>🏨 Hospitality Vastu Details</span>
     </h3>
     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-      {Object.entries(property.raw.siteDetails.vaasthuDetails).map(([key, value]) => {
+      {Object.entries(property.raw.commercialDetails.hospitalityDetails.vastuDetails).map(([key, value]) => {
         if (!value) return null;
         const label = key
           .replace(/([A-Z])/g, ' $1')
@@ -833,15 +2114,23 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
           <div key={key}>
             <p className="text-gray-500 text-xs mb-1">{label}</p>
             {isEditing ? (
-              <input
-                type="text"
-                value={editData[`siteDetails.vaasthuDetails.${key}`] || value}
+              <select
+                value={editData[`commercialDetails.hospitalityDetails.vastuDetails.${key}`] || value}
                 onChange={(e) => setEditData({ 
                   ...editData, 
-                  [`siteDetails.vaasthuDetails.${key}`]: e.target.value 
+                  [`commercialDetails.hospitalityDetails.vastuDetails.${key}`]: e.target.value 
                 })}
                 className="w-full font-medium border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-blue-500"
-              />
+              >
+                <option value="North-East">North-East</option>
+                <option value="South-West">South-West</option>
+                <option value="East">East</option>
+                <option value="West">West</option>
+                <option value="North">North</option>
+                <option value="South">South</option>
+                <option value="North-West">North-West</option>
+                <option value="South-East">South-East</option>
+              </select>
             ) : (
               <p className="font-medium text-gray-800">{value}</p>
             )}
@@ -850,7 +2139,231 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
       })}
     </div>
   </div>
-)} */}
+)}
+
+{/* Commercial Office Vastu Details */}
+        {property.raw.commercialDetails?.officeDetails?.vaasthuDetails && (
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3 pb-2 border-b flex items-center gap-2">
+              <span>🏢 Office Vastu Details</span>
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+              {Object.entries(property.raw.commercialDetails.officeDetails.vaasthuDetails).map(([key, value]) => {
+                if (!value) return null;
+                const label = key
+                  .replace(/([A-Z])/g, ' $1')
+                  .replace(/^./, str => str.toUpperCase());
+                
+                // Define dropdown options based on field
+                const getVastuOptions = (fieldKey) => {
+                  const directionOptions = ['North', 'South', 'East', 'West', 'North-East', 'North-West', 'South-East', 'South-West'];
+                  
+                  switch(fieldKey) {
+                    case 'officeFacing':
+                      return ['North', 'East', 'North-East', 'West', 'South'];
+                    case 'entrance':
+                      return ['North', 'East', 'North-East', 'West'];
+                    case 'cabin':
+                      return ['South-West', 'West', 'South'];
+                    case 'workstations':
+                      return ['North', 'East', 'North-East'];
+                    case 'conference':
+                    case 'pantry':
+                      return ['North-West', 'West', 'South-East'];
+                    case 'reception':
+                    case 'accounts':
+                      return ['North', 'North-East', 'East'];
+                    case 'server':
+                      return ['South-East', 'North-West'];
+                    case 'washrooms':
+                      return ['North-West', 'West', 'South-East'];
+                    case 'staircase':
+                      return ['South', 'South-West', 'West'];
+                    case 'storage':
+                    case 'cashLocker':
+                      return ['South-West', 'West'];
+                    default:
+                      return directionOptions;
+                  }
+                };
+                
+                return (
+                  <div key={key}>
+                    <p className="text-gray-500 text-xs mb-1">{label}</p>
+                    {isEditing ? (
+                      <select
+                        value={editData[`commercialDetails.officeDetails.vaasthuDetails.${key}`] || value}
+                        onChange={(e) => setEditData({ 
+                          ...editData, 
+                          [`commercialDetails.officeDetails.vaasthuDetails.${key}`]: e.target.value 
+                        })}
+                        className="w-full font-medium border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-blue-500"
+                      >
+                        {getVastuOptions(key).map(option => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <p className="font-medium text-gray-800">{value}</p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+
+{/* Industry Vastu Details */}
+{property.raw.commercialDetails?.industryDetails?.vastuDetails && (
+  <div className="mb-6">
+    <h3 className="text-sm font-semibold text-gray-700 mb-3 pb-2 border-b flex items-center gap-2">
+      <span>🏭 Industry Vastu Details</span>
+    </h3>
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+      {Object.entries(property.raw.commercialDetails.industryDetails.vastuDetails).map(([key, value]) => {
+        if (!value) return null;
+        const label = key
+          .replace(/([A-Z])/g, ' $1')
+          .replace(/^./, str => str.toUpperCase());
+        
+        const getVastuOptions = (fieldKey) => {
+          const directionOptions = ['North', 'South', 'East', 'West', 'North-East', 'North-West', 'South-East', 'South-West'];
+          
+          switch(fieldKey) {
+            case 'buildingFacing':
+              return directionOptions;
+            case 'entrance':
+              return ['North', 'East', 'North-East', 'West'];
+            case 'machinery':
+              return ['Towards South', 'Towards West', 'South-West', 'North-West'];
+            case 'production':
+              return ['Balanced open space', 'North', 'East', 'North-East'];
+            case 'rawMaterial':
+              return ['Square', 'South', 'West', 'South-West'];
+            case 'finishedGoods':
+              return ['North', 'East', 'North-East'];
+            case 'office':
+              return ['Water source in North', 'North', 'East', 'North-East'];
+            case 'electrical':
+              return ['South-East', 'North-West', 'West'];
+            case 'water':
+              return ['North', 'North-East', 'East', 'Equal height on all sides'];
+            case 'waste':
+              return ['South', 'West', 'South-West', 'No structures'];
+            case 'washroom':
+              return ['North-West', 'West', 'No structures'];
+            default:
+              return directionOptions;
+          }
+        };
+        
+        return (
+          <div key={key}>
+            <p className="text-gray-500 text-xs mb-1">{label}</p>
+            {isEditing ? (
+              <select
+                value={editData[`commercialDetails.industryDetails.vastuDetails.${key}`] || value}
+                onChange={(e) => setEditData({ 
+                  ...editData, 
+                  [`commercialDetails.industryDetails.vastuDetails.${key}`]: e.target.value 
+                })}
+                className="w-full font-medium border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-blue-500"
+              >
+                {getVastuOptions(key).map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            ) : (
+              <p className="font-medium text-gray-800">{value}</p>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  </div>
+)}
+
+
+
+
+{/* Commercial Plot/Land Vastu Details */}
+
+{property.raw.commercialDetails?.subType === 'Plot/Land' && 
+ (property.raw.commercialDetails?.vastuDetails || property.raw.commercialDetails?.vaastuDetails) && (
+  <div className="mb-6">
+    <h3 className="text-sm font-semibold text-gray-700 mb-3 pb-2 border-b flex items-center gap-2">
+      <span>📐 Commercial Plot Vastu Details</span>
+    </h3>
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+     {Object.entries(property.raw.commercialDetails.vastuDetails || property.raw.commercialDetails.vaastuDetails || {}).map(([key, value]) => {
+        if (!value) return null;
+        const label = key
+          .replace(/([A-Z])/g, ' $1')
+          .replace(/^./, str => str.toUpperCase());
+        
+        const getVastuOptions = (fieldKey) => {
+          const directionOptions = ['North', 'South', 'East', 'West', 'North-East', 'North-West', 'South-East', 'South-West'];
+          
+          switch(fieldKey) {
+            case 'plotFacing':
+              return ['North', 'East', 'North-East', 'West', 'South'];
+            case 'mainEntry':
+              return ['North', 'East', 'North-East', 'West', 'South-West'];
+            case 'plotSlope':
+              return ['Towards North', 'Towards East', 'Towards North-East'];
+            case 'openSpace':
+              return ['Balanced open space', 'More in North & East'];
+            case 'shape':
+              return ['Square', 'Rectangle'];
+            case 'roadPosition':
+              return ['North', 'East', 'North-East'];
+            case 'waterSource':
+              return ['North', 'North-East'];
+            case 'drainage':
+              return ['North', 'North-East', 'East'];
+            case 'compoundWall':
+              return ['Equal height', 'Higher in South & West'];
+            case 'structures':
+              return ['No structures', 'Temporary structures'];
+            default:
+              return directionOptions;
+          }
+        };
+        
+        return (
+          <div key={key}>
+            <p className="text-gray-500 text-xs mb-1">{label}</p>
+            {isEditing ? (
+              <select
+                value={editData[`commercialDetails.vastuDetails.${key}`] || value}  // ✅ FIXED: single 'a'
+                onChange={(e) => setEditData({ 
+                  ...editData, 
+                  [`commercialDetails.vastuDetails.${key}`]: e.target.value  // ✅ FIXED: single 'a'
+                })}
+                className="w-full font-medium border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-blue-500"
+              >
+                {getVastuOptions(key).map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            ) : (
+              <p className="font-medium text-gray-800">{value}</p>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  </div>
+)}
+
+    
+
+
+        {/* Property Type Specific Details */}
+
+
+    
 
 
         {/* Property Type Specific Details */}
@@ -897,6 +2410,56 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
                     </div>
                   );
                 }
+
+                // ✅ ADD THIS NEW BLOCK - Custom render for Possession in edit mode (for Plot)
+  if (detail.customRender && detail.label === 'Possession By') {
+    return (
+      <div key={idx} className="col-span-2">
+        <p className="text-gray-500 text-xs mb-2">{detail.label}</p>
+        {isEditing ? (
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="text-xs text-gray-600 block mb-1">Month</label>
+              <select
+                value={editData['commercialDetails.plotDetails.possession.month'] || ''}
+                onChange={(e) => setEditData({ ...editData, 'commercialDetails.plotDetails.possession.month': e.target.value })}
+                className="w-full font-medium border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+              >
+                <option value="">Select Month</option>
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="March">March</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September">September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="text-xs text-gray-600 block mb-1">Year</label>
+              <input
+                type="text"
+                value={editData['commercialDetails.plotDetails.possession.year'] || ''}
+                onChange={(e) => setEditData({ ...editData, 'commercialDetails.plotDetails.possession.year': e.target.value })}
+                placeholder="2025"
+                maxLength="4"
+                className="w-full font-medium border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+              />
+            </div>
+          </div>
+        ) : (
+          <p className="font-medium text-gray-800">{detail.value}</p>
+        )}
+      </div>
+    );
+  }
+
+
                return (
   <div key={idx}>
     <p className="text-gray-500 text-xs mb-1">{detail.label}</p>

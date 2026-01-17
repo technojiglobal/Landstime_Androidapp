@@ -289,8 +289,7 @@ officeDetails: {
   locatedInside: String,
   zoneType: String,
   
-  // ✅ CRITICAL: This must be here
-  neighborhoodArea: String,
+  neighborhoodArea: String, // ✅ Area/Neighborhood
   
   carpetArea: Number,
   carpetAreaUnit: {
@@ -304,7 +303,7 @@ officeDetails: {
   seats: Number,
   maxSeats: Number,
   
-  conferenceRooms: String,
+  conferenceRooms: String, // ✅ "1", "2", "3", "4+"
   
   washrooms: {
     public: Number,
@@ -313,6 +312,11 @@ officeDetails: {
   
   receptionArea: Boolean,
   furnishing: Boolean,
+  
+  // ✅ NEW - Pantry Details
+  pantry: Boolean, // ✅ NEW
+  pantryType: String, // ✅ NEW - "Private" or "Shared"
+  pantrySize: Number, // ✅ NEW
   
   additionalFeatures: [String],
   fireSafetyMeasures: [String],
@@ -325,7 +329,6 @@ officeDetails: {
   passengerLifts: Number,
   serviceLifts: Number,
   
-  // ✅ THIS IS THE CRITICAL FIX
   parking: {
     type: {
       type: String,
@@ -515,8 +518,12 @@ retailDetails: {
 
 
     
-    // Plot/Land specific for commercial
-   plotDetails: {
+plotDetails: {
+  // ✅ NEW - Plot Kind (Agricultural/Residential/Commercial)
+  plotKind: {
+    type: String,
+  },
+
   plotType: {
     type: String, // Residential / Commercial / Industrial
   },
@@ -529,7 +536,6 @@ retailDetails: {
     trim: true,
   },
 
-  // ✅ ADD THIS - Neighborhood Area
   neighborhoodArea: {
     type: String,
     trim: true,
@@ -564,21 +570,58 @@ retailDetails: {
     default: "ft",
   },
 
-  openSides: String,
-  boundaryWall: String,
-  floorsAllowed: Number,
-  zoneType: String,
+  openSides: String, // "1", "2", "3", "4"
 
-  constructionDone: String,
-  constructionTypes: [String],
+  floorsAllowed: {
+    type: Number,
+    default: 0,
+  },
+
+  boundaryWall: {
+    type: String, // "Yes" / "No"
+  },
+
+  zoneType: {
+    type: String,
+  },
+
+  constructionDone: String, // "Yes" / "No"
+  constructionTypes: [String], // ["+ Shed", "+ Room(s)", etc.]
 
   possession: {
     year: String,
     month: String,
   },
 
-  ownership: String,
-  approvedBy: String,
+  // ✅ Pricing fields (from PlotNext.jsx)
+  ownership: {
+    type: String,
+    default: 'Freehold',
+  },
+
+  approvedBy: {
+    type: String, // Authority approval
+  },
+
+  industryType: String, // ✅ NEW - Approved for industry type
+
+  preLeased: {
+    type: String, // "Yes" / "No"
+  },
+
+  leaseDuration: {
+    type: String,
+  },
+
+  monthlyRent: {
+    type: Number,
+    default: 0,
+  },
+
+  cornerProperty: {
+    type: Boolean,
+    default: false,
+  },
 
   amenities: {
     type: [String],
@@ -590,12 +633,7 @@ retailDetails: {
     default: [],
   },
 
-  cornerProperty: {
-    type: Boolean,
-    default: false,
-  },
-
-  /* ✅ PLOT VASTU DETAILS */
+  // ✅ Vastu Details (from PlotVaastu.jsx)
   vastuDetails: {
     plotFacing: String,
     mainEntry: String,
@@ -610,78 +648,8 @@ retailDetails: {
   },
 },
 
+
     
-    // Industry specific
-//    industryDetails: {
-//   location: {
-//     type: String,
-//     required: function() {
-//       return this.commercialDetails.subType === 'Industry';
-//     },
-//   },
-
-//   area: {
-//     value: {
-//       type: Number,
-//       required: function() {
-//         return this.commercialDetails.subType === 'Industry';
-//       },
-//     },
-//     unit: {
-//       type: String,
-//       enum: ["sqft", "sqm", "acre"],
-//       default: "sqft",
-//     },
-//   },
-
-//   washroomType: String,
-//   availability: String,
-//   ageOfProperty: String,
-//   possessionBy: String,
-
-//   pricing: {
-//     ownership: String,
-//     expectedPrice: {
-//       type: Number,
-//       required: function() {
-//         return this.commercialDetails.subType === 'Industry';
-//       },
-//     },
-
-//     priceDetails: {
-//       allInclusive: Boolean,
-//       negotiable: Boolean,
-//       taxExcluded: Boolean,
-//     },
-
-//     approvedBy: String,
-//     approvedIndustryType: String,
-
-//     preLeased: String,
-//     leaseDuration: String,
-//     monthlyRent: Number,
-
-//     amenities: [String],
-//     locationAdvantages: [String],
-//     wheelchairFriendly: Boolean,
-//   },
-
-//   vastuDetails: {
-//     buildingFacing: String,
-//     entrance: String,
-//     machinery: String,
-//     production: String,
-//     rawMaterial: String,
-//     finishedGoods: String,
-//     office: String,
-//     electrical: String,
-//     water: String,
-//     waste: String,
-//     washroom: String,
-//   },
-// }
-
-
 
 industryDetails: {
 location: {
@@ -730,6 +698,7 @@ approvedIndustryType: String,
 preLeased: String,
 leaseDuration: String,
 monthlyRent: Number,
+description: String,  // or { type: String }
 amenities: [String],
 locationAdvantages: [String],
 wheelchairFriendly: Boolean,
@@ -909,19 +878,22 @@ storageDetails: {
 
     
     // Hospitality specific
-    hospitalityDetails: {
+ hospitalityDetails: {
+  // ✅ Location & Area
   location: {
     type: String,
     required: function() {
-      return this.commercialDetails.subType === 'Hospitality';
+      return this.commercialDetails?.subType === 'Hospitality';
     },
   },
+
+  neighborhoodArea: String, // ✅ NEW - Area/Neighborhood
 
   area: {
     value: {
       type: Number,
       required: function() {
-        return this.commercialDetails.subType === 'Hospitality';
+        return this.commercialDetails?.subType === 'Hospitality';
       },
     },
     unit: {
@@ -931,26 +903,66 @@ storageDetails: {
     },
   },
 
-  hospitalityType: String,
+  // ✅ Room Details
   rooms: Number,
-  halls: Number,
-  kitchens: Number,
-  parking: Number,
-  starRating: Number,
-  licensesAvailable: [String],
+  washroomType: String, // ✅ NEW - "None", "Shared", "1", "2", etc.
+  balconies: String, // ✅ NEW - "0", "1", "2", "3", "More than 3"
+  otherRooms: [String], // ✅ NEW - ["Pooja Room", "Study Room", etc.]
 
-  availability: String,
-  ageOfProperty: String,
-  possessionBy: String,
+  // ✅ Furnishing
+  furnishingType: {
+    type: String,
+    enum: ['Unfurnished', 'Semi-furnished', 'Furnished'],
+    default: 'Unfurnished'
+  },
+  furnishingDetails: [String], // ✅ NEW - List of furnishing items
 
-  pricing: {
-    ownership: String,
-    expectedPrice: Number,
-    negotiable: Boolean,
-    amenities: [String],
-    locationAdvantages: [String],
+  // ✅ Availability
+  availability: String, // "Ready" or "UnderConstruction"
+  ageOfProperty: String, // ✅ For Ready properties
+  possessionBy: String, // ✅ For Under Construction
+  expectedMonth: String, // ✅ NEW - Month for possession
+
+  // ✅ Ownership & Pricing
+  ownership: String, // ✅ MOVED from pricing
+  IndustryApprovedBy: String, // ✅ NEW
+  approvedIndustryType: String, // ✅ NEW
+  
+  expectedPrice: {
+    type: Number,
+    required: function() {
+      return this.commercialDetails?.subType === 'Hospitality';
+    },
   },
 
+  priceDetails: { // ✅ FLATTENED
+    allInclusive: { type: Boolean, default: false },
+    negotiable: { type: Boolean, default: false },
+    taxExcluded: { type: Boolean, default: false },
+  },
+
+  // ✅ Pre-Leased Details
+  preLeased: String, // "Yes" or "No"
+  leaseDuration: String, // ✅ NEW
+  monthlyRent: Number, // ✅ NEW
+
+  // ✅ Description & Features
+  description: String, // ✅ MOVED from pricing
+  amenities: {
+    type: [String],
+    default: [],
+  },
+  locationAdvantages: {
+    type: [String],
+    default: [],
+  },
+  wheelchairFriendly: { // ✅ NEW
+    type: Boolean,
+    default: false
+  },
+  flooringType: String, // ✅ NEW
+
+  // ✅ Vastu Details
   vastuDetails: {
     buildingFacing: String,
     entrance: String,

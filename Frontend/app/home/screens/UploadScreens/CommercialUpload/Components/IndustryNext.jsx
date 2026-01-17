@@ -270,6 +270,9 @@ useEffect(() => {
         preLeased,
         leaseDuration: preLeased === "Yes" ? leaseDuration : null,
         monthlyRent: preLeased === "Yes" ? Number(monthlyRent) : null,
+
+        description: describeProperty,
+        
         amenities,
         locationAdvantages: locAdvantages,
         wheelchairFriendly,
