@@ -20,12 +20,23 @@ import {
   HOSPITALITY_AMENITIES
 } from '../../../../constants/propertyConstants';
 import AvailabilityStatus from '../../sections/AvailabilityStatus';
+import FurnishingModal from '../../sections/FurnishingModal';
 const HospitalityForm = ({ formData, updateField }) => {
   const isReadyToMove = formData.availabilityStatus === 'Ready to move';
   const isUnderConstruction = formData.availabilityStatus === 'Under construction';
   const isPreLeased = formData.preLeased === 'Yes';
 const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
   const [pricingDetails, setPricingDetails] = useState(null);
+  const [showFurnishingModal, setShowFurnishingModal] = useState(false);
+    const [furnishingModalType, setFurnishingModalType] = useState('');
+  
+    const handleFurnishingChange = (value) => {
+      updateField('furnishing', value);
+     if (value === 'Semi-Furnished' || value === 'Furnished') {
+    setShowFurnishingModal(true);
+    setFurnishingModalType(value === 'Semi-Furnished' ? 'SemiFurnished' : value);
+  }
+    };
   const handlePricingSubmit = (data) => {
     setPricingDetails(data);
     console.log('Pricing details:', data);
@@ -96,16 +107,23 @@ const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
         </div>
       </div>
 
-      {/* ==================== FURNISHING ==================== */}
-      <div className="border-t pt-6">
-        <h3 className="font-semibold mb-4">Furnishing</h3>
-        <RadioButtons
-          name="furnishing"
-          value={formData.furnishing}
-          onChange={(value) => updateField('furnishing', value)}
-          options={FURNISHING_OPTIONS}
-        />
-      </div>
+      {/* ==================== FURNISHING WITH MODAL ==================== */}
+      <RadioButtons
+        label="Furnishing"
+        name="furnishing"
+        value={formData.furnishing}
+        onChange={handleFurnishingChange}
+        options={FURNISHING_OPTIONS}
+      />
+
+      {/* Furnishing Modal */}
+      <FurnishingModal
+        isOpen={showFurnishingModal}
+        furnishingType={furnishingModalType}
+        selectedItems={formData.furnishingItems || []}
+        onClose={() => setShowFurnishingModal(false)}
+        onItemToggle={(items) => updateField('furnishingItems', items)}
+      />
 <AvailabilityStatus formData={formData} updateField={updateField} />
     
       {/* ==================== OWNERSHIP ==================== */}
