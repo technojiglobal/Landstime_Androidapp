@@ -182,6 +182,12 @@ export const PLOT_TYPES = [
   'Industrial Lands/Plots',
   
 ];
+export const STORAGE_TYPES = [
+  'Warehouse',
+  'Cold Storage',
+ 
+  
+];
 export const COMMERCIAL_SUB_TYPES = [
   'Office',
   'Retail',

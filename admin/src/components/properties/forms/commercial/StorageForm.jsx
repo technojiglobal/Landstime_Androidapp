@@ -14,6 +14,7 @@ import {
 import VaasthuDetails from '../../sections/VaasthuDetails';
 import { storageVaasthuFields } from '../../../../constants/vastuFields';
 import OfficePricingDetailsSection from '../../sections/OfficePricingDetailsSection';
+import AvailabilityStatus from '../../sections/AvailabilityStatus';
 
 const StorageForm = ({ formData, updateField }) => {
   return (
@@ -153,30 +154,8 @@ const StorageForm = ({ formData, updateField }) => {
         </div>
       )}
 
-      {/* ==================== POSSESSION BY ==================== */}
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-semibold text-left mb-4">Possession By</h3>
-        
-        <div className="grid grid-cols-2 gap-4">
-          <TextField
-            label="Year"
-            name="possessionYear"
-            value={formData.possessionYear}
-            onChange={(value) => updateField('possessionYear', value)}
-            placeholder="By 2017"
-          />
-          
-          {formData.possessionYear && (
-            <TextField
-              label="Month"
-              name="possessionMonth"
-              value={formData.possessionMonth}
-              onChange={(value) => updateField('possessionMonth', value)}
-              placeholder="Month"
-            />
-          )}
-        </div>
-      </div>
+       {/* ==================== AVAILABILITY STATUS ==================== */}
+      <AvailabilityStatus formData={formData} updateField={updateField} />
 
       {/* ==================== OWNERSHIP ==================== */}
       <div className="border-t pt-6">
@@ -257,17 +236,7 @@ const StorageForm = ({ formData, updateField }) => {
         />
       </div>
 
-      {/* ==================== DESCRIPTION ==================== */}
-      <div className="border-t pt-6">
-        <TextAreaField
-          label="Description"
-          name="description"
-          value={formData.description}
-          onChange={(value) => updateField('description', value)}
-          placeholder="Describe your plot"
-          rows={4}
-        />
-      </div>
+     
 
       {/* ==================== OTHER FEATURES ==================== */}
       <div className="border-t pt-6">
