@@ -1,4 +1,4 @@
-// Frontend/app/home/components/BannerCarousel.jsx
+// Frontend/app/home/screens/BannerCarousel.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
