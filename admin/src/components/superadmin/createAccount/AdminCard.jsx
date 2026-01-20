@@ -15,6 +15,8 @@ const AdminCard = ({
   lastLogin,
   actions,
   permissions,
+  assignedTo,
+  password,
 }) => {
   return (
     <div className="bg-[#0B1220] border border-white/5 rounded-2xl p-6 flex justify-between items-center">
@@ -33,11 +35,10 @@ const AdminCard = ({
             </span>
 
             <span
-              className={`px-3 py-1 text-xs rounded-full ${
-                status === "Active"
-                  ? "bg-emerald-500/20 text-emerald-400"
-                  : "bg-red-500/20 text-red-400"
-              }`}
+              className={`px-3 py-1 text-xs rounded-full ${status === "Active"
+                ? "bg-emerald-500/20 text-emerald-400"
+                : "bg-red-500/20 text-red-400"
+                }`}
             >
               {status}
             </span>
@@ -51,6 +52,16 @@ const AdminCard = ({
               <Phone size={14} /> {phone}
             </span>
           </div>
+          {assignedTo && (
+            <div className="text-xs text-gray-400 mt-1">
+              Assigned to: <span className="text-yellow-400">{assignedTo}</span>
+            </div>
+          )}
+          {password && (
+            <div className="text-xs text-gray-400 mt-1">
+              Password: <span className="text-red-400">{password}</span>
+            </div>
+          )}
 
           <div className="text-xs text-gray-500 mt-2">
             Last login: {lastLogin} &nbsp; • &nbsp; {actions} actions this month

@@ -9,7 +9,7 @@ import RadioButtons from '../../fields/RadioButtons';
 import CheckboxGroup from '../../fields/CheckboxGroup';
 import NumberButtonGroup from '../../fields/NumberButtonGroup';
 import PricingSection from '../../sections/PricingSection';
-import { 
+import {
   ROOM_TYPES,
   AGE_OF_PROPERTY,
   POSSESSION_MONTHS,
@@ -18,6 +18,7 @@ import {
   INDUSTRY_AMENITIES,
   LOCATION_ADVANTAGES
 } from '../../../../constants/propertyConstants';
+import AvailabilityStatus from '../../sections/AvailabilityStatus';
 import { industrialVaasthuFields } from '../../../../constants/vastuFields';
 import VaasthuDetails from '../../sections/VaasthuDetails';
 const IndustryForm = ({ formData, updateField }) => {
@@ -27,7 +28,7 @@ const IndustryForm = ({ formData, updateField }) => {
 
   return (
     <div className="space-y-6 border-t pt-6">
-      
+
       {/* ==================== LOCATION ==================== */}
       <LocationSection formData={formData} updateField={updateField} />
 
@@ -44,75 +45,30 @@ const IndustryForm = ({ formData, updateField }) => {
       </div>
 
       {/* ==================== AREA DETAILS ==================== */}
-      <div className="border-t pt-6">
-        <h3 className="font-semibold mb-4">Add Area Details</h3>
-        <div className="relative">
-          <NumberField
-            label="Plot Area"
-            name="plotArea"
-            value={formData.plotArea}
-            onChange={(value) => updateField('plotArea', value)}
+
+      <div>
+        <label className="block text-sm font-medium mb-2">Carpet Area</label>
+        <div className="flex gap-2">
+          <input
+            type="number"
+            value={formData.plotArea || ''}
+            onChange={(e) => updateField('plotArea', e.target.value)}
             placeholder="Plot Area"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
           />
-          <span className="absolute right-3 top-9 text-gray-400 text-sm">sqft</span>
+          <select
+            value={formData.carpetAreaUnit || 'sqft'}
+            onChange={(e) => updateField('carpetAreaUnit', e.target.value)}
+            className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          >
+            <option value="sqft">sqft</option>
+            <option value="sqm">sqm</option>
+            <option value="sqyd">sqyd</option>
+          </select>
         </div>
       </div>
-
       {/* ==================== AVAILABILITY STATUS ==================== */}
-      <div className="border-t pt-6">
-        <ToggleButtons
-          label="Availability Status"
-          name="availabilityStatus"
-          value={formData.availabilityStatus || 'Ready to move'}
-          onChange={(value) => {
-            updateField('availabilityStatus', value);
-            // Clear conditional fields when switching
-            if (value === 'Ready to move') {
-              updateField('possessionYear', '');
-              updateField('possessionMonth', '');
-            } else {
-              updateField('ageOfProperty', []);
-            }
-          }}
-          options={['Ready to move', 'Under construction']}
-        />
-
-        {/* Show Age of Property only for Ready to Move */}
-        {isReadyToMove && (
-          <div className="mt-6">
-            <CheckboxGroup
-              label="Age of Property"
-              name="ageOfProperty"
-              selected={formData.ageOfProperty || []}
-              onChange={(value) => updateField('ageOfProperty', value)}
-              options={AGE_OF_PROPERTY}
-            />
-          </div>
-        )}
-
-        {/* Show Possession By only for Under Construction */}
-        {isUnderConstruction && (
-          <div className="mt-6">
-            <h4 className="font-medium mb-3">Possession By</h4>
-            <div className="grid grid-cols-2 gap-4">
-              <SelectField
-                name="possessionYear"
-                value={formData.possessionYear}
-                onChange={(value) => updateField('possessionYear', value)}
-                options={['2024', '2025', '2026', '2027', '2028', '2029', '2030']}
-                placeholder="2032"
-              />
-              <SelectField
-                name="possessionMonth"
-                value={formData.possessionMonth}
-                onChange={(value) => updateField('possessionMonth', value)}
-                options={POSSESSION_MONTHS}
-                placeholder="Month"
-              />
-            </div>
-          </div>
-        )}
-      </div>
+     <AvailabilityStatus formData={formData} updateField={updateField} />
 
       {/* ==================== OWNERSHIP ==================== */}
       <div className="border-t pt-6">
@@ -123,11 +79,10 @@ const IndustryForm = ({ formData, updateField }) => {
               key={type}
               type="button"
               onClick={() => updateField('ownershipType', type)}
-              className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-                formData.ownershipType === type
+              className={`px-4 py-2 rounded-full border text-sm transition-colors ${formData.ownershipType === type
                   ? 'bg-green-500 text-white border-green-500'
                   : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
-              }`}
+                }`}
             >
               {type}
             </button>
@@ -157,7 +112,7 @@ const IndustryForm = ({ formData, updateField }) => {
       {/* ==================== PRICING DETAILS ==================== */}
       <div className="border-t pt-6">
         <h3 className="font-semibold mb-4">Expected Price Details</h3>
-        
+
         <NumberField
           label="Expected Price"
           name="expectedPrice"
@@ -258,11 +213,11 @@ const IndustryForm = ({ formData, updateField }) => {
         />
       </div>
 
-      <VaasthuDetails 
-      formData={formData} 
-      updateField={updateField} 
-      fields={industrialVaasthuFields}
-    />
+      <VaasthuDetails
+        formData={formData}
+        updateField={updateField}
+        fields={industrialVaasthuFields}
+      />
 
 
     </div>

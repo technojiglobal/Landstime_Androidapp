@@ -19,6 +19,8 @@ const CreateAdminModal = ({ onClose, onCreate }) => {
     email: "",
     phone: "",
     role: "Sub-Admin",
+    assignedTo: "",
+    password: "",
     permissions: [],
   });
 
@@ -31,18 +33,34 @@ const CreateAdminModal = ({ onClose, onCreate }) => {
     }));
   };
 
-  const handleSubmit = () => {
-    if (!form.name || !form.email) return;
-    onCreate(form);
-    onClose();
-  };
+ const handleSubmit = async () => {
+  // Validation
+  if (!form.name || !form.email || !form.password) {
+    alert("Please fill in all required fields (Name, Email, Password)");
+    return;
+  }
 
+  // Email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(form.email)) {
+    alert("Please enter a valid email address");
+    return;
+  }
+
+  // Password validation
+  if (form.password.length < 6) {
+    alert("Password must be at least 6 characters long");
+    return;
+  }
+
+  onCreate(form);
+};
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center px-4">
       <div className="bg-[#0B1220] w-full max-w-3xl rounded-2xl p-8 border border-white/10 shadow-2xl">
-        
+
         {/* Header */}
-        <div className="flex justify-between items-start mb-5">
+        <div className="flex justify-between items-start mb-3">
           <div>
             <h2 className="text-2xl font-semibold text-white">
               Create New Admin Account
@@ -108,10 +126,37 @@ const CreateAdminModal = ({ onClose, onCreate }) => {
               <option>Admin</option>
             </select>
           </div>
+          {/* Assigned To */}
+          <div>
+            <label className="text-sm text-gray-300">Assign To</label>
+            <input
+              className="mt-1 w-full bg-[#1E293B] text-white rounded-xl px-4 py-3 border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter supervisor / manager name"
+              value={form.assignedTo}
+              onChange={(e) =>
+                setForm({ ...form, assignedTo: e.target.value })
+              }
+            />
+          </div>
+          {/* Password */}
+          <div>
+            <label className="text-sm text-gray-300">Password</label>
+            <input
+              type="password"
+              className="mt-1 w-full bg-[#1E293B] text-white rounded-xl px-4 py-3 border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter password"
+              value={form.password}
+              onChange={(e) =>
+                setForm({ ...form, password: e.target.value })
+              }
+            />
+          </div>
+
         </div>
 
+
         {/* Permissions */}
-        <h3 className="text-white font-medium mt-6 mb-2">
+        <h3 className="text-white font-medium mt-2 mb-2">
           Module Permissions
         </h3>
 
@@ -122,7 +167,7 @@ const CreateAdminModal = ({ onClose, onCreate }) => {
               <div
                 key={p.key}
                 onClick={() => togglePermission(p.key)}
-                className={`cursor-pointer p-2 rounded-xl border transition flex gap-4
+                className={`cursor-pointer px-2 py-1 rounded-xl border transition flex gap-4
                   ${active
                     ? "border-blue-500 bg-blue-500/10"
                     : "border-white/10 bg-[#1E293B] hover:bg-white/5"
@@ -147,9 +192,10 @@ const CreateAdminModal = ({ onClose, onCreate }) => {
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-4 mt-10">
+        <div className="flex justify-end gap-4 mt-3">
           <button
             onClick={onClose}
+
             className="px-6 py-2 rounded-xl bg-white/10 text-gray-300 hover:bg-white/20 transition"
           >
             Cancel
