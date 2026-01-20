@@ -19,4 +19,16 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Add response interceptor for better error handling
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Optionally handle unauthorized access
+      console.error('Unauthorized access - please login again');
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default axiosInstance;
