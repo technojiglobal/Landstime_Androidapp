@@ -115,8 +115,24 @@ profileImage: {
     endDate: {
       type: Date,
       default: null
-    }
+    },
+    contactViewsRemaining: {
+    type: Number,
+    default: 0
   },
+  contactViewsUsed: {
+    type: Number,
+    default: 0
+  },
+  viewedProperties: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Property'
+  }]
+
+
+  },
+
+
 
   createdAt: {
     type: Date,

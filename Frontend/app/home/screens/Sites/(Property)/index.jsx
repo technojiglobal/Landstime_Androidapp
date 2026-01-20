@@ -27,15 +27,18 @@ export default function OverviewScreen() {
   const currentLanguage = i18n.language || 'en';
 
   // ✅ Fetch on mount and when language changes
-  useEffect(() => {
-    console.log('🔄 Effect triggered - propertyId:', propertyId, 'language:', i18n.language);
-    if (propertyId) {
-      fetchPropertyDetails();
-    } else {
-      console.error('❌ No propertyId available');
-      setLoading(false);
-    }
-  }, [propertyId, i18n.language]);
+ useEffect(() => {
+  console.log('🔄 Effect triggered - propertyId:', propertyId, 'language:', i18n.language);
+  
+  // ✅ FIXED: Better validation
+  if (!propertyId || propertyId === 'undefined') {
+    console.error('❌ Invalid propertyId:', propertyId);
+    setLoading(false);
+    return;
+  }
+  
+  fetchPropertyDetails();
+}, [propertyId, i18n.language]);
 
   const fetchPropertyDetails = async () => {
     try {
@@ -296,14 +299,20 @@ export default function OverviewScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="flex-1 bg-[#22C55E] py-3 rounded-[12px] items-center justify-center"
-              activeOpacity={0.8}
-              onPress={() => router.push("/home/screens/ContactForm")}
-            >
-              <Text className="text-white text-[14px]" style={{ fontFamily: "Poppins" }}>
-                Contact Agent
-              </Text>
-            </TouchableOpacity>
+  className="flex-1 bg-[#22C55E] py-3 rounded-[12px] items-center justify-center"
+  activeOpacity={0.8}
+  onPress={() => router.push({
+    pathname: "/home/screens/ContactForm",
+    params: { 
+      propertyId: property._id,
+      areaKey: property.areaKey 
+    }
+  })}
+>
+  <Text className="text-white text-[14px]" style={{ fontFamily: "Poppins" }}>
+    Contact Agent
+  </Text>
+</TouchableOpacity>
           </View>
         </View>
       </ScrollView>

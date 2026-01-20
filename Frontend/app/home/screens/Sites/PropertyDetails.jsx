@@ -1,8 +1,3 @@
-
-
-
-
-
 // Frontend/app/home/screens/Sites/PropertyDetails.jsx
 import React, { useRef, useState, useEffect } from "react";
 import {
@@ -193,12 +188,16 @@ const fetchProperties = async () => {
                 <TouchableOpacity
   activeOpacity={0.8}
   onPress={() => {
-    console.log('🔍 Navigating to property:', item._id);
-    router.push({
-      pathname: '/home/screens/Sites/(Property)',
-      params: { propertyId: item._id }
-    });
-  }}
+  console.log('🔍 Navigating to property:', item._id);
+  // ✅ FIXED: Ensure propertyId is string
+  router.push({
+    pathname: '/home/screens/Sites/(Property)',
+    params: { 
+      propertyId: item._id.toString(),
+      areaKey: item.areaKey || areaKey
+    }
+  });
+}}
 >
                  <Image
   source={
@@ -233,13 +232,17 @@ const fetchProperties = async () => {
                   {/* Title */}
                   <TouchableOpacity
                    activeOpacity={0.6}
-  onPress={() => {
-    console.log('🔍 Navigating to property:', item._id);
-    router.push({
-      pathname: '/home/screens/Sites/(Property)',
-      params: { propertyId: item._id }
-    });
-  }}
+ onPress={() => {
+  console.log('🔍 Navigating to property:', item._id);
+  // ✅ FIXED: Ensure propertyId is string
+  router.push({
+    pathname: '/home/screens/Sites/(Property)',
+    params: { 
+      propertyId: item._id.toString(),
+      areaKey: item.areaKey || areaKey
+    }
+  });
+}}
 >
                     <Text
                       style={{
