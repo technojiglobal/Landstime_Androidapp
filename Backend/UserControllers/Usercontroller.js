@@ -494,6 +494,14 @@ console.log('📦 Login response structure:', {
   }
 });
 
+// ✅ Extract English name as string
+let userName = '';
+if (typeof user.name === 'string') {
+  userName = user.name;
+} else if (user.name && typeof user.name === 'object') {
+  userName = user.name.en || user.name.te || user.name.hi || '';
+}
+
 return res.status(200).json({
   success: true,
   message: 'Login successful',
@@ -501,7 +509,7 @@ return res.status(200).json({
     token: token,
     user: {
       id: user._id,
-      name: user.name,
+      name: userName,  // ✅ Always a string
       phone: user.phone,
       email: user.email,
       role: user.role,
@@ -523,32 +531,47 @@ return res.status(200).json({
 };
 // ==================== GET USER PROFILE ====================
 
-//Backend/UserControllers/Usercontroller.js
 export const getUserProfile = async (req, res) => {
   try {
-    const user = req.user;
+    const userId = req.user._id;
+    const user = await User.findById(userId).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // ✅ FIX: Always extract English name as string
+    let userName = '';
+    if (typeof user.name === 'string') {
+      userName = user.name;
+    } else if (user.name && typeof user.name === 'object') {
+      userName = user.name.en || user.name.te || user.name.hi || '';
+    }
+
+    const userData = {
+      ...user.toObject(),
+      name: userName  // ✅ Always a string
+    };
+
+    console.log('✅ Sending user profile with name as string:', userName);
 
     return res.status(200).json({
       success: true,
-      data: {
-        name: user.name,
-        phone: user.phone,
-        email: user.email,
-        address: user.address,
-        about: user.about,
-        profileImage: user.profileImage,
-        role: user.role,
-        lastLogin: user.lastLogin,
-      },
+      data: userData
     });
   } catch (error) {
+    console.error('Get user profile error:', error);
     return res.status(500).json({
       success: false,
-      message: "Failed to fetch profile",
-      error: error.message,
+      message: 'Failed to fetch profile'
     });
   }
 };
+
+
 // ==================== UPDATE USER PROFILE ====================
 export const updateUserProfile = async (req, res) => {
   try {

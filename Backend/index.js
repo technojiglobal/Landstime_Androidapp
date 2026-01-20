@@ -17,6 +17,8 @@ import notificationRoutes from "./AdminRoutes/NotificationRoute.js";
 import { startNotificationScheduler } from "./services/notificationScheduler.js"; // ✅ NEW
 import reviewRoutes from "./UserRoutes/ReviewRoutes.js";
 import bannerRoutes from './AdminRoutes/BannerRoutes.js';
+import propertyViewRoutes from './UserRoutes/PropertyViewRoute.js'
+
 const app = express();
 const PORT = process.env.PORT || 8000;
 
@@ -99,6 +101,7 @@ app.use('/api/admin/interior', interiorDesignRoutes);
 app.use('/api/admin/notifications', notificationRoutes); // NEW
 app.use('/api/user/notifications', userNotificationRoutes); // ✅ NEW
 app.use('/api/banners', bannerRoutes);
+app.use('/api/property-views', propertyViewRoutes); 
 // 🔽 ADD
 
 // 🔽 ADD
