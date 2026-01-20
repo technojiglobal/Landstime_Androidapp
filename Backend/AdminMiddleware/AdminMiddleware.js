@@ -1,3 +1,4 @@
+// Backend/AdminMiddleware/AdminMiddleware.js
 import jwt from "jsonwebtoken";
 
 export const verifyAdmin = (req, res, next) => {

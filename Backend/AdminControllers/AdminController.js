@@ -1,9 +1,10 @@
+// Backend/AdminControllers/AdminController.js
 import Admin from "../AdminModels/Admin.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../UserModels/User.js";
 import Subscription from "../UserModels/Subscription.js";
-
+import { encryptPassword, decryptPassword } from '../utils/encryption.js';
 /* ==================== ADMIN LOGIN ==================== */
 export const adminLogin = async (req, res) => {
   try {
@@ -176,6 +177,175 @@ export const toggleUserBlock = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in toggleUserBlock:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// Backend/AdminControllers/AdminController.js
+// ADD these new functions at the end of the file (before the export):
+
+/* ==================== CREATE ADMIN ACCOUNT (SuperAdmin Only) ==================== */
+export const createAdminAccount = async (req, res) => {
+  try {
+    const { name, email, phone, role, assignedTo, password, permissions } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, email, and password are required",
+      });
+    }
+
+    const existingAdmin = await Admin.findOne({ email });
+    if (existingAdmin) {
+      return res.status(400).json({
+        success: false,
+        message: "Admin with this email already exists",
+      });
+    }
+
+    // Hash for authentication
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Encrypt for display (reversible)
+    const encrypted = encryptPassword(password);
+
+    const newAdmin = new Admin({
+      name,
+      email,
+      phone,
+      role: role || "admin",
+      assignedTo,
+      password: hashedPassword,         // For login authentication
+      encryptedPassword: encrypted,      // For display purposes
+      permissions: permissions || [],
+      status: "Active",
+      lastLogin: null,
+      actionCount: 0,
+    });
+
+    await newAdmin.save();
+
+    console.log("✅ New admin created:", newAdmin.email);
+
+    return res.status(201).json({
+      success: true,
+      message: "Admin account created successfully",
+      data: {
+        id: newAdmin._id,
+        name: newAdmin.name,
+        email: newAdmin.email,
+        phone: newAdmin.phone,
+        role: newAdmin.role,
+        assignedTo: newAdmin.assignedTo,
+        permissions: newAdmin.permissions,
+        status: newAdmin.status,
+        plainPassword: password,           // Return plain on creation
+        createdAt: newAdmin.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error("Error in createAdminAccount:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+/* ==================== GET ALL ADMINS (SuperAdmin Only) ==================== */
+// Backend/AdminControllers/AdminController.js
+// MODIFY getAllAdmins:
+
+export const getAllAdmins = async (req, res) => {
+  try {
+    const admins = await Admin.find()
+      .sort({ createdAt: -1 });
+
+    const adminsData = admins.map(admin => ({
+      _id: admin._id,
+      name: admin.name,
+      email: admin.email,
+      phone: admin.phone,
+      role: admin.role,
+      assignedTo: admin.assignedTo,
+      permissions: admin.permissions,
+      status: admin.status,
+      lastLogin: admin.lastLogin,
+      actionCount: admin.actionCount,
+      createdAt: admin.createdAt,
+      plainPassword: decryptPassword(admin.encryptedPassword),  // Decrypt here
+    }));
+
+    return res.status(200).json({
+      success: true,
+      data: adminsData,
+    });
+  } catch (error) {
+    console.error("Error in getAllAdmins:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+/* ==================== UPDATE ADMIN STATUS ==================== */
+export const updateAdminStatus = async (req, res) => {
+  try {
+    const { adminId } = req.params;
+    const { status } = req.body;
+
+    const admin = await Admin.findByIdAndUpdate(
+      adminId,
+      { status },
+      { new: true }
+    ).select("-password");
+
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Admin status updated successfully",
+      data: admin,
+    });
+  } catch (error) {
+    console.error("Error in updateAdminStatus:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+/* ==================== DELETE ADMIN ==================== */
+export const deleteAdmin = async (req, res) => {
+  try {
+    const { adminId } = req.params;
+
+    const admin = await Admin.findByIdAndDelete(adminId);
+
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Admin deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error in deleteAdmin:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
