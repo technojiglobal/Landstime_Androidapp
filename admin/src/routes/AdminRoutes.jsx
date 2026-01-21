@@ -9,6 +9,7 @@ import Notifications from "../pages/Notifications";
 import Banners from "../pages/Banners";
 import InteriorDesign from "../pages/InteriorDesign";
 import AdminProtectedRoute from "./AdminProtectedRoute";
+import PropertyViewers from "../pages/PropertyViewers";
 
 const AdminRoutes = () => {
   return (
@@ -26,6 +27,7 @@ const AdminRoutes = () => {
           <Route path="notifications" element={<Notifications />} />
           <Route path="banners" element={<Banners />} />
           <Route path="interior-design" element={<InteriorDesign />} />
+          <Route path="property-viewers" element={<PropertyViewers />} /> 
         </Route>
       </Route>
     </>

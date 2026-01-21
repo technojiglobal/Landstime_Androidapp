@@ -6,9 +6,19 @@ import { Ionicons, Feather } from "@expo/vector-icons";
 import TopAlert from "../../../../../components/TopAlert";
 import VastuModal from "../../../../../components/VastuModal";
 import { getPropertyById } from "../../../../../utils/propertyApi";
+import { getUserProfile } from "../../../../../utils/api";
+import { checkViewAccess } from "../../../../../utils/propertyViewApi";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from "react-i18next";
 import i18n  from "../../../../../i18n/index"
+import { Alert } from "react-native";
+
+
+// ✅ Helper: Strip phone number
+const stripPhone = (phoneNum) => {
+  if (!phoneNum) return '';
+  return phoneNum.replace(/[\s\-\+]/g, '').replace(/^91/, '');
+};
 
 // ✅ Helper function OUTSIDE component
 const getLocalizedText = (field, language) => {
@@ -19,7 +29,7 @@ const getLocalizedText = (field, language) => {
 
 export default function OverviewScreen() {
   const router = useRouter();
-   const { propertyId } = useLocalSearchParams(); 
+   const { propertyId, areaKey, propertyData } = useLocalSearchParams();
   const [showAlert, setShowAlert] = useState(false);
   const [showVastuModal, setShowVastuModal] = useState(false);
   const [property, setProperty] = useState(null);
@@ -50,13 +60,30 @@ const currentLanguage = i18n.language || 'en';
 // ✅ Fetch property on mount and when propertyId or language changes
 useEffect(() => {
   console.log('🔄 Effect triggered - propertyId:', propertyId, 'language:', i18n.language);
-  if (propertyId) {
-    fetchPropertyDetails();
-  } else {
-    console.error('❌ No propertyId available');
+  
+  if (!propertyId || propertyId === 'undefined') {
+    console.error('❌ Invalid propertyId:', propertyId);
     setLoading(false);
+    return;
   }
-}, [propertyId, i18n.language]);
+  
+  // ✅ Try to use passed data first
+  if (propertyData) {
+    try {
+      const parsedProperty = JSON.parse(propertyData);
+      console.log('✅ Using passed property data (instant load)');
+      setProperty(parsedProperty);
+      setLoading(false);
+      return;  // ✅ Skip API call
+    } catch (error) {
+      console.error('❌ Failed to parse propertyData:', error);
+    }
+  }
+  
+  // ✅ Fallback to API if no data passed
+  fetchPropertyDetails();
+}, [propertyId, propertyData, i18n.language]);
+
 
 
 const fetchPropertyDetails = async () => {
@@ -78,6 +105,94 @@ const fetchPropertyDetails = async () => {
     console.error('❌ Error fetching property:', error);
   } finally {
     setLoading(false);
+  }
+};
+
+// ✅ NEW: Handle Contact Agent button press
+const handleContactAgent = async () => {
+  try {
+    if (!property || !property._id) {
+      Alert.alert('Error', 'Property information not available');
+      return;
+    }
+
+    console.log('🔍 Checking if property already viewed:', property._id);
+
+    // Get user profile to check viewedProperties
+    const userResult = await getUserProfile();
+    
+    if (!userResult.success) {
+      console.log('❌ Failed to get user profile, going to ContactForm');
+      router.push({
+        pathname: "/home/screens/ContactForm",
+        params: { 
+          propertyId: property._id,
+          areaKey: property.areaKey 
+        }
+      });
+      return;
+    }
+
+    const userData = userResult.data.data;
+    const viewedProperties = userData.currentSubscription?.viewedProperties || [];
+    
+    // Check if already viewed
+    if (viewedProperties.includes(property._id)) {
+      console.log('✅ Property already viewed - checking access for direct navigation');
+      
+      // Get user name
+      let userName = '';
+      if (typeof userData.name === 'string') {
+        userName = userData.name;
+      } else if (userData.name && typeof userData.name === 'object') {
+        userName = userData.name.en || userData.name.te || userData.name.hi || '';
+      }
+      
+      // Get access (will return owner details since already viewed)
+      const accessCheck = await checkViewAccess(
+        property._id,
+        userName,
+        stripPhone(userData.phone)
+      );
+      
+      if (accessCheck.success && accessCheck.data.alreadyViewed) {
+        console.log('✅ Navigating directly to ViewContact');
+        
+        // Navigate directly to ViewContact
+        router.push({
+          pathname: '/home/screens/ViewContact',
+          params: {
+            ownerDetails: JSON.stringify(accessCheck.data.ownerDetails),
+            quota: JSON.stringify(accessCheck.data.quota),
+            alreadyViewed: 'true',
+            areaKey: property.areaKey,
+            propertyId: property._id
+          }
+        });
+        return;
+      }
+    }
+    
+    // Not viewed yet - go to ContactForm
+    console.log('📝 Property not viewed yet - going to ContactForm');
+    router.push({
+      pathname: "/home/screens/ContactForm",
+      params: { 
+        propertyId: property._id,
+        areaKey: property.areaKey 
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ handleContactAgent error:', error);
+    // On error, fallback to ContactForm
+    router.push({
+      pathname: "/home/screens/ContactForm",
+      params: { 
+        propertyId: property._id,
+        areaKey: property.areaKey 
+      }
+    });
   }
 };
 
@@ -336,15 +451,15 @@ const fetchPropertyDetails = async () => {
               <Feather name="download" size={16} color="#22C55E" />
             </TouchableOpacity>
 
-            <TouchableOpacity
-              className="flex-1 bg-[#22C55E] py-3 rounded-[12px] items-center justify-center"
-              activeOpacity={0.8}
-              onPress={() => router.push("/home/screens/ContactForm")}
-            >
-              <Text className="text-white text-[14px]" style={{ fontFamily: "Poppins" }}>
-                Contact Agent
-              </Text>
-            </TouchableOpacity>
+           <TouchableOpacity
+  className="flex-1 bg-[#22C55E] py-3 rounded-[12px] items-center justify-center"
+  activeOpacity={0.8}
+  onPress={handleContactAgent}
+>
+  <Text className="text-white text-[14px]" style={{ fontFamily: "Poppins" }}>
+    Contact Agent
+  </Text>
+</TouchableOpacity>
           </View>
         </View>
       </ScrollView>

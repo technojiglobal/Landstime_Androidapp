@@ -7,7 +7,17 @@ import { Ionicons, Feather } from "@expo/vector-icons";
 import TopAlert from "../../../../../components/TopAlert";
 import VastuModal from "../../../../../components/VastuModal";
 import { getPropertyById } from "../../../../../utils/propertyApi";
+import { getUserProfile } from "../../../../../utils/api";
+import { checkViewAccess } from "../../../../../utils/propertyViewApi";
 import i18n from "../../../../../i18n/index";
+import { Alert } from "react-native";
+
+
+// ✅ Helper: Strip phone number
+const stripPhone = (phoneNum) => {
+  if (!phoneNum) return '';
+  return phoneNum.replace(/[\s\-\+]/g, '').replace(/^91/, '');
+};
 
 // ✅ Helper function
 const getLocalizedText = (field, language) => {
@@ -18,7 +28,7 @@ const getLocalizedText = (field, language) => {
 
 export default function OverviewScreen() {
   const router = useRouter();
-  const { propertyId } = useLocalSearchParams();
+  const { propertyId, areaKey, propertyData } = useLocalSearchParams();  // ✅ Get propertyData
   const [showAlert, setShowAlert] = useState(false);
   const [showVastuModal, setShowVastuModal] = useState(false);
   const [property, setProperty] = useState(null);
@@ -26,16 +36,31 @@ export default function OverviewScreen() {
 
   const currentLanguage = i18n.language || 'en';
 
-  // ✅ Fetch on mount and when language changes
   useEffect(() => {
     console.log('🔄 Effect triggered - propertyId:', propertyId, 'language:', i18n.language);
-    if (propertyId) {
-      fetchPropertyDetails();
-    } else {
-      console.error('❌ No propertyId available');
+    
+    if (!propertyId || propertyId === 'undefined') {
+      console.error('❌ Invalid propertyId:', propertyId);
       setLoading(false);
+      return;
     }
-  }, [propertyId, i18n.language]);
+    
+    // ✅ Try to use passed data first
+    if (propertyData) {
+      try {
+        const parsedProperty = JSON.parse(propertyData);
+        console.log('✅ Using passed property data (instant load)');
+        setProperty(parsedProperty);
+        setLoading(false);
+        return;  // ✅ Skip API call
+      } catch (error) {
+        console.error('❌ Failed to parse propertyData:', error);
+      }
+    }
+    
+    // ✅ Fallback to API if no data passed
+    fetchPropertyDetails();
+  }, [propertyId, propertyData, i18n.language]);
 
   const fetchPropertyDetails = async () => {
     try {
@@ -58,6 +83,95 @@ export default function OverviewScreen() {
       setLoading(false);
     }
   };
+
+
+  // ✅ NEW: Handle Contact Agent button press
+const handleContactAgent = async () => {
+  try {
+    if (!property || !property._id) {
+      Alert.alert('Error', 'Property information not available');
+      return;
+    }
+
+    console.log('🔍 Checking if property already viewed:', property._id);
+
+    // Get user profile to check viewedProperties
+    const userResult = await getUserProfile();
+    
+    if (!userResult.success) {
+      console.log('❌ Failed to get user profile, going to ContactForm');
+      router.push({
+        pathname: "/home/screens/ContactForm",
+        params: { 
+          propertyId: property._id,
+          areaKey: property.areaKey 
+        }
+      });
+      return;
+    }
+
+    const userData = userResult.data.data;
+    const viewedProperties = userData.currentSubscription?.viewedProperties || [];
+    
+    // Check if already viewed
+    if (viewedProperties.includes(property._id)) {
+      console.log('✅ Property already viewed - checking access for direct navigation');
+      
+      // Get user name
+      let userName = '';
+      if (typeof userData.name === 'string') {
+        userName = userData.name;
+      } else if (userData.name && typeof userData.name === 'object') {
+        userName = userData.name.en || userData.name.te || userData.name.hi || '';
+      }
+      
+      // Get access (will return owner details since already viewed)
+      const accessCheck = await checkViewAccess(
+        property._id,
+        userName,
+        stripPhone(userData.phone)
+      );
+      
+      if (accessCheck.success && accessCheck.data.alreadyViewed) {
+        console.log('✅ Navigating directly to ViewContact');
+        
+        // Navigate directly to ViewContact
+        router.push({
+          pathname: '/home/screens/ViewContact',
+          params: {
+            ownerDetails: JSON.stringify(accessCheck.data.ownerDetails),
+            quota: JSON.stringify(accessCheck.data.quota),
+            alreadyViewed: 'true',
+            areaKey: property.areaKey,
+            propertyId: property._id
+          }
+        });
+        return;
+      }
+    }
+    
+    // Not viewed yet - go to ContactForm
+    console.log('📝 Property not viewed yet - going to ContactForm');
+    router.push({
+      pathname: "/home/screens/ContactForm",
+      params: { 
+        propertyId: property._id,
+        areaKey: property.areaKey 
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ handleContactAgent error:', error);
+    // On error, fallback to ContactForm
+    router.push({
+      pathname: "/home/screens/ContactForm",
+      params: { 
+        propertyId: property._id,
+        areaKey: property.areaKey 
+      }
+    });
+  }
+};
 
   const handleBrochurePress = () => setShowAlert(true);
 
@@ -176,8 +290,27 @@ export default function OverviewScreen() {
           paddingBottom: 90,
         }}
       >
-        {/* Property Image */}
-        <View className="items-center relative">
+
+   {/* ✅ FIXED: Header with Back Button */}
+<View className="flex-row items-center px-5 py-3">
+  <TouchableOpacity onPress={() => {
+    // ✅ Go back to the area's property list
+    if (areaKey) {
+      router.push({
+        pathname: '/home/screens/Sites/PropertyDetails',
+        params: { areaKey: areaKey }
+      });
+    } else {
+      router.back();
+    }
+  }}>
+    <Ionicons name="chevron-back" size={24} color="black" />
+  </TouchableOpacity>
+  <Text className="text-lg font-semibold ml-3">Property Details</Text>
+</View>
+
+{/* Property Image */}
+<View className="items-center relative">
           <View className="relative">
             <Image
   source={
@@ -295,15 +428,15 @@ export default function OverviewScreen() {
               <Feather name="download" size={16} color="#22C55E" />
             </TouchableOpacity>
 
-            <TouchableOpacity
-              className="flex-1 bg-[#22C55E] py-3 rounded-[12px] items-center justify-center"
-              activeOpacity={0.8}
-              onPress={() => router.push("/home/screens/ContactForm")}
-            >
-              <Text className="text-white text-[14px]" style={{ fontFamily: "Poppins" }}>
-                Contact Agent
-              </Text>
-            </TouchableOpacity>
+          <TouchableOpacity
+  className="flex-1 bg-[#22C55E] py-3 rounded-[12px] items-center justify-center"
+  activeOpacity={0.8}
+  onPress={handleContactAgent}
+>
+  <Text className="text-white text-[14px]" style={{ fontFamily: "Poppins" }}>
+    Contact Agent
+  </Text>
+</TouchableOpacity>
           </View>
         </View>
       </ScrollView>

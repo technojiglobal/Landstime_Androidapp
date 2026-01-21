@@ -252,6 +252,7 @@ export default function PropertyListScreen() {
                 }}
               >
                 {/* ✅ REAL IMAGE with fallback */}
+<<<<<<< HEAD
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => router.push({
@@ -259,6 +260,21 @@ export default function PropertyListScreen() {
                     params: { propertyId: item._id }
                   })}
                 >
+=======
+            <TouchableOpacity
+  activeOpacity={0.8}
+  onPress={() => router.push({
+    pathname: '/home/screens/Flats/(Property)',
+    params: { 
+      propertyId: item._id,
+      propertyData: JSON.stringify(item),  // ✅ Pass entire property object
+      areaKey: item.areaKey || areaKey
+    }
+  })}
+>
+
+                
+>>>>>>> main
 
 
 
@@ -300,6 +316,7 @@ export default function PropertyListScreen() {
                 {/* Card Content */}
                 <View style={{ paddingHorizontal: 12, paddingTop: 10 }}>
                   {/* ✅ REAL TITLE */}
+<<<<<<< HEAD
                   <TouchableOpacity
                     activeOpacity={0.6}
                     onPress={() => router.push({
@@ -318,6 +335,29 @@ export default function PropertyListScreen() {
                     >
                       {getLocalizedText(item.propertyTitle, currentLanguage) || 'Property'}
                     </Text>
+=======
+                <TouchableOpacity
+  activeOpacity={0.6}
+  onPress={() => router.push({
+    pathname: '/home/screens/Flats/(Property)',
+    params: { 
+      propertyId: item._id,
+      areaKey: item.areaKey || areaKey
+    }
+  })}
+>
+                   <Text
+  style={{
+    fontFamily: "Poppins-Medium",
+    fontWeight: "500",
+    fontSize: 12,
+    color: "#16A34A",
+    marginTop: 5,
+  }}
+>
+ {getLocalizedText(item.propertyTitle, currentLanguage) || 'Property'}
+</Text>
+>>>>>>> main
                   </TouchableOpacity>
 
                   <View

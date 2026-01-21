@@ -1,8 +1,3 @@
-
-
-
-
-
 // Frontend/app/home/screens/Sites/PropertyDetails.jsx
 import React, { useRef, useState, useEffect } from "react";
 import {
@@ -146,12 +141,16 @@ export default function PropertyListScreen() {
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
       {/* Header */}
-      <View className="flex-row items-center px-5 py-3">
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text className="text-xl font-semibold ml-2">{areaName} Properties</Text>
-      </View>
+{/* Header */}
+<View className="flex-row items-center px-5 py-3">
+  <TouchableOpacity onPress={() => router.push({
+    pathname: '/home/screens/Sites/SelectSite',
+    params: { districtKey: districtKey }
+  })}>
+    <Ionicons name="chevron-back" size={24} color="black" />
+  </TouchableOpacity>
+  <Text className="text-xl font-semibold ml-2">{areaName} Properties</Text>
+</View>
       <View style={{ flex: 1, flexDirection: "row" }}>
         {/* Scrollable Content */}
         <Animated.ScrollView
@@ -231,6 +230,7 @@ export default function PropertyListScreen() {
                 }}
               >
                 {/* Image */}
+<<<<<<< HEAD
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => {
@@ -255,6 +255,32 @@ export default function PropertyListScreen() {
                     }}
                     resizeMode="cover"
                   />
+=======
+             <TouchableOpacity
+  activeOpacity={0.8}
+  onPress={() => router.push({
+    pathname: '/home/screens/Resorts/(Property)',
+    params: { 
+      propertyId: item._id,
+      propertyData: JSON.stringify(item)  // ✅ Pass entire property object
+    }
+  })}
+>
+                 <Image
+  source={
+    item.images && item.images.length > 0
+      ? { uri: item.images[0] }  // ✅ CHANGED: Removed IP address prefix for base64
+      : require("../../../../assets/Flat1.jpg")
+  }
+  style={{
+    width: CARD_WIDTH,
+    height: 163,
+    borderTopLeftRadius: 17,
+    borderTopRightRadius: 17,
+  }}
+  resizeMode="cover"
+/>
+>>>>>>> main
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => handleToggleSave(item._id)}
@@ -277,6 +303,7 @@ export default function PropertyListScreen() {
                 <View style={{ paddingHorizontal: 12, paddingTop: 10 }}>
                   {/* Title */}
                   <TouchableOpacity
+<<<<<<< HEAD
                     activeOpacity={0.6}
                     onPress={() => {
                       console.log('🔍 Navigating to property:', item._id);
@@ -286,6 +313,21 @@ export default function PropertyListScreen() {
                       });
                     }}
                   >
+=======
+                   activeOpacity={0.6}
+ onPress={() => {
+  console.log('🔍 Navigating to property:', item._id);
+  // ✅ FIXED: Ensure propertyId is string
+  router.push({
+    pathname: '/home/screens/Sites/(Property)',
+    params: { 
+      propertyId: item._id.toString(),
+      areaKey: item.areaKey || areaKey
+    }
+  });
+}}
+>
+>>>>>>> main
                     <Text
                       style={{
                         fontFamily: "Poppins-Medium",

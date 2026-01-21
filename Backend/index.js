@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import userRoutes from './UserRoutes/UserRoute.js';
-import propertyRoutes from './UserRoutes/PropertyRoute.js';
+import propertyRoutes from './UserRoutes/propertyRoutes.js';
 import subscriptionRoutes from './UserRoutes/SubscriptionRoute.js';
 import userNotificationRoutes from './UserRoutes/UserNotificationRoute.js'; // ✅ NEW
 import adminAuthRoutes from "./AdminRoutes/AdminRoute.js";
@@ -17,6 +17,9 @@ import notificationRoutes from "./AdminRoutes/NotificationRoute.js";
 import { startNotificationScheduler } from "./services/notificationScheduler.js"; // ✅ NEW
 import reviewRoutes from "./UserRoutes/ReviewRoutes.js";
 import bannerRoutes from './AdminRoutes/BannerRoutes.js';
+import adminPropertyViewRoutes from './AdminRoutes/PropertyViewRoute.js';
+import userPropertyViewRoutes from './UserRoutes/PropertyViewRoute.js';
+
 import savedPropertiesRoutes from './UserRoutes/savedPropertiesRoutes.js';
 
 const app = express();
@@ -101,6 +104,8 @@ app.use('/api/admin/interior', interiorDesignRoutes);
 app.use('/api/admin/notifications', notificationRoutes); // NEW
 app.use('/api/user/notifications', userNotificationRoutes); // ✅ NEW
 app.use('/api/banners', bannerRoutes);
+app.use('/api/property-views', userPropertyViewRoutes);
+app.use('/api/admin/property-views', adminPropertyViewRoutes);
 // 🔽 ADD
 
 // 🔽 ADD
