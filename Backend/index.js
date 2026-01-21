@@ -17,6 +17,8 @@ import notificationRoutes from "./AdminRoutes/NotificationRoute.js";
 import { startNotificationScheduler } from "./services/notificationScheduler.js"; // ✅ NEW
 import reviewRoutes from "./UserRoutes/ReviewRoutes.js";
 import bannerRoutes from './AdminRoutes/BannerRoutes.js';
+import savedPropertiesRoutes from './UserRoutes/savedPropertiesRoutes.js';
+
 const app = express();
 const PORT = process.env.PORT || 8000;
 
@@ -103,6 +105,7 @@ app.use('/api/banners', bannerRoutes);
 
 // 🔽 ADD
 app.use("/uploads", express.static("uploads"));
+app.use('/api/saved', savedPropertiesRoutes);
 
 
 // 404 Handler

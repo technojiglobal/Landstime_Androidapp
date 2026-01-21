@@ -106,7 +106,7 @@ export const getActiveBanners = async (req, res) => {
   try {
     const { language = 'en' } = req.query;
 
-    console.log('🔍 Getting active banners for language:', language);
+   
 
     // Get all active banners, sorted by order
     const banners = await Banner.find({ isActive: true })

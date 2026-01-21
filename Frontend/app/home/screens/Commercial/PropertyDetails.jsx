@@ -17,7 +17,8 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { getApprovedProperties } from "../../../../utils/propertyApi";
 import { useTranslation } from "react-i18next";
 import i18n from "../../../../i18n/index";
-
+import { saveProperty, unsaveProperty, checkIfSaved } from "../../../../utils/savedPropertiesApi";
+import { Alert } from "react-native";
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const CARD_WIDTH = 345;
 const CARD_HEIGHT = 298;
@@ -38,10 +39,10 @@ export default function PropertyListScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { areaKey, districtKey } = useLocalSearchParams();
-  
+
   const currentLanguage = i18n.language || 'en';
   const areaName = areaKey ? t(`areas.${areaKey}`) : '';
-
+  const [savedStates, setSavedStates] = useState({});
   useEffect(() => {
     fetchProperties();
   }, [areaKey]);
@@ -56,15 +57,16 @@ export default function PropertyListScreen() {
     try {
       setLoading(true);
       console.log('🔍 Fetching commercial properties for areaKey:', areaKey);
-      
+
       const currentLang = i18n.language || 'en';
       console.log('🌐 Fetching in language:', currentLang);
-      
+
       const response = await getApprovedProperties('Commercial', 1, currentLang);
-      
+
       if (response.success) {
         console.log('✅ All commercial properties fetched:', response.data);
         setProperties(response.data.data || []);
+        await checkAllSavedStatuses(response.data.data || []);
       } else {
         console.error('❌ Failed to fetch properties:', response.error);
       }
@@ -74,14 +76,50 @@ export default function PropertyListScreen() {
       setLoading(false);
     }
   };
+  const checkAllSavedStatuses = async (propertyList) => {
+    const savedStatusPromises = propertyList.map(async (property) => {
+      const response = await checkIfSaved(property._id, 'property');
+      return { id: property._id, isSaved: response.success ? response.isSaved : false };
+    });
+    const results = await Promise.all(savedStatusPromises);
+    const newSavedStates = {};
+    results.forEach(({ id, isSaved }) => {
+      newSavedStates[id] = isSaved;
+    });
+    setSavedStates(newSavedStates);
+  };
+  const handleToggleSave = async (propertyId) => {
+    const currentState = savedStates[propertyId] || false;
+
+    // Optimistic update
+    setSavedStates(prev => ({ ...prev, [propertyId]: !currentState }));
+
+    try {
+      let response;
+      if (currentState) {
+        response = await unsaveProperty(propertyId, 'property');
+      } else {
+        response = await saveProperty(propertyId, 'property');
+      }
+
+      if (!response.success) {
+        // Revert on failure
+        setSavedStates(prev => ({ ...prev, [propertyId]: currentState }));
+        Alert.alert('Error', response.message || 'Failed to update saved status');
+      }
+    } catch (error) {
+      console.error('Error toggling save:', error);
+      setSavedStates(prev => ({ ...prev, [propertyId]: currentState }));
+    }
+  };
 
   const filteredProperties = properties.filter((property) => {
     const propertyAreaKey = property.areaKey || '';
     const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
-    
+
     const matchesArea = propertyAreaKey === areaKey;
     const matchesSearch = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     return matchesArea && matchesSearch;
   });
 
@@ -103,7 +141,7 @@ export default function PropertyListScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      
+
       <View className="flex-row items-center px-5 py-3">
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={24} color="black" />
@@ -206,7 +244,8 @@ export default function PropertyListScreen() {
                   />
                 </TouchableOpacity>
 
-                <View
+                <TouchableOpacity
+                  onPress={() => handleToggleSave(item._id)}
                   style={{
                     position: "absolute",
                     right: 16,
@@ -216,8 +255,12 @@ export default function PropertyListScreen() {
                     borderRadius: 50,
                   }}
                 >
-                  <Ionicons name="bookmark-outline" size={20} color="#16A34A" />
-                </View>
+                  <Ionicons
+                    name={savedStates[item._id] ? "bookmark" : "bookmark-outline"}
+                    size={20}
+                    color="#16A34A"
+                  />
+                </TouchableOpacity>
 
                 <View style={{ paddingHorizontal: 12, paddingTop: 10 }}>
                   <TouchableOpacity

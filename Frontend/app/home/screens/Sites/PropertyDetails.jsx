@@ -22,6 +22,8 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { getApprovedProperties } from "../../../../utils/propertyApi";
 import { useTranslation } from "react-i18next";
 import i18n from "../../../../i18n/index";
+import { saveProperty, unsaveProperty, checkIfSaved } from "../../../../utils/savedPropertiesApi";
+import { Alert } from "react-native";
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const CARD_WIDTH = 345;
 const CARD_HEIGHT = 298;
@@ -42,6 +44,7 @@ export default function PropertyListScreen() {
   const { areaKey, districtKey } = useLocalSearchParams();
   const currentLanguage = i18n.language || 'en';
   const areaName = areaKey ? t(`areas.${areaKey}`) : '';
+  const [savedStates, setSavedStates] = useState({});
   // ✅ Fetch on mount
   useEffect(() => {
     fetchProperties();
@@ -52,43 +55,81 @@ export default function PropertyListScreen() {
       fetchProperties();
     }
   }, [i18n.language]);
-const fetchProperties = async () => {
-  try {
-    setLoading(true);
-    console.log('🔍 Fetching SITES for areaKey:', areaKey);
-   
-    const currentLang = i18n.language || 'en';
-    console.log('🌐 Fetching in language:', currentLang);
-   
-    const response = await getApprovedProperties(null, 1, currentLang);
-   
-    if (response.success) {
-      console.log('✅ All properties fetched:', response.data);
-      // ✅ FILTER BY PROPERTY TYPE = "Site/Plot/Land"
-      const siteProperties = (response.data.data || []).filter(
-        property => property.propertyType === 'Site/Plot/Land'
-      );
-      console.log('✅ Sites filtered:', siteProperties.length);
-      setProperties(siteProperties);
-    } else {
-      console.error('❌ Failed to fetch properties:', response.error);
+  const fetchProperties = async () => {
+    try {
+      setLoading(true);
+      console.log('🔍 Fetching SITES for areaKey:', areaKey);
+
+      const currentLang = i18n.language || 'en';
+      console.log('🌐 Fetching in language:', currentLang);
+
+      const response = await getApprovedProperties(null, 1, currentLang);
+
+      if (response.success) {
+        console.log('✅ All properties fetched:', response.data);
+        // ✅ FILTER BY PROPERTY TYPE = "Site/Plot/Land"
+        const siteProperties = (response.data.data || []).filter(
+          property => property.propertyType === 'Site/Plot/Land'
+        );
+        console.log('✅ Sites filtered:', siteProperties.length);
+        setProperties(siteProperties);
+        await checkAllSavedStatuses(siteProperties);
+      } else {
+        console.error('❌ Failed to fetch properties:', response.error);
+      }
+    } catch (error) {
+      console.error('❌ Error:', error);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error('❌ Error:', error);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
+  const checkAllSavedStatuses = async (propertyList) => {
+    const savedStatusPromises = propertyList.map(async (property) => {
+      const response = await checkIfSaved(property._id, 'property');
+      return { id: property._id, isSaved: response.success ? response.isSaved : false };
+    });
+
+    const results = await Promise.all(savedStatusPromises);
+    const newSavedStates = {};
+    results.forEach(({ id, isSaved }) => {
+      newSavedStates[id] = isSaved;
+    });
+    setSavedStates(newSavedStates);
+  };
+  const handleToggleSave = async (propertyId) => {
+    const currentState = savedStates[propertyId] || false;
+
+    // Optimistic update
+    setSavedStates(prev => ({ ...prev, [propertyId]: !currentState }));
+
+    try {
+      let response;
+      if (currentState) {
+        response = await unsaveProperty(propertyId, 'property');
+      } else {
+        response = await saveProperty(propertyId, 'property');
+      }
+
+      if (!response.success) {
+        // Revert on failure
+        setSavedStates(prev => ({ ...prev, [propertyId]: currentState }));
+        Alert.alert('Error', response.message || 'Failed to update saved status');
+      }
+    } catch (error) {
+      console.error('Error toggling save:', error);
+      setSavedStates(prev => ({ ...prev, [propertyId]: currentState }));
+    }
+  };
 
 
   // ✅ Filter by areaKey
   const filteredProperties = properties.filter((property) => {
     const propertyAreaKey = property.areaKey || '';
     const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
-   
+
     const matchesArea = propertyAreaKey === areaKey;
     const matchesSearch = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
-   
+
     return matchesArea && matchesSearch;
   });
   const scrollbarHeight = SCREEN_HEIGHT * (SCREEN_HEIGHT / contentHeight) * 0.3;
@@ -103,7 +144,7 @@ const fetchProperties = async () => {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-     
+
       {/* Header */}
       <View className="flex-row items-center px-5 py-3">
         <TouchableOpacity onPress={() => router.back()}>
@@ -191,32 +232,32 @@ const fetchProperties = async () => {
               >
                 {/* Image */}
                 <TouchableOpacity
-  activeOpacity={0.8}
-  onPress={() => {
-    console.log('🔍 Navigating to property:', item._id);
-    router.push({
-      pathname: '/home/screens/Sites/(Property)',
-      params: { propertyId: item._id }
-    });
-  }}
->
-                 <Image
-  source={
-    item.images && item.images.length > 0
-      ? { uri: item.images[0] }  // ✅ CHANGED: Removed IP address prefix for base64
-      : require("../../../../assets/Flat1.jpg")
-  }
-  style={{
-    width: CARD_WIDTH,
-    height: 163,
-    borderTopLeftRadius: 17,
-    borderTopRightRadius: 17,
-  }}
-  resizeMode="cover"
-/>
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    console.log('🔍 Navigating to property:', item._id);
+                    router.push({
+                      pathname: '/home/screens/Sites/(Property)',
+                      params: { propertyId: item._id }
+                    });
+                  }}
+                >
+                  <Image
+                    source={
+                      item.images && item.images.length > 0
+                        ? { uri: item.images[0] }  // ✅ CHANGED: Removed IP address prefix for base64
+                        : require("../../../../assets/Flat1.jpg")
+                    }
+                    style={{
+                      width: CARD_WIDTH,
+                      height: 163,
+                      borderTopLeftRadius: 17,
+                      borderTopRightRadius: 17,
+                    }}
+                    resizeMode="cover"
+                  />
                 </TouchableOpacity>
-                {/* Bookmark Icon */}
-                <View
+                <TouchableOpacity
+                  onPress={() => handleToggleSave(item._id)}
                   style={{
                     position: "absolute",
                     right: 16,
@@ -226,21 +267,25 @@ const fetchProperties = async () => {
                     borderRadius: 50,
                   }}
                 >
-                  <Ionicons name="bookmark-outline" size={20} color="#16A34A" />
-                </View>
+                  <Ionicons
+                    name={savedStates[item._id] ? "bookmark" : "bookmark-outline"}
+                    size={20}
+                    color="#16A34A"
+                  />
+                </TouchableOpacity>
                 {/* Card Content */}
                 <View style={{ paddingHorizontal: 12, paddingTop: 10 }}>
                   {/* Title */}
                   <TouchableOpacity
-                   activeOpacity={0.6}
-  onPress={() => {
-    console.log('🔍 Navigating to property:', item._id);
-    router.push({
-      pathname: '/home/screens/Sites/(Property)',
-      params: { propertyId: item._id }
-    });
-  }}
->
+                    activeOpacity={0.6}
+                    onPress={() => {
+                      console.log('🔍 Navigating to property:', item._id);
+                      router.push({
+                        pathname: '/home/screens/Sites/(Property)',
+                        params: { propertyId: item._id }
+                      });
+                    }}
+                  >
                     <Text
                       style={{
                         fontFamily: "Poppins-Medium",
