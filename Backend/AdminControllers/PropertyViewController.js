@@ -544,3 +544,49 @@ export const migrateOwnerContacts = async (req, res) => {
     });
   }
 };
+
+export const migratePropertyTypes = async (req, res) => {
+  try {
+    console.log('🔄 Starting migration of property types...');
+    
+    const propertyViews = await PropertyView.find({});
+    let updated = 0;
+    let errors = 0;
+    
+    for (const pv of propertyViews) {
+      try {
+        const property = await Property.findById(pv.propertyId);
+        
+        if (property && property.propertyType) {
+          pv.propertyType = property.propertyType;
+          await pv.save();
+          updated++;
+          console.log(`✅ Updated: ${pv.propertyTitle} - Type: ${pv.propertyType}`);
+        } else {
+          console.log(`⚠️ Property not found for: ${pv.propertyTitle}`);
+          errors++;
+        }
+      } catch (error) {
+        console.error(`❌ Error updating ${pv.propertyTitle}:`, error.message);
+        errors++;
+      }
+    }
+    
+    console.log(`✅ Migration complete: ${updated} updated, ${errors} errors`);
+    
+    return res.status(200).json({
+      success: true,
+      message: `Successfully updated ${updated} property views`,
+      updated,
+      errors
+    });
+    
+  } catch (error) {
+    console.error('❌ Migration error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Migration failed',
+      error: error.message
+    });
+  }
+};

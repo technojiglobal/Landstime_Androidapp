@@ -45,10 +45,17 @@ const propertyViewSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+   propertyType: {  // ✅ NEW FIELD
+    type: String,
+    enum: ['House', 'Site/Plot/Land', 'Commercial', 'Resort'],
+    required: true
+  },
+
   propertyOwnerName: {
     type: String,
     required: true
   },
+ 
   propertyStatus: {
     type: String,
     enum: ['Available', 'Sold'],

@@ -3,7 +3,8 @@ import express from 'express';
 import {
   getPropertyViewers,
   getAllPropertyViews,
-  migrateOwnerContacts
+  migrateOwnerContacts,
+  migratePropertyTypes
 } from '../AdminControllers/PropertyViewController.js';
 import { verifyAdmin } from '../AdminMiddleware/AdminMiddleware.js';
 
@@ -14,6 +15,7 @@ router.get('/property/:propertyId', verifyAdmin, getPropertyViewers);
 router.get('/all', verifyAdmin, getAllPropertyViews);
 // ✅ ADD THIS ROUTE (remove after running once)
 router.get('/migrate-contacts', verifyAdmin, migrateOwnerContacts);
+router.get('/migrate-property-types', verifyAdmin, migratePropertyTypes);
 
 // ADD THIS TEMPORARILY
 router.get('/migrate-owner-contacts', verifyAdmin, async (req, res) => {

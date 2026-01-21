@@ -276,31 +276,36 @@ export const recordPropertyView = async (req, res) => {
       ? property.propertyTitle 
       : (property.propertyTitle.en || property.propertyTitle.te || property.propertyTitle.hi || 'Property');
 
-    let userNameText = 'User';
-    if (typeof user.name === 'string') {
-      userNameText = user.name;
-    } else if (user.name && typeof user.name === 'object') {
-      userNameText = user.name.en || 'User';
-    }
+   // Extract English name correctly
+let userNameText = 'User';
+if (typeof user.name === 'string') {
+  userNameText = user.name;
+} else if (user.name && typeof user.name === 'object') {
+  userNameText = user.name.en || 'User';
+}
 
-    let propertyView = await PropertyView.findOne({ propertyId: property._id });
-
-    if (!propertyView) {
-      propertyView = new PropertyView({
-        propertyId: property._id,
-        propertyTitle: propertyTitleText,
-        propertyOwnerName: property.ownerDetails.name,
-        propertyStatus: property.propertyStatus || 'Available',
-        ownerPhone: property.ownerDetails.phone || 'N/A',
-        ownerEmail: property.ownerDetails.email || 'N/A',
-        viewers: [],
-        totalViews: 0
-      });
-    } else {
-      propertyView.propertyStatus = property.propertyStatus || 'Available';
-      propertyView.ownerPhone = property.ownerDetails.phone || 'N/A';
-      propertyView.ownerEmail = property.ownerDetails.email || 'N/A';
-    }
+// ✅ Find existing PropertyView or create new one
+let propertyView = await PropertyView.findOne({ propertyId: property._id });
+if (!propertyView) {
+  // Create new document for this property
+  propertyView = new PropertyView({
+    propertyId: property._id,
+    propertyTitle: propertyTitleText,
+    propertyType: property.propertyType,  // ✅ NEW
+    propertyOwnerName: property.ownerDetails.name,
+    propertyStatus: property.propertyStatus || 'Available',
+    ownerPhone: property.ownerDetails.phone || 'N/A',
+    ownerEmail: property.ownerDetails.email || 'N/A',
+    viewers: [],
+    totalViews: 0
+  });
+} else {
+  // Update property details in case they changed
+  propertyView.propertyType = property.propertyType;  // ✅ NEW
+  propertyView.propertyStatus = property.propertyStatus || 'Available';
+  propertyView.ownerPhone = property.ownerDetails.phone || 'N/A';
+  propertyView.ownerEmail = property.ownerDetails.email || 'N/A';
+}
 
     propertyView.viewers.push({
       userId: user._id,
@@ -340,6 +345,55 @@ export const recordPropertyView = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to record view',
+      error: error.message
+    });
+  }
+};
+
+
+// ✅ NEW MIGRATION FUNCTION - Add this at the end of PropertyViewController.js
+// ✅ ADD THIS NEW FUNCTION at the end of the file
+export const migratePropertyTypes = async (req, res) => {
+  try {
+    console.log('🔄 Starting migration of property types...');
+    
+    const propertyViews = await PropertyView.find({});
+    let updated = 0;
+    let errors = 0;
+    
+    for (const pv of propertyViews) {
+      try {
+        const property = await Property.findById(pv.propertyId);
+        
+        if (property && property.propertyType) {
+          pv.propertyType = property.propertyType;
+          await pv.save();
+          updated++;
+          console.log(`✅ Updated: ${pv.propertyTitle} - Type: ${pv.propertyType}`);
+        } else {
+          console.log(`⚠️ Property not found for: ${pv.propertyTitle}`);
+          errors++;
+        }
+      } catch (error) {
+        console.error(`❌ Error updating ${pv.propertyTitle}:`, error.message);
+        errors++;
+      }
+    }
+    
+    console.log(`✅ Migration complete: ${updated} updated, ${errors} errors`);
+    
+    return res.status(200).json({
+      success: true,
+      message: `Successfully updated ${updated} property views`,
+      updated,
+      errors
+    });
+    
+  } catch (error) {
+    console.error('❌ Migration error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Migration failed',
       error: error.message
     });
   }
