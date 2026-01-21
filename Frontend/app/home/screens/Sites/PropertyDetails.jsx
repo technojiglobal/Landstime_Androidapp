@@ -189,19 +189,15 @@ const fetchProperties = async () => {
                 }}
               >
                 {/* Image */}
-                <TouchableOpacity
+             <TouchableOpacity
   activeOpacity={0.8}
-  onPress={() => {
-  console.log('🔍 Navigating to property:', item._id);
-  // ✅ FIXED: Ensure propertyId is string
-  router.push({
-    pathname: '/home/screens/Sites/(Property)',
+  onPress={() => router.push({
+    pathname: '/home/screens/Resorts/(Property)',
     params: { 
-      propertyId: item._id.toString(),
-      areaKey: item.areaKey || areaKey
+      propertyId: item._id,
+      propertyData: JSON.stringify(item)  // ✅ Pass entire property object
     }
-  });
-}}
+  })}
 >
                  <Image
   source={

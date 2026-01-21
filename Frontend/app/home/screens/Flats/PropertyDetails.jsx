@@ -213,11 +213,15 @@ const filteredProperties = properties.filter((property) => {
                 }}
               >
                 {/* ✅ REAL IMAGE with fallback */}
-              <TouchableOpacity
+            <TouchableOpacity
   activeOpacity={0.8}
   onPress={() => router.push({
     pathname: '/home/screens/Flats/(Property)',
-    params: { propertyId: item._id }
+    params: { 
+      propertyId: item._id,
+      propertyData: JSON.stringify(item),  // ✅ Pass entire property object
+      areaKey: item.areaKey || areaKey
+    }
   })}
 >
 
@@ -257,11 +261,14 @@ const filteredProperties = properties.filter((property) => {
                 {/* Card Content */}
                 <View style={{ paddingHorizontal: 12, paddingTop: 10 }}>
                   {/* ✅ REAL TITLE */}
-                 <TouchableOpacity
+                <TouchableOpacity
   activeOpacity={0.6}
   onPress={() => router.push({
     pathname: '/home/screens/Flats/(Property)',
-    params: { propertyId: item._id }
+    params: { 
+      propertyId: item._id,
+      areaKey: item.areaKey || areaKey
+    }
   })}
 >
                    <Text
