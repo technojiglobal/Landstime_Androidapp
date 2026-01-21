@@ -110,29 +110,43 @@ export default function PropertyListScreen() {
     setSavedStates(newSavedStates);
   };
   const handleToggleSave = async (propertyId) => {
-    const currentState = savedStates[propertyId] || false;
+  const currentState = savedStates[propertyId] || false;
+   const token = await AsyncStorage.getItem('userToken');
+  if (!token) {
+    Alert.alert('Not Logged In', 'Please log in to save properties');
+    return;
+  }
+  // ✅ ADD THESE LOGS:
+  console.log('🔖 Toggle Save clicked');
+  console.log('Property ID:', propertyId);
+  console.log('Current state:', currentState);
+  console.log('Will call:', currentState ? 'unsave' : 'save');
+  
+  // Optimistic update
+  setSavedStates(prev => ({ ...prev, [propertyId]: !currentState }));
 
-    // Optimistic update
-    setSavedStates(prev => ({ ...prev, [propertyId]: !currentState }));
-
-    try {
-      let response;
-      if (currentState) {
-        response = await unsaveProperty(propertyId, 'property');
-      } else {
-        response = await saveProperty(propertyId, 'property');
-      }
-
-      if (!response.success) {
-        // Revert on failure
-        setSavedStates(prev => ({ ...prev, [propertyId]: currentState }));
-        Alert.alert('Error', response.message || 'Failed to update saved status');
-      }
-    } catch (error) {
-      console.error('Error toggling save:', error);
-      setSavedStates(prev => ({ ...prev, [propertyId]: currentState }));
+  try {
+    let response;
+    if (currentState) {
+      response = await unsaveProperty(propertyId, 'property');
+    } else {
+      // ✅ ADD THIS LOG:
+      console.log('Calling saveProperty with:', propertyId, 'property');
+      response = await saveProperty(propertyId, 'property');
     }
-  };
+
+    // ✅ ADD THIS LOG:
+    console.log('Save response:', response);
+
+    if (!response.success) {
+      setSavedStates(prev => ({ ...prev, [propertyId]: currentState }));
+      Alert.alert('Error', response.message || 'Failed to update saved status');
+    }
+  } catch (error) {
+    console.error('Error toggling save:', error);
+    setSavedStates(prev => ({ ...prev, [propertyId]: currentState }));
+  }
+};
 
   // ✅ FILTER BY AREA (location)
   const filteredProperties = properties.filter((property) => {
@@ -252,15 +266,6 @@ export default function PropertyListScreen() {
                 }}
               >
                 {/* ✅ REAL IMAGE with fallback */}
-<<<<<<< HEAD
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => router.push({
-                    pathname: '/home/screens/Flats/(Property)',
-                    params: { propertyId: item._id }
-                  })}
-                >
-=======
             <TouchableOpacity
   activeOpacity={0.8}
   onPress={() => router.push({
@@ -274,7 +279,6 @@ export default function PropertyListScreen() {
 >
 
                 
->>>>>>> main
 
 
 
@@ -316,26 +320,6 @@ export default function PropertyListScreen() {
                 {/* Card Content */}
                 <View style={{ paddingHorizontal: 12, paddingTop: 10 }}>
                   {/* ✅ REAL TITLE */}
-<<<<<<< HEAD
-                  <TouchableOpacity
-                    activeOpacity={0.6}
-                    onPress={() => router.push({
-                      pathname: '/home/screens/Flats/(Property)',
-                      params: { propertyId: item._id }
-                    })}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: "Poppins-Medium",
-                        fontWeight: "500",
-                        fontSize: 12,
-                        color: "#16A34A",
-                        marginTop: 5,
-                      }}
-                    >
-                      {getLocalizedText(item.propertyTitle, currentLanguage) || 'Property'}
-                    </Text>
-=======
                 <TouchableOpacity
   activeOpacity={0.6}
   onPress={() => router.push({
@@ -357,7 +341,6 @@ export default function PropertyListScreen() {
 >
  {getLocalizedText(item.propertyTitle, currentLanguage) || 'Property'}
 </Text>
->>>>>>> main
                   </TouchableOpacity>
 
                   <View

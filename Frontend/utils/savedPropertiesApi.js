@@ -19,9 +19,24 @@ const getAuthToken = async () => {
 export const saveProperty = async (entityId, entityType) => {
   try {
     const token = await getAuthToken();
+    
+    // ✅ ADD THESE LOGS:
+    console.log('💾 saveProperty called');
+    console.log('Entity ID:', entityId);
+    console.log('Entity Type:', entityType);
+    console.log('Token exists:', !!token);
+    
     if (!token) {
       return { success: false, error: 'Not authenticated' };
     }
+
+    const payload = { 
+      entityId, 
+      entityType: entityType === 'interior' ? 'InteriorDesign' : 'Property' 
+    };
+    
+    // ✅ ADD THIS LOG:
+    console.log('Payload being sent:', payload);
 
     const response = await fetch(`${BASE_URL}/save`, {
       method: 'POST',
@@ -29,13 +44,14 @@ export const saveProperty = async (entityId, entityType) => {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ 
-  entityId, 
-  entityType: entityType === 'interior' ? 'InteriorDesign' : 'Property' 
-      })
+      body: JSON.stringify(payload)
     });
 
     const data = await response.json();
+    
+    // ✅ ADD THIS LOG:
+    console.log('Backend response:', response.status, data);
+    
     return data;
   } catch (error) {
     console.error('Error saving property:', error);

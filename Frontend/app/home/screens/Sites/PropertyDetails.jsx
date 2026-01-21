@@ -230,32 +230,6 @@ export default function PropertyListScreen() {
                 }}
               >
                 {/* Image */}
-<<<<<<< HEAD
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => {
-                    console.log('🔍 Navigating to property:', item._id);
-                    router.push({
-                      pathname: '/home/screens/Sites/(Property)',
-                      params: { propertyId: item._id }
-                    });
-                  }}
-                >
-                  <Image
-                    source={
-                      item.images && item.images.length > 0
-                        ? { uri: item.images[0] }  // ✅ CHANGED: Removed IP address prefix for base64
-                        : require("../../../../assets/Flat1.jpg")
-                    }
-                    style={{
-                      width: CARD_WIDTH,
-                      height: 163,
-                      borderTopLeftRadius: 17,
-                      borderTopRightRadius: 17,
-                    }}
-                    resizeMode="cover"
-                  />
-=======
              <TouchableOpacity
   activeOpacity={0.8}
   onPress={() => router.push({
@@ -280,7 +254,6 @@ export default function PropertyListScreen() {
   }}
   resizeMode="cover"
 />
->>>>>>> main
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => handleToggleSave(item._id)}
@@ -303,17 +276,6 @@ export default function PropertyListScreen() {
                 <View style={{ paddingHorizontal: 12, paddingTop: 10 }}>
                   {/* Title */}
                   <TouchableOpacity
-<<<<<<< HEAD
-                    activeOpacity={0.6}
-                    onPress={() => {
-                      console.log('🔍 Navigating to property:', item._id);
-                      router.push({
-                        pathname: '/home/screens/Sites/(Property)',
-                        params: { propertyId: item._id }
-                      });
-                    }}
-                  >
-=======
                    activeOpacity={0.6}
  onPress={() => {
   console.log('🔍 Navigating to property:', item._id);
@@ -327,7 +289,6 @@ export default function PropertyListScreen() {
   });
 }}
 >
->>>>>>> main
                     <Text
                       style={{
                         fontFamily: "Poppins-Medium",
