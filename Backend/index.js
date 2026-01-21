@@ -20,6 +20,8 @@ import bannerRoutes from './AdminRoutes/BannerRoutes.js';
 import adminPropertyViewRoutes from './AdminRoutes/PropertyViewRoute.js';
 import userPropertyViewRoutes from './UserRoutes/PropertyViewRoute.js';
 
+import savedPropertiesRoutes from './UserRoutes/savedPropertiesRoutes.js';
+
 const app = express();
 const PORT = process.env.PORT || 8000;
 
@@ -108,6 +110,7 @@ app.use('/api/admin/property-views', adminPropertyViewRoutes);
 
 // 🔽 ADD
 app.use("/uploads", express.static("uploads"));
+app.use('/api/saved', savedPropertiesRoutes);
 
 
 // 404 Handler
