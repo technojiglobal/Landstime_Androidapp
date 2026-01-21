@@ -211,23 +211,39 @@ export default function PropertyViewers() {
       {/* Table */}
       <div className="bg-white rounded-xl shadow overflow-x-auto">
         <table className="min-w-[900px] w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-             {['Property Title', 'Owner Name', 'Phone', 'Email', 'Status', 'Total Views', 'Last Updated', 'Actions'].map((h) => (
-  <th key={h} className="px-4 py-3 text-left text-gray-500 font-medium">
-    {h}
-  </th>
-))}
-            </tr>
-          </thead>
+         <thead className="bg-gray-50">
+  <tr>
+    {['Property Title', 'Property Type', 'Owner Name', 'Phone', 'Email', 'Status', 'Total Views', 'Last Updated', 'Actions'].map((h) => (
+      <th key={h} className="px-4 py-3 text-left text-gray-500 font-medium">
+        {h}
+      </th>
+    ))}
+  </tr>
+</thead>
 
-          <tbody>
-            {paginated.map((pv) => (
-              <tr key={pv._id} className="border-t hover:bg-gray-50">
-                <td className="px-4 py-3">
-                  <p className="font-medium text-gray-900">{pv.propertyTitle || 'N/A'}</p>
-                </td>
-                <td className="px-4 py-3">{pv.propertyOwnerName || 'N/A'}</td>
+         <tbody>
+  {paginated.map((pv) => (
+    <tr key={pv._id} className="border-t hover:bg-gray-50">
+      <td className="px-4 py-3">
+        <p className="font-medium text-gray-900">{pv.propertyTitle || 'N/A'}</p>
+      </td>
+      {/* ✅ NEW COLUMN - Property Type */}
+      <td className="px-4 py-3">
+        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+          pv.propertyType === 'House' 
+            ? 'bg-blue-100 text-blue-700' 
+            : pv.propertyType === 'Site/Plot/Land'
+            ? 'bg-green-100 text-green-700'
+            : pv.propertyType === 'Commercial'
+            ? 'bg-purple-100 text-purple-700'
+            : pv.propertyType === 'Resort'
+            ? 'bg-orange-100 text-orange-700'
+            : 'bg-gray-100 text-gray-700'
+        }`}>
+          {pv.propertyType || 'N/A'}
+        </span>
+      </td>
+      <td className="px-4 py-3">{pv.propertyOwnerName || 'N/A'}</td>
                 <td className="px-4 py-3">
                   <a href={`tel:${pv.ownerPhone}`} className="text-blue-600 hover:underline">
                     {pv.ownerPhone || 'N/A'}

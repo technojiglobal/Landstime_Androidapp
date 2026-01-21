@@ -49,20 +49,21 @@ export const exportPropertyViews = async () => {
     const propertyViews = await fetchAllPropertyViews({ limit: 10000 });
     
     // Create CSV content
-    const csvHeader = 'Property Title,Owner Name,Owner Phone,Owner Email,Total Views,Last Updated\n';
-    
-    const csvRows = propertyViews
-      .map((pv) => {
-        return [
-          `"${(pv.propertyTitle || 'N/A').replace(/"/g, '""')}"`,
-          `"${(pv.propertyOwnerName || 'N/A').replace(/"/g, '""')}"`,
-          pv.ownerPhone || 'N/A',
-          pv.ownerEmail || 'N/A',
-          pv.totalViews || 0,
-          new Date(pv.updatedAt).toLocaleDateString('en-IN'),
-        ].join(',');
-      })
-      .join('\n');
+    const csvHeader = 'Property Title,Property Type,Owner Name,Owner Phone,Owner Email,Total Views,Last Updated\n';
+
+const csvRows = propertyViews
+  .map((pv) => {
+    return [
+      `"${(pv.propertyTitle || 'N/A').replace(/"/g, '""')}"`,
+      pv.propertyType || 'N/A',  // ✅ NEW COLUMN
+      `"${(pv.propertyOwnerName || 'N/A').replace(/"/g, '""')}"`,
+      pv.ownerPhone || 'N/A',
+      pv.ownerEmail || 'N/A',
+      pv.totalViews || 0,
+      new Date(pv.updatedAt).toLocaleDateString('en-IN'),
+    ].join(',');
+  })
+  .join('\n');
 
     const csv = csvHeader + csvRows;
     
