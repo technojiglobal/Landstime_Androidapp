@@ -18,7 +18,7 @@ const getLocalizedText = (field, language) => {
 
 export default function OverviewScreen() {
   const router = useRouter();
-  const { propertyId } = useLocalSearchParams();
+  const { propertyId, areaKey } = useLocalSearchParams();
   const [showAlert, setShowAlert] = useState(false);
   const [showVastuModal, setShowVastuModal] = useState(false);
   const [property, setProperty] = useState(null);
@@ -179,8 +179,27 @@ export default function OverviewScreen() {
           paddingBottom: 90,
         }}
       >
-        {/* Property Image */}
-        <View className="items-center relative">
+
+   {/* ✅ FIXED: Header with Back Button */}
+<View className="flex-row items-center px-5 py-3">
+  <TouchableOpacity onPress={() => {
+    // ✅ Go back to the area's property list
+    if (areaKey) {
+      router.push({
+        pathname: '/home/screens/Sites/PropertyDetails',
+        params: { areaKey: areaKey }
+      });
+    } else {
+      router.back();
+    }
+  }}>
+    <Ionicons name="chevron-back" size={24} color="black" />
+  </TouchableOpacity>
+  <Text className="text-lg font-semibold ml-3">Property Details</Text>
+</View>
+
+{/* Property Image */}
+<View className="items-center relative">
           <View className="relative">
             <Image
   source={

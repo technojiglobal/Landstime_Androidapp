@@ -87,9 +87,10 @@ export const checkViewAccess = async (propertyId, userName, userPhone) => {
 };
 
 // Record property view
+// Record property view
 export const recordPropertyView = async (propertyId) => {
   try {
-    return await apiRequest('/record-view', 'POST', {
+    return await apiRequest('/record', 'POST', {
       propertyId
     });
   } catch (error) {

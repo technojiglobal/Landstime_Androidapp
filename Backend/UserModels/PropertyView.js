@@ -1,30 +1,13 @@
-// Backend/UserModels/PropertyView.js
+//Backend//UserModels//PropertyView.js
 
 import mongoose from 'mongoose';
 
-const propertyViewSchema = new mongoose.Schema({
-  // Property Information
-  propertyId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Property',
-    required: true,
-    index: true
-  },
-  propertyTitle: {
-    type: String,
-    required: true
-  },
-  propertyOwnerName: {
-    type: String,
-    required: true
-  },
-  
-  // Viewer Information
+// ✅ NEW: Viewer subdocument schema
+const viewerSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
   userName: {
     type: String,
@@ -38,32 +21,67 @@ const propertyViewSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  
-  // Subscription Information
   subscriptionPlan: {
     type: String,
     enum: ['gold', 'platinum', 'diamond'],
-    required: true,
-    index: true
+    required: true
   },
-  
-  // Timestamps
   viewedAt: {
     type: Date,
-    default: Date.now,
+    default: Date.now
+  }
+}, { _id: false });
+
+// ✅ NEW: Property view schema with viewers array
+const propertyViewSchema = new mongoose.Schema({
+  propertyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Property',
+    required: true,
+    unique: true,
     index: true
   },
-  
+  propertyTitle: {
+    type: String,
+    required: true
+  },
+  propertyOwnerName: {
+    type: String,
+    required: true
+  },
+  propertyStatus: {
+    type: String,
+    enum: ['Available', 'Sold'],
+    default: 'Available'
+  },
+  ownerPhone: {
+    type: String,
+    required: true
+  },
+  ownerEmail: {
+    type: String,
+    required: true
+  },
+  viewers: [viewerSchema],
+  totalViews: {
+    type: Number,
+    default: 0
+  },
   createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
     type: Date,
     default: Date.now
   }
 });
 
-// Compound index for efficient queries
-propertyViewSchema.index({ propertyId: 1, userId: 1 });
-propertyViewSchema.index({ userId: 1, viewedAt: -1 });
-propertyViewSchema.index({ propertyId: 1, viewedAt: -1 });
+// Update timestamp on save
+propertyViewSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
+});
 
 const PropertyView = mongoose.model('PropertyView', propertyViewSchema);
 

@@ -8,16 +8,7 @@ import { SUBSCRIPTION_LIMITS, PLAN_FEATURES } from '../config/subscriptionConfig
 // ==================== HELPER: Strip phone number ====================
 const stripPhone = (phone) => {
   if (!phone) return '';
-  // Remove all non-digit characters and leading country code
   return phone.replace(/[\s\-\+]/g, '').replace(/^91/, '');
-};
-
-// ==================== HELPER: Mask owner phone ====================
-const maskPhone = (phone) => {
-  if (!phone || phone.length < 10) return phone;
-  const stripped = stripPhone(phone);
-  // Show first 2 and last 2 digits: 98xxxxxxxx34
-  return `+91-${stripped.substring(0, 2)}${'x'.repeat(stripped.length - 4)}${stripped.substring(stripped.length - 2)}`;
 };
 
 // ==================== CHECK VIEW ACCESS ====================
@@ -28,7 +19,6 @@ export const checkViewAccess = async (req, res) => {
 
     console.log('🔍 Checking view access:', { propertyId, userName, userPhone, userId });
 
-    // Validate inputs
     if (!propertyId || !userName || !userPhone) {
       return res.status(400).json({
         success: false,
@@ -38,7 +28,6 @@ export const checkViewAccess = async (req, res) => {
       });
     }
 
-    // Get user with subscription details
     const user = await User.findById(userId);
     
     if (!user) {
@@ -50,31 +39,26 @@ export const checkViewAccess = async (req, res) => {
       });
     }
 
-  // Verify credentials match
-const strippedInputPhone = stripPhone(userPhone);
-const strippedUserPhone = stripPhone(user.phone);
-const phoneMatch = strippedInputPhone === strippedUserPhone;
+    // Verify credentials
+    const strippedInputPhone = stripPhone(userPhone);
+    const strippedUserPhone = stripPhone(user.phone);
+    const phoneMatch = strippedInputPhone === strippedUserPhone;
 
-// ✅ FIX: Always use English name for comparison (case-insensitive)
-// ✅ FIX: Extract English name correctly
-let userEnglishName = '';
-if (typeof user.name === 'string') {
-  userEnglishName = user.name;
-} else if (user.name && typeof user.name === 'object') {
-  userEnglishName = user.name.en || '';
-}
+    let userEnglishName = '';
+    if (typeof user.name === 'string') {
+      userEnglishName = user.name;
+    } else if (user.name && typeof user.name === 'object') {
+      userEnglishName = user.name.en || '';
+    }
 
-const nameMatch = userName.toLowerCase().trim() === userEnglishName.toLowerCase().trim();
+    const nameMatch = userName.toLowerCase().trim() === userEnglishName.toLowerCase().trim();
 
-console.log('🔐 Credential verification:', {
-  phoneMatch,
-  nameMatch,
-  inputPhone: strippedInputPhone,
-  userPhone: strippedUserPhone,
-  inputName: userName.toLowerCase().trim(),
-  userEnglishName: userEnglishName.toLowerCase().trim(),
-  userNameInDB: user.name
-});
+    console.log('🔐 Credential verification:', {
+      phoneMatch,
+      nameMatch,
+      inputPhone: strippedInputPhone,
+      userPhone: strippedUserPhone
+    });
 
     if (!phoneMatch || !nameMatch) {
       return res.status(403).json({
@@ -85,7 +69,6 @@ console.log('🔐 Credential verification:', {
       });
     }
 
-    // Check if user has active subscription
     if (!user.currentSubscription || !user.currentSubscription.planId) {
       return res.status(403).json({
         success: false,
@@ -95,7 +78,6 @@ console.log('🔐 Credential verification:', {
       });
     }
 
-    // Check subscription status
     if (user.currentSubscription.status !== 'active') {
       if (user.currentSubscription.status === 'expired') {
         return res.status(403).json({
@@ -113,12 +95,10 @@ console.log('🔐 Credential verification:', {
       });
     }
 
-    // Check if subscription has expired by date
     const now = new Date();
     const endDate = new Date(user.currentSubscription.endDate);
     
     if (endDate < now) {
-      // Update status to expired
       await User.findByIdAndUpdate(userId, {
         'currentSubscription.status': 'expired'
       });
@@ -135,11 +115,9 @@ console.log('🔐 Credential verification:', {
     const planLimit = SUBSCRIPTION_LIMITS[planId];
     const planFeatures = PLAN_FEATURES[planId];
 
-    // Check if user already viewed this property
     const alreadyViewed = user.currentSubscription.viewedProperties?.includes(propertyId);
 
     if (alreadyViewed) {
-      // Get property and owner details for already viewed property
       const property = await Property.findById(propertyId);
       
       if (!property) {
@@ -176,10 +154,9 @@ console.log('🔐 Credential verification:', {
       });
     }
 
-    // Check if quota exhausted for new property
     const remainingViews = user.currentSubscription.contactViewsRemaining || 0;
-    
-    if (remainingViews <= 0) {
+
+    if (!alreadyViewed && remainingViews <= 0) {
       return res.status(403).json({
         success: false,
         canView: false,
@@ -191,7 +168,6 @@ console.log('🔐 Credential verification:', {
       });
     }
 
-    // User can view - new property
     console.log('✅ Access granted for new property');
     
     return res.status(200).json({
@@ -231,7 +207,6 @@ export const recordPropertyView = async (req, res) => {
       });
     }
 
-    // Get property
     const property = await Property.findById(propertyId);
     
     if (!property) {
@@ -241,7 +216,6 @@ export const recordPropertyView = async (req, res) => {
       });
     }
 
-    // Get user with subscription
     const user = await User.findById(userId);
     
     if (!user || !user.currentSubscription || !user.currentSubscription.planId) {
@@ -251,7 +225,6 @@ export const recordPropertyView = async (req, res) => {
       });
     }
 
-    // Double-check if already viewed (race condition protection)
     const alreadyViewed = user.currentSubscription.viewedProperties?.includes(propertyId);
     
     if (alreadyViewed) {
@@ -274,7 +247,6 @@ export const recordPropertyView = async (req, res) => {
       });
     }
 
-    // Use atomic operation to prevent race conditions
     const updatedUser = await User.findOneAndUpdate(
       {
         _id: userId,
@@ -300,35 +272,50 @@ export const recordPropertyView = async (req, res) => {
       });
     }
 
-    // Create PropertyView record
     const propertyTitleText = typeof property.propertyTitle === 'string' 
       ? property.propertyTitle 
       : (property.propertyTitle.en || property.propertyTitle.te || property.propertyTitle.hi || 'Property');
-    
-    // ✅ FIX: Always use English name
-// ✅ Extract English name correctly for PropertyView record
-let userNameText = 'User';
-if (typeof user.name === 'string') {
-  userNameText = user.name;
-} else if (user.name && typeof user.name === 'object') {
-  userNameText = user.name.en || 'User';
-}
 
-    const propertyView = new PropertyView({
-      propertyId: property._id,
-      propertyTitle: propertyTitleText,
-      propertyOwnerName: property.ownerDetails.name,
+    let userNameText = 'User';
+    if (typeof user.name === 'string') {
+      userNameText = user.name;
+    } else if (user.name && typeof user.name === 'object') {
+      userNameText = user.name.en || 'User';
+    }
+
+    let propertyView = await PropertyView.findOne({ propertyId: property._id });
+
+    if (!propertyView) {
+      propertyView = new PropertyView({
+        propertyId: property._id,
+        propertyTitle: propertyTitleText,
+        propertyOwnerName: property.ownerDetails.name,
+        propertyStatus: property.propertyStatus || 'Available',
+        ownerPhone: property.ownerDetails.phone || 'N/A',
+        ownerEmail: property.ownerDetails.email || 'N/A',
+        viewers: [],
+        totalViews: 0
+      });
+    } else {
+      propertyView.propertyStatus = property.propertyStatus || 'Available';
+      propertyView.ownerPhone = property.ownerDetails.phone || 'N/A';
+      propertyView.ownerEmail = property.ownerDetails.email || 'N/A';
+    }
+
+    propertyView.viewers.push({
       userId: user._id,
       userName: userNameText,
       userPhone: user.phone,
       userEmail: user.email,
-      subscriptionPlan: updatedUser.currentSubscription.planId
+      subscriptionPlan: updatedUser.currentSubscription.planId,
+      viewedAt: new Date()
     });
+
+    propertyView.totalViews = propertyView.viewers.length;
 
     await propertyView.save();
 
     console.log('✅ Property view recorded successfully');
-
     const planLimit = SUBSCRIPTION_LIMITS[updatedUser.currentSubscription.planId];
 
     return res.status(200).json({
@@ -353,93 +340,6 @@ if (typeof user.name === 'string') {
     return res.status(500).json({
       success: false,
       message: 'Failed to record view',
-      error: error.message
-    });
-  }
-};
-
-// ==================== GET PROPERTY VIEWERS (ADMIN) ====================
-export const getPropertyViewers = async (req, res) => {
-  try {
-    const { propertyId } = req.params;
-    const { page = 1, limit = 10 } = req.query;
-
-    const query = { propertyId };
-
-    const viewers = await PropertyView.find(query)
-      .sort({ viewedAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit)
-      .select('-__v');
-
-    const count = await PropertyView.countDocuments(query);
-
-    return res.status(200).json({
-      success: true,
-      data: viewers,
-      totalViewers: count,
-      currentPage: parseInt(page),
-      totalPages: Math.ceil(count / limit)
-    });
-
-  } catch (error) {
-    console.error('Get property viewers error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to fetch viewers',
-      error: error.message
-    });
-  }
-};
-
-// ==================== GET ALL PROPERTY VIEWS (ADMIN) ====================
-export const getAllPropertyViews = async (req, res) => {
-  try {
-    const {
-      propertyId,
-      userId,
-      subscriptionPlan,
-      startDate,
-      endDate,
-      page = 1,
-      limit = 10
-    } = req.query;
-
-    const query = {};
-
-    if (propertyId) query.propertyId = propertyId;
-    if (userId) query.userId = userId;
-    if (subscriptionPlan) query.subscriptionPlan = subscriptionPlan;
-    
-    if (startDate || endDate) {
-      query.viewedAt = {};
-      if (startDate) query.viewedAt.$gte = new Date(startDate);
-      if (endDate) query.viewedAt.$lte = new Date(endDate);
-    }
-
-    const views = await PropertyView.find(query)
-      .populate('propertyId', 'propertyTitle propertyType')
-      .populate('userId', 'name email phone')
-      .sort({ viewedAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit)
-      .select('-__v');
-
-    const count = await PropertyView.countDocuments(query);
-
-    return res.status(200).json({
-      success: true,
-      data: views,
-      totalViews: count,
-      currentPage: parseInt(page),
-      totalPages: Math.ceil(count / limit)
-    });
-
-  } catch (error) {
-    console.error('Get all property views error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to fetch property views',
       error: error.message
     });
   }
