@@ -24,6 +24,12 @@ import { getUserProfile } from '../../../utils/api';
 import { getPropertyById } from '../../../utils/propertyApi';
 import { checkViewAccess, recordPropertyView } from '../../../utils/propertyViewApi';
 
+// ✅ NEW: Add stripPhone helper
+const stripPhone = (phoneNum) => {
+  if (!phoneNum) return '';
+  return phoneNum.replace(/[\s\-\+]/g, '').replace(/^91/, '');
+};
+
 export default function ContactForm() {
   const router = useRouter();
   const { propertyId, areaKey } = useLocalSearchParams();
@@ -54,32 +60,75 @@ useEffect(() => {
   }
 }, [propertyId]);
 
-  // Fetch user profile and property on mount
-  useEffect(() => {
-    fetchUserAndProperty();
-  }, []);
+// Fetch user profile and property on mount
+useEffect(() => {
+  fetchUserAndProperty();
+}, [propertyId]); // Only refetch if propertyId changes
+
+// ✅ NEW: Check if already viewed and skip form
+// ✅ Check if already viewed and skip form (run only once after both are loaded)
+useEffect(() => {
+  if (currentUser && property) {
+    checkAlreadyViewed();
+  }
+}, []); // Remove dependencies to prevent re-runs
+
+const checkAlreadyViewed = async () => {
+  if (!currentUser || !property || !propertyId) {
+    console.log('⏭️ Skipping already viewed check - missing data');
+    return;
+  }
+  
+  console.log('🔍 Checking if property already viewed...');
+  
+  try {
+    // Check if this property is in user's viewedProperties
+    const userResult = await getUserProfile();
+    if (userResult.success) {
+      const userData = userResult.data.data;
+      const viewedProperties = userData.currentSubscription?.viewedProperties || [];
+      
+      if (viewedProperties.includes(propertyId)) {
+        console.log('✅ Property already viewed - auto-navigating to ViewContact');
+        
+        // Get access (will return owner details since already viewed)
+        const accessCheck = await checkViewAccess(
+          propertyId,
+          currentUser.name,
+          stripPhone(currentUser.phone)
+        );
+        
+        if (accessCheck.success && accessCheck.data.alreadyViewed) {
+          // Navigate directly to ViewContact
+          router.replace({
+            pathname: '/home/screens/ViewContact',
+            params: {
+              ownerDetails: JSON.stringify(accessCheck.data.ownerDetails),
+              quota: JSON.stringify(accessCheck.data.quota),
+              alreadyViewed: 'true',
+              areaKey: areaKey,
+              propertyId: propertyId
+            }
+          });
+        }
+      }
+    }
+  } catch (error) {
+    console.error('❌ Check already viewed error:', error);
+  }
+};
   
 const fetchUserAndProperty = async () => {
   try {
     setLoading(true);
-    
-    console.log('🚀 STARTING fetchUserAndProperty');
+    console.log('🚀 Fetching user and property data...');
     
     // Get user profile
-    console.log('📞 Calling getUserProfile...');
     const userResult = await getUserProfile();
-    
-    console.log('🔍 STEP 1: Full API Response:', userResult);
-    console.log('🔍 STEP 2: Success?', userResult.success);
-    console.log('🔍 STEP 3: Response Data:', userResult.data);
     
     if (userResult.success) {
       const userData = userResult.data.data;
-      
-      console.log('🔍 STEP 4: userData object:', userData);
-      console.log('🔍 STEP 5: userData.name:', userData.name);
-      console.log('🔍 STEP 6: userData.phone:', userData.phone);
-      console.log('🔍 STEP 7: userData.email:', userData.email);
+      console.log('✅ User profile loaded');
       
       // Extract name
       let userName = '';
@@ -88,21 +137,15 @@ const fetchUserAndProperty = async () => {
       } else if (userData.name && typeof userData.name === 'object') {
         userName = userData.name.en || userData.name.te || userData.name.hi || '';
       }
-      
-      console.log('🔍 STEP 8: Extracted userName:', userName);
-      
-      setCurrentUser({
+     setCurrentUser({
         name: userName,
         phone: userData.phone,
         email: userData.email
       });
       
-      console.log('🔍 STEP 9: Called setCurrentUser with:', {
-        name: userName,
-        phone: userData.phone,
-        email: userData.email
-      });
-    } else {
+      console.log('✅ User data set');
+    } 
+    else {
       console.log('❌ getUserProfile failed:', userResult);
       Alert.alert('Error', 'Failed to load user profile');
       router.back();
@@ -339,7 +382,8 @@ const verifyCredentials = () => {
         {/* 🟩 Top Box */}
         <View className="w-[412px] h-[215px] rounded-b-[30px] bg-[#22C55E33] items-start justify-center px-5">
           <View className="-mt-32 flex flex-row">
-            <TouchableOpacity onPress={() => {
+         <TouchableOpacity onPress={() => {
+  // ✅ ALWAYS go back to Property Details screen
   if (propertyId) {
     router.push({
       pathname: '/home/screens/Sites/(Property)',

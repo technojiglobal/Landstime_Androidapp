@@ -41,20 +41,18 @@ export default function ViewContactScreen() {
     { id: '2', title: 'Land', price: '₹25L', image: propertyImage2 },
   ];
   
-  useEffect(() => {
+ useEffect(() => {
     try {
       // Parse owner details
       if (params.ownerDetails) {
         const parsedOwner = JSON.parse(params.ownerDetails);
         setOwnerDetails(parsedOwner);
-        console.log('✅ Owner details loaded:', parsedOwner);
       }
       
       // Parse quota
       if (params.quota) {
         const parsedQuota = JSON.parse(params.quota);
         setQuota(parsedQuota);
-        console.log('✅ Quota loaded:', parsedQuota);
       }
       
       // Parse already viewed flag

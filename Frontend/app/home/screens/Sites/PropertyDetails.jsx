@@ -100,12 +100,16 @@ const fetchProperties = async () => {
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
      
       {/* Header */}
-      <View className="flex-row items-center px-5 py-3">
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text className="text-xl font-semibold ml-2">{areaName} Properties</Text>
-      </View>
+{/* Header */}
+<View className="flex-row items-center px-5 py-3">
+  <TouchableOpacity onPress={() => router.push({
+    pathname: '/home/screens/Sites/SelectSite',
+    params: { districtKey: districtKey }
+  })}>
+    <Ionicons name="chevron-back" size={24} color="black" />
+  </TouchableOpacity>
+  <Text className="text-xl font-semibold ml-2">{areaName} Properties</Text>
+</View>
       <View style={{ flex: 1, flexDirection: "row" }}>
         {/* Scrollable Content */}
         <Animated.ScrollView
