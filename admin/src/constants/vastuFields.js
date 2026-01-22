@@ -12,25 +12,26 @@ export const normalVaasthuFields = [
 ];
 
 export const resortVaasthuFields = [
-  { label: "Property Facing", name: "plotFacing" },
-  { label: "Entrance Direction", name: "mainDoorDirection" },
-  { label: "Reception Area Facing", name: "receptionDirection" },
-  { label: "Main Lobby Direction", name: "lobbyDirection" },
-  { label: "Master Suite Room Direction", name: "masterSuiteDirection" },
-  { label: "Guest Room Direction", name: "guestRoomDirection" },
+  { label: "Property Facing", name: "propertyFacing" },
+  { label: "Entrance Direction", name: "entranceDirection" },
+  { label: "Reception Area Facing", name: "receptionAreaFacing" },
+  { label: "Main Lobby Direction", name: "mainLobbyDirection" },
+  { label: "Master Suite Room Direction", name: "masterSuitroom" },
+  { label: "Guest Room Direction", name: "guestRoom" },
   { label: "Restaurant Direction", name: "restaurantDirection" },
-  { label: "VIP Suite Direction", name: "vipSuiteDirection" },
+  { label: "VIP Suite Direction", name: "vipSuite" },
   { label: "Conference/Banquet Hall Direction", name: "conferenceDirection" },
-  { label: "Spa/Wellness Center Direction", name: "spaDirection" },
-  { label: "Swimming Pool Direction", name: "poolDirection" },
-  { label: "Yoga/Meditation Area Direction", name: "yogaDirection" },
-  { label: "Kitchen Direction", name: "kitchenDirection" },
-  { label: "Prayer Room Direction", name: "prayerDirection" },
-  { label: "Office/Admin Room Direction", name: "officeDirection" },
-  { label: "Recreation Area Direction", name: "recreationDirection" },
-  { label: "Balcony/Deck/Veranda", name: "balconyDirection" },
-  { label: "Garden/Open Space/Lawn", name: "gardenDirection" },
+  { label: "Spa/Wellness Center Direction", name: "spaRoom" },
+  { label: "Swimming Pool Direction", name: "swimmingPool" },
+  { label: "Yoga/Meditation Area Direction", name: "yoga" },
+  { label: "Kitchen Direction", name: "kitchenRoom" },
+  { label: "Prayer Room Direction", name: "poojaRoom" },
+  { label: "Office/Admin Room Direction", name: "office" },
+  { label: "Recreation Area Direction", name: "recreation" },
+  { label: "Balcony/Deck/Veranda", name: "balcony" },
+  { label: "Garden/Open Space/Lawn", name: "garden" },
 ];
+
 
 export const sitePlotVaasthuFields = [
   { label: "Plot Facing", name: "plotFacing" },

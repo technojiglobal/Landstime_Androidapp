@@ -12,6 +12,7 @@ const bufferToBase64 = (buffer, mimetype) => {
   return `data:${mimetype};base64,${buffer.toString('base64')}`;
 };
 export const createProperty = async (req, res) => {
+
   try {
     console.log('📥 Property upload request');
     if (!req.body.propertyData) {
@@ -72,8 +73,7 @@ console.log('📄 Files received:', {
       return res.status(400).json({ success: false, message: 'Property type is required' });
     }
 
-    
-
+  
 
    const finalData = {
   propertyType: propertyData.propertyType,
@@ -91,17 +91,17 @@ console.log('📄 Files received:', {
 };
 
 // ✅ ADD THIS NEW CODE FOR HOUSE PROPERTIES
-if (propertyData.propertyType === "House") {
-  finalData.location = propertyData.location;
-  finalData.area = propertyData.area; // This should be the neighborhood name from frontend
-  finalData.houseDetails = propertyData.houseDetails;
-  
-  console.log('🏠 House property data:', {
-    location: finalData.location,
-    area: finalData.area,
-    sqft: propertyData.houseDetails?.area
-  });
-}
+   if (propertyData.propertyType === "House" || propertyData.propertyType === "House/Flat") {
+      finalData.location = propertyData.location;
+      finalData.area = propertyData.area;
+      finalData.houseDetails = propertyData.houseDetails;
+      
+      console.log(`🏠 ${propertyData.propertyType} property data:`, {
+        location: finalData.location,
+        area: finalData.area,
+        sqft: propertyData.houseDetails?.area
+      });
+    }
 
 // ✅ ADD THIS NEW CODE FOR SITE/PLOT/LAND PROPERTIES
 if (propertyData.propertyType === "Site/Plot/Land") {
@@ -882,6 +882,7 @@ console.log("🏷 Property Type:", property.propertyType);
   }
 };
 // Upload additional images to existing property
+
 export const uploadAdditionalImages = async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
@@ -1097,19 +1098,26 @@ export const getApprovedProperties = async (req, res) => {
     // };
    
   const transformedProperties = properties.map(prop => {
-  const propObj = prop.toObject();
-  
-  // ✅ DON'T transform here - send the full multilingual object
-  return {
-    ...propObj,
-    // Keep the original multilingual objects intact
-    propertyTitle: propObj.propertyTitle,
-    description: propObj.description,
-    location: propObj.location,
-    area: propObj.area,
-    areaKey: propObj.areaKey || ''
-  };
-});
+    let propObj = prop.toObject();
+
+    // ✅ Normalize user data for consistent frontend handling
+    if (propObj.uploadedBy === 'admin' && !propObj.userId) {
+      propObj.userId = {
+        name: propObj.ownerDetails?.name || 'Admin',
+        phone: propObj.ownerDetails?.phone || 'N/A',
+        email: propObj.ownerDetails?.email || 'N/A'
+      };
+    }
+
+    return {
+      ...propObj,
+      propertyTitle: propObj.propertyTitle,
+      description: propObj.description,
+      location: propObj.location,
+      area: propObj.area,
+      areaKey: propObj.areaKey || ''
+    };
+  });
 
 console.log('✅ First transformed property:', {
   original: properties[0]?.propertyTitle,
@@ -1173,25 +1181,27 @@ export const getPropertyById = async (req, res) => {
       });
     }
    
-    const propObj = property.toObject();
-   
-    // ✅ Helper function to extract language-specific text
-    // const getLocalizedText = (field) => {
-    //   if (!field) return '';
-    //   if (typeof field === 'string') return field;
-    //   return field[language] || field.en || field.te || field.hi || '';
-    // };
-   
+    let propObj = property.toObject();
+
+    // ✅ Normalize user data for consistent frontend handling
+    if (propObj.uploadedBy === 'admin' && !propObj.userId) {
+      propObj.userId = {
+        name: propObj.ownerDetails?.name || 'Admin',
+        phone: propObj.ownerDetails?.phone || 'N/A',
+        email: propObj.ownerDetails?.email || 'N/A'
+      };
+    }
+
     // Transform to requested language
-   const transformedProperty = {
-  ...propObj,
-  // ✅ Send full multilingual objects - let frontend handle language selection
-  propertyTitle: propObj.propertyTitle,
-  description: propObj.description,
-  location: propObj.location,
-  area: propObj.area,
-  areaKey: propObj.areaKey || ''
-};
+    const transformedProperty = {
+      ...propObj,
+      // ✅ Send full multilingual objects - let frontend handle language selection
+      propertyTitle: propObj.propertyTitle,
+      description: propObj.description,
+      location: propObj.location,
+      area: propObj.area,
+      areaKey: propObj.areaKey || ''
+    };
    
     console.log('✅ Transformed property:', {
       propertyTitle: transformedProperty.propertyTitle,

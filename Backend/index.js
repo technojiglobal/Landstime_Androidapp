@@ -9,6 +9,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import userRoutes from './UserRoutes/UserRoute.js';
 import propertyRoutes from './UserRoutes/PropertyRoute.js';
+import adminPropertyRoutes from './AdminRoutes/adminPropertyRoute.js';  
 import subscriptionRoutes from './UserRoutes/SubscriptionRoute.js';
 import userNotificationRoutes from './UserRoutes/UserNotificationRoute.js'; // ✅ NEW
 import adminAuthRoutes from "./AdminRoutes/AdminRoute.js";
@@ -93,6 +94,7 @@ app.get('/', (req, res) => {
 // Routes
 app.use('/api/user', userRoutes);
 app.use('/api/properties', propertyRoutes);
+app.use('/api/admin/properties', adminPropertyRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/admin', adminAuthRoutes);
 app.use('/api/admin/interior', interiorDesignRoutes);
