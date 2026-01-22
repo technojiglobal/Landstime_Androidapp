@@ -71,7 +71,7 @@ const apiRequest = async (endpoint, method = 'GET', body = null, isFormData = fa
     console.log('📡 Response received. Status:', response.status);
     
     const data = await response.json();
-    console.log('📥 Response data:', data);
+    //console.log('📥 Response data:', data);
     
     return {
       success: response.ok,
