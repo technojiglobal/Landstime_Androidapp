@@ -204,32 +204,9 @@ const OfficeDetailsSection = ({ formData, updateField }) => {
         </div>
       </div>
 
-      {/* ==================== FURNISHING ==================== */}
-      <div className="border-t pt-6">
-        <h4 className="font-medium mb-3">Furnishing</h4>
-        <div className="grid grid-cols-2 gap-3">
-          {['Central AC', 'Oxygen Duct', 'UPS', 'Furnishing'].map((item) => (
-            <div key={item} className="flex items-center">
-              <input
-                type="checkbox"
-                id={item.replace(/\s+/g, '')}
-                checked={(formData.furnishingItems || []).includes(item)}
-                onChange={(e) => {
-                  const current = formData.furnishingItems || [];
-                  if (e.target.checked) {
-                    updateField('furnishingItems', [...current, item]);
-                  } else {
-                    updateField('furnishingItems', current.filter(i => i !== item));
-                  }
-                }}
-                className="w-4 h-4 text-green-600 bg-green-100 border-gray-300 rounded focus:ring-green-500"
-              />
-              <label htmlFor={item.replace(/\s+/g, '')} className="ml-2 text-sm">
-                {item}
-              </label>
-            </div>
-          ))}
-        </div>
+      
+      
+       
 
         <div className="mt-6">
           <h4 className="font-medium mb-3">Fire safety measures include</h4>
@@ -257,7 +234,7 @@ const OfficeDetailsSection = ({ formData, updateField }) => {
             ))}
           </div>
         </div>
-      </div>
+      
 
       {/* ==================== FLOOR DETAILS ==================== */}
       <div className="border-t pt-6">

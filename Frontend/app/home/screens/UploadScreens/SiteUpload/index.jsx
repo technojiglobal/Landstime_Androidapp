@@ -1,4 +1,4 @@
-//Frontend//app//home//screens//UploadScreens//SiteUpload//index.jsx
+
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import i18n from "../../../../../i18n/index";

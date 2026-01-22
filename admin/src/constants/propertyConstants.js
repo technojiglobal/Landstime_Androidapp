@@ -72,7 +72,7 @@ export const AGE_OF_PROPERTY = [
 
 export const FURNISHING_OPTIONS = [
   'Furnished',
-  'Semi-Furnished',
+  'Semi-furnished',
   'Unfurnished'
 ];
 

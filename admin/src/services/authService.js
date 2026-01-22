@@ -1,7 +1,7 @@
 // Landstime_Androidapp/admin/src/services/authService.js
 
 import axios from "axios";
-
+const API_BASE_URL = "http://localhost:8000/api"; 
 const API = axios.create({
   baseURL: "http://localhost:8000/api/admin",
 });
@@ -15,22 +15,19 @@ export const adminLogin = async (email, password) => {
 
 // NEW CODE (add to existing file):
 
-const API_BASE_URL = "http://localhost:8000/api"; 
+
 export const adminLogout = async () => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token") || localStorage.getItem("adminToken");  // ✅ ADD || localStorage.getItem("adminToken")
   
-  const res = await fetch(`${API_BASE_URL}/admin/logout`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const res = await axios.post(  // ✅ CHANGE from fetch to axios
+    `${API_BASE_URL}/admin/logout`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 
-  if (!res.ok) {
-    const err = await res.json();
-    throw err;
-  }
-
-  return await res.json();
+  return res.data;  // ✅ CHANGE from if (!res.ok) to just return res.data
 };

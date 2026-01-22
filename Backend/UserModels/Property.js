@@ -3,9 +3,9 @@ import mongoose from 'mongoose';
 
 const propertySchema = new mongoose.Schema({
   // Common fields for all property types
-  propertyType: {
+ propertyType: {
     type: String,
-    enum: ['House', 'Site/Plot/Land', 'Commercial', 'Resort'],
+    enum: ['House', 'House/Flat', 'Site/Plot/Land', 'Commercial', 'Resort'], // ✅ Added 'House/Flat'
     required: true
   },
  propertyTitle: {
@@ -90,11 +90,21 @@ description: {
   rejectionReason: String,
   
   // User reference
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+uploadedBy: {
+  type: String,
+  enum: ['user', 'admin'],
+  default: 'user'
+},
+
+userId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'User',
+  required: function () {
+    return this.uploadedBy !== 'admin';
   },
+  default: null
+},
+
   // Admin soft delete
   adminDeletedStatus: {
     type: String,
@@ -160,8 +170,8 @@ siteDetails: {
 
   roadWidthUnit: {
     type: String,
-    enum: ["sqft", "sqm", "acre"],
-    default: "sqft",
+    enum: ["ft", "m"],
+    default: "ft",
   },
 
   /* ---------- CONSTRUCTION ---------- */
