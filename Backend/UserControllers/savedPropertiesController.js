@@ -4,18 +4,26 @@ import SavedProperty from '../UserModels/SavedProperty.js';
 // Save a property or interior
 export const saveProperty = async (req, res) => {
   try {
+    console.log('📝 Save request received');
+    console.log('User:', req.user?._id);
+    console.log('Body:', req.body);
+    
     const { entityId, entityType } = req.body;
     const userId = req.user._id;
 
     // Validate entityType
-    if (!['property', 'interior'].includes(entityType)) {
+    if (!['Property', 'InteriorDesign'].includes(entityType)) {
+      console.log('❌ Invalid entity type:', entityType);
       return res.status(400).json({
         success: false,
-        message: 'Invalid entity type. Must be "property" or "interior"'
+        message: 'Invalid entity type. Must be "Property" or "InteriorDesign"'
       });
     }
 
+    console.log('✅ Entity type valid:', entityType);
+
     // Check if already saved
+    console.log('🔍 Checking if already saved...');
     const existing = await SavedProperty.findOne({
       user: userId,
       entityId,
@@ -23,11 +31,14 @@ export const saveProperty = async (req, res) => {
     });
 
     if (existing) {
+      console.log('⚠️ Already saved:', existing);
       return res.status(400).json({
         success: false,
         message: 'Already saved'
       });
     }
+
+    console.log('✅ Not saved yet, creating new entry...');
 
     // Create new saved entry
     const saved = await SavedProperty.create({
@@ -36,13 +47,17 @@ export const saveProperty = async (req, res) => {
       entityType
     });
 
+    
+
     res.status(201).json({
       success: true,
       message: 'Saved successfully',
       data: saved
     });
   } catch (error) {
-    console.error('Error saving property:', error);
+    console.error('❌ Save error:', error);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
     res.status(500).json({
       success: false,
       message: 'Failed to save property',

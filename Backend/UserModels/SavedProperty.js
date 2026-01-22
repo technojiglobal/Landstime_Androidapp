@@ -24,22 +24,6 @@ const savedPropertySchema = new mongoose.Schema({
 // Compound index to prevent duplicate saves
 savedPropertySchema.index({ user: 1, entityId: 1, entityType: 1 }, { unique: true });
 
-// Virtual populate for property
-savedPropertySchema.virtual('property', {
-  ref: 'Property',
-  localField: 'entityId',
-  foreignField: '_id',
-  justOne: true
-});
-
-// Virtual populate for interior
-savedPropertySchema.virtual('interior', {
-  ref: 'InteriorDesign',  // ✅ Correct
-  localField: 'entityId',
-  foreignField: '_id',
-  justOne: true
-});
-
 const SavedProperty = mongoose.model('SavedProperty', savedPropertySchema);
 
 export default SavedProperty;

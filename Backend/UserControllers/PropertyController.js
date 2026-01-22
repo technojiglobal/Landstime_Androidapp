@@ -1111,16 +1111,7 @@ export const getApprovedProperties = async (req, res) => {
   };
 });
 
-console.log('✅ First transformed property:', {
-  original: properties[0]?.propertyTitle,
-  transformed: transformedProperties[0]?.propertyTitle,
-  language: language
-});
-   
-    console.log('✅ Transformed first property:', transformedProperties[0] ? {
-      propertyTitle: transformedProperties[0].propertyTitle,
-      location: transformedProperties[0].location
-    } : 'No properties');
+
    
     const count = await Property.countDocuments(query);
    
