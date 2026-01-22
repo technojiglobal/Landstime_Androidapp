@@ -1,3 +1,4 @@
+//admin/src/pages/Banners.jsx
 import { useState, useEffect } from "react";
 import axios from "../utils/axiosInstance";
 import { Loader2 } from "lucide-react";
@@ -22,21 +23,21 @@ export default function Banners() {
     fetchBanners();
   }, []);
 
-  const fetchBanners = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get('/banners');
-      
-      if (response.data.success) {
-        setBanners(response.data.data);
-      }
-    } catch (error) {
-      console.error('Error fetching banners:', error);
-      setToast(error.response?.data?.message || 'Failed to fetch banners');
-    } finally {
-      setLoading(false);
+ const fetchBanners = async () => {
+  try {
+    setLoading(true);
+    const response = await axios.get('/banners'); // Add /api prefix
+    
+    if (response.data.success) {
+      setBanners(response.data.data);
     }
-  };
+  } catch (error) {
+    console.error('Error fetching banners:', error);
+    setToast(error.response?.data?.message || 'Failed to fetch banners');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const saveBanner = async (formData) => {
     try {
@@ -64,12 +65,12 @@ export default function Banners() {
         bannerData.image = formData.image;
       }
 
-      let response;
-      if (formBanner?._id) {
-        response = await axios.put(`/banners/${formBanner._id}`, bannerData);
-      } else {
-        response = await axios.post('/banners', bannerData);
-      }
+     let response;
+if (formBanner?._id) {
+  response = await axios.put(`/banners/${formBanner._id}`, bannerData); // Add /api prefix
+} else {
+  response = await axios.post('/banners', bannerData); // Add /api prefix
+}
 
       if (response.data.success) {
         setToast(response.data.message);
@@ -83,19 +84,19 @@ export default function Banners() {
   };
 
   const confirmDelete = async () => {
-    try {
-      const response = await axios.delete(`/banners/${deleteBanner._id}`);
-      
-      if (response.data.success) {
-        setBanners((prev) => prev.filter((b) => b._id !== deleteBanner._id));
-        setToast(response.data.message);
-        setDeleteBanner(null);
-      }
-    } catch (error) {
-      console.error('Error deleting banner:', error);
-      setToast(error.response?.data?.message || 'Failed to delete banner');
+  try {
+    const response = await axios.delete(`/banners/${deleteBanner._id}`); // Add /api prefix
+    
+    if (response.data.success) {
+      setBanners((prev) => prev.filter((b) => b._id !== deleteBanner._id));
+      setToast(response.data.message);
+      setDeleteBanner(null);
     }
-  };
+  } catch (error) {
+    console.error('Error deleting banner:', error);
+    setToast(error.response?.data?.message || 'Failed to delete banner');
+  }
+};
 
   return (
     <div className="space-y-6">

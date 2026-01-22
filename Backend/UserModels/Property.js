@@ -890,6 +890,11 @@ storageDetails: {
     // Hospitality specific
  hospitalityDetails: {
   // ✅ Location & Area
+
+  hospitalityType: {
+    type: String,
+    enum: ['Hotel/Resorts', 'Guest House'],
+  },
   location: {
     type: String,
     required: function() {

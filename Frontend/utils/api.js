@@ -106,7 +106,24 @@ export const loginUser = async (phone) => {
 
 // Get User Profile (Protected)
 export const getUserProfile = async () => {
-  return await apiRequest('/profile', 'GET', null, true);
+  console.log('📡 getUserProfile: Starting API call');
+  
+  try {
+    const token = await getToken();
+    console.log('📡 getUserProfile: Token exists?', !!token);
+    console.log('📡 getUserProfile: Token preview:', token?.substring(0, 20) + '...');
+    
+    const result = await apiRequest('/profile', 'GET', null, true);
+    
+    console.log('📡 getUserProfile: API Result:', result);
+    console.log('📡 getUserProfile: Success?', result.success);
+    console.log('📡 getUserProfile: Data:', result.data);
+    
+    return result;
+  } catch (error) {
+    console.error('❌ getUserProfile ERROR:', error);
+    return { success: false, error: error.message };
+  }
 };
 
 // Save token to AsyncStorage
@@ -255,7 +272,7 @@ export const checkPhoneExists = async (phone) => {
 
 // ===== PROPERTY APIs =====
 
-const PROPERTY_API_BASE_URL = `${process.env.EXPO_PUBLIC_IP_ADDRESS}/api/properties`;
+const PROPERTY_API_BASE_URL = `${API_URL}/api/properties`;
 
 // Create property with images
 export const createProperty = async (propertyData, imageUris = []) => {

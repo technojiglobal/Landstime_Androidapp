@@ -2,6 +2,7 @@
 
 import Subscription from '../UserModels/Subscription.js';
 import User from '../UserModels/User.js';
+import { SUBSCRIPTION_LIMITS } from '../config/subscriptionConfig.js';
 import {
   createRazorpayOrder,
   verifyRazorpaySignature,
@@ -126,6 +127,7 @@ export const createSubscriptionOrder = async (req, res) => {
 };
 
 // ==================== VERIFY PAYMENT ====================
+// ==================== VERIFY PAYMENT ====================
 export const verifyPayment = async (req, res) => {
   try {
     const {
@@ -140,11 +142,29 @@ export const verifyPayment = async (req, res) => {
     if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature || !subscriptionId) {
       return res.status(400).json({
         success: false,
-        message: 'Payment details are required',
+        message: 'Missing required payment details',
       });
     }
 
-    // Verify signature
+    // Find subscription
+    const subscription = await Subscription.findById(subscriptionId);
+
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        message: 'Subscription not found',
+      });
+    }
+
+    // Verify subscription belongs to user
+    if (subscription.userId.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Unauthorized access to subscription',
+      });
+    }
+
+    // Verify Razorpay signature
     const isValidSignature = verifyRazorpaySignature(
       razorpayOrderId,
       razorpayPaymentId,
@@ -154,21 +174,7 @@ export const verifyPayment = async (req, res) => {
     if (!isValidSignature) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid payment signature. Payment verification failed',
-      });
-    }
-
-    // Find subscription
-    const subscription = await Subscription.findOne({
-      _id: subscriptionId,
-      userId: userId,
-      razorpayOrderId: razorpayOrderId,
-    });
-
-    if (!subscription) {
-      return res.status(404).json({
-        success: false,
-        message: 'Subscription not found',
+        message: 'Invalid payment signature',
       });
     }
 
@@ -178,17 +184,18 @@ export const verifyPayment = async (req, res) => {
     if (!paymentResult.success) {
       return res.status(500).json({
         success: false,
-        message: 'Failed to fetch payment details',
+        message: 'Failed to verify payment',
+        error: paymentResult.message,
       });
     }
 
     // Calculate subscription dates (30 days from now)
     const startDate = new Date();
     const endDate = new Date();
-    endDate.setDate(endDate.getDate() + 30); // 1 month subscription
+    endDate.setDate(endDate.getDate() + 30);
 
     // Update subscription
-   subscription.status = 'active';
+    subscription.status = 'active';
     subscription.razorpayPaymentId = razorpayPaymentId;
     subscription.razorpaySignature = razorpaySignature;
     subscription.paymentMethod = paymentResult.payment.method;
@@ -197,7 +204,12 @@ export const verifyPayment = async (req, res) => {
 
     await subscription.save();
 
-    // NEW - Update user's current subscription
+    // ✅ Initialize quota based on plan
+    const planLimit = SUBSCRIPTION_LIMITS[subscription.planId];
+    
+    console.log(`🎯 Initializing quota for ${subscription.planName} plan: ${planLimit} views`);
+
+    // ✅ Update user's current subscription WITH QUOTA
     await User.findByIdAndUpdate(userId, {
       currentSubscription: {
         subscriptionId: subscription._id,
@@ -205,9 +217,15 @@ export const verifyPayment = async (req, res) => {
         planName: subscription.planName,
         status: 'active',
         startDate: startDate,
-        endDate: endDate
+        endDate: endDate,
+        // ✅ QUOTA FIELDS
+        contactViewsRemaining: planLimit,
+        contactViewsUsed: 0,
+        viewedProperties: []
       }
     });
+
+    console.log(`✅ Quota initialized: ${planLimit} contact views for ${subscription.planName} plan`);
 
     return res.status(200).json({
       success: true,
@@ -218,6 +236,8 @@ export const verifyPayment = async (req, res) => {
         status: subscription.status,
         startDate: subscription.startDate,
         endDate: subscription.endDate,
+        contactViewsRemaining: planLimit,
+        totalViews: planLimit
       },
     });
   } catch (error) {
@@ -229,7 +249,6 @@ export const verifyPayment = async (req, res) => {
     });
   }
 };
-
 // ==================== GET USER SUBSCRIPTIONS ====================
 export const getUserSubscriptions = async (req, res) => {
   try {

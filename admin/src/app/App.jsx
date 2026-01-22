@@ -16,6 +16,7 @@ import Properties from "../pages/Properties";
 import Notifications from "../pages/Notifications";
 import Banners from "../pages/Banners";
 import InteriorDesign from "../pages/InteriorDesign";
+import PropertyViewers from "../pages/PropertyViewers";
 
 // SuperAdmin Only Pages
 import MyFinance from "../pages/superadmin/MyFinance";
@@ -50,6 +51,8 @@ const App = () => {
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/banners" element={<Banners />} />
             <Route path="/interior-design" element={<InteriorDesign />} />
+            <Route path="/property-viewers" element={<PropertyViewers />} />
+
             
             {/* SuperAdmin Only Routes */}
             <Route element={<UnifiedProtectedRoute requireSuperAdmin />}>

@@ -1,3 +1,4 @@
+// Backend/AdminControllers/BannerController.js
 import Banner from '../AdminModels/Banner.js';
 
 // Create a new banner
@@ -100,19 +101,22 @@ export const getAllBanners = async (req, res) => {
 };
 
 // Get active banners (for mobile app)
+// Get active banners (for mobile app)
 export const getActiveBanners = async (req, res) => {
   try {
     const { language = 'en' } = req.query;
 
-    console.log('🔍 Getting active banners for language:', language);
+   
 
     // Get all active banners, sorted by order
     const banners = await Banner.find({ isActive: true })
       .sort({ order: 1, createdAt: -1 });
 
+    // Return empty array instead of 404 when no banners found
     if (!banners || banners.length === 0) {
-      return res.status(404).json({
-        success: false,
+      return res.status(200).json({
+        success: true,
+        data: [],
         message: 'No active banners found'
       });
     }

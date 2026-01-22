@@ -1,4 +1,5 @@
-// Landstime_Androidapp/Backend/AdminModels/Admin.js
+// Backend/AdminModels/Admin.js
+// REPLACE the existing schema with this updated version:
 
 import mongoose from "mongoose";
 
@@ -20,10 +21,46 @@ const adminSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  encryptedPassword: {     // ADD: Store encrypted password
+    type: String,
+    required: true,
+  },
+
+  phone: {
+    type: String,
+    default: "",
+  },
 
   role: {
     type: String,
-    default: "Admin",
+    enum: ["admin", "superadmin", "Sub-Admin", "Manager", "Admin"],
+    default: "admin",
+  },
+
+  assignedTo: {
+    type: String,
+    default: "",
+  },
+
+  permissions: {
+    type: [String],
+    default: [],
+  },
+
+  status: {
+    type: String,
+    enum: ["Active", "Inactive", "Pending"],
+    default: "Active",
+  },
+
+  lastLogin: {
+    type: Date,
+    default: null,
+  },
+
+  actionCount: {
+    type: Number,
+    default: 0,
   },
 
   createdAt: {

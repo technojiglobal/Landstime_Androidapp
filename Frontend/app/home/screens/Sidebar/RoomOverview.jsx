@@ -1,8 +1,4 @@
-
-
-
-//Frontend/app/home/screens/Sidebar/RoomOverview.jsx
-
+// Frontend/app/home/screens/Sidebar/RoomOverview.jsx
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -11,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -21,6 +18,7 @@ import saveBlue from "../../../../assets/save-blue.png";
 import Review from "../../../../components/Review";
 import WriteReview from "../../../../components/WriteReview";
 import { API_URL } from '../../../../utils/apiConfig';
+import { saveProperty, unsaveProperty, checkIfSaved } from '../../../../utils/savedPropertiesApi';
 
 export default function RoomOverviewScreen() {
   const router = useRouter();
@@ -31,6 +29,7 @@ export default function RoomOverviewScreen() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [save, setSave] = useState(false);
+  const [savingInProgress, setSavingInProgress] = useState(false);
   const [activeTab, setActiveTab] = useState("Overview");
   const [reviewSummary, setReviewSummary] = useState({
     avg: 0,
@@ -48,10 +47,10 @@ export default function RoomOverviewScreen() {
       );
   }, []);
 
-
   /* ---------- FETCH DESIGN ---------- */
   useEffect(() => {
     fetchDesign();
+    checkSavedStatus();
   }, []);
 
   const fetchDesign = async () => {
@@ -68,6 +67,52 @@ export default function RoomOverviewScreen() {
     }
   };
 
+  /* ---------- CHECK IF SAVED ---------- */
+  const checkSavedStatus = async () => {
+    try {
+      const response = await checkIfSaved(id, 'interior');
+      if (response.success) {
+        setSave(response.isSaved);
+      }
+    } catch (error) {
+      console.error('Error checking saved status:', error);
+    }
+  };
+
+  /* ---------- TOGGLE SAVE ---------- */
+  const handleToggleSave = async () => {
+    if (savingInProgress) return;
+
+    setSavingInProgress(true);
+    const previousState = save;
+
+    // Optimistic update
+    setSave(!save);
+
+    try {
+      let response;
+      if (save) {
+        // Unsave
+        response = await unsaveProperty(id, 'interior');
+      } else {
+        // Save
+        response = await saveProperty(id, 'interior');
+      }
+
+      if (!response.success) {
+        // Revert on failure
+        setSave(previousState);
+        Alert.alert('Error', response.message || 'Failed to update saved status');
+      }
+    } catch (error) {
+      console.error('Error toggling save:', error);
+      setSave(previousState);
+      Alert.alert('Error', 'Something went wrong. Please try again.');
+    } finally {
+      setSavingInProgress(false);
+    }
+  };
+
   if (loading || !data) {
     return (
       <View className="flex-1 justify-center items-center bg-white">
@@ -79,8 +124,6 @@ export default function RoomOverviewScreen() {
   return (
     <ScrollView className="flex-1 bg-white mt-12">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-
-
 
       {/* ================= TABS ================= */}
       <View className="flex-row justify-around border-b border-gray-200">
@@ -97,7 +140,6 @@ export default function RoomOverviewScreen() {
             >
               {tab}
               {tab === "Reviews" && ` (${reviewSummary.count})`}
-
             </Text>
           </TouchableOpacity>
         ))}
@@ -128,8 +170,10 @@ export default function RoomOverviewScreen() {
 
             {/* Save */}
             <TouchableOpacity
-              onPress={() => setSave(!save)}
+              onPress={handleToggleSave}
+              disabled={savingInProgress}
               className="absolute top-10 right-4 bg-black/30 p-2 rounded-full"
+              style={{ opacity: savingInProgress ? 0.5 : 1 }}
             >
               <Image
                 source={save ? saveBlue : saveIcon}
@@ -178,13 +222,10 @@ export default function RoomOverviewScreen() {
                 ))}
               </View>
 
-
               <Text className="ml-1 text-gray-800 font-semibold">
                 <Text>{reviewSummary.avg}</Text>
                 <Text>({reviewSummary.count} reviews)</Text>
-
               </Text>
-              
             </View>
 
             <TouchableOpacity className="bg-[#22C55E] px-4 py-2 rounded-full flex-row items-center">

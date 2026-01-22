@@ -1,3 +1,4 @@
+// Backend/AdminMiddleware/AdminMiddleware.js
 import jwt from "jsonwebtoken";
 import Admin from "../AdminModels/Admin.js"; // Make sure the path is correct
 

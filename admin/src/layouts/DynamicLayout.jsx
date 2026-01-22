@@ -1,20 +1,31 @@
-//src/layouts/DynamicLayout.jsx
+// admin/src/layouts/DynamicLayout.jsx
 import { Outlet, useLocation } from "react-router-dom";
 import AdminLayout from "./AdminLayout";
 import SuperAdminLayout from "./SuperAdminLayout";
 
+const superAdminRoutes = ["/finance", "/create-account"];
+
 const DynamicLayout = () => {
-  const userRole = localStorage.getItem("userRole");
   const location = useLocation();
 
-  console.log("Dynamic Layout - Role:", userRole, "Path:", location.pathname); // Debug
+  const isSuperAdminPage = superAdminRoutes.some((path) =>
+    location.pathname.startsWith(path)
+  );
 
-  // Render the appropriate layout based on role
-  if (userRole === "superadmin") {
-    return <SuperAdminLayout><Outlet /></SuperAdminLayout>;
+  // ✅ Layout decided by ROUTE, not ROLE
+  if (isSuperAdminPage) {
+    return (
+      <SuperAdminLayout>
+        <Outlet />
+      </SuperAdminLayout>
+    );
   }
 
-  return <AdminLayout><Outlet /></AdminLayout>;
+  return (
+    <AdminLayout>
+      <Outlet />
+    </AdminLayout>
+  );
 };
 
 export default DynamicLayout;

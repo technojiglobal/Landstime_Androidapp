@@ -34,7 +34,7 @@ export default function InteriorDesignScreen() {
         </Text>
 
         {/* Save icon – green BG + white icon */}
-        <TouchableOpacity className="ml-3 bg-green-600 p-2 rounded-full" onPress={()=>router.push("/home/screens/Sidebar/SavedInteriors")}>
+        <TouchableOpacity className="ml-3 bg-green-600 p-2 rounded-full" onPress={()=>router.push("/home/screens/Sidebar/SavedPropertiesScreen")}>
           <Ionicons name="bookmark-outline" size={20} color="white" />
         </TouchableOpacity>
       </View>

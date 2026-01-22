@@ -70,5 +70,19 @@ router.put(
   updateUserProfile
 );
 
+// ADD THIS TEMPORARILY for debugging
+router.get('/debug-profile', verifyToken, async (req, res) => {
+  console.log('🔍 DEBUG - req.user:', req.user);
+  console.log('🔍 DEBUG - req.user.name:', req.user.name);
+  console.log('🔍 DEBUG - typeof req.user.name:', typeof req.user.name);
+  
+  return res.json({
+    success: true,
+    user: req.user,
+    nameType: typeof req.user.name,
+    nameValue: req.user.name
+  });
+});
+
 
 export default router;

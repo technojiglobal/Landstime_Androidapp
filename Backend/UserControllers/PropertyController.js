@@ -1,7 +1,143 @@
-// Backend/controllers/propertyController.js
 import Property from '../UserModels/Property.js';
 import User from '../UserModels/User.js';
 import { translatePropertyFields, normalizeAreaKey } from '../services/translationService.js';
+
+// ✅ ADD THIS - Reverse translation utility
+const reverseTranslationMap = {
+  // Ownership
+  'ఇతర': 'Other',
+  'अन्य': 'Other',
+  'ఫ్రీహోల్డ్': 'Freehold',
+  'फ्रीहोल्ड': 'Freehold',
+  'లీజ్‌హోల్డ్': 'Leasehold',
+  'लीजहोल्ड': 'Leasehold',
+  'కో-ఆపరేటివ్ సొసైటీ': 'Co-operative Society',
+  'सहकारी समिति': 'Co-operative Society',
+
+  // Authority
+  'స్థానిక అథారిటీ': 'Local Authority',
+  'स्थानीय प्राधिकरण': 'Local Authority',
+
+  // Flooring
+  'కాంక్రీటు': 'Concrete',
+  'कंक्रीट': 'Concrete',
+  'పాలరాయి': 'Marble',
+  'संगमरमर': 'Marble',
+  'సిరామిక్': 'Ceramic',
+  'सिरेमिक': 'Ceramic',
+  'మొజాయిక్': 'Mosaic',
+  'मोज़ेक': 'Mosaic',
+  'సిమెంట్': 'Cement',
+  'सीमेंट': 'Cement',
+  'రాయి': 'Stone',
+  'पत्थर': 'Stone',
+  'వినైల్': 'Vinyl',
+  'विनाइल': 'Vinyl',
+  'స్పార్టెక్స్': 'Spartex',
+  'स्पार्टेक्स': 'Spartex',
+  'ఐపీఎస్': 'IPS',
+  'आईपीएस': 'IPS',
+  'విట్రిఫైడ్': 'Vitrified',
+  'विट्रिफाइड': 'Vitrified',
+  'చెక్క': 'Wooden',
+  'लकड़ी': 'Wooden',
+  'గ్రానైట్': 'Granite',
+  'ग्रेनाइट': 'Granite',
+  'ఇతరములు': 'Others',
+  'अन्य': 'Others',
+
+  // Directions
+  'ఈశాన్యం': 'North-East',
+  'उत्तर-पूर्व': 'North-East',
+  'ఉత్తరం': 'North',
+  'उत्तर': 'North',
+  'తూర్పు': 'East',
+  'पूर्व': 'East',
+  'పడమర': 'West',
+  'पश्चिम': 'West',
+  'దక్షిణం': 'South',
+  'दक्षिण': 'South',
+  'నైరుతి': 'South-West',
+  'दक्षिण-पश्चिम': 'South-West',
+  'వాయువ్యం': 'North-West',
+  'उत्तर-पश्चिम': 'North-West',
+  'ఆగ్నేయం': 'South-East',
+  'दक्षिण-पूर्व': 'South-East',
+
+  // Vastu specific
+  'ఉత్తరం వైపు': 'Towards North',
+  'उत्तर की ओर': 'Towards North',
+  'సంతులిత ఓపెన్ స్పేస్': 'Balanced Open Space',
+  'संतुलित खुली जगह': 'Balanced Open Space',
+  'చతురస్రం': 'Square',
+  'वर्ग': 'Square',
+  'ఉత్తరం నీటి వనరు': 'Water Source in North',
+  'उत्तर में जल स्रोत': 'Water Source in North',
+  'సమాన ఎత్తు': 'Equal Height',
+  'समान ऊंचाई': 'Equal Height',
+  'నిర్మాణాలు లేవు': 'No Structures Above',
+  'कोई संरचना नहीं': 'No Structures Above',
+
+  // Other Rooms
+  'పూజా గది': 'Pooja Room',
+  'पूजा कक्ष': 'Pooja Room',
+  'అధ్యయన గది': 'Study Room',
+  'अध्ययन कक्ष': 'Study Room',
+  'సేవకుల గది': 'Servant Room',
+  'नौकर का कमरा': 'Servant Room',
+
+  // Washroom
+  'ఏదీ లేదు': 'None',
+  'कोई नहीं': 'None',
+  'భాగస్వామ్యం': 'Shared',
+  'साझा': 'Shared',
+
+  // Balconies
+  '3 కంటే ఎక్కువ': 'More than 3',
+  '3 से अधिक': 'More than 3',
+
+  // Furnishing
+  'అమర్చబడనిది': 'Unfurnished',
+  'असुसज्जित': 'Unfurnished',
+  'పాక్షిక సమర్పించబడింది': 'Semi-furnished',
+  'अर्ध-सुसज्जित': 'Semi-furnished',
+  'అమర్చబడినది': 'Furnished',
+  'सुसज्जित': 'Furnished',
+
+  // Yes/No
+  'అవును': 'Yes',
+  'हाँ': 'Yes',
+  'లేదు': 'No',
+  'नहीं': 'No',
+};
+
+const toEnglish = (text) => {
+  if (!text) return text;
+  if (typeof text !== 'string') return text;
+  return reverseTranslationMap[text.trim()] || text;
+};
+
+const convertToEnglish = (obj) => {
+  if (!obj || typeof obj !== 'object') {
+    return typeof obj === 'string' ? toEnglish(obj) : obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(item => convertToEnglish(item));
+  }
+
+  const result = {};
+  for (const [key, value] of Object.entries(obj)) {
+    // Skip multilingual fields
+    if (['propertyTitle', 'description', 'location', 'area'].includes(key)) {
+      result[key] = value;
+    } else {
+      result[key] = convertToEnglish(value);
+    }
+  }
+  
+  return result;
+};
 
 // Utility: normalize filesystem path to URL-friendly forward slashes
 const normalizePath = (p) => (p ? p.replace(/\\+/g, '/') : p);
@@ -586,7 +722,6 @@ if (canonicalSubType === "Industry") {
 
 
 // HOSPITALITY
-// HOSPITALITY
 if (canonicalSubType === "Hospitality") {
   if (
     !commercialDetails.hospitalityDetails ||
@@ -603,6 +738,7 @@ if (canonicalSubType === "Hospitality") {
     hasNeighborhoodArea: !!commercialDetails.hospitalityDetails.neighborhoodArea,
     propertyDataArea: propertyData.area,
     hasAllFields: !!commercialDetails.hospitalityDetails.rooms,
+    hasHospitalityType: !!commercialDetails.hospitalityType, // ✅ NEW LOG
   });
 
   // ✅ CRITICAL FIX: Store location and area properly
@@ -617,71 +753,86 @@ if (canonicalSubType === "Hospitality") {
 
   console.log('✅ Hospitality area set to:', finalData.area);
 
-  // ✅ IMPORTANT: Store COMPLETE hospitality details
+  // ✅ CRITICAL - Convert Telugu/Hindi selections to English BEFORE saving
+  const rawDetails = commercialDetails.hospitalityDetails;
+  const convertedDetails = convertToEnglish(rawDetails);
+
+  console.log('🌐 Reverse translation applied:', {
+    originalOwnership: rawDetails.ownership,
+    convertedOwnership: convertedDetails.ownership,
+    originalFlooring: rawDetails.flooringType,
+    convertedFlooring: convertedDetails.flooringType,
+  });
+
+  // ✅ IMPORTANT: Store COMPLETE hospitality details WITH ENGLISH VALUES
   finalData.commercialDetails.hospitalityDetails = {
+    // ✅ NEW - Add hospitalityType (Hotel/Guest House)
+    hospitalityType: commercialDetails.hospitalityType || 
+                     propertyData.hospitalityType, // ✅ CRITICAL FIX
+
     // Basic Location
-    location: commercialDetails.hospitalityDetails.location,
+    location: convertedDetails.location,
     neighborhoodArea: neighborhoodArea,
 
     // Area
     area: {
-      value: Number(commercialDetails.hospitalityDetails.area?.value) || 0,
-      unit: commercialDetails.hospitalityDetails.area?.unit || 'sqft',
+      value: Number(convertedDetails.area?.value) || 0,
+      unit: convertedDetails.area?.unit || 'sqft',
     },
 
-    // Room Details (from Hospitality.jsx)
-    rooms: Number(commercialDetails.hospitalityDetails.rooms) || 0,
-    washroomType: commercialDetails.hospitalityDetails.washroomType,
-    balconies: commercialDetails.hospitalityDetails.balconies,
-    otherRooms: commercialDetails.hospitalityDetails.otherRooms || [],
+    // Room Details
+    rooms: Number(convertedDetails.rooms) || 0,
+    washroomType: toEnglish(convertedDetails.washroomType), // ✅ Convert
+    balconies: toEnglish(convertedDetails.balconies), // ✅ Convert
+    otherRooms: convertToEnglish(convertedDetails.otherRooms || []), // ✅ Convert array
 
     // Furnishing
-    furnishingType: commercialDetails.hospitalityDetails.furnishingType || 'Unfurnished',
-    furnishingDetails: commercialDetails.hospitalityDetails.furnishingDetails || [],
+    furnishingType: toEnglish(convertedDetails.furnishingType) || 'Unfurnished', // ✅ Convert
+    furnishingDetails: convertedDetails.furnishingDetails || [],
 
     // Availability
-    availability: commercialDetails.hospitalityDetails.availability,
-    ageOfProperty: commercialDetails.hospitalityDetails.ageOfProperty,
-    possessionBy: commercialDetails.hospitalityDetails.possessionBy,
-    expectedMonth: commercialDetails.hospitalityDetails.expectedMonth,
+    availability: convertedDetails.availability,
+    ageOfProperty: convertedDetails.ageOfProperty,
+    possessionBy: convertedDetails.possessionBy,
+    expectedMonth: convertedDetails.expectedMonth,
 
-    // Pricing (from HospitalityNext.jsx)
-    ownership: commercialDetails.hospitalityDetails.ownership,
-    IndustryApprovedBy: commercialDetails.hospitalityDetails.IndustryApprovedBy,
-    approvedIndustryType: commercialDetails.hospitalityDetails.approvedIndustryType,
-    expectedPrice: Number(commercialDetails.hospitalityDetails.expectedPrice) || 0,
+    // Pricing
+    ownership: toEnglish(convertedDetails.ownership), // ✅ Convert
+    IndustryApprovedBy: toEnglish(convertedDetails.IndustryApprovedBy), // ✅ Convert
+    approvedIndustryType: convertedDetails.approvedIndustryType,
+    expectedPrice: Number(convertedDetails.expectedPrice) || 0,
     priceDetails: {
-      allInclusive: commercialDetails.hospitalityDetails.priceDetails?.allInclusive || false,
-      negotiable: commercialDetails.hospitalityDetails.priceDetails?.negotiable || false,
-      taxExcluded: commercialDetails.hospitalityDetails.priceDetails?.taxExcluded || false,
+      allInclusive: convertedDetails.priceDetails?.allInclusive || false,
+      negotiable: convertedDetails.priceDetails?.negotiable || false,
+      taxExcluded: convertedDetails.priceDetails?.taxExcluded || false,
     },
 
-    // Pre-Leased Details
-    preLeased: commercialDetails.hospitalityDetails.preLeased,
-    leaseDuration: commercialDetails.hospitalityDetails.leaseDuration,
-    monthlyRent: Number(commercialDetails.hospitalityDetails.monthlyRent) || 0,
+    // Pre-Leased
+    preLeased: toEnglish(convertedDetails.preLeased), // ✅ Convert
+    leaseDuration: convertedDetails.leaseDuration,
+    monthlyRent: Number(convertedDetails.monthlyRent) || 0,
 
     // Description & Features
-    description: commercialDetails.hospitalityDetails.description,
-    amenities: commercialDetails.hospitalityDetails.amenities || [],
-    locationAdvantages: commercialDetails.hospitalityDetails.locationAdvantages || [],
-    wheelchairFriendly: commercialDetails.hospitalityDetails.wheelchairFriendly || false,
-    flooringType: commercialDetails.hospitalityDetails.flooringType,
+    description: convertedDetails.description, // Keep multilingual
+    amenities: convertToEnglish(convertedDetails.amenities || []), // ✅ Convert array
+    locationAdvantages: convertToEnglish(convertedDetails.locationAdvantages || []), // ✅ Convert
+    wheelchairFriendly: convertedDetails.wheelchairFriendly || false,
+    flooringType: toEnglish(convertedDetails.flooringType), // ✅ Convert
 
-    // Vastu Details (from HospitalityVaastu.jsx)
-    vastuDetails: commercialDetails.hospitalityDetails.vastuDetails || {},
+    // ✅ Vastu Details - Convert ALL direction values
+    vastuDetails: convertToEnglish(convertedDetails.vastuDetails || {}),
   };
 
-  finalData.expectedPrice = Number(commercialDetails.hospitalityDetails.expectedPrice) || 0;
+  finalData.expectedPrice = Number(convertedDetails.expectedPrice) || 0;
 
-
-
-  console.log('✅ Hospitality details stored:', {
+  console.log('✅ Hospitality details stored with English values:', {
     location: finalData.location,
     area: finalData.area,
+    hospitalityType: finalData.commercialDetails.hospitalityDetails.hospitalityType, // ✅ NEW
+    ownership: finalData.commercialDetails.hospitalityDetails.ownership,
+    flooringType: finalData.commercialDetails.hospitalityDetails.flooringType,
+    vastuBuildingFacing: finalData.commercialDetails.hospitalityDetails.vastuDetails?.buildingFacing,
     rooms: finalData.commercialDetails.hospitalityDetails.rooms,
-    hasDescription: !!finalData.commercialDetails.hospitalityDetails.description,
-    allFields: Object.keys(finalData.commercialDetails.hospitalityDetails),
   });
 }
 
@@ -1119,16 +1270,7 @@ export const getApprovedProperties = async (req, res) => {
     };
   });
 
-console.log('✅ First transformed property:', {
-  original: properties[0]?.propertyTitle,
-  transformed: transformedProperties[0]?.propertyTitle,
-  language: language
-});
-   
-    console.log('✅ Transformed first property:', transformedProperties[0] ? {
-      propertyTitle: transformedProperties[0].propertyTitle,
-      location: transformedProperties[0].location
-    } : 'No properties');
+
    
     const count = await Property.countDocuments(query);
    

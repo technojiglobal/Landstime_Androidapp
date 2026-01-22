@@ -1,3 +1,4 @@
+// Backend/AdminRoutes/BannerRoutes.js
 import express from 'express';
 import {
   createBanner,

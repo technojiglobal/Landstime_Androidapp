@@ -1,7 +1,7 @@
 // Frontend/utils/propertyApi.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
-import { API_URL } from './apiConfig';
+import { API_URL } from './apiConfig.js';
 
 const API_BASE_URL = `${API_URL}/api/properties`;
 export default API_BASE_URL;
@@ -71,7 +71,7 @@ const apiRequest = async (endpoint, method = 'GET', body = null, isFormData = fa
     console.log('📡 Response received. Status:', response.status);
     
     const data = await response.json();
-    console.log('📥 Response data:', data);
+    //console.log('📥 Response data:', data);
     
     return {
       success: response.ok,
