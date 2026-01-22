@@ -187,9 +187,16 @@ export default function PropertyListScreen() {
                 }}
               >
                 <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => router.push(`/home/screens/Commercial/(Property)?propertyId=${item._id}`)}
-                >
+  activeOpacity={0.8}
+  onPress={() => router.push({
+    pathname: '/home/screens/Commercial/(Property)',
+    params: { 
+      propertyId: item._id,
+      propertyData: JSON.stringify(item),
+      areaKey: item.areaKey || areaKey
+    }
+  })}
+>
                   <Image
                     source={
                       item.images && item.images.length > 0
@@ -221,9 +228,15 @@ export default function PropertyListScreen() {
 
                 <View style={{ paddingHorizontal: 12, paddingTop: 10 }}>
                   <TouchableOpacity
-                    activeOpacity={0.6}
-                    onPress={() => router.push(`/home/screens/Commercial/(Property)?propertyId=${item._id}`)}
-                  >
+  activeOpacity={0.6}
+  onPress={() => router.push({
+    pathname: '/home/screens/Commercial/(Property)',
+    params: { 
+      propertyId: item._id,
+      areaKey: item.areaKey || areaKey
+    }
+  })}
+>
                     <Text
                       style={{
                         fontFamily: "Poppins-Medium",
