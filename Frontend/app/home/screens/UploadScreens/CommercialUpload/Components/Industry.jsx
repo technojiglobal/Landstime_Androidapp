@@ -1,4 +1,4 @@
-//Fronetend//app//home//screens//UploadScreens//CommercialUpload//Components//Industry.jsx
+//Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/Industry.jsx
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -14,11 +14,11 @@ import {
   FlatList,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from "expo-router";
-import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import Toast from 'react-native-toast-message';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useTranslation } from 'react-i18next'; // ✅ ADD THIS
 
 const PillButton = ({ label, selected, onPress }) => (
   <TouchableOpacity
@@ -39,7 +39,7 @@ const PillButton = ({ label, selected, onPress }) => (
   </TouchableOpacity>
 );
 
- const Checkbox = ({ label, selected, onPress }) => (
+const Checkbox = ({ label, selected, onPress }) => (
   <Pressable onPress={onPress} className="flex-row items-center mb-2">
     <View
       className="w-4 h-4 mr-2 mt-3 rounded-sm items-center justify-center"
@@ -54,7 +54,6 @@ const PillButton = ({ label, selected, onPress }) => (
     <Text className="text-[11px] text-[#00000099]">{label}</Text>
   </Pressable>
 );
-
 
 const RoundOption = ({ label, selected, onPress }) => (
   <TouchableOpacity
@@ -72,10 +71,10 @@ const RoundOption = ({ label, selected, onPress }) => (
   </TouchableOpacity>
 );
 
-
 export default function PropertyFormScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { t } = useTranslation(); // ✅ ADD THIS
 
   const safeParse = (raw) => {
     if (!raw) return null;
@@ -94,7 +93,6 @@ export default function PropertyFormScreen() {
   };
 
   const baseDetails = safeParse(params.commercialBaseDetails);
-
   const images = params.images ? JSON.parse(params.images) : [];
   const [visible, setVisible] = useState(null);
   const [focusedField, setFocusedField] = useState(null);
@@ -116,7 +114,7 @@ export default function PropertyFormScreen() {
   const [ageOfProperty, setAgeOfProperty] = useState(null);
   const [possessionBy, setPossessionBy] = useState("");
 
-  // ✅ NEW - Load draft from AsyncStorage on mount
+  // ✅ Load draft from AsyncStorage on mount
   useEffect(() => {
     const loadDraft = async () => {
       try {
@@ -175,7 +173,7 @@ export default function PropertyFormScreen() {
     loadDraft();
   }, [params.industryDetails, params.area]);
 
-  // ✅ NEW - Auto-save draft to AsyncStorage
+  // ✅ Auto-save draft to AsyncStorage
   useEffect(() => {
     const saveDraft = async () => {
       const draftData = {
@@ -210,8 +208,8 @@ export default function PropertyFormScreen() {
     if (!location.trim()) {
       Toast.show({
         type: "error",
-        text1: "Location Required",
-        text2: "Please enter the property location",
+        text1: t('industry_location_required'),
+        text2: t('industry_enter_location'),
       });
       return;
     }
@@ -219,8 +217,8 @@ export default function PropertyFormScreen() {
     if (!neighborhoodArea.trim()) {
       Toast.show({
         type: "error",
-        text1: "Area/Neighborhood Required",
-        text2: "Please enter the area/neighborhood",
+        text1: t('industry_area_required'),
+        text2: t('industry_enter_area'),
       });
       return;
     }
@@ -228,8 +226,8 @@ export default function PropertyFormScreen() {
     if (!plotArea.trim()) {
       Toast.show({
         type: "error",
-        text1: "Area Required",
-        text2: "Please enter the area",
+        text1: t('industry_area_required'),
+        text2: t('industry_enter_area'),
       });
       return;
     }
@@ -291,6 +289,18 @@ export default function PropertyFormScreen() {
     });
   };
 
+  // ✅ Define possession options with translations
+  const possessionOptions = [
+    t('industry_possession_immediate'),
+    t('industry_possession_3months'),
+    t('industry_possession_6months'),
+    t('industry_possession_2026'),
+    t('industry_possession_2027'),
+    t('industry_possession_2028'),
+    t('industry_possession_2029'),
+    t('industry_possession_2030'),
+  ];
+
   return (
     <View className="flex-1 bg-gray-50">
       <ScrollView
@@ -310,10 +320,10 @@ export default function PropertyFormScreen() {
 
           <View className="ml-2">
             <Text className="text-[16px] font-semibold">
-              Upload Your Property
+              {t('upload_property_title')}
             </Text>
             <Text className="text-[12px] text-[#00000066]">
-              Add your property details
+              {t('upload_property_subtitle')}
             </Text>
           </View>
         </View>
@@ -323,7 +333,9 @@ export default function PropertyFormScreen() {
           className="bg-white rounded-lg p-4 mb-4"
           style={{ borderWidth: 1, borderColor: "#0000001A" }}
         >
-          <Text className="text-[15px] text-[#00000060] mb-3">Location<Text className="text-red-500">*</Text></Text>
+          <Text className="text-[15px] text-[#00000060] mb-3">
+            {t('industry_location')}<Text className="text-red-500">*</Text>
+          </Text>
           <View
             className="flex-row items-center rounded-md p-3 mb-5"
             style={{
@@ -337,7 +349,7 @@ export default function PropertyFormScreen() {
               style={{ width: 18, height: 18, marginRight: 8 }}
             />
             <TextInput
-              placeholder="Enter Property Location"
+              placeholder={t('industry_enter_location')}
               value={location}
               onChangeText={setLocation}
               onFocus={() => setFocusedField("location")}
@@ -348,10 +360,11 @@ export default function PropertyFormScreen() {
                 borderColor: focusedField === "location" ? "#22C55E" : "#0000001A",
               }}
             />
-
           </View>
 
-          <Text className="text-[15px] text-[#00000060] mb-3">Area/Neighborhood<Text className="text-red-500">*</Text></Text>
+          <Text className="text-[15px] text-[#00000060] mb-3">
+            {t('industry_neighborhood')}<Text className="text-red-500">*</Text>
+          </Text>
           <View
             className="flex-row items-center rounded-md p-3 mb-5"
             style={{
@@ -365,7 +378,7 @@ export default function PropertyFormScreen() {
               style={{ width: 18, height: 18, marginRight: 8 }}
             />
             <TextInput
-              placeholder="Enter Area/Neighborhood (e.g., Akkayapalem)"
+              placeholder={t('industry_enter_area')}
               value={neighborhoodArea}
               onChangeText={setNeighborhoodArea}
               onFocus={() => setFocusedField("neighborhoodArea")}
@@ -378,46 +391,43 @@ export default function PropertyFormScreen() {
             />
           </View>
         </View>
-          
 
         {/* Area & Details Box */}
         <View
           className="bg-white rounded-lg p-4 mb-6"
           style={{ borderWidth: 1, borderColor: "#0000001A" }}
         >
-          <Text className="text-[16px]  font-bold text-gray-600 mb-2">
-            Add Room Details
+          <Text className="text-[16px] font-bold text-gray-600 mb-2">
+            {t('industry_add_room_details')}
           </Text>
 
-          
-            <Text className="text-[14px] text-gray-500 mr-4">
-              No of Wash Rooms
-            </Text>
+          <Text className="text-[14px] text-gray-500 mr-4">
+            {t('industry_no_of_washrooms')}
+          </Text>
 
-            <View className="flex-row mt-4">
-              <PillButton
-                label="None"
-                selected={washroomType === "None"}
-                onPress={() => setWashroomType("None")}
+          <View className="flex-row mt-4">
+            <PillButton
+              label={t('industry_washroom_none')}
+              selected={washroomType === "None"}
+              onPress={() => setWashroomType("None")}
+            />
+            <PillButton
+              label={t('industry_washroom_shared')}
+              selected={washroomType === "Shared"}
+              onPress={() => setWashroomType("Shared")}
+            />
+            {["1", "2", "3", "4+"].map((num) => (
+              <RoundOption
+                key={num}
+                label={num}
+                selected={washroomType === num}
+                onPress={() => setWashroomType(num)}
               />
-              <PillButton
-                label="Shared"
-                selected={washroomType === "Shared"}
-                onPress={() => setWashroomType("Shared")}
-              />
-              {["1", "2", "3", "4+"].map((num) => (
-                <RoundOption
-                  key={num}
-                  label={num}
-                  selected={washroomType === num}
-                  onPress={() => setWashroomType(num)}
-                />
-              ))}
-            </View>
-
+            ))}
+          </View>
 
           <Text className="text-[14px] font-medium text-[#00000099] mb-3">
-            Add Area Details<Text className="text-red-500">*</Text>
+            {t('industry_add_area_details')}<Text className="text-red-500">*</Text>
           </Text>
           <View
             className="flex-row items-center mb-3 rounded-md"
@@ -447,69 +457,68 @@ export default function PropertyFormScreen() {
                 mode="dropdown"
                 style={{ height: 52, width: "100%" }}
               >
-                <Picker.Item label="sqft" value="sqft" />
-                <Picker.Item label="sqm" value="sqm" />
-                <Picker.Item label="acre" value="acre" />
+                <Picker.Item label={t('industry_unit_sqft')} value="sqft" />
+                <Picker.Item label={t('industry_unit_sqm')} value="sqm" />
+                <Picker.Item label={t('industry_unit_acre')} value="acre" />
               </Picker>
             </View>
           </View>
 
-         
-
-          {/* Add Room Details */}
-        
-         
-
-          
-           
-              
-            
-       
-
-
           <Text className="text-[15px] text-[#00000099] font-bold mb-2">
-            Availability Status
+            {t('industry_availability_status')}
           </Text>
           <View className="flex-row mb-3">
             <PillButton
-              label="Ready to move"
+              label={t('industry_ready_to_move')}
               selected={availability === "Ready"}
               onPress={() => setAvailability("Ready")}
             />
             <PillButton
-              label="Under Construction"
+              label={t('industry_under_construction')}
               selected={availability === "UnderConstruction"}
               onPress={() => setAvailability("UnderConstruction")}
             />
           </View>
+
           {availability === "Ready" && (
             <>
               <Text className="text-[15px] text-[#00000099] font-bold mb-2">
-                Age of property
+                {t('industry_age_of_property')}
               </Text>
               <View className="flex-row flex-wrap mb-4">
-                {["0-1 years", "1-5 years", "5-10 years", "10+ years"].map((age) => (
+                {[
+                  { key: "0-1 years", label: t('industry_age_0_1') },
+                  { key: "1-5 years", label: t('industry_age_1_5') },
+                  { key: "5-10 years", label: t('industry_age_5_10') },
+                  { key: "10+ years", label: t('industry_age_10plus') }
+                ].map((age) => (
                   <PillButton
-                    key={age}
-                    label={age}
-                    selected={ageOfProperty === age}
-                    onPress={() => setAgeOfProperty(age)}
+                    key={age.key}
+                    label={age.label}
+                    selected={ageOfProperty === age.key}
+                    onPress={() => setAgeOfProperty(age.key)}
                   />
                 ))}
               </View>
             </>
           )}
+
           {availability === "UnderConstruction" && (
             <>
               <View>
-                <Text className="font-semibold text-gray-500 mb-2">Possession By</Text>
+                <Text className="font-semibold text-gray-500 mb-2">
+                  {t('industry_possession_by')}
+                </Text>
                 <TouchableOpacity
                   className="flex-row justify-between items-center border border-gray-300 rounded-lg p-3 bg-[#F9FAFB]"
                   onPress={() => setVisible("possession")}
                 >
-                  <Text className="text-base text-gray-700">{possessionBy || "Expected By"}</Text>
+                  <Text className="text-base text-gray-700">
+                    {possessionBy || t('industry_expected_by')}
+                  </Text>
                   <Ionicons name="chevron-down" size={20} color="#666" />
                 </TouchableOpacity>
+                
                 <Modal visible={visible === "possession"} transparent animationType="slide">
                   <TouchableOpacity
                     activeOpacity={1}
@@ -518,26 +527,21 @@ export default function PropertyFormScreen() {
                   >
                     <View className="w-[90%] max-h-[50%] bg-white rounded-xl p-2 shadow-md">
                       <FlatList
-                        data={[
-                          "Immediate",
-                          "Within 3 months",
-                          "Within 6 months",
-                          "By 2026",
-                          "By 2027",
-                          "By 2028",
-                          "By 2029",
-                          "By 2030",
-                        ]}
+                        data={possessionOptions}
                         keyExtractor={(item) => item}
                         renderItem={({ item }) => (
                           <TouchableOpacity
-                            className={`p-3 border-b border-gray-200 ${item === "Immediate" ? "bg-[#22C55E]" : ""}`}
+                            className={`p-3 border-b border-gray-200 ${
+                              possessionBy === item ? "bg-[#22C55E]" : ""
+                            }`}
                             onPress={() => {
                               setPossessionBy(item);
                               setVisible(null);
                             }}
                           >
-                            <Text className={`text-base ${item === "Immediate" ? "text-white font-medium" : "text-gray-700"}`}>
+                            <Text className={`text-base ${
+                              possessionBy === item ? "text-white font-medium" : "text-gray-700"
+                            }`}>
                               {item}
                             </Text>
                           </TouchableOpacity>
@@ -549,28 +553,26 @@ export default function PropertyFormScreen() {
               </View>
             </>
           )}
-
         </View>
-        
-          
       </ScrollView>
-      <View className="bg-white border-t border-gray-200">
-      <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-12">
-            <TouchableOpacity
-              className="px-8 py-3 rounded-lg bg-gray-200 mx-3"
-              onPress={handleBack}
-            >
-              <Text className="font-semibold">Cancel</Text>
-            </TouchableOpacity>
 
-            <TouchableOpacity
-              className="px-10 py-3 rounded-lg bg-green-500"
-              onPress={ handleNext}
-            >
-              <Text className="text-white font-semibold">Next</Text>
-            </TouchableOpacity>
-          </View>
-          </View>
+      <View className="bg-white border-t border-gray-200">
+        <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-12">
+          <TouchableOpacity
+            className="px-8 py-3 rounded-lg bg-gray-200 mx-3"
+            onPress={handleBack}
+          >
+            <Text className="font-semibold">{t('button_cancel')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className="px-10 py-3 rounded-lg bg-green-500"
+            onPress={handleNext}
+          >
+            <Text className="text-white font-semibold">{t('button_next')}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 }

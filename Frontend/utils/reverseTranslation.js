@@ -120,7 +120,17 @@ export const reverseTranslationMap = {
   'లేదు': 'No',
   'नहीं': 'No',
 
-  // Add more as needed...
+  // Company Owned
+  'కంపెనీ యాజమాన్యం': 'Company Owned',
+  'कंपनी स्वामित्व': 'Company Owned',
+
+  // Directions - Towards variants
+  'పడమర వైపు': 'Towards West',
+  'पश्चिम की ओर': 'Towards West',
+  'దక్షిణం వైపు': 'Towards South',
+  'दक्षिण की ओर': 'Towards South',
+
+ 
 };
 
 /**
