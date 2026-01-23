@@ -1,5 +1,5 @@
 // Frontend/app/home/screens/UploadScreens/CommercialUpload/index.jsx
-import React, { useState ,useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
@@ -15,18 +15,13 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { Linking } from "react-native";
-
-
-// import PropertyImageUpload from "components/PropertyImageUpload";
-// import TopAlert from "../TopAlert";
+import { useTranslation } from 'react-i18next'; // ✅ ADD THIS
 
 import PropertyImageUpload from "components/PropertyImageUpload";
 import TopAlert from "../TopAlert";
-
 import CustomPickerAlert from "components/CustomPickerAlert";
 import HowTo360Modal from "../HowTo360Modal";
 import PhotoUploadGuide from "../PhotoUploadGuide";
-
 
 import Office from "./Components/Office";
 import Plot from "./Components/Plot";
@@ -60,281 +55,250 @@ const PillButton = ({ label, selected, onPress }) => (
 export default function PropertyFormScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { t } = useTranslation(); // ✅ ADD THIS
 
   /* ---------- STATES ---------- */
-  const [propertyTitle, setPropertyTitle] = useState(
-    params.propertyTitle || ""
-  );
+  const [propertyTitle, setPropertyTitle] = useState(params.propertyTitle || "");
   const [propertyType, setPropertyType] = useState("Commercial");
   const [visible, setVisible] = useState(null);
   const [officeKinds, setOfficeKinds] = useState([]);
   const [images, setImages] = useState([]);
   const [selectedType, setSelectedType] = useState(null);
   const [retailKinds, setRetailKinds] = useState([]);
-
   const [storageKinds, setStorageKinds] = useState([]);
   const [industryKinds, setIndustryKinds] = useState([]);
   const [HospitalityKinds, setHospitalityKinds] = useState([]);
-  const [plotKinds, setPlotKinds] = useState([]); // ✅ ADD THIS
-   const [area, setArea] = useState(""); // ✅ ADD THIS LINE
-  const [neighborhoodArea, setNeighborhoodArea] = useState(""); // ✅ ADD THIS LINE
-const [alertVisible, setAlertVisible] = useState(false);
+  const [plotKinds, setPlotKinds] = useState([]);
+  const [area, setArea] = useState("");
+  const [neighborhoodArea, setNeighborhoodArea] = useState("");
+  const [alertVisible, setAlertVisible] = useState(false);
   const [locatedInside, setLocatedInside] = useState("");
   const [isHowto360ModalVisible, setIsHowto360ModalVisible] = useState(false);
-  const [isPhotoGuideModalVisible, setIsPhotoGuideModalVisible] =
-    useState(false);
+  const [isPhotoGuideModalVisible, setIsPhotoGuideModalVisible] = useState(false);
   const [pickerAlertVisible, setPickerAlertVisible] = useState(false);
 
-
-
-
-  /* ---------- CONSTANTS ---------- */
+  /* ---------- CONSTANTS WITH TRANSLATIONS ---------- */
   const typePills = [
-    "Office",
-    "Retail",
-    "Plot/Land",
-    "Storage",
-    "Industry",
-    "Hospitality",
-    "Other",
+    { key: "Office", label: t('office_type') },
+    { key: "Retail", label: t('retail_type') },
+    { key: "Plot/Land", label: t('plot_land_type') },
+    { key: "Storage", label: t('storage_type') },
+    { key: "Industry", label: t('industry_type') },
+    { key: "Hospitality", label: t('hospitality_type') },
+    { key: "Other", label: t('other_type') },
   ];
 
   const officeKindPills = [
-    "Ready to move office space",
-    "Bare shell office space",
-    "Co-working office space",
+    t('office_ready_to_move'),
+    t('office_bare_shell'),
+    t('office_coworking'),
   ];
+
   const storageKindPills = [
-    "Warehouse",
-    "Cold Storage",
+    t('storage_warehouse'),
+    t('storage_cold_storage'),
   ];
 
   const retailTypeOptions = [
-    "Commercial Shop",
-    "Commercial Showroom",
+    t('retail_commercial_shop'),
+    t('retail_commercial_showroom'),
   ];
+
   const industryKindPills = [
-    "Factory",
-    "Manufacturing",
+    t('industry_factory'),
+    t('industry_manufacturing'),
   ];
+
   const hospitalityKindPills = [
-    "Hotel/Resorts",
-    "Guest-House/Banquet-Halls"
+    t('hospitality_hotel_resorts'),
+    t('hospitality_guest_house'),
   ];
 
+  const plotKindPills = [
+    t('plot_commercial_land'),
+    t('plot_agricultural_land'),
+    t('plot_industrial_land'),
+  ];
 
-// ADD THIS useEffect after all useState declarations (around line ~42):
+  const locatedInsideOptions = [
+    t('retail_mall'),
+    t('retail_commercial_project'),
+    t('retail_residential_project'),
+    t('retail_complex_building'),
+    t('retail_market_high_street'),
+  ];
 
-useEffect(() => {
-  console.log('🔍 index.jsx useEffect - params:', {
-    hasOfficeDetails: !!params.officeDetails,
-    hasHospitalityDetails: !!params.hospitalityDetails, // ✅ ADD THIS
-    hasCommercialBaseDetails: !!params.commercialBaseDetails,
-    hasImages: !!params.images,
-    hasArea: !!params.area
-  });
+  // ✅ Restore from params
+  useEffect(() => {
+    console.log('🔍 index.jsx useEffect - params:', {
+      hasOfficeDetails: !!params.officeDetails,
+      hasHospitalityDetails: !!params.hospitalityDetails,
+      hasCommercialBaseDetails: !!params.commercialBaseDetails,
+      hasImages: !!params.images,
+      hasArea: !!params.area
+    });
 
-  // STEP 1: Restore images first
-  if (params.images) {
-    try {
-      const savedImages = JSON.parse(params.images);
-      if (Array.isArray(savedImages)) {
-        setImages(savedImages);
-        console.log('✅ Images restored:', savedImages.length);
+    // STEP 1: Restore images first
+    if (params.images) {
+      try {
+        const savedImages = JSON.parse(params.images);
+        if (Array.isArray(savedImages)) {
+          setImages(savedImages);
+          console.log('✅ Images restored:', savedImages.length);
+        }
+      } catch (e) {
+        console.log('❌ Could not restore images:', e);
       }
-    } catch (e) {
-      console.log('❌ Could not restore images:', e);
     }
-  }
-  
-  // STEP 2: Restore area
-  if (params.area) {
-    setNeighborhoodArea(params.area);
-    setArea(params.area);
-    console.log('✅ Area restored from params:', params.area);
-  }
-  
-  // STEP 3: Restore from commercialBaseDetails (highest priority)
- if (params.commercialBaseDetails) {
+
+    // STEP 2: Restore area
+    if (params.area) {
+      setNeighborhoodArea(params.area);
+      setArea(params.area);
+      console.log('✅ Area restored from params:', params.area);
+    }
+
+    // STEP 3: Restore from commercialBaseDetails (highest priority)
+// STEP 3: Restore from commercialBaseDetails (highest priority)
+if (params.commercialBaseDetails) {
   try {
     const baseDetails = JSON.parse(params.commercialBaseDetails);
     console.log('🔄 Restoring from commercialBaseDetails:', baseDetails);
-    
+
     setSelectedType(baseDetails.subType || '');
     setPropertyTitle(baseDetails.propertyTitle || '');
-    
-  if (baseDetails.officeKind) {
-  setOfficeKinds([baseDetails.officeKind]);
-}
 
-if (baseDetails.retailKind) {
-  setRetailKinds([baseDetails.retailKind]);
-  console.log('✅ Retail kind restored from baseDetails:', baseDetails.retailKind);
-}
+    if (baseDetails.officeKind) {
+      setOfficeKinds([baseDetails.officeKind]);
+    }
 
- if (baseDetails.plotKind) { // ✅ ADD THIS ENTIRE BLOCK
+    if (baseDetails.retailKind) {
+      setRetailKinds([baseDetails.retailKind]);
+      console.log('✅ Retail kind restored from baseDetails:', baseDetails.retailKind);
+    }
+
+    if (baseDetails.plotKind) {
       setPlotKinds([baseDetails.plotKind]);
       console.log('✅ Plot kind restored from baseDetails:', baseDetails.plotKind);
     }
 
-if (baseDetails.locatedInside) {
-  setLocatedInside(baseDetails.locatedInside);
-  console.log('✅ Located inside restored from baseDetails:', baseDetails.locatedInside);
-}
+    if (baseDetails.locatedInside) {
+      setLocatedInside(baseDetails.locatedInside);
+      console.log('✅ Located inside restored from baseDetails:', baseDetails.locatedInside);
+    }
 
-if (baseDetails.hospitalityKind) {
-  setHospitalityKinds([baseDetails.hospitalityKind]);
-}
-if (baseDetails.storageKind) {
-  setStorageKinds([baseDetails.storageKind]);
-  console.log('✅ Storage kind restored from baseDetails:', baseDetails.storageKind);
-}
+    // ✅ FIXED - Check for hospitalityType instead of hospitalityKind
+    if (baseDetails.hospitalityType) {
+      setHospitalityKinds([baseDetails.hospitalityType]);
+      console.log('✅ Hospitality type restored from baseDetails:', baseDetails.hospitalityType);
+    }
 
-if (baseDetails.industryKind) {
-  setIndustryKinds([baseDetails.industryKind]);
-  console.log('✅ Industry kind restored from baseDetails:', baseDetails.industryKind);
-}
+        if (baseDetails.storageKind) {
+          setStorageKinds([baseDetails.storageKind]);
+          console.log('✅ Storage kind restored from baseDetails:', baseDetails.storageKind);
+        }
 
+        if (baseDetails.industryKind) {
+          setIndustryKinds([baseDetails.industryKind]);
+          console.log('✅ Industry kind restored from baseDetails:', baseDetails.industryKind);
+        }
 
-
-// // ✅ ADD THIS - Restore Plot Kind
-// if (baseDetails.plotKind) {
-//   setPlotKinds([baseDetails.plotKind]);
-//   console.log('✅ Plot kind restored from baseDetails:', baseDetails.plotKind);
-// }
-
-if (baseDetails.locatedInside) {
-  setLocatedInside(baseDetails.locatedInside);
-}
-    
-    console.log('✅ Selected type restored:', baseDetails.subType);
-    console.log('✅ Property title restored:', baseDetails.propertyTitle);
-  } catch (e) {
-    console.log('❌ Failed to parse commercialBaseDetails:', e);
-  }
-}
-  
-  // STEP 4: Fallback - restore from officeDetails
-// STEP 4: Fallback - restore from officeDetails
-  if (params.officeDetails && officeKinds.length === 0) {
-    try {
-      const savedData = JSON.parse(params.officeDetails);
-      if (savedData.officeKind) {
-        setOfficeKinds([savedData.officeKind]);
-        console.log('✅ Office kind restored from officeDetails:', savedData.officeKind);
+        console.log('✅ Selected type restored:', baseDetails.subType);
+        console.log('✅ Property title restored:', baseDetails.propertyTitle);
+      } catch (e) {
+        console.log('❌ Failed to parse commercialBaseDetails:', e);
       }
-    } catch (e) {
-      console.log('❌ Could not restore from officeDetails:', e);
     }
-  }
 
-  // ✅ NEW - STEP 4.5: Fallback - restore from plotDetails
- // ✅ NEW - STEP 4.5: Fallback - restore from plotDetails
-if (params.plotDetails && plotKinds.length === 0) {
-  try {
-    const savedData = JSON.parse(params.plotDetails);
-    if (savedData.plotKind) {
-      setPlotKinds([savedData.plotKind]); // ✅ CHANGED from setOfficeKinds
-      console.log('✅ Plot kind restored from plotDetails:', savedData.plotKind);
-    }
-  } catch (e) {
-    console.log('❌ Could not restore from plotDetails:', e);
-  }
-}
-  
-  // ✅ NEW - STEP 5: Fallback - restore from hospitalityDetails
-  
-  // ✅ NEW - STEP 5: Fallback - restore from hospitalityDetails
-  if (params.hospitalityDetails && HospitalityKinds.length === 0) {
-    try {
-      const savedData = JSON.parse(params.hospitalityDetails);
-      if (savedData.hospitalityType) {
-        setHospitalityKinds([savedData.hospitalityType]);
-        console.log('✅ Hospitality type restored from hospitalityDetails:', savedData.hospitalityType);
+    // STEP 4: Fallback - restore from officeDetails
+    if (params.officeDetails && officeKinds.length === 0) {
+      try {
+        const savedData = JSON.parse(params.officeDetails);
+        if (savedData.officeKind) {
+          setOfficeKinds([savedData.officeKind]);
+          console.log('✅ Office kind restored from officeDetails:', savedData.officeKind);
+        }
+      } catch (e) {
+        console.log('❌ Could not restore from officeDetails:', e);
       }
-    } catch (e) {
-      console.log('❌ Could not restore from hospitalityDetails:', e);
     }
-  }
 
-// NEW CODE
-}, [params.officeDetails, params.hospitalityDetails, params.plotDetails, params.images, params.commercialBaseDetails, params.area]);
+    // STEP 4.5: Fallback - restore from plotDetails
+    if (params.plotDetails && plotKinds.length === 0) {
+      try {
+        const savedData = JSON.parse(params.plotDetails);
+        if (savedData.plotKind) {
+          setPlotKinds([savedData.plotKind]);
+          console.log('✅ Plot kind restored from plotDetails:', savedData.plotKind);
+        }
+      } catch (e) {
+        console.log('❌ Could not restore from plotDetails:', e);
+      }
+    }
 
+    // STEP 5: Fallback - restore from hospitalityDetails
+    if (params.hospitalityDetails && HospitalityKinds.length === 0) {
+      try {
+        const savedData = JSON.parse(params.hospitalityDetails);
+        if (savedData.hospitalityType) {
+          setHospitalityKinds([savedData.hospitalityType]);
+          console.log('✅ Hospitality type restored from hospitalityDetails:', savedData.hospitalityType);
+        }
+      } catch (e) {
+        console.log('❌ Could not restore from hospitalityDetails:', e);
+      }
+    }
+  }, [params.officeDetails, params.hospitalityDetails, params.plotDetails, params.images, params.commercialBaseDetails, params.area]);
 
-// ✅ NEW - Load draft from AsyncStorage on mount
+// ✅ Load draft from AsyncStorage on mount
 useEffect(() => {
   const loadDraft = async () => {
-    try {
-      // ✅ Try loading Office draft first
-    const officeDraft = await AsyncStorage.getItem('draft_commercial_office');
-if (officeDraft) {
-  const parsed = JSON.parse(officeDraft);
-  console.log('📦 Loading Office draft from AsyncStorage:', parsed);
-  
-  if (parsed.selectedType) setSelectedType(parsed.selectedType);
-if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
-if (parsed.officeKind) setOfficeKinds([parsed.officeKind]);
-if (parsed.retailKind) {
-  setRetailKinds([parsed.retailKind]);
-  console.log('✅ Retail kind restored from draft:', parsed.retailKind);
-}
-if (parsed.locatedInside) {
-  setLocatedInside(parsed.locatedInside);
-  console.log('✅ Located inside restored from draft:', parsed.locatedInside);
-}
-  if (parsed.images) setImages(parsed.images);
-        if (parsed.neighborhoodArea) {
-          setNeighborhoodArea(parsed.neighborhoodArea);
-          setArea(parsed.neighborhoodArea);
-        }
-        if (parsed.area) {
-          setArea(parsed.area);
-        }
-        
-        console.log('✅ Office draft loaded successfully');
-        return; // Exit early if Office draft found
-      }
-
-      // ✅ NEW - Try loading Retail draft
-    const retailDraft = await AsyncStorage.getItem('draft_commercial_retail');
-    if (retailDraft) {
-      const parsed = JSON.parse(retailDraft);
-      console.log('📦 Loading Retail draft from AsyncStorage:', parsed);
+    // ✅ NEW - If coming fresh from AddScreen, clear all drafts
+    if (!params.officeDetails && !params.hospitalityDetails && 
+        !params.retailDetails && !params.plotDetails && 
+        !params.storageDetails && !params.industryDetails &&
+        !params.commercialBaseDetails) {
+      console.log('🧹 Fresh entry - clearing all drafts');
       
-      if (parsed.selectedType) setSelectedType(parsed.selectedType);
-      if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
-      if (parsed.retailKind) {
-        setRetailKinds([parsed.retailKind]);
-        console.log('✅ Retail kind restored:', parsed.retailKind);
-      }
-      if (parsed.locatedInside) {
-        setLocatedInside(parsed.locatedInside);
-        console.log('✅ Located inside restored:', parsed.locatedInside);
-      }
-      if (parsed.images) setImages(parsed.images);
-      if (parsed.neighborhoodArea) {
-        setNeighborhoodArea(parsed.neighborhoodArea);
-        setArea(parsed.neighborhoodArea);
-      }
-      if (parsed.area) {
-        setArea(parsed.area);
+      try {
+        await AsyncStorage.multiRemove([
+          'draft_commercial_office',
+          'draft_commercial_retail',
+          'draft_commercial_hospitality',
+          'draft_commercial_plot',
+          'draft_commercial_storage',
+          'draft_commercial_industry',
+          'draft_hospitality_details',
+          'draft_hospitality_pricing',
+          'draft_hospitality_vaastu',
+        ]);
+        console.log('✅ All drafts cleared');
+      } catch (e) {
+        console.log('⚠️ Error clearing drafts:', e);
       }
       
-      console.log('✅ Retail draft loaded successfully');
-      return; // Exit early
+      return; // Don't load any drafts
     }
-    
-      
-      // ✅ NEW - Try loading Hospitality draft
-     const hospitalityDraft = await AsyncStorage.getItem('draft_commercial_hospitality');
-if (hospitalityDraft) {
-  const parsed = JSON.parse(hospitalityDraft);
-  console.log('📦 Loading Hospitality draft from AsyncStorage:', parsed);
-  
-  if (parsed.selectedType) setSelectedType(parsed.selectedType);
-  if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
-  if (parsed.hospitalityKind) setHospitalityKinds([parsed.hospitalityKind]);
-  if (parsed.images) setImages(parsed.images);
+
+    try {
+      // Try loading Office draft first
+      const officeDraft = await AsyncStorage.getItem('draft_commercial_office');
+      if (officeDraft) {
+        const parsed = JSON.parse(officeDraft);
+        console.log('📦 Loading Office draft from AsyncStorage:', parsed);
+
+        if (parsed.selectedType) setSelectedType(parsed.selectedType);
+        if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
+        if (parsed.officeKind) setOfficeKinds([parsed.officeKind]);
+        if (parsed.retailKind) {
+          setRetailKinds([parsed.retailKind]);
+          console.log('✅ Retail kind restored from draft:', parsed.retailKind);
+        }
+        if (parsed.locatedInside) {
+          setLocatedInside(parsed.locatedInside);
+          console.log('✅ Located inside restored from draft:', parsed.locatedInside);
+        }
+        if (parsed.images) setImages(parsed.images);
         if (parsed.neighborhoodArea) {
           setNeighborhoodArea(parsed.neighborhoodArea);
           setArea(parsed.neighborhoodArea);
@@ -342,67 +306,93 @@ if (hospitalityDraft) {
         if (parsed.area) {
           setArea(parsed.area);
         }
-        
-        console.log('✅ Hospitality draft loaded successfully');
 
+        console.log('✅ Office draft loaded successfully');
         return;
       }
 
-       // ✅ NEW - Try loading Plot draft
- // NEW CODE
-// ✅ Try loading Plot draft
-const plotDraft = await AsyncStorage.getItem('draft_commercial_plot');
-if (plotDraft) {
-  const parsed = JSON.parse(plotDraft);
-  console.log('📦 Loading Plot draft from AsyncStorage:', parsed);
-  
-  if (parsed.selectedType) setSelectedType(parsed.selectedType);
-  if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
-  if (parsed.plotKind) {
-    setPlotKinds([parsed.plotKind]);
-    console.log('✅ Plot kind restored from draft:', parsed.plotKind);
-  }
-  if (parsed.images) setImages(parsed.images);
-  if (parsed.neighborhoodArea) {
-    setNeighborhoodArea(parsed.neighborhoodArea);
-    setArea(parsed.neighborhoodArea);
-  }
-  if (parsed.area) {
-    setArea(parsed.area);
-  }
-  
-  console.log('✅ Plot draft loaded successfully');
-  return; // Exit early after loading Plot draft
-}
+      // Try loading Retail draft
+      const retailDraft = await AsyncStorage.getItem('draft_commercial_retail');
+      if (retailDraft) {
+        const parsed = JSON.parse(retailDraft);
+        console.log('📦 Loading Retail draft from AsyncStorage:', parsed);
 
-// ✅ ALSO try loading from params.plotDetails as fallback
-if (params.plotDetails && plotKinds.length === 0) {
-  try {
-    const savedData = JSON.parse(params.plotDetails);
-    console.log('🔄 Restoring plot data from params.plotDetails:', savedData);
-    
-    if (savedData.plotKind) {
-      setPlotKinds([savedData.plotKind]);
-      console.log('✅ Plot kind restored from params:', savedData.plotKind);
-    }
-    
-    // ✅ Restore area if present
-    if (savedData.neighborhoodArea) {
-      setNeighborhoodArea(savedData.neighborhoodArea);
-      setArea(savedData.neighborhoodArea);
-    }
-  } catch (e) {
-    console.log('❌ Could not restore from params.plotDetails:', e);
-  }
-}
-    
+        if (parsed.selectedType) setSelectedType(parsed.selectedType);
+        if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
+        if (parsed.retailKind) {
+          setRetailKinds([parsed.retailKind]);
+          console.log('✅ Retail kind restored:', parsed.retailKind);
+        }
+        if (parsed.locatedInside) {
+          setLocatedInside(parsed.locatedInside);
+          console.log('✅ Located inside restored:', parsed.locatedInside);
+        }
+        if (parsed.images) setImages(parsed.images);
+        if (parsed.neighborhoodArea) {
+          setNeighborhoodArea(parsed.neighborhoodArea);
+          setArea(parsed.neighborhoodArea);
+        }
+        if (parsed.area) {
+          setArea(parsed.area);
+        }
 
-         // ✅ NEW - Try loading Storage draft
+        console.log('✅ Retail draft loaded successfully');
+        return;
+      }
+
+      // Try loading Hospitality draft
+      const hospitalityDraft = await AsyncStorage.getItem('draft_commercial_hospitality');
+      if (hospitalityDraft) {
+        const parsed = JSON.parse(hospitalityDraft);
+        console.log('📦 Loading Hospitality draft from AsyncStorage:', parsed);
+
+        if (parsed.selectedType) setSelectedType(parsed.selectedType);
+        if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
+        if (parsed.hospitalityKind) setHospitalityKinds([parsed.hospitalityKind]);
+        if (parsed.images) setImages(parsed.images);
+        if (parsed.neighborhoodArea) {
+          setNeighborhoodArea(parsed.neighborhoodArea);
+          setArea(parsed.neighborhoodArea);
+        }
+        if (parsed.area) {
+          setArea(parsed.area);
+        }
+
+        console.log('✅ Hospitality draft loaded successfully');
+        return;
+      }
+
+      // Try loading Plot draft
+      const plotDraft = await AsyncStorage.getItem('draft_commercial_plot');
+      if (plotDraft) {
+        const parsed = JSON.parse(plotDraft);
+        console.log('📦 Loading Plot draft from AsyncStorage:', parsed);
+
+        if (parsed.selectedType) setSelectedType(parsed.selectedType);
+        if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
+        if (parsed.plotKind) {
+          setPlotKinds([parsed.plotKind]);
+          console.log('✅ Plot kind restored from draft:', parsed.plotKind);
+        }
+        if (parsed.images) setImages(parsed.images);
+        if (parsed.neighborhoodArea) {
+          setNeighborhoodArea(parsed.neighborhoodArea);
+          setArea(parsed.neighborhoodArea);
+        }
+        if (parsed.area) {
+          setArea(parsed.area);
+        }
+
+        console.log('✅ Plot draft loaded successfully');
+        return;
+      }
+
+      // Try loading Storage draft
       const storageDraft = await AsyncStorage.getItem('draft_commercial_storage');
       if (storageDraft) {
         const parsed = JSON.parse(storageDraft);
         console.log('📦 Loading Storage draft from AsyncStorage:', parsed);
-        
+
         if (parsed.selectedType) setSelectedType(parsed.selectedType);
         if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
         if (parsed.storageKind) setStorageKinds([parsed.storageKind]);
@@ -414,16 +404,16 @@ if (params.plotDetails && plotKinds.length === 0) {
         if (parsed.area) {
           setArea(parsed.area);
         }
-        
+
         console.log('✅ Storage draft loaded successfully');
       }
 
-      // ✅ NEW - Try loading Industry draft
+      // Try loading Industry draft
       const industryDraft = await AsyncStorage.getItem('draft_commercial_industry');
       if (industryDraft) {
         const parsed = JSON.parse(industryDraft);
         console.log('📦 Loading Industry draft from AsyncStorage:', parsed);
-        
+
         if (parsed.selectedType) setSelectedType(parsed.selectedType);
         if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
         if (parsed.industryKind) setIndustryKinds([parsed.industryKind]);
@@ -435,158 +425,141 @@ if (params.plotDetails && plotKinds.length === 0) {
         if (parsed.area) {
           setArea(parsed.area);
         }
-        
+
         console.log('✅ Industry draft loaded successfully');
       }
-
-
-    }
-    
-
-
-  
-
-    
-    catch (e) {
+    } catch (e) {
       console.log('⚠️ Failed to load draft:', e);
     }
   };
-  
 
-
-  
   loadDraft();
-}, []);
+}, []); // ✅ Only run on mount
 
+  // ✅ Auto-save index.jsx state changes
+  useEffect(() => {
+    const saveDraft = async () => {
+      if (!selectedType) return;
 
-// ✅ NEW - Auto-save index.jsx state changes
-useEffect(() => {
-  const saveDraft = async () => {
-    // Only save if we have meaningful data
-    if (!selectedType) return;
+      const draftData = {
+        selectedType,
+        propertyTitle,
+        images,
+        officeKind: officeKinds.length > 0 ? officeKinds[0] : undefined,
+        retailKind: retailKinds.length > 0 ? retailKinds[0] : undefined,
+        hospitalityKind: HospitalityKinds.length > 0 ? HospitalityKinds[0] : undefined,
+        storageKind: storageKinds.length > 0 ? storageKinds[0] : undefined,
+        plotKind: plotKinds.length > 0 ? plotKinds[0] : undefined,
+        industryKind: industryKinds.length > 0 ? industryKinds[0] : undefined,
+        locatedInside: locatedInside || undefined,
+        area: area || neighborhoodArea || undefined,
+        timestamp: new Date().toISOString(),
+      };
 
- const draftData = {
-      selectedType,
-      propertyTitle,
-      images,
-      officeKind: officeKinds.length > 0 ? officeKinds[0] : undefined,
-      retailKind: retailKinds.length > 0 ? retailKinds[0] : undefined,
-      hospitalityKind: HospitalityKinds.length > 0 ? HospitalityKinds[0] : undefined,
-      storageKind: storageKinds.length > 0 ? storageKinds[0] : undefined,
-      plotKind: plotKinds.length > 0 ? plotKinds[0] : undefined, // ✅ ADD THIS
-      industryKind: industryKinds.length > 0 ? industryKinds[0] : undefined,
-      locatedInside: locatedInside || undefined,
-      area: area || neighborhoodArea || undefined,
-      timestamp: new Date().toISOString(),
+      const storageKey = selectedType === 'Office'
+        ? 'draft_commercial_office'
+        : selectedType === 'Hospitality'
+          ? 'draft_commercial_hospitality'
+          : selectedType === 'Retail'
+            ? 'draft_commercial_retail'
+            : selectedType === 'Storage'
+              ? 'draft_commercial_storage'
+              : selectedType === 'Plot/Land'
+                ? 'draft_commercial_plot'
+                : selectedType === 'Industry'
+                  ? 'draft_commercial_industry'
+                  : null;
+
+      if (storageKey) {
+        try {
+          await AsyncStorage.setItem(storageKey, JSON.stringify(draftData));
+          console.log(`💾 ${selectedType} index draft auto-saved`);
+        } catch (e) {
+          console.log('⚠️ Failed to auto-save index draft:', e);
+        }
+      }
     };
 
-   const storageKey = selectedType === 'Office' 
-      ? 'draft_commercial_office' 
-      : selectedType === 'Hospitality'
-      ? 'draft_commercial_hospitality'
-      : selectedType === 'Retail'
-      ? 'draft_commercial_retail'
-      : selectedType === 'Storage'
-      ? 'draft_commercial_storage'
-      : selectedType === 'Plot/Land'
-      ? 'draft_commercial_plot'
-      : selectedType === 'Industry'
-      ? 'draft_commercial_industry'
-      : null;
+    const timer = setTimeout(saveDraft, 1000);
+    return () => clearTimeout(timer);
+  }, [selectedType, propertyTitle, images, officeKinds, retailKinds,
+    HospitalityKinds, storageKinds, plotKinds, industryKinds, locatedInside, area, neighborhoodArea]);
 
-    if (storageKey) {
-      try {
-        await AsyncStorage.setItem(storageKey, JSON.stringify(draftData));
-        console.log(`💾 ${selectedType} index draft auto-saved`);
-      } catch (e) {
-        console.log('⚠️ Failed to auto-save index draft:', e);
+  /* ---------- IMAGE HANDLERS ---------- */
+  const takePhoto = async () => {
+    setPickerAlertVisible(false);
+    let permission = await ImagePicker.getCameraPermissionsAsync();
+
+    if (permission.status !== "granted") {
+      permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (permission.status !== "granted") {
+        Alert.alert(
+          t('permission_required'),
+          t('camera_permission_message')
+        );
+        return;
       }
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: false,
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const newImages = result.assets.map((asset) => asset.uri);
+      setImages([...images, ...newImages]);
     }
   };
 
-  const timer = setTimeout(saveDraft, 1000);
-  return () => clearTimeout(timer);
-}, [selectedType, propertyTitle, images, officeKinds, retailKinds, 
-    HospitalityKinds, storageKinds, plotKinds, industryKinds, locatedInside, area, neighborhoodArea]);
+  const pickFromGallery = async () => {
+    setPickerAlertVisible(false);
+    let permission = await ImagePicker.getMediaLibraryPermissionsAsync();
 
-
-
-  /* ---------- IMAGE HANDLERS ---------- */
-const takePhoto = async () => {
-  setPickerAlertVisible(false);
-  let permission = await ImagePicker.getCameraPermissionsAsync();
-
-  if (permission.status !== "granted") {
-    permission = await ImagePicker.requestCameraPermissionsAsync();
     if (permission.status !== "granted") {
-      Alert.alert(
-        "Permission Required",
-        "You need to grant camera permissions to use this feature."
-      );
-      return;
+      permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (permission.status !== "granted") {
+        Alert.alert(
+          t('permission_required'),
+          t('gallery_permission_message')
+        );
+        return;
+      }
     }
-  }
-  const result = await ImagePicker.launchCameraAsync({
-    allowsEditing: false,
-    quality: 0.8,
-  });
-  if (!result.canceled && result.assets && result.assets.length > 0) {
-    const newImages = result.assets.map((asset) => asset.uri);
-    setImages([...images, ...newImages]);
-  }
-};
-
-const pickFromGallery = async () => {
-  setPickerAlertVisible(false);
-  let permission = await ImagePicker.getMediaLibraryPermissionsAsync();
-
-  if (permission.status !== "granted") {
-    permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (permission.status !== "granted") {
-      Alert.alert(
-        "Permission Required",
-        "You need to grant access to your photo library."
-      );
-      return;
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: false,
+      quality: 0.8,
+      allowsMultipleSelection: true,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    });
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const newImages = result.assets.map((asset) => asset.uri);
+      setImages([...images, ...newImages]);
     }
-  }
-  const result = await ImagePicker.launchImageLibraryAsync({
-    allowsEditing: false,
-    quality: 0.8,
-    allowsMultipleSelection: true,
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-  });
-  if (!result.canceled && result.assets && result.assets.length > 0) {
-    const newImages = result.assets.map((asset) => asset.uri);
-    setImages([...images, ...newImages]);
-  }
-};
+  };
 
-const pickImage = () => {
-  setPickerAlertVisible(true);
-};
+  const pickImage = () => {
+    setPickerAlertVisible(true);
+  };
 
-const handleOpenPlayStore = () => {
-  const playStoreLink = "https://play.google.com/store/apps/details?id=com.google.android.street";
-  Linking.openURL(playStoreLink).catch((err) =>
-    console.error("Couldn't load page", err)
-  );
-};
+  const handleOpenPlayStore = () => {
+    const playStoreLink = "https://play.google.com/store/apps/details?id=com.google.android.street";
+    Linking.openURL(playStoreLink).catch((err) =>
+      console.error("Couldn't load page", err)
+    );
+  };
 
- const removeImage = (index) => {
-  setImages((prev) => prev.filter((_, i) => i !== index));
-};
+  const removeImage = (index) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
 
   /* ---------- NEXT HANDLER ---------- */
-const handleNext = async () => { // ✅ Make async
+  const handleNext = async () => {
     if (!selectedType) {
-      Alert.alert("Select Property Type", "Please select a property type");
+      Alert.alert(t('alert_select_property_type'), t('alert_select_property_type_message'));
       return;
     }
 
     const base = "/home/screens/UploadScreens/CommercialUpload/Components";
 
-    // ✅ Common params with images
     const commonParams = {
       commercialBaseDetails: JSON.stringify({
         subType: selectedType,
@@ -598,25 +571,24 @@ const handleNext = async () => { // ✅ Make async
     switch (selectedType) {
       case "Office":
         if (!officeKinds.length) {
-          Alert.alert("Office Type Required", "Please select what kind of office it is");
+          Alert.alert(t('alert_office_type_required'), t('alert_select_office_kind'));
           return;
         }
 
-        // ✅ NEW - Save draft to AsyncStorage
-  const draftData = {
-  selectedType,
-  propertyTitle,
-  images: images,
-  officeKind: officeKinds.length > 0 ? officeKinds[0] : undefined,
-  retailKind: retailKinds.length > 0 ? retailKinds[0] : undefined,
-  hospitalityKind: HospitalityKinds.length > 0 ? HospitalityKinds[0] : undefined,
-  storageKind: storageKinds.length > 0 ? storageKinds[0] : undefined,
-  plotKind: plotKinds.length > 0 ? plotKinds[0] : undefined, // ✅ ADD THIS
-  locatedInside: locatedInside || undefined,
-  area: area || neighborhoodArea || undefined, // ✅ ADD THIS
-  timestamp: new Date().toISOString(),
-};
-        
+        const draftData = {
+          selectedType,
+          propertyTitle,
+          images: images,
+          officeKind: officeKinds.length > 0 ? officeKinds[0] : undefined,
+          retailKind: retailKinds.length > 0 ? retailKinds[0] : undefined,
+          hospitalityKind: HospitalityKinds.length > 0 ? HospitalityKinds[0] : undefined,
+          storageKind: storageKinds.length > 0 ? storageKinds[0] : undefined,
+          plotKind: plotKinds.length > 0 ? plotKinds[0] : undefined,
+          locatedInside: locatedInside || undefined,
+          area: area || neighborhoodArea || undefined,
+          timestamp: new Date().toISOString(),
+        };
+
         try {
           await AsyncStorage.setItem('draft_commercial_office', JSON.stringify(draftData));
           console.log('✅ Draft saved to AsyncStorage');
@@ -640,35 +612,31 @@ const handleNext = async () => { // ✅ Make async
       case "Retail":
         router.push({
           pathname: `${base}/Retail`,
-          params: commonParams, // ✅ INCLUDES IMAGES
+          params: commonParams,
         });
         break;
 
-    case "Plot/Land":
-  // ✅ Don't save empty draft - let Plot.jsx create it with actual data
-  // Just pass the necessary params
-  
-  router.push({
-    pathname: `${base}/Plot`,
-    params: {
-      ...commonParams,
-      commercialBaseDetails: JSON.stringify({
-        subType: "Plot/Land",
-        plotKind: plotKinds.length > 0 ? plotKinds[0] : undefined,
-        propertyTitle,
-      }),
-      area: area || neighborhoodArea, // ✅ Pass area to Plot.jsx
-    },
-  });
-  break;
+      case "Plot/Land":
+        router.push({
+          pathname: `${base}/Plot`,
+          params: {
+            ...commonParams,
+            commercialBaseDetails: JSON.stringify({
+              subType: "Plot/Land",
+              plotKind: plotKinds.length > 0 ? plotKinds[0] : undefined,
+              propertyTitle,
+            }),
+            area: area || neighborhoodArea,
+          },
+        });
+        break;
 
-     case "Storage":
+      case "Storage":
         if (!storageKinds.length) {
-          Alert.alert("Storage Type Required", "Please select storage type");
+          Alert.alert(t('alert_storage_type_required'), t('alert_select_storage_type'));
           return;
         }
-        
-        // ✅ NEW - Save draft to AsyncStorage
+
         const storageDraftData = {
           selectedType: "Storage",
           propertyTitle,
@@ -677,14 +645,14 @@ const handleNext = async () => { // ✅ Make async
           area: area || neighborhoodArea,
           timestamp: new Date().toISOString(),
         };
-        
+
         try {
           await AsyncStorage.setItem('draft_commercial_storage', JSON.stringify(storageDraftData));
           console.log('✅ Storage draft saved to AsyncStorage');
         } catch (e) {
           console.log('⚠️ Failed to save Storage draft:', e);
         }
-        
+
         router.push({
           pathname: `${base}/Storage`,
           params: {
@@ -698,13 +666,12 @@ const handleNext = async () => { // ✅ Make async
         });
         break;
 
-          case "Industry":
+      case "Industry":
         if (!industryKinds.length) {
-          Alert.alert("Industry Type Required", "Please select industry type");
+          Alert.alert(t('alert_industry_type_required'), t('alert_select_industry_type'));
           return;
         }
 
-        // ✅ NEW - Save draft to AsyncStorage
         const industryDraftData = {
           selectedType: "Industry",
           propertyTitle,
@@ -713,7 +680,7 @@ const handleNext = async () => { // ✅ Make async
           area: area || neighborhoodArea,
           timestamp: new Date().toISOString(),
         };
-        
+
         try {
           await AsyncStorage.setItem('draft_commercial_industry', JSON.stringify(industryDraftData));
           console.log('✅ Industry draft saved to AsyncStorage');
@@ -734,54 +701,52 @@ const handleNext = async () => { // ✅ Make async
         });
         break;
 
-        
-case "Hospitality":
-  if (!HospitalityKinds.length) {
-    Alert.alert("Hospitality Type Required", "Please select hospitality type");
-    return;
-  }
+      case "Hospitality":
+        if (!HospitalityKinds.length) {
+          Alert.alert(t('alert_hospitality_type_required'), t('alert_select_hospitality_type'));
+          return;
+        }
 
-  // ✅ NEW - Save draft to AsyncStorage
-  const hospitalityDraftData = {
-    subType: "Hospitality",
-    hospitalityType: HospitalityKinds[0],
-    propertyTitle,
-    images,
-    neighborhoodArea: neighborhoodArea || area,
-    area: area || neighborhoodArea, // ✅ Add both for flexibility
-    timestamp: new Date().toISOString(),
-  };
-  
-  try {
-    await AsyncStorage.setItem('draft_commercial_hospitality', JSON.stringify(hospitalityDraftData));
-    console.log('✅ Hospitality draft saved to AsyncStorage');
-  } catch (e) {
-    console.log('⚠️ Failed to save Hospitality draft:', e);
-  }
+        const hospitalityDraftData = {
+          subType: "Hospitality",
+          hospitalityType: HospitalityKinds[0],
+          propertyTitle,
+          images,
+          neighborhoodArea: neighborhoodArea || area,
+          area: area || neighborhoodArea,
+          timestamp: new Date().toISOString(),
+        };
 
-  router.push({
-    pathname: `${base}/Hospitality`,
-    params: {
-      ...commonParams,
-      commercialBaseDetails: JSON.stringify({
-        subType: "Hospitality",
-        hospitalityType: HospitalityKinds[0],
-        propertyTitle,
-      }),
-    },
-  });
-  break;
+        try {
+          await AsyncStorage.setItem('draft_commercial_hospitality', JSON.stringify(hospitalityDraftData));
+          console.log('✅ Hospitality draft saved to AsyncStorage');
+        } catch (e) {
+          console.log('⚠️ Failed to save Hospitality draft:', e);
+        }
+
+        router.push({
+          pathname: `${base}/Hospitality`,
+          params: {
+            ...commonParams,
+            commercialBaseDetails: JSON.stringify({
+              subType: "Hospitality",
+              hospitalityType: HospitalityKinds[0],
+              propertyTitle,
+            }),
+          },
+        });
+        break;
 
       case "Other":
         router.push({
           pathname: `${base}/Other`,
-          params: commonParams, // ✅ INCLUDES IMAGES
+          params: commonParams,
         });
         break;
     }
   };
 
- return (
+  return (
     <View className="flex-1 bg-gray-50">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
@@ -789,18 +754,18 @@ case "Hospitality":
         visible={alertVisible}
         onHide={() => setAlertVisible(false)}
       />
-      
+
       <HowTo360Modal
         visible={isHowto360ModalVisible}
         onClose={() => setIsHowto360ModalVisible(false)}
         onOpenPlayStore={handleOpenPlayStore}
       />
-      
+
       <PhotoUploadGuide
         visible={isPhotoGuideModalVisible}
         onClose={() => setIsPhotoGuideModalVisible(false)}
       />
-      
+
       <CustomPickerAlert
         visible={pickerAlertVisible}
         onClose={() => setPickerAlertVisible(false)}
@@ -808,37 +773,33 @@ case "Hospitality":
         onGalleryPress={pickFromGallery}
       />
 
+      <View className="flex-row items-center mt-12 mb-4 ml-4">
+        <TouchableOpacity
+          onPress={() =>
+            router.push("/home/screens/UploadScreens/AddScreen")
+          }
+          className="p-2"
+        >
+          <Image
+            source={require("../../../../../assets/arrow.png")}
+            style={{ width: 20, height: 20 }}
+          />
+        </TouchableOpacity>
 
-       <View className="flex-row items-center mt-12 mb-4 ml-4">
-          <TouchableOpacity
-            onPress={() =>
-              router.push("/home/screens/UploadScreens/AddScreen")
-            }
-            className="p-2"
-          >
-            <Image
-              source={require("../../../../../assets/arrow.png")}
-              style={{ width: 20, height: 20 }}
-            />
-          </TouchableOpacity>
-
-          <View className="ml-2">
-            <Text className="text-[16px] font-semibold">
-              Upload Your Property
-            </Text>
-            <Text className="text-[12px] text-[#00000066]">
-              Add your property details
-            </Text>
-          </View>
+        <View className="ml-2">
+          <Text className="text-[16px] font-semibold">
+            {t('upload_property_title')}
+          </Text>
+          <Text className="text-[12px] text-[#00000066]">
+            {t('upload_property_subtitle')}
+          </Text>
         </View>
-
+      </View>
 
       <ScrollView
         contentContainerStyle={{ padding: 16, paddingBottom: 36 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* ---------- HEADER ---------- */}
-       
         {/* ---------- IMAGE UPLOAD ---------- */}
         <PropertyImageUpload
           images={images}
@@ -853,13 +814,13 @@ case "Hospitality":
           className="bg-white rounded-lg p-4 mb-4"
           style={{ borderWidth: 1, borderColor: "#0000001A" }}
         >
-          <Text className="text-[16px] font-bold mb-5">Basic Details</Text>
+          <Text className="text-[16px] font-bold mb-5">{t('basic_details_title')}</Text>
 
           <Text className="text-[15px] text-[#00000099] mb-2">
-            Property Title
+            {t('property_title_label')}
           </Text>
           <TextInput
-            placeholder="Surya Teja Sites"
+            placeholder={t('property_title_placeholder')}
             value={propertyTitle}
             onChangeText={setPropertyTitle}
             className="rounded-md p-3 mb-3"
@@ -872,7 +833,7 @@ case "Hospitality":
           />
 
           <Text className="text-[15px] text-[#00000099] font-bold mb-2">
-            Property Type
+            {t('property_type_label')}
           </Text>
           <TouchableOpacity
             onPress={() =>
@@ -880,26 +841,28 @@ case "Hospitality":
             }
             className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300"
           >
-            <Text>{propertyType}</Text>
+            <Text>{t('commercial_label')}</Text>
             <Ionicons name="chevron-down" size={20} />
           </TouchableOpacity>
+
           <Text className="text-[15px] text-[#00000099] font-bold mt-4 mb-2">
-            Select Property Type
+            {t('select_property_type')}
           </Text>
           <View className="flex-row flex-wrap mb-4">
             {typePills.map((p) => (
               <PillButton
-                key={p}
-                label={p}
-                selected={selectedType === p}
-                onPress={() => setSelectedType(p)}
+                key={p.key}
+                label={p.label}
+                selected={selectedType === p.key}
+                onPress={() => setSelectedType(p.key)}
               />
             ))}
           </View>
+
           {selectedType === "Office" && (
             <>
               <Text className="text-[15px] text-[#00000099] font-bold mb-2">
-                What kind of office is it ?
+                {t('office_kind_question')}
               </Text>
               <View className="flex-row flex-wrap mb-4">
                 {officeKindPills.map((p) => (
@@ -911,54 +874,50 @@ case "Hospitality":
                   />
                 ))}
               </View>
-
             </>
           )}
+
           {selectedType === "Industry" && (
-          <>
-            <Text className="text-[15px] text-[#00000099] font-bold mb-2">
-              What kind of industry is it ?
-            </Text>
-            <View className="flex-row flex-wrap mb-4">
-              {industryKindPills.map((p) => (
-                <PillButton
-                  key={p}
-                  label={p}
-                  selected={industryKinds.includes(p)}
-                  onPress={() => setIndustryKinds([p])}
-                />
-              ))}
-            </View>
-           
-          </>
-         )}
+            <>
+              <Text className="text-[15px] text-[#00000099] font-bold mb-2">
+                {t('industry_kind_question')}
+              </Text>
+              <View className="flex-row flex-wrap mb-4">
+                {industryKindPills.map((p) => (
+                  <PillButton
+                    key={p}
+                    label={p}
+                    selected={industryKinds.includes(p)}
+                    onPress={() => setIndustryKinds([p])}
+                  />
+                ))}
+              </View>
+            </>
+          )}
+
           {selectedType === "Retail" && (
             <>
               <Text className="text-[15px] text-[#00000099] font-bold mb-2">
-                What kind of office  is it?
+                {t('retail_kind_question')}
               </Text>
 
               <View className="flex-row flex-wrap mb-2">
-                {["Commercial Shop", "Commercial Showroom"].map((type) => (
+                {retailTypeOptions.map((type) => (
                   <PillButton
                     key={type}
                     label={type}
                     selected={retailKinds.includes(type)}
-onPress={() => setRetailKinds([type])}
-
+                    onPress={() => setRetailKinds([type])}
                   />
                 ))}
               </View>
-              {/* Located Inside */}
-              <View
-                className=" mb-4"
 
-              >
+              {/* Located Inside */}
+              <View className="mb-4">
                 <Text className="text-[15px] text-[#00000099] mb-3">
-                  Located Inside
+                  {t('retail_located_inside')}
                 </Text>
 
-                {/* Dropdown trigger */}
                 <TouchableOpacity
                   onPress={() =>
                     setVisible(visible === "locatedInside" ? null : "locatedInside")
@@ -966,36 +925,27 @@ onPress={() => setRetailKinds([type])}
                   className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300"
                 >
                   <Text className="text-gray-800">
-                    {locatedInside || "Select Located Inside"}
+                    {locatedInside || t('retail_select_located_inside')}
                   </Text>
                   <Ionicons name="chevron-down" size={22} color="#888" />
                 </TouchableOpacity>
 
-                {/* Dropdown list */}
                 {visible === "locatedInside" && (
                   <View
                     className="bg-white rounded-lg shadow-lg mt-2"
                     style={{ borderWidth: 1, borderColor: "#0000001A" }}
                   >
-                    {[
-                      "Mall",
-                      "Commercial Project",
-                      "Residential Project",
-                      "Retail Complex / Building",
-                      "Market / High Street",
-                    ].map((item) => (
+                    {locatedInsideOptions.map((item) => (
                       <TouchableOpacity
                         key={item}
                         onPress={() => {
                           setLocatedInside(item);
                           setVisible(null);
                         }}
-                        className={`p-4 border-b border-gray-200 ${locatedInside === item ? "bg-green-500" : "bg-white"
-                          }`}
+                        className={`p-4 border-b border-gray-200 ${locatedInside === item ? "bg-green-500" : "bg-white"}`}
                       >
                         <Text
-                          className={`${locatedInside === item ? "text-white" : "text-gray-800"
-                            }`}
+                          className={`${locatedInside === item ? "text-white" : "text-gray-800"}`}
                         >
                           {item}
                         </Text>
@@ -1004,37 +954,32 @@ onPress={() => setRetailKinds([type])}
                   </View>
                 )}
               </View>
-
-
             </>
           )}
 
-        {selectedType === "Plot/Land" && (
+          {selectedType === "Plot/Land" && (
             <>
               <Text className="text-[15px] text-[#00000099] font-bold mb-2">
-                What kind of plot/land is it ?
+                {t('plot_kind_question')}
               </Text>
 
               <View className="flex-row flex-wrap mb-2">
-                {["commercial Land/Inst.Land", "Agricultural/Farm Land", "Industrial Lands/Plots"].map((type) => (
+                {plotKindPills.map((type) => (
                   <PillButton
                     key={type}
                     label={type}
-                    selected={plotKinds.includes(type)} // ✅ CHANGED from officeKinds
-                    onPress={() => setPlotKinds([type])} // ✅ CHANGED from setOfficeKinds
+                    selected={plotKinds.includes(type)}
+                    onPress={() => setPlotKinds([type])}
                   />
                 ))}
               </View>
-
-
-
             </>
           )}
-           {selectedType === "Hospitality" && 
-        (
+
+          {selectedType === "Hospitality" && (
             <>
               <Text className="text-[15px] text-[#00000099] font-bold mb-2">
-                What kind of Hospitality is it ?
+                {t('hospitality_kind_question')}
               </Text>
               <View className="flex-row flex-wrap mb-4">
                 {hospitalityKindPills.map((p) => (
@@ -1046,24 +991,13 @@ onPress={() => setRetailKinds([type])}
                   />
                 ))}
               </View>
-
             </>
-          )
-        }
-        </View>
+          )}
 
-        {/* ---------- SELECT COMMERCIAL TYPE ---------- */}
-
-
-
-
-
-       
-        {selectedType === "Storage" &&
-          (
+          {selectedType === "Storage" && (
             <>
               <Text className="text-[15px] text-[#00000099] font-bold mb-2">
-                What kind of storage is it ?
+                {t('storage_kind_question')}
               </Text>
               <View className="flex-row flex-wrap mb-4">
                 {storageKindPills.map((p) => (
@@ -1075,32 +1009,29 @@ onPress={() => setRetailKinds([type])}
                   />
                 ))}
               </View>
-
             </>
-          )
-        }
-       
-        {selectedType === "Other" && <Other />}
+          )}
+        </View>
 
-        {/* ---------- ACTION BUTTONS ---------- */}
-        
+        {selectedType === "Other" && <Other />}
       </ScrollView>
+
       <View className="border-t border-gray-200 bg-white">
         <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-12">
           <TouchableOpacity
             className="px-10 py-3 rounded-lg bg-gray-200 mx-3"
           >
-            <Text className="font-semibold">Cancel</Text>
+            <Text className="font-semibold">{t('button_cancel')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             className="px-8 py-3 rounded-lg bg-green-500"
             onPress={handleNext}
           >
-            <Text className="text-white font-semibold">Next</Text>
+            <Text className="text-white font-semibold">{t('button_next')}</Text>
           </TouchableOpacity>
         </View>
-        </View>
+      </View>
     </View>
   );
 }

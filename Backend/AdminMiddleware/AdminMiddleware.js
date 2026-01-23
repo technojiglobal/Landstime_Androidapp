@@ -1,15 +1,11 @@
 // Backend/AdminMiddleware/AdminMiddleware.js
 import jwt from "jsonwebtoken";
+import Admin from "../AdminModels/Admin.js"; // Make sure the path is correct
 
-export const verifyAdmin = (req, res, next) => {
-  // ✅ CRITICAL FIX: Skip authentication for OPTIONS (preflight) requests
-  if (req.method === 'OPTIONS') {
-    console.log("✅ OPTIONS request - skipping auth");
-    return next();
-  }
-
+export const verifyAdmin = async (req, res, next) => {
   console.log("🚨🚨🚨 ADMIN AUTH MIDDLEWARE 🚨🚨🚨");
   console.log("ADMIN AUTH HEADER:", req.headers.authorization);
+  console.log("JWT_SECRET in middleware:", process.env.JWT_SECRET);
 
   const authHeader = req.headers.authorization;
 
@@ -32,11 +28,19 @@ export const verifyAdmin = (req, res, next) => {
       return res.status(403).json({ message: "Forbidden: Admin access required" });
     }
 
-    // 4️⃣ Attach admin info to request
-    req.adminId = decoded.adminId || decoded.id;
-    req.adminRole = decoded.role;
+    // 4️⃣ Fetch admin from database
+    const adminId = decoded.adminId || decoded.id;
+    const admin = await Admin.findById(adminId);
 
-    console.log("✅ ADMIN ACCESS GRANTED:", decoded.role);
+    if (!admin) {
+      console.log("❌ Admin user not found in database:", adminId);
+      return res.status(404).json({ message: "Admin user not found" });
+    }
+
+    // 5️⃣ Attach admin info to request
+    req.admin = admin; // Attach the full admin object
+
+    console.log("✅ ADMIN ACCESS GRANTED:", admin.role, admin.email);
     next();
   } catch (err) {
     console.log("❌ JWT VERIFY ERROR:", err.message);
