@@ -2,7 +2,9 @@
 import Property from '../UserModels/Property.js';
 import { translatePropertyFields, normalizeAreaKey } from '../services/translationService.js';
 import { handleOfficeProperty } from './commercial/officeController.js';
-
+import { handleRetailProperty } from './commercial/retailController.js';
+import { handlePlotProperty } from './commercial/plotController.js';
+import { handleStorageProperty } from './commercial/storageController.js';
 // Utility: Convert buffer to base64
 const bufferToBase64 = (buffer, mimetype) => {
   return `data:${mimetype};base64,${buffer.toString('base64')}`;
@@ -246,11 +248,83 @@ if (normalizedPropertyType === "Commercial") {
     subType: canonicalSubType,
   };
 
-  // 🔹 OFFICE HANDLING
-  if (canonicalSubType === "Office") {
-    handleOfficeProperty(propertyData, finalData);
+  /// 🔹 OFFICE HANDLING
+if (canonicalSubType === "Office") {
+  // ✅ FIX: Ensure officeDetails has expectedPrice from top level
+  if (!commercialDetails.officeDetails) {
+    commercialDetails.officeDetails = {};
   }
-
+  
+  // ✅ Copy expectedPrice to officeDetails if not already there
+  if (!commercialDetails.officeDetails.expectedPrice && propertyData.expectedPrice) {
+    commercialDetails.officeDetails.expectedPrice = propertyData.expectedPrice;
+  }
+  
+  console.log('🔍 [ADMIN] Office details before controller:', {
+    hasExpectedPrice: !!commercialDetails.officeDetails.expectedPrice,
+    expectedPrice: commercialDetails.officeDetails.expectedPrice,
+    hasVaastu: !!commercialDetails.officeDetails.vaasthuDetails,
+    vaastuFields: Object.keys(commercialDetails.officeDetails.vaasthuDetails || {}),
+  });
+  
+  handleOfficeProperty(propertyData, finalData);
+}
+// 🔹 RETAIL HANDLING
+if (canonicalSubType === "Retail") {
+  if (!commercialDetails.retailDetails) {
+    commercialDetails.retailDetails = {};
+  }
+  
+  if (!commercialDetails.retailDetails.expectedPrice && propertyData.expectedPrice) {
+    commercialDetails.retailDetails.expectedPrice = propertyData.expectedPrice;
+  }
+  
+  console.log('🔍 [ADMIN] Retail details before controller:', {
+    hasExpectedPrice: !!commercialDetails.retailDetails.expectedPrice,
+    expectedPrice: commercialDetails.retailDetails.expectedPrice,
+    hasVaastu: !!commercialDetails.retailDetails.vaasthuDetails,
+    vaastuFields: Object.keys(commercialDetails.retailDetails.vaasthuDetails || {}),
+  });
+  
+  handleRetailProperty(propertyData, finalData);
+}
+if (canonicalSubType === "Plot/Land") {
+  if (!commercialDetails.plotDetails) {
+    commercialDetails.plotDetails = {};
+  }
+  
+  if (!commercialDetails.plotDetails.expectedPrice && propertyData.expectedPrice) {
+    commercialDetails.plotDetails.expectedPrice = propertyData.expectedPrice;
+  }
+  
+  console.log('🔍 [ADMIN] Plot details before controller:', {
+    hasExpectedPrice: !!commercialDetails.plotDetails.expectedPrice,
+    expectedPrice: commercialDetails.plotDetails.expectedPrice,
+    hasVastu: !!commercialDetails.plotDetails.vaasthuDetails,
+    vaastuFields: Object.keys(commercialDetails.plotDetails.vaasthuDetails || {}),
+  });
+  
+  handlePlotProperty(propertyData, finalData);
+}
+// 🔹 STORAGE HANDLING
+if (canonicalSubType === "Storage") {
+  if (!commercialDetails.storageDetails) {
+    commercialDetails.storageDetails = {};
+  }
+  
+  if (!commercialDetails.storageDetails.expectedPrice && propertyData.expectedPrice) {
+    commercialDetails.storageDetails.expectedPrice = propertyData.expectedPrice;
+  }
+  
+  console.log('🔍 [ADMIN] Storage details before controller:', {
+    hasExpectedPrice: !!commercialDetails.storageDetails.expectedPrice,
+    expectedPrice: commercialDetails.storageDetails.expectedPrice,
+    hasVastu: !!commercialDetails.storageDetails.vaasthuDetails,
+    vaastuFields: Object.keys(commercialDetails.storageDetails.vaasthuDetails || {}),
+  });
+  
+  handleStorageProperty(propertyData, finalData);
+}
   console.log('🏢 [ADMIN] Commercial property:', canonicalSubType);
 }
 

@@ -8,9 +8,9 @@ import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import userRoutes from './UserRoutes/UserRoute.js';
-import propertyRoutes from './UserRoutes/PropertyRoute.js';
+import propertyRoutes from './UserRoutes/PropertyRoutes.js';
 import adminPropertyRoutes from './AdminRoutes/adminPropertyRoute.js';  
-import propertyRoutes from './UserRoutes/propertyRoutes.js';
+
 import subscriptionRoutes from './UserRoutes/SubscriptionRoute.js';
 import userNotificationRoutes from './UserRoutes/UserNotificationRoute.js'; // ✅ NEW
 import adminAuthRoutes from "./AdminRoutes/AdminRoute.js";

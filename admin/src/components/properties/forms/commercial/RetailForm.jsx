@@ -17,14 +17,27 @@ import {
 import { retailVaasthuFields } from '../../../../constants/vastuFields';
 import LocationSection from '../../sections/LocationSection';
 import AvailabilityStatus from '../../sections/AvailabilityStatus';
+import ImageUpload from '../../fields/ImageUpload';
+import PricingSection from '../../sections/PricingSection';
 
-const RetailForm = ({ formData, updateField }) => {
+const RetailForm = ({ formData, updateField,images, setImages }) => {
+  const retail = formData.commercialDetails?.retailDetails || {};
+
+const setRetail = (key, value) =>
+  updateField(`commercialDetails.retailDetails.${key}`, value);
+
   return (
     <div className="space-y-6 border-t pt-6">
       
      {/* ==================== LOCATION SECTION ==================== */}
       <LocationSection formData={formData} updateField={updateField} />
-          
+         <ImageUpload
+        label="Property Images"
+        images={images}
+        onChange={setImages}
+        maxImages={20}
+        required={true}
+      />   
       {/* ==================== LOCATION DETAILS ==================== */}
       <div className="grid grid-cols-1 gap-4">
         <SelectField
@@ -54,13 +67,11 @@ const RetailForm = ({ formData, updateField }) => {
         
         <div className="grid grid-cols-2 gap-4">
           <NumberField
-            label="Carpet Area"
-            name="carpetArea"
-            value={formData.carpetArea}
-            onChange={(value) => updateField('carpetArea', value)}
-            placeholder="sqft"
-            required
-          />
+  label="Carpet Area"
+  value={retail.carpetArea}
+  onChange={(value) => setRetail('carpetArea', value)}
+/>
+
           
           
         </div>
@@ -72,18 +83,17 @@ const RetailForm = ({ formData, updateField }) => {
         
         <div className="grid grid-cols-2 gap-4">
           <TextField
-            label="Entrance width"
-            name="entranceWidth"
-            value={formData.entranceWidth}
-            onChange={(value) => updateField('entranceWidth', value)}
-            placeholder="ft"
-          />
+  value={retail.entranceWidth}
+  onChange={(value) => setRetail('entranceWidth', value)}
+/>
+
           
           <TextField
             label="Ceiling Height"
             name="ceilingHeight"
-            value={formData.ceilingHeight}
-            onChange={(value) => updateField('ceilingHeight', value)}
+            value={retail.ceilingHeight}
+  onChange={(value) => setRetail('ceilingHeight', value)}
+
             placeholder="ft"
           />
         </div>
@@ -97,15 +107,15 @@ const RetailForm = ({ formData, updateField }) => {
           <button
             type="button"
             onClick={() => {
-              const current = formData.washroomTypes || [];
+              const current = retail.washroomTypes || [];
               if (current.includes('Private')) {
                 updateField('washroomTypes', current.filter(t => t !== 'Private'));
               } else {
-                updateField('washroomTypes', [...current, 'Private']);
+                setRetail('washroomTypes', [...current, 'Private']);
               }
             }}
             className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-              (formData.washroomTypes || []).includes('Private')
+              (retail.washroomTypes || []).includes('Private')
                 ? 'bg-white text-gray-700 border-gray-300'
                 : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
             }`}
@@ -116,7 +126,7 @@ const RetailForm = ({ formData, updateField }) => {
           <button
             type="button"
             onClick={() => {
-              const current = formData.washroomTypes || [];
+              const current = retail.washroomTypes || [];
               if (current.includes('Public')) {
                 updateField('washroomTypes', current.filter(t => t !== 'Public'));
               } else {
@@ -154,8 +164,8 @@ const RetailForm = ({ formData, updateField }) => {
           <NumberField
             label="Total Floors"
             name="totalFloors"
-            value={formData.totalFloors}
-            onChange={(value) => updateField('totalFloors', value)}
+value={retail.totalFloors}
+  onChange={(value) => setRetail('totalFloors', value)}
             placeholder="0"
           />
           
@@ -200,7 +210,7 @@ const RetailForm = ({ formData, updateField }) => {
           <button
             type="button"
             onClick={() => {
-              const current = formData.parkingType || [];
+              const current = retail.parkingType || [];
               if (current.includes('Private Parking')) {
                 updateField('parkingType', current.filter(t => t !== 'Private Parking'));
               } else {
@@ -208,7 +218,7 @@ const RetailForm = ({ formData, updateField }) => {
               }
             }}
             className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-              (formData.parkingType || []).includes('Private Parking')
+              (retail.parkingType || []).includes('Private Parking')
                 ? 'bg-white text-gray-700 border-gray-300'
                 : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
             }`}
@@ -219,15 +229,16 @@ const RetailForm = ({ formData, updateField }) => {
           <button
             type="button"
             onClick={() => {
-              const current = formData.parkingType || [];
+              const current = retail.parkingType || [];
               if (current.includes('Public Parking')) {
                 updateField('parkingType', current.filter(t => t !== 'Public Parking'));
               } else {
-                updateField('parkingType', [...current, 'Public Parking']);
+               setRetail('parkingType', [...current, 'Public Parking']);
+
               }
             }}
             className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-              (formData.parkingType || []).includes('Public Parking')
+              (retail.parkingType || []).includes('Public Parking')
                 ? 'bg-white text-gray-700 border-gray-300'
                 : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
             }`}
@@ -238,7 +249,7 @@ const RetailForm = ({ formData, updateField }) => {
           <button
             type="button"
             onClick={() => {
-              const current = formData.parkingType || [];
+              const current = retail.parkingType || [];
               if (current.includes('Multilevel Parking')) {
                 updateField('parkingType', current.filter(t => t !== 'Multilevel Parking'));
               } else {
@@ -246,7 +257,7 @@ const RetailForm = ({ formData, updateField }) => {
               }
             }}
             className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-              (formData.parkingType || []).includes('Multilevel Parking')
+              (retail.parkingType || []).includes('Multilevel Parking')
                 ? 'bg-white text-gray-700 border-gray-300'
                 : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
             }`}
@@ -258,7 +269,7 @@ const RetailForm = ({ formData, updateField }) => {
             type="button"
             onClick={() => updateField('parkingType', [])}
             className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-              (formData.parkingType || []).length === 0
+              (retail.parkingType || []).length === 0
                 ? 'bg-white text-gray-700 border-gray-300'
                 : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
             }`}
@@ -270,7 +281,13 @@ const RetailForm = ({ formData, updateField }) => {
 
      
       {/* ==================== AVAILABILITY STATUS ==================== */}
-      <AvailabilityStatus formData={formData} updateField={updateField} />
+      <AvailabilityStatus
+  formData={retail}
+  updateField={(key, value) =>
+    updateField(`commercialDetails.retailDetails.${key}`, value)
+  }
+/>
+
 
       {/* ==================== SUITABLE FOR BUSINESS TYPE ==================== */}
       <div className="border-t pt-6">
@@ -279,8 +296,8 @@ const RetailForm = ({ formData, updateField }) => {
         <SelectField
           label="Select business type"
           name="businessType"
-          value={formData.businessType}
-          onChange={(value) => updateField('businessType', value)}
+          value={retail.businessType}
+  onChange={(value) => setRetail('businessType', value)}
           options={[
             '',
             'ATM',
@@ -312,13 +329,14 @@ const RetailForm = ({ formData, updateField }) => {
         />
 
         {/* Show custom business type field when "Other" is selected */}
-        {formData.businessType === 'Other' && (
+        {retail.businessType === 'Other' && (
           <div className="mt-4">
             <TextField
               label="Other Business Type"
               name="otherBusinessType"
-              value={formData.otherBusinessType}
-              onChange={(value) => updateField('otherBusinessType', value)}
+              value={retail.otherBusinessType}
+    onChange={(value) => setRetail('otherBusinessType', value)}
+
               placeholder="Enter business type"
             />
           </div>
@@ -334,9 +352,9 @@ const RetailForm = ({ formData, updateField }) => {
             <button
               key={type}
               type="button"
-              onClick={() => updateField('ownershipType', type)}
+              onClick={() => setRetail('ownershipType', type)}
               className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-                formData.ownershipType === type
+                retail.ownershipType === type
                   ? 'bg-green-500 text-white border-green-500'
                   : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
               }`}
@@ -349,32 +367,22 @@ const RetailForm = ({ formData, updateField }) => {
 
       {/* ==================== EXPECTED PRICE DETAILS ==================== */}
       <div className="border-t pt-6">
-        <h3 className="text-lg font-semibold text-left mb-4">Expected Price Details</h3>
+        
+
+    <NumberField
+      label="Expected Price"
+      name="expectedPrice"
+       value={retail.expectedPrice}
+  onChange={(value) => setRetail('expectedPrice', value)}
+      placeholder="₹ Expected Price"
+    />
+        <PricingSection formData={formData} updateField={updateField} />
         
         <div className="space-y-4">
-          <NumberField
-            label="₹ (Rent per month)"
-            name="rentPerMonth"
-            value={formData.rentPerMonth}
-            onChange={(value) => updateField('rentPerMonth', value)}
-            placeholder="Enter amount"
-          />
+         
+         
           
-          <NumberField
-            label="Price Negotiable"
-            name="priceNegotiable"
-            value={formData.priceNegotiable}
-            onChange={(value) => updateField('priceNegotiable', value)}
-            placeholder="Enter amount"
-          />
           
-          <NumberField
-            label="Advance Deposit(optional)"
-            name="advanceDeposit"
-            value={formData.advanceDeposit}
-            onChange={(value) => updateField('advanceDeposit', value)}
-            placeholder="Enter amount"
-          />
           
           <RadioButtons
             label="Is it Pre leased? (Pre leased?)"
@@ -397,25 +405,22 @@ const RetailForm = ({ formData, updateField }) => {
           <TextAreaField
             label="Description"
             name="description"
-            value={formData.description}
-            onChange={(value) => updateField('description', value)}
+            value={retail.description}
+  onChange={(value) => setRetail('description', value)}
+
             placeholder="Describe your property"
             rows={4}
           />
         </div>
       </div>
-      <VaasthuDetails 
-        formData={formData} 
-        updateField={updateField} 
-        fields={retailVaasthuFields}
-      />
+     
       {/* ==================== AMENITIES ==================== */}
       <div className="border-t pt-6">
         <h3 className="text-lg font-semibold text-left mb-4">Amenities</h3>
         <CheckboxGroup
           name="amenities"
-          selected={formData.amenities || []}
-          onChange={(value) => updateField('amenities', value)}
+          selected={retail.amenities || []}
+  onChange={(value) => setRetail('amenities', value)}
           options={RETAIL_AMENITIES}
         />
       </div>
@@ -424,13 +429,20 @@ const RetailForm = ({ formData, updateField }) => {
         <h3 className="text-lg font-semibold text-left mb-4">Location Advantages</h3>
         <CheckboxGroup
           name="locationAdvantages"
-          selected={formData.locationAdvantages || []}
-          onChange={(value) => updateField('locationAdvantages', value)}
+selected={retail.locationAdvantages || []}
+  onChange={(value) => setRetail('locationAdvantages', value)}
+
           options={LOCATION_ADVANTAGES}
         />
       </div>
       {/* ==================== VAASTHU DETAILS ==================== */}
-     
+   <VaasthuDetails 
+  formData={retail}
+  updateField={(key, value) => 
+    updateField(`commercialDetails.retailDetails.vaasthuDetails.${key}`, value)
+  }
+  fields={retailVaasthuFields}  // ✅ Add this
+/>
 
     </div>
   );
