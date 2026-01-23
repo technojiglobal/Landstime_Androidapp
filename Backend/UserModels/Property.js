@@ -894,6 +894,9 @@ storageDetails: {
   hospitalityType: {
     type: String,
     enum: ['Hotel/Resorts', 'Guest House'],
+    required: function() {
+      return this.commercialDetails?.subType === 'Hospitality';
+    }
   },
   location: {
     type: String,

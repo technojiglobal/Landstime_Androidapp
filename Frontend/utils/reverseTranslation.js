@@ -252,6 +252,85 @@ export const reverseTranslationMap = {
   '+హైవే దగ్గర': '+Close to Highway',
 
 
+  // ✅ ADD HOSPITALITY TRANSLATIONS
+  
+  // Months
+  'జనవరి': 'January',
+  'जनवरी': 'January',
+  'ఫిబ్రవరి': 'February',
+  'फ़रवरी': 'February',
+  'మార్చి': 'March',
+  'मार्च': 'March',
+  'ఏప్రిల్': 'April',
+  'अप्रैल': 'April',
+  'మే': 'May',
+  'मई': 'May',
+  'జూన్': 'June',
+  'जून': 'June',
+  'జూలై': 'July',
+  'जुलाई': 'July',
+  'ఆగస్టు': 'August',
+  'अगस्त': 'August',
+  'సెప్టెంబర్': 'September',
+  'सितंबर': 'September',
+  'అక్టోబర్': 'October',
+  'अक्टूबर': 'October',
+  'నవంబర్': 'November',
+  'नवंबर': 'November',
+  'డిసెంబర్': 'December',
+  'दिसंबर': 'December',
+  
+  // Possession Timeline
+  'వెంటనే': 'Immediate',
+  'तुरंत': 'Immediate',
+  '3 నెలల్లో': 'Within 3 months',
+  '3 महीने के भीतर': 'Within 3 months',
+  '6 నెలల్లో': 'Within 6 months',
+  '6 महीने के भीतर': 'Within 6 months',
+  '2025 నాటికి': 'By 2025',
+  '2025 तक': 'By 2025',
+  '2026 నాటికి': 'By 2026',
+  '2026 तक': 'By 2026',
+  '2027 నాటికి': 'By 2027',
+  '2027 तक': 'By 2027',
+  '2028 నాటికి': 'By 2028',
+  '2028 तक': 'By 2028',
+  '2029 నాటికి': 'By 2029',
+  '2029 तक': 'By 2029',
+  '2030 నాటికి': 'By 2030',
+  '2030 तक': 'By 2030',
+  
+  // Amenities
+  '+నీటి నిల్వ': '+Water Storage',
+  '+जल भंडारण': '+Water Storage',
+  '+ప్రస్తుతం వాతానుకూలత': '+currently Air Conditioned',
+  '+वर्तमान में एयर कंडीशनिंग': '+currently Air Conditioned',
+  '+వాస్తు కాంప్లెక్స్': '+Vaastu Complex',
+  '+वास्तु परिसर': '+Vaastu Complex',
+  '+భద్రత అగ్ని అలారం': '+Security fire Alarm',
+  '+सुरक्षा अग्नि अलार्म': '+Security fire Alarm',
+  '+సందర్శకుల పార్కింగ్': '+Visitor Parking',
+  '+आगंतुक पार्किंग': '+Visitor Parking',
+  
+  // Location Advantages
+  '+మెట్రో స్టేషన్ దగ్గర': '+Close to Metro Station',
+  '+मेट्रो स्टेशन के पास': '+Close to Metro Station',
+  '+పాఠశాల దగ్గర': '+Close to School',
+  '+स्कूल के पास': '+Close to School',
+  '+ఆసుపత్రి దగ్గర': '+Close to Hospital',
+  '+अस्पताल के पास': '+Close to Hospital',
+  '+మార్కెట్ దగ్గర': '+Close to Market',
+  '+बाजार के पास': '+Close to Market',
+  '+రైల్వే స్టేషన్ దగ్గర': '+Close to Railway Station',
+  '+रेलवे स्टेशन के पास': '+Close to Railway Station',
+  '+విమానాశ్రయం దగ్గర': '+Close to Airport',
+  '+हवाई अड्डे के पास': '+Close to Airport',
+  '+మాల్ దగ్గర': '+Close to Mall',
+  '+मॉल के पास': '+Close to Mall',
+  '+హైవే దగ్గర': '+Close to Highway',
+  '+राजमार्ग के पास': '+Close to Highway',
+
+
 
  
 };
