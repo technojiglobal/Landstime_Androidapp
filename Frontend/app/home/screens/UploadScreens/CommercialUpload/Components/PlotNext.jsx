@@ -1,4 +1,4 @@
-//Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/PlotNext.jsx
+// Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/PlotNext.jsx
 
 import React, { useState, useEffect, useMemo } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -14,6 +14,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import Toast from "react-native-toast-message";
 import MorePricingDetailsModal from "../../MorePricingDetailsModal";
+import { useTranslation } from 'react-i18next';
+import { convertToEnglish } from '../../../../../../utils/reverseTranslation';
 
 /* ---------- UI HELPERS ---------- */
 const PillButton = ({ label, selected, onPress }) => (
@@ -55,6 +57,7 @@ const Checkbox = ({ label, checked, onPress }) => (
 export default function PlotNext() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { t } = useTranslation();
 
   // ✅ Safe parsing helper
   const safeParse = (raw) => {
@@ -98,36 +101,30 @@ export default function PlotNext() {
 
   /* ---------- OPTIONS ---------- */
   const ownershipOptions = [
-    "Freehold",
-    "Leasehold",
-    "Co-operative Society",
-    "Power of Attorney",
+    t('plot_ownership_freehold'),
+    t('plot_ownership_leasehold'),
+    t('plot_ownership_cooperative'),
+    t('plot_ownership_poa'),
   ];
 
-  const amenitiesOptions = [
-    "+ Service/Goods Lift",
-    "+ Maintenance Staff",
-    "+ Water Storage",
-    "+ ATM",
-    "+ Water Disposal",
-    "+ Rainwater Harvesting",
-    "+ Security Fire Alarm",
-    "+ Near Bank",
-    "+ Visitor Parking",
-    "+ Security Guard",
-    "+ Lift(s)",
-  ];
+const amenitiesOptions = [
+  t('plot_amenity_water_storage'),
+  t('plot_amenity_air_conditioned'),
+  t('plot_amenity_vaastu_complex'),
+  t('plot_amenity_fire_alarm'),
+  t('plot_amenity_visitor_parking'),
+];
 
-  const locationAdvOptions = [
-    "+ Close to Metro Station",
-    "+ Close to School",
-    "+ Close to Hospital",
-    "+ Close to Market",
-    "+ Close to Railway Station",
-    "+ Close to Airport",
-    "+ Close to Mall",
-    "+ Close to Highway",
-  ];
+const locationAdvOptions = [
+  t('plot_loc_metro_station'),
+  t('plot_loc_school'),
+  t('plot_loc_hospital'),
+  t('plot_loc_market'),
+  t('plot_loc_railway_station'),
+  t('plot_loc_airport'),
+  t('plot_loc_mall'),
+  t('plot_loc_highway'),
+];
 
   const toggleItem = (item, list, setList) => {
     setList(
@@ -137,63 +134,62 @@ export default function PlotNext() {
     );
   };
 
-  // ✅ Load draft and restore data
-// ✅ Load draft from AsyncStorage
-useEffect(() => {
-  const loadDraft = async () => {
-    try {
-      console.log("📦 Loading Plot pricing draft from AsyncStorage");
-      const draft = await AsyncStorage.getItem('draft_plot_pricing');
-      if (draft) {
-        const parsed = JSON.parse(draft);
-        console.log('✅ Plot pricing draft loaded:', parsed);
+  // ✅ Load draft from AsyncStorage
+  useEffect(() => {
+    const loadDraft = async () => {
+      try {
+        console.log("📦 Loading Plot pricing draft from AsyncStorage");
+        const draft = await AsyncStorage.getItem('draft_plot_pricing');
+        if (draft) {
+          const parsed = JSON.parse(draft);
+          console.log('✅ Plot pricing draft loaded:', parsed);
 
-        setOwnership(parsed.ownership || '');
-        setAuthority(parsed.authority || '');
-        setIndustryType(parsed.industryType || '');
-        setExpectedPrice(parsed.expectedPrice?.toString() || '');
-        setAllInclusive(parsed.allInclusive || false);
-        setNegotiable(parsed.negotiable || false);
-        setTaxExcluded(parsed.taxExcluded || false);
-        setPreLeased(parsed.preLeased || null);
-        setLeaseDuration(parsed.leaseDuration || '');
-        setMonthlyRent(parsed.monthlyRent?.toString() || '');
-        setDescription(parsed.description || '');
-        setCornerProperty(parsed.cornerProperty || false);
-        setAmenities(parsed.amenities || []);
-        setLocationAdvantages(parsed.locationAdvantages || []);
+          setOwnership(parsed.ownership || '');
+          setAuthority(parsed.authority || '');
+          setIndustryType(parsed.industryType || '');
+          setExpectedPrice(parsed.expectedPrice?.toString() || '');
+          setAllInclusive(parsed.allInclusive || false);
+          setNegotiable(parsed.negotiable || false);
+          setTaxExcluded(parsed.taxExcluded || false);
+          setPreLeased(parsed.preLeased || null);
+          setLeaseDuration(parsed.leaseDuration || '');
+          setMonthlyRent(parsed.monthlyRent?.toString() || '');
+          setDescription(parsed.description || '');
+          setCornerProperty(parsed.cornerProperty || false);
+          setAmenities(parsed.amenities || []);
+          setLocationAdvantages(parsed.locationAdvantages || []);
 
-        console.log('✅ Plot pricing draft loaded successfully');
-        return;
+          console.log('✅ Plot pricing draft loaded successfully');
+          return;
+        }
+      } catch (e) {
+        console.log('⚠️ Failed to load Plot pricing draft:', e);
       }
-    } catch (e) {
-      console.log('⚠️ Failed to load Plot pricing draft:', e);
-    }
 
-    // ✅ FALLBACK: Load from params
-    if (plotDetailsFromPrev?.pricingExtras) {
-      const pricing = plotDetailsFromPrev;
-      console.log('🔄 Restoring from params.plotDetails.pricing');
+      // ✅ FALLBACK: Load from params
+      if (plotDetailsFromPrev?.pricingExtras) {
+        const pricing = plotDetailsFromPrev;
+        console.log('🔄 Restoring from params.plotDetails.pricing');
 
-      setOwnership(pricing.pricingExtras?.ownership || '');
-      setAuthority(pricing.pricingExtras?.authority || '');
-      setIndustryType(pricing.pricingExtras?.industryType || '');
-      setExpectedPrice(pricing.expectedPrice?.toString() || '');
-      setAllInclusive(pricing.priceDetails?.allInclusive || false);
-      setNegotiable(pricing.priceDetails?.negotiable || false);
-      setTaxExcluded(pricing.priceDetails?.taxExcluded || false);
-      setPreLeased(pricing.pricingExtras?.preLeased || null);
-      setLeaseDuration(pricing.pricingExtras?.leaseDuration || '');
-      setMonthlyRent(pricing.pricingExtras?.monthlyRent?.toString() || '');
-      setDescription(pricing.description || '');
-      setCornerProperty(pricing.pricingExtras?.cornerProperty || false);
-      setAmenities(pricing.pricingExtras?.amenities || []);
-      setLocationAdvantages(pricing.pricingExtras?.locationAdvantages || []);
-    }
-  };
+        setOwnership(pricing.pricingExtras?.ownership || '');
+        setAuthority(pricing.pricingExtras?.authority || '');
+        setIndustryType(pricing.pricingExtras?.industryType || '');
+        setExpectedPrice(pricing.expectedPrice?.toString() || '');
+        setAllInclusive(pricing.priceDetails?.allInclusive || false);
+        setNegotiable(pricing.priceDetails?.negotiable || false);
+        setTaxExcluded(pricing.priceDetails?.taxExcluded || false);
+        setPreLeased(pricing.pricingExtras?.preLeased || null);
+        setLeaseDuration(pricing.pricingExtras?.leaseDuration || '');
+        setMonthlyRent(pricing.pricingExtras?.monthlyRent?.toString() || '');
+        setDescription(pricing.description || '');
+        setCornerProperty(pricing.pricingExtras?.cornerProperty || false);
+        setAmenities(pricing.pricingExtras?.amenities || []);
+        setLocationAdvantages(pricing.pricingExtras?.locationAdvantages || []);
+      }
+    };
 
-  loadDraft();
-}, []); // ✅ CHANGED: Remove plotDetailsFromPrev from dependencies
+    loadDraft();
+  }, []);
 
   // ✅ Auto-save pricing draft
   useEffect(() => {
@@ -231,11 +227,11 @@ useEffect(() => {
       amenities, locationAdvantages]);
 
   /* ---------------- VALIDATION ---------------- */
- const handleNext = () => {
+  const handleNext = () => {
     if (!expectedPrice.trim()) {
       Toast.show({
         type: 'error',
-        text1: 'Expected Price Required',
+        text1: t('plot_expected_price'),
         text2: 'Please enter the expected price.',
       });
       return;
@@ -244,7 +240,7 @@ useEffect(() => {
     if (!description.trim()) {
       Toast.show({
         type: 'error',
-        text1: 'Description Required',
+        text1: t('plot_description'),
         text2: 'Please enter a description.',
       });
       return;
@@ -258,27 +254,41 @@ useEffect(() => {
       return;
     }
 
+    // ✅ Convert Telugu/Hindi to English before saving
+   // ✅ Convert Telugu/Hindi to English before saving
+const convertedData = {
+  ownership: convertToEnglish(ownership),
+  authority: convertToEnglish(authority),
+  industryType: convertToEnglish(industryType),
+  preLeased: convertToEnglish(preLeased),
+  leaseDuration: convertToEnglish(leaseDuration),
+  amenities: amenities.map(item => convertToEnglish(item)),
+  locationAdvantages: locationAdvantages.map(item => convertToEnglish(item)),
+};
+
+    console.log('🌐 Converted Plot data:', convertedData);
+
     const updatedCommercialDetails = {
       ...plotDetailsFromPrev,
       propertyTitle,
       expectedPrice: Number(expectedPrice),
-      description : description,
+      description: description,
       priceDetails: {
         allInclusive,
         negotiable,
         taxExcluded,
       },
       pricingExtras: {
-        ownership,
-        authority,
-        industryType: industryType || '', // ✅ CHANGED: Ensure it's always defined
-        preLeased,
-        leaseDuration: leaseDuration || '', // ✅ CHANGED: Ensure it's always defined
-        monthlyRent: monthlyRent ? Number(monthlyRent) : 0, // ✅ CHANGED: Convert to number
+        ownership: convertedData.ownership,
+        authority: convertedData.authority,
+        industryType: convertedData.industryType || '',
+        preLeased: convertedData.preLeased,
+        leaseDuration: convertedData.leaseDuration || '',
+        monthlyRent: monthlyRent ? Number(monthlyRent) : 0,
         cornerProperty,
-        amenities,
-        locationAdvantages,
-        description:description
+        amenities: convertedData.amenities,
+        locationAdvantages: convertedData.locationAdvantages,
+        description: description
       },
     };
 
@@ -289,12 +299,12 @@ useEffect(() => {
         images: JSON.stringify(images),
         area: params.area,
         propertyTitle,
-        plotKind: plotKindFromParams, // ✅ Pass plotKind
+        plotKind: plotKindFromParams,
       },
     });
   };
 
-const handleBack = () => {
+  const handleBack = () => {
     if (!plotDetailsFromPrev) {
       router.back();
       return;
@@ -344,9 +354,9 @@ const handleBack = () => {
           />
         </TouchableOpacity>
         <View className="ml-2">
-          <Text className="text-[16px] font-semibold">Upload Your Property</Text>
+          <Text className="text-[16px] font-semibold">{t('upload_property_title')}</Text>
           <Text className="text-[12px] text-[#00000066]">
-            Add your property details
+            {t('upload_property_subtitle')}
           </Text>
         </View>
       </View>
@@ -356,7 +366,7 @@ const handleBack = () => {
         <View className="bg-white border border-gray-200 rounded-xl p-4">
 
           {/* OWNERSHIP */}
-          <Text className="font-semibold mb-2">Ownership</Text>
+          <Text className="font-semibold mb-2">{t('plot_ownership')}</Text>
           <View className="flex-row flex-wrap mb-4">
             {ownershipOptions.map(opt => (
               <PillButton
@@ -370,10 +380,10 @@ const handleBack = () => {
 
           {/* AUTHORITY */}
           <Text className="font-semibold mb-2">
-            Which authority the property is approved by? (optional)
+            {t('plot_authority_approved')}
           </Text>
           <TextInput
-            placeholder="Local Authority"
+            placeholder={t('plot_authority_placeholder')}
             value={authority}
             onChangeText={setAuthority}
             className="border rounded-lg px-3 py-3 mb-4 text-sm"
@@ -385,27 +395,27 @@ const handleBack = () => {
             onBlur={() => setFocusedField(null)}
           />
 
-         {/* INDUSTRY TYPE */}
-<Text className="font-semibold mb-2">
-  Approved for Industry Type (optional)
-</Text>
-<TextInput
-  placeholder="Select Industry Type"
-  value={industryType}
-  onChangeText={setIndustryType}
-  className="border rounded-lg px-3 py-3 mb-4 text-sm"
-  style={{
-    borderWidth: 2,
-    borderColor: focusedField === "industryType" ? "#22C55E" : "#d1d5db",
-  }}
-  onFocus={() => setFocusedField("industryType")}
-  onBlur={() => setFocusedField(null)}
-/>
+          {/* INDUSTRY TYPE */}
+          <Text className="font-semibold mb-2">
+            {t('plot_industry_type')}
+          </Text>
+          <TextInput
+            placeholder={t('plot_industry_type_placeholder')}
+            value={industryType}
+            onChangeText={setIndustryType}
+            className="border rounded-lg px-3 py-3 mb-4 text-sm"
+            style={{
+              borderWidth: 2,
+              borderColor: focusedField === "industryType" ? "#22C55E" : "#d1d5db",
+            }}
+            onFocus={() => setFocusedField("industryType")}
+            onBlur={() => setFocusedField(null)}
+          />
 
           {/* PRICE */}
-          <Text className="font-semibold mb-2">Expected Price Details <Text className="text-red-500">*</Text></Text>
+          <Text className="font-semibold mb-2">{t('plot_expected_price')} <Text className="text-red-500">*</Text></Text>
           <TextInput
-            placeholder="₹ Expected Price"
+            placeholder={t('plot_expected_price_placeholder')}
             value={expectedPrice}
             onChangeText={setExpectedPrice}
             keyboardType="numeric"
@@ -419,38 +429,38 @@ const handleBack = () => {
           />
 
           <Checkbox
-            label="All inclusive price"
+            label={t('plot_price_all_inclusive')}
             checked={allInclusive}
             onPress={() => setAllInclusive(!allInclusive)}
           />
           <Checkbox
-            label="Price negotiable"
+            label={t('plot_price_negotiable')}
             checked={negotiable}
             onPress={() => setNegotiable(!negotiable)}
           />
           <Checkbox
-            label="Tax and govt charges excluded"
+            label={t('plot_price_tax_excluded')}
             checked={taxExcluded}
             onPress={() => setTaxExcluded(!taxExcluded)}
           />
           <TouchableOpacity onPress={() => setIsMorePricingModalVisible(true)}>
             <Text className="text-[#22C55E] text-sm mt-2">
-              + Add more pricing details
+              {t('plot_more_pricing')}
             </Text>
           </TouchableOpacity>
 
           {/* PRE-LEASED */}
           <Text className="font-semibold mt-4 mb-2">
-            Is it Pre-leased / Pre-rented?
+            {t('plot_pre_leased')}
           </Text>
           <View className="flex-row mb-4">
             <PillButton
-              label="Yes"
+              label={t('plot_pre_leased_yes')}
               selected={preLeased === "Yes"}
               onPress={() => setPreLeased("Yes")}
             />
             <PillButton
-              label="No"
+              label={t('plot_pre_leased_no')}
               selected={preLeased === "No"}
               onPress={() => setPreLeased("No")}
             />
@@ -459,7 +469,7 @@ const handleBack = () => {
           {preLeased === "Yes" && (
             <>
               <TextInput
-                placeholder="Lease duration (eg: 5 years)"
+                placeholder={t('plot_lease_duration')}
                 value={leaseDuration}
                 onChangeText={setLeaseDuration}
                 className="border rounded-xl px-4 py-3 mb-3 text-sm"
@@ -471,7 +481,7 @@ const handleBack = () => {
                 onBlur={() => setFocusedField(null)}
               />
               <TextInput
-                placeholder="₹ Monthly rent"
+                placeholder={t('plot_monthly_rent')}
                 value={monthlyRent}
                 onChangeText={setMonthlyRent}
                 keyboardType="numeric"
@@ -487,9 +497,9 @@ const handleBack = () => {
           )}
 
           {/* DESCRIPTION */}
-          <Text className="font-semibold mb-2">Description <Text className="text-red-500">*</Text></Text>
+          <Text className="font-semibold mb-2">{t('plot_description')} <Text className="text-red-500">*</Text></Text>
           <TextInput
-            placeholder="Write here what makes your property unique"
+            placeholder={t('plot_description_placeholder')}
             value={description}
             onChangeText={setDescription}
             multiline
@@ -503,15 +513,15 @@ const handleBack = () => {
           />
 
           {/* OTHER FEATURES */}
-          <Text className="font-semibold mb-2">Other Features</Text>
+          <Text className="font-semibold mb-2">{t('plot_other_features')}</Text>
           <Checkbox
-            label="Corner Property"
+            label={t('plot_corner_property')}
             checked={cornerProperty}
             onPress={() => setCornerProperty(!cornerProperty)}
           />
 
           {/* AMENITIES */}
-          <Text className="font-semibold mt-4 mb-2">Amenities</Text>
+          <Text className="font-semibold mt-4 mb-2">{t('plot_amenities')}</Text>
           <View className="flex-row flex-wrap">
             {amenitiesOptions.map(item => (
               <PillButton
@@ -525,7 +535,7 @@ const handleBack = () => {
 
           {/* LOCATION ADVANTAGES */}
           <Text className="font-semibold mt-4 mb-2">
-            Location Advantages
+            {t('plot_location_advantages')}
           </Text>
           <View className="flex-row flex-wrap">
             {locationAdvOptions.map(item => (
@@ -548,14 +558,14 @@ const handleBack = () => {
           onPress={handleBack}
           className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
         >
-          <Text>Cancel</Text>
+          <Text>{t('button_cancel')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={handleNext}
           className="px-5 py-3 rounded-lg bg-green-500 mx-3"
         >
-          <Text className="text-white font-semibold">Next</Text>
+          <Text className="text-white font-semibold">{t('button_next')}</Text>
         </TouchableOpacity>
       </View>
       
