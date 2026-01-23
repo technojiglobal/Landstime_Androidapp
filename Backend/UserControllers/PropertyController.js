@@ -109,6 +109,32 @@ const reverseTranslationMap = {
   'हाँ': 'Yes',
   'లేదు': 'No',
   'नहीं': 'No',
+  // Construction Types
+'+ Shed': '+ Shed',
+'+ Room(s)': '+ Room(s)',
+'+ Washroom': '+ Washroom',
+'+ Other': '+ Other',
+'+ शेड': '+ Shed',
+'+ कमरा(ए)': '+ Room(s)',
+'+ वॉशरूम': '+ Washroom',
+'+ अन्य': '+ Other',
+'+ షెడ్': '+ Shed',
+'+ గది(లు)': '+ Room(s)',
+'+ వాష్‌రూమ్': '+ Washroom',
+'+ ఇతర': '+ Other',
+
+// Vastu Directions - Towards
+'తూర్పు వైపు': 'Towards East',
+'पूर्व की ओर': 'Towards East',
+'దక్షిణం వైపు': 'Towards South',
+'दक्षिण की ओर': 'Towards South',
+'పడమర వైపు': 'Towards West',
+'पश्चिम की ओर': 'Towards West',
+
+// Open Space
+'ఉత్తరం & తూర్పులో ఎక్కువ': 'More in North & East',
+'उत्तर और पूर्व में अधिक': 'More in North & East',
+
 };
 
 const toEnglish = (text) => {
@@ -867,70 +893,72 @@ if (canonicalSubType === "Plot/Land") {
 
   console.log('✅ Plot area set to:', finalData.area);
 
-  // ✅ FIXED: Store COMPLETE plot details including plotKind and all pricing fields
-  finalData.commercialDetails.plotDetails = {
-    // ✅ Plot Kind (Agricultural/Residential/Commercial)
-    plotKind: commercialDetails.plotDetails.plotKind,
+  // ✅ CRITICAL - Convert Telugu/Hindi to English BEFORE saving
+  const rawPlotDetails = commercialDetails.plotDetails;
+  const rawPricingExtras = commercialDetails.pricingExtras || {};
+  const rawVastuDetails = commercialDetails.vastuDetails || {};
 
-    // Basic Location
-    location: commercialDetails.plotDetails.location,
-    locality: commercialDetails.plotDetails.locality,
+  console.log('🌐 Raw Plot data before conversion:', {
+    plotKind: rawPlotDetails.plotKind,
+    constructionTypes: rawPlotDetails.constructionTypes,
+    ownership: rawPricingExtras.ownership,
+    amenities: rawPricingExtras.amenities,
+  });
+
+  // ✅ Convert all Telugu/Hindi values to English
+  const convertedPlotDetails = {
+    plotKind: toEnglish(rawPlotDetails.plotKind),
+    location: rawPlotDetails.location,
+    locality: rawPlotDetails.locality,
     neighborhoodArea: neighborhoodArea,
-    plotType: commercialDetails.plotDetails.plotType,
-
-    // Area & Dimensions (from Plot.jsx)
-    area: Number(commercialDetails.plotDetails.area),
-    areaUnit: commercialDetails.plotDetails.areaUnit || 'sqft',
+    plotType: rawPlotDetails.plotType,
+    area: Number(rawPlotDetails.area),
+    areaUnit: rawPlotDetails.areaUnit || 'sqft',
     dimensions: {
-      length: Number(commercialDetails.plotDetails.dimensions?.length) || 0,
-      breadth: Number(commercialDetails.plotDetails.dimensions?.breadth) || 0,
+      length: Number(rawPlotDetails.dimensions?.length) || 0,
+      breadth: Number(rawPlotDetails.dimensions?.breadth) || 0,
     },
-
-    // Road & Construction
-    roadWidth: Number(commercialDetails.plotDetails.roadWidth) || 0,
-    roadWidthUnit: commercialDetails.plotDetails.roadWidthUnit || 'ft',
-    openSides: commercialDetails.plotDetails.openSides,
-    boundaryWall: commercialDetails.plotDetails.boundaryWall,
-    floorsAllowed: Number(commercialDetails.plotDetails.floorsAllowed) || 0,
-    zoneType: commercialDetails.plotDetails.zoneType,
-
-    constructionDone: commercialDetails.plotDetails.constructionDone,
-    constructionTypes: commercialDetails.plotDetails.constructionTypes || [],
-
-    // Possession
-    possession: commercialDetails.plotDetails.possession,
-
-    // ✅ Pricing fields (from PlotNext.jsx)
-    ownership: commercialDetails.pricingExtras?.ownership || 'Freehold',
-    approvedBy: commercialDetails.pricingExtras?.authority,
-    industryType: commercialDetails.pricingExtras?.industryType, // ✅ NEW
-    
-    // Pre-lease details
-    preLeased: commercialDetails.pricingExtras?.preLeased,
-    leaseDuration: commercialDetails.pricingExtras?.leaseDuration,
-    monthlyRent: Number(commercialDetails.pricingExtras?.monthlyRent) || 0,
-
-    // Features
-    cornerProperty: commercialDetails.pricingExtras?.cornerProperty || false,
-    amenities: commercialDetails.pricingExtras?.amenities || [],
-    locationAdvantages: commercialDetails.pricingExtras?.locationAdvantages || [],
-
-    // ✅ Vastu Details (from PlotVaastu.jsx)
-    vastuDetails: commercialDetails.vastuDetails || {},
+    roadWidth: Number(rawPlotDetails.roadWidth) || 0,
+    roadWidthUnit: rawPlotDetails.roadWidthUnit || 'ft',
+    openSides: rawPlotDetails.openSides,
+    boundaryWall: rawPlotDetails.boundaryWall,
+    floorsAllowed: Number(rawPlotDetails.floorsAllowed) || 0,
+    zoneType: rawPlotDetails.zoneType,
+    constructionDone: toEnglish(rawPlotDetails.constructionDone), // ✅ Convert
+    constructionTypes: convertToEnglish(rawPlotDetails.constructionTypes || []), // ✅ Convert array
+    possession: rawPlotDetails.possession,
+    ownership: toEnglish(rawPricingExtras.ownership) || 'Freehold', // ✅ Convert
+    approvedBy: rawPricingExtras.authority,
+    industryType: rawPricingExtras.industryType,
+    preLeased: toEnglish(rawPricingExtras.preLeased), // ✅ Convert
+    leaseDuration: rawPricingExtras.leaseDuration,
+    monthlyRent: Number(rawPricingExtras.monthlyRent) || 0,
+    cornerProperty: rawPricingExtras.cornerProperty || false,
+    amenities: convertToEnglish(rawPricingExtras.amenities || []), // ✅ Convert array
+    locationAdvantages: convertToEnglish(rawPricingExtras.locationAdvantages || []), // ✅ Convert array
+    vastuDetails: convertToEnglish(rawVastuDetails), // ✅ Convert all vastu fields
   };
 
- // ✅ Override root expectedPrice with plot price
-// ✅ Override root expectedPrice with plot price
-finalData.expectedPrice = Number(commercialDetails.expectedPrice) || 0;
+  console.log('✅ Converted Plot data:', {
+    plotKind: convertedPlotDetails.plotKind,
+    constructionTypes: convertedPlotDetails.constructionTypes,
+    ownership: convertedPlotDetails.ownership,
+    amenities: convertedPlotDetails.amenities,
+    vastuDetails: convertedPlotDetails.vastuDetails,
+  });
 
-  console.log('✅ Plot details stored:', {
+  // ✅ Store converted data
+  finalData.commercialDetails.plotDetails = convertedPlotDetails;
+  finalData.expectedPrice = Number(commercialDetails.expectedPrice) || 0;
+
+  console.log('✅ Plot details stored with English values:', {
     location: finalData.location,
     area: finalData.area,
     plotKind: finalData.commercialDetails.plotDetails.plotKind,
-    expectedPrice: finalData.expectedPrice,
+    constructionDone: finalData.commercialDetails.plotDetails.constructionDone,
     ownership: finalData.commercialDetails.plotDetails.ownership,
-    hasVastu: !!finalData.commercialDetails.plotDetails.vastuDetails,
-    allFields: Object.keys(finalData.commercialDetails.plotDetails),
+    amenitiesCount: finalData.commercialDetails.plotDetails.amenities.length,
+    expectedPrice: finalData.expectedPrice,
   });
 }
 

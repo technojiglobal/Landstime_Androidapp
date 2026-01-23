@@ -196,25 +196,25 @@ const HospitalityNext = () => {
         locAdvantages, flooringType]);
 
     /* ---------------- AMENITIES ---------------- */
-    const amenityOptions = [
-        "+Water Storage",
-        "+currently Air Conditioned",
-        "+Vaastu Complex",
-        "+Security fire Alarm",
-        "+Visitor Parking",
-    ];
+   const amenityOptions = [
+    t('hospitality_amenity_water_storage'),
+    t('hospitality_amenity_air_conditioned'),
+    t('hospitality_amenity_vaastu_complex'),
+    t('hospitality_amenity_fire_alarm'),
+    t('hospitality_amenity_visitor_parking'),
+];
 
     /* ---------------- LOCATION ADVANTAGES ---------------- */
-    const locationAdvantages = [
-        "+Close to Metro Station",
-        "+Close to School",
-        "+Close to Hospital",
-        "+Close to Market",
-        "+Close to Railway Station",
-        "+Close to Airport",
-        "+Close to Mall",
-        "+Close to Highway",
-    ];
+   const locationAdvantages = [
+    t('hospitality_loc_metro_station'),
+    t('hospitality_loc_school'),
+    t('hospitality_loc_hospital'),
+    t('hospitality_loc_market'),
+    t('hospitality_loc_railway_station'),
+    t('hospitality_loc_airport'),
+    t('hospitality_loc_mall'),
+    t('hospitality_loc_highway'),
+];
 
     /* ---------------- HELPERS ---------------- */
     const toggleArrayItem = (setter, array, value) => {

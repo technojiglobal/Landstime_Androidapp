@@ -234,6 +234,23 @@ export const reverseTranslationMap = {
   'ప్రభుత్వ వినియోగం': 'Government Use',
   'सरकारी उपयोग': 'Government Use',
 
+  // Amenities - Telugu to English
+  '+నీటి నిల్వ': '+Water Storage',
+  '+ప్రస్తుతం వాతానుకూలత': '+currently Air Conditioned',
+  '+వాస్తు కాంప్లెక్స్': '+Vaastu Complex',
+  '+భద్రత అగ్ని అలారం': '+Security fire Alarm',
+  '+సందర్శకుల పార్కింగ్': '+Visitor Parking',
+
+  // Location Advantages - Telugu to English
+  '+మెట్రో స్టేషన్ దగ్గర': '+Close to Metro Station',
+  '+పాఠశాల దగ్గర': '+Close to School',
+  '+ఆసుపత్రి దగ్గర': '+Close to Hospital',
+  '+మార్కెట్ దగ్గర': '+Close to Market',
+  '+రైల్వే స్టేషన్ దగ్గర': '+Close to Railway Station',
+  '+విమానాశ్రయం దగ్గర': '+Close to Airport',
+  '+మాల్ దగ్గర': '+Close to Mall',
+  '+హైవే దగ్గర': '+Close to Highway',
+
 
 
  
