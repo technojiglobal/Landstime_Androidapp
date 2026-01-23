@@ -4,6 +4,11 @@ import User from '../UserModels/User.js';
 
 // Verify JWT Token Middleware
 export const verifyToken = async (req, res, next) => {
+  // ✅ Skip authentication for OPTIONS (preflight) requests
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
   try {
     // Get token from header
     const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -60,6 +65,11 @@ export const verifyToken = async (req, res, next) => {
 
 // Check if user's phone is verified
 export const checkPhoneVerified = (req, res, next) => {
+  // ✅ Skip for OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
   if (!req.user.isPhoneVerified) {
     return res.status(403).json({
       success: false,
@@ -71,6 +81,11 @@ export const checkPhoneVerified = (req, res, next) => {
 
 // Check if user's email is verified
 export const checkEmailVerified = (req, res, next) => {
+  // ✅ Skip for OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
   if (!req.user.isEmailVerified) {
     return res.status(403).json({
       success: false,
@@ -83,6 +98,11 @@ export const checkEmailVerified = (req, res, next) => {
 // Check user role (Buyer or Owner)
 export const checkRole = (...allowedRoles) => {
   return (req, res, next) => {
+    // ✅ Skip for OPTIONS requests
+    if (req.method === 'OPTIONS') {
+      return next();
+    }
+
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -103,6 +123,11 @@ export const checkRole = (...allowedRoles) => {
 
 // Rate limiting middleware for OTP requests
 export const otpRateLimit = async (req, res, next) => {
+  // ✅ Skip for OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
   try {
     const { phone } = req.body;
 
@@ -132,6 +157,11 @@ export const otpRateLimit = async (req, res, next) => {
 // Request validation middleware
 export const validateRequest = (schema) => {
   return (req, res, next) => {
+    // ✅ Skip for OPTIONS requests
+    if (req.method === 'OPTIONS') {
+      return next();
+    }
+
     const { error } = schema.validate(req.body);
     
     if (error) {
@@ -146,9 +176,13 @@ export const validateRequest = (schema) => {
   };
 };
 
-
-// Add this at the end of UserMiddleware.js
+// Check if user is admin
 export const checkAdmin = (req, res, next) => {
+  // ✅ Skip for OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
   if (!req.user) {
     return res.status(401).json({
       success: false,

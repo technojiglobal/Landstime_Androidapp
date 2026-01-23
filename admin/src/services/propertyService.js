@@ -14,6 +14,7 @@ export const fetchAllProperties = async () => {
 };
 
 // Update property status (approve / reject)
+//src/services/propertyService.js
 export const updatePropertyStatus = async (id, status) => {
   const res = await axiosInstance.patch(`/properties/admin/${id}/status`, {
     status,

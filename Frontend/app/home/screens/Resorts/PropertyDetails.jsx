@@ -71,7 +71,7 @@ export default function PropertyListScreen() {
       const response = await getApprovedProperties(null, 1, currentLang);
 
       if (response.success) {
-        console.log('✅ All properties fetched:', response.data);
+        //console.log('✅ All properties fetched:', response.data);
         // ✅ FILTER BY PROPERTY TYPE = "Resort"
         const resortProperties = (response.data.data || []).filter(
           property => property.propertyType === 'Resort'

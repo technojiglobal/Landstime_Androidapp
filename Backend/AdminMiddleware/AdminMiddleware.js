@@ -2,6 +2,12 @@
 import jwt from "jsonwebtoken";
 
 export const verifyAdmin = (req, res, next) => {
+  // ✅ CRITICAL FIX: Skip authentication for OPTIONS (preflight) requests
+  if (req.method === 'OPTIONS') {
+    console.log("✅ OPTIONS request - skipping auth");
+    return next();
+  }
+
   console.log("🚨🚨🚨 ADMIN AUTH MIDDLEWARE 🚨🚨🚨");
   console.log("ADMIN AUTH HEADER:", req.headers.authorization);
 
