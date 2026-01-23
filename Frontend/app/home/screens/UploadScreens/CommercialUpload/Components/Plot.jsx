@@ -8,6 +8,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import LocationSection from "components/LocationSection";
 import Toast from "react-native-toast-message";
 import { useTranslation } from 'react-i18next';
+import { convertToEnglish } from '../../../../../../utils/reverseTranslation';
 
 /* ---------- UI HELPERS ---------- */
 const PillButton = ({ label, selected, onPress }) => (
@@ -63,7 +64,7 @@ export default function Plot() {
   const [locality, setLocality] = useState("");
   const [neighborhoodArea, setNeighborhoodArea] = useState("");
   const [plotArea, setPlotArea] = useState("");
-  const [plotKind, setPlotKind] = useState(plotKindFromParams || "");
+const [plotKind, setPlotKind] = useState(plotKindFromParams || "");
   const [length, setLength] = useState("");
   const [breadth, setBreadth] = useState("");
   const [roadWidth, setRoadWidth] = useState("");
@@ -120,12 +121,10 @@ export default function Plot() {
           setPossessionMonth(parsed.possessionMonth || '');
           setConstructionTypes(parsed.constructionTypes || []);
           
-          const restoredPlotKind = parsed.plotKind || plotKindFromParams;
-          if (restoredPlotKind) {
-            setPlotKind(restoredPlotKind);
-          }
-          console.log('✅ plotKind restored:', restoredPlotKind);
-          return;
+         const restoredPlotKind = parsed.plotKind || plotKindFromParams || '';
+setPlotKind(restoredPlotKind);
+console.log('✅ plotKind restored:', restoredPlotKind);
+return;
         }
       } catch (e) {
         console.log('⚠️ Failed to load Plot draft:', e);
@@ -141,6 +140,7 @@ export default function Plot() {
           setLocality(prevData.locality || '');
           setNeighborhoodArea(prevData.neighborhoodArea || params.area || '');
           setPlotArea(prevData.plotArea?.toString() || '');
+          setPlotKind(prevData.plotKind || plotKindFromParams || '');
           setLength(prevData.length?.toString() || '');
           setBreadth(prevData.breadth?.toString() || '');
           setRoadWidth(prevData.roadWidth?.toString() || '');
@@ -210,65 +210,72 @@ export default function Plot() {
   }, [location, locality, neighborhoodArea, plotArea, length, breadth, roadWidth, 
       openSides, constructionDone, possessionYear, possessionMonth, constructionTypes, plotKindFromParams]);
 
-  const handleNext = () => {
-    const finalPlotKind = plotKind || plotKindFromParams;
-    
-    console.log('🔍 handleNext - plotKind (state):', plotKind);
-    console.log('🔍 handleNext - plotKindFromParams:', plotKindFromParams);
-    console.log('🔍 handleNext - finalPlotKind:', finalPlotKind);
-    
-    if (!finalPlotKind) {
-      console.log('❌ Plot kind is missing!');
-      Toast.show({
-        type: "error",
-        text1: t('plot_kind_missing'),
-        text2: t('plot_select_plot_type'),
-      });
-      return;
-    }
-
-    if (!location.trim() || !neighborhoodArea.trim() || !plotArea.trim() || !length || !breadth || !roadWidth) {
-      Toast.show({
-        type: "error",
-        text1: t('plot_all_fields_required'),
-      });
-      return;
-    }
-
-    const commercialDetails = {
-      subType: "Plot/Land",
-      propertyTitle,
-      plotDetails: {
-        location,
-        locality,
-        neighborhoodArea,
-        area: Number(plotArea),
-        dimensions: {
-          length: Number(length),
-          breadth: Number(breadth),
-        },
-        roadWidth: Number(roadWidth),
-        openSides,
-        constructionDone,
-        constructionTypes,
-        possession: possessionYear.length === 4
-          ? { year: possessionYear, month: possessionMonth }
-          : null,
-        plotKind: finalPlotKind,
-      },
-    };
-
-    router.push({
-      pathname: "/home/screens/UploadScreens/CommercialUpload/Components/PlotNext",
-      params: {
-        commercialDetails: JSON.stringify(commercialDetails),
-        propertyTitle,
-        images: JSON.stringify(images),
-        area: neighborhoodArea,
-        plotKind: plotKindFromParams,
-      },
+const handleNext = () => {
+  const finalPlotKind = plotKind || plotKindFromParams;
+  
+  console.log('🔍 handleNext - plotKind (state):', plotKind);
+  console.log('🔍 handleNext - plotKindFromParams:', plotKindFromParams);
+  console.log('🔍 handleNext - finalPlotKind:', finalPlotKind);
+  
+  if (!finalPlotKind) {
+    console.log('❌ Plot kind is missing!');
+    Toast.show({
+      type: "error",
+      text1: t('plot_kind_missing'),
+      text2: t('plot_select_plot_type'),
     });
+    return;
+  }
+
+  if (!location.trim() || !neighborhoodArea.trim() || !plotArea.trim() || !length || !breadth || !roadWidth) {
+    Toast.show({
+      type: "error",
+      text1: t('plot_all_fields_required'),
+    });
+    return;
+  }
+
+  // ✅ CREATE RAW DETAILS FIRST (with Telugu/Hindi values)
+// ✅ CREATE RAW DETAILS FIRST (with Telugu/Hindi values)
+const rawPlotDetails = {
+  location,
+  locality,
+  neighborhoodArea,
+  area: Number(plotArea),
+  dimensions: {
+    length: Number(length),
+    breadth: Number(breadth),
+  },
+  roadWidth: Number(roadWidth),
+  openSides,
+  constructionDone,
+  constructionTypes: constructionTypes.map(type => convertToEnglish(type)),
+  possession: possessionYear.length === 4
+    ? { year: possessionYear, month: possessionMonth }
+    : null,
+  plotKind: convertToEnglish(finalPlotKind),
+};
+
+// ✅ CONVERT TO ENGLISH
+const convertedPlotDetails = convertToEnglish(rawPlotDetails);
+
+  const commercialDetails = {
+    subType: "Plot/Land",
+    propertyTitle,
+    plotDetails: convertedPlotDetails,
   };
+
+  router.push({
+    pathname: "/home/screens/UploadScreens/CommercialUpload/Components/PlotNext",
+    params: {
+      commercialDetails: JSON.stringify(commercialDetails),
+      propertyTitle,
+      images: JSON.stringify(images),
+      area: neighborhoodArea,
+      plotKind: plotKindFromParams,
+    },
+  });
+};
 
   const handleBack = () => {
     const currentData = {
@@ -503,25 +510,30 @@ export default function Plot() {
             </View>
           )}
 
-          <Text className="text-sm font-semibold mb-2">
-            {t('plot_construction_type')}
-          </Text>
+{constructionDone === "Yes" && (
+  <>
+    <Text className="text-sm font-semibold mb-2 mt-3">
+      {t('plot_construction_type')}
+    </Text>
 
-          <View className="flex-row flex-wrap">
-            {[
-              t('plot_construction_shed'), 
-              t('plot_construction_room'), 
-              t('plot_construction_washroom'), 
-              t('plot_construction_other')
-            ].map(item => (
-              <PillButton
-                key={item}
-                label={item}
-                selected={constructionTypes.includes(item)}
-                onPress={() => toggleConstruction(item)}
-              />
-            ))}
-          </View>
+    <View className="flex-row flex-wrap">
+      {[
+        t('plot_construction_shed'), 
+        t('plot_construction_room'), 
+        t('plot_construction_washroom'), 
+        t('plot_construction_other')
+      ].map(item => (
+        <PillButton
+          key={item}
+          label={item}
+          selected={constructionTypes.includes(item)}
+          onPress={() => toggleConstruction(item)}
+        />
+      ))}
+    </View>
+  </>
+)}
+          
         </View>
       </ScrollView>
 
