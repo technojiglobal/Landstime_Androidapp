@@ -1,5 +1,3 @@
-
-
 // Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/Plot.jsx
 
 import React, { useState, useEffect } from "react";
@@ -9,6 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import LocationSection from "components/LocationSection";
 import Toast from "react-native-toast-message";
+import { useTranslation } from 'react-i18next';
 
 /* ---------- UI HELPERS ---------- */
 const PillButton = ({ label, selected, onPress }) => (
@@ -29,6 +28,7 @@ const PillButton = ({ label, selected, onPress }) => (
 export default function Plot() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { t } = useTranslation();
 
   // ✅ Parse params safely
   const safeParse = (raw) => {
@@ -51,22 +51,19 @@ export default function Plot() {
   const baseDetails = safeParse(params.commercialBaseDetails);
   const propertyTitle = baseDetails?.propertyTitle || params.propertyTitle || "";
   
-  // ✅ Get plotKind from multiple sources - ADD MORE FALLBACKS
   const plotKindFromParams = baseDetails?.plotKind || 
                              params.plotKind || 
                              safeParse(params.plotDetails)?.plotKind || 
                              '';
   
   console.log('🔍 Plot.jsx mounted - plotKindFromParams:', plotKindFromParams);
-  console.log('🔍 Plot.jsx mounted - baseDetails:', baseDetails);
-  console.log('🔍 Plot.jsx mounted - params.plotKind:', params.plotKind);
 
   /* ---------- STATE ---------- */
   const [location, setLocation] = useState("");
   const [locality, setLocality] = useState("");
   const [neighborhoodArea, setNeighborhoodArea] = useState("");
   const [plotArea, setPlotArea] = useState("");
-const [plotKind, setPlotKind] = useState(plotKindFromParams || ""); // ✅ Initialize with params value
+  const [plotKind, setPlotKind] = useState(plotKindFromParams || "");
   const [length, setLength] = useState("");
   const [breadth, setBreadth] = useState("");
   const [roadWidth, setRoadWidth] = useState("");
@@ -78,8 +75,18 @@ const [plotKind, setPlotKind] = useState(plotKindFromParams || ""); // ✅ Initi
   const [focusedField, setFocusedField] = useState(null);
 
   const monthOptions = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    t('hospitality_month_january'),
+    t('hospitality_month_february'),
+    t('hospitality_month_march'),
+    t('hospitality_month_april'),
+    t('hospitality_month_may'),
+    t('hospitality_month_june'),
+    t('hospitality_month_july'),
+    t('hospitality_month_august'),
+    t('hospitality_month_september'),
+    t('hospitality_month_october'),
+    t('hospitality_month_november'),
+    t('hospitality_month_december'),
   ];
 
   const toggleConstruction = (value) => {
@@ -112,17 +119,12 @@ const [plotKind, setPlotKind] = useState(plotKindFromParams || ""); // ✅ Initi
           setPossessionYear(parsed.possessionYear || '');
           setPossessionMonth(parsed.possessionMonth || '');
           setConstructionTypes(parsed.constructionTypes || []);
-          // ✅ ADD THIS - Restore plotKind from draft OR params
-         // ✅ Restore plotKind (priority: draft > params > state)
-const restoredPlotKind = parsed.plotKind || plotKindFromParams;
-if (restoredPlotKind) {
-  setPlotKind(restoredPlotKind);
-}
-console.log('✅ plotKind restored:', restoredPlotKind);
-
-          console.log('✅ Plot draft loaded successfully');
-          console.log('✅ plotKind restored:', parsed.plotKind || plotKindFromParams);
-
+          
+          const restoredPlotKind = parsed.plotKind || plotKindFromParams;
+          if (restoredPlotKind) {
+            setPlotKind(restoredPlotKind);
+          }
+          console.log('✅ plotKind restored:', restoredPlotKind);
           return;
         }
       } catch (e) {
@@ -152,30 +154,24 @@ console.log('✅ plotKind restored:', restoredPlotKind);
         }
       }
       
-      // ✅ FIX: Always restore area from params if available
       if (params.area) {
         setNeighborhoodArea(params.area);
         console.log('✅ Area restored from params:', params.area);
       }
-      
-      // ✅ ADD THIS: Log plotKind to verify it exists
-      console.log('✅ Final plotKindFromParams check:', plotKindFromParams);
     };
 
     loadDraft();
-  }, [params.plotDetails, params.area, plotKindFromParams]); // ✅ ADD plotKindFromParams to dependencies
+  }, [params.plotDetails, params.area, plotKindFromParams]);
 
   // ✅ Auto-save draft to AsyncStorage
   useEffect(() => {
     const saveDraft = async () => {
-      // ✅ Load existing draft first to preserve plotKind
       let existingPlotKind = plotKindFromParams;
       
       try {
         const existingDraft = await AsyncStorage.getItem('draft_plot_details');
         if (existingDraft) {
           const parsed = JSON.parse(existingDraft);
-          // ✅ If current plotKind is empty but draft has one, keep the draft's plotKind
           if (!plotKindFromParams && parsed.plotKind) {
             existingPlotKind = parsed.plotKind;
           }
@@ -197,7 +193,7 @@ console.log('✅ plotKind restored:', restoredPlotKind);
         possessionYear,
         possessionMonth,
         constructionTypes,
-        plotKind: existingPlotKind || plotKindFromParams, // ✅ Preserve plotKind
+        plotKind: existingPlotKind || plotKindFromParams,
         timestamp: new Date().toISOString(),
       };
 
@@ -215,7 +211,7 @@ console.log('✅ plotKind restored:', restoredPlotKind);
       openSides, constructionDone, possessionYear, possessionMonth, constructionTypes, plotKindFromParams]);
 
   const handleNext = () => {
-    const finalPlotKind = plotKind || plotKindFromParams; // ✅ Check state first, then params
+    const finalPlotKind = plotKind || plotKindFromParams;
     
     console.log('🔍 handleNext - plotKind (state):', plotKind);
     console.log('🔍 handleNext - plotKindFromParams:', plotKindFromParams);
@@ -225,8 +221,8 @@ console.log('✅ plotKind restored:', restoredPlotKind);
       console.log('❌ Plot kind is missing!');
       Toast.show({
         type: "error",
-        text1: "Plot kind is missing",
-        text2: "Please go back and select plot type",
+        text1: t('plot_kind_missing'),
+        text2: t('plot_select_plot_type'),
       });
       return;
     }
@@ -234,7 +230,7 @@ console.log('✅ plotKind restored:', restoredPlotKind);
     if (!location.trim() || !neighborhoodArea.trim() || !plotArea.trim() || !length || !breadth || !roadWidth) {
       Toast.show({
         type: "error",
-        text1: "All required fields must be filled",
+        text1: t('plot_all_fields_required'),
       });
       return;
     }
@@ -258,7 +254,7 @@ console.log('✅ plotKind restored:', restoredPlotKind);
         possession: possessionYear.length === 4
           ? { year: possessionYear, month: possessionMonth }
           : null,
-        plotKind: finalPlotKind, // ✅ ADD THIS
+        plotKind: finalPlotKind,
       },
     };
 
@@ -326,8 +322,8 @@ console.log('✅ plotKind restored:', restoredPlotKind);
             />
           </TouchableOpacity>
           <View className="ml-2">
-            <Text className="text-[16px] font-semibold">Upload Your Property</Text>
-            <Text className="text-[12px] text-[#00000066]">Add your property details</Text>
+            <Text className="text-[16px] font-semibold">{t('upload_property_title')}</Text>
+            <Text className="text-[12px] text-[#00000066]">{t('upload_property_subtitle')}</Text>
           </View> 
         </View>
 
@@ -342,7 +338,7 @@ console.log('✅ plotKind restored:', restoredPlotKind);
         {/* AREA/NEIGHBORHOOD FIELD */}
         <View className="bg-white rounded-[16px] p-4 border border-[#E5E7EB] mt-4">
           <Text className="text-[13px] font-semibold text-[#374151] mb-1">
-            Area/Neighborhood<Text className="text-red-500">*</Text>
+            {t('plot_area_neighborhood')}<Text className="text-red-500">*</Text>
           </Text>
           <View
             className="flex-row items-center rounded-md p-3 mb-3"
@@ -357,7 +353,7 @@ console.log('✅ plotKind restored:', restoredPlotKind);
               style={{ width: 18, height: 18, marginRight: 8 }}
             />
             <TextInput
-              placeholder="Enter Area/Neighborhood (e.g., Akkayapalem)"
+              placeholder={t('plot_area_neighborhood_placeholder')}
               value={neighborhoodArea}
               onChangeText={setNeighborhoodArea}
               onFocus={() => setFocusedField("neighborhoodArea")}
@@ -372,7 +368,7 @@ console.log('✅ plotKind restored:', restoredPlotKind);
 
           {/* AREA */}
           <Text className="text-[13px] font-semibold text-[#374151] mb-1">
-            Add Area Details<Text className="text-red-500">*</Text>
+            {t('plot_add_area_details')}<Text className="text-red-500">*</Text>
           </Text>
           <View className="flex-row items-center h-[52px] px-3 mb-3 border rounded-[12px]"
                 style={{
@@ -380,7 +376,7 @@ console.log('✅ plotKind restored:', restoredPlotKind);
                   borderColor: focusedField === "plotArea" ? "#22C55E" : "#E5E7EB",
                 }}>
             <TextInput
-              placeholder="Plot Area"
+              placeholder={t('plot_area_placeholder')}
               value={plotArea}
               onChangeText={(t) => setPlotArea(t.replace(/[^0-9]/g, ""))}
               keyboardType="numeric"
@@ -388,15 +384,15 @@ console.log('✅ plotKind restored:', restoredPlotKind);
               onFocus={() => setFocusedField("plotArea")}
               onBlur={() => setFocusedField(null)}
             />
-            <Text className="text-[#6B7280]">sqft</Text>
+            <Text className="text-[#6B7280]">{t('plot_area_unit_sqft')}</Text>
           </View>
 
           {/* DIMENSIONS */}
           <Text className="text-[13px] font-semibold text-[#374151] mb-1">
-            Property Dimensions (optional) <Text className="text-red-500">*</Text>
+            {t('plot_dimensions')} <Text className="text-red-500">*</Text>
           </Text>
           <TextInput
-            placeholder="Length of plot (ft)"
+            placeholder={t('plot_length_placeholder')}
             value={length}
             onChangeText={(t) => setLength(t.replace(/[^0-9]/g, ""))}
             keyboardType="numeric"
@@ -409,7 +405,7 @@ console.log('✅ plotKind restored:', restoredPlotKind);
             onBlur={() => setFocusedField(null)}
           />
           <TextInput
-            placeholder="Breadth of plot (ft)"
+            placeholder={t('plot_breadth_placeholder')}
             value={breadth}
             onChangeText={(t) => setBreadth(t.replace(/[^0-9]/g, ""))}
             keyboardType="numeric"
@@ -424,7 +420,7 @@ console.log('✅ plotKind restored:', restoredPlotKind);
 
           {/* ROAD WIDTH */}
           <Text className="text-[13px] font-semibold text-[#374151] mb-1">
-            Width of facing road<Text className="text-red-500">*</Text>
+            {t('plot_road_width')}<Text className="text-red-500">*</Text>
           </Text>
           <View className="flex-row items-center h-[52px] px-3 mb-3 border rounded-[12px]"
                 style={{
@@ -432,7 +428,7 @@ console.log('✅ plotKind restored:', restoredPlotKind);
                   borderColor: focusedField === "roadWidth" ? "#22C55E" : "#E5E7EB",
                 }}>
             <TextInput
-              placeholder="Enter the width"
+              placeholder={t('plot_road_width_placeholder')}
               value={roadWidth}
               onChangeText={(t) => setRoadWidth(t.replace(/[^0-9]/g, ""))}
               keyboardType="numeric"
@@ -440,12 +436,12 @@ console.log('✅ plotKind restored:', restoredPlotKind);
               onFocus={() => setFocusedField("roadWidth")}
               onBlur={() => setFocusedField(null)}
             />
-            <Text className="text-[#6B7280]">Feet</Text>
+            <Text className="text-[#6B7280]">{t('plot_road_width_unit_feet')}</Text>
           </View>
 
           {/* OPEN SIDES */}
           <Text className="text-[13px] font-semibold text-[#374151] mb-1">
-            No. of open sides
+            {t('plot_open_sides')}
           </Text>
           <View className="flex-row mb-3">
             {["1", "2", "3", "4"].map(n => (
@@ -460,16 +456,16 @@ console.log('✅ plotKind restored:', restoredPlotKind);
 
           {/* CONSTRUCTION */}
           <Text className="text-[13px] font-semibold text-[#374151] mb-1">
-            Any construction done on this property?
+            {t('plot_construction_done')}
           </Text>
           <View className="flex-row mb-3">
             <PillButton
-              label="Yes"
+              label={t('plot_construction_yes')}
               selected={constructionDone === "Yes"}
               onPress={() => setConstructionDone("Yes")}
             />
             <PillButton
-              label="No"
+              label={t('plot_construction_no')}
               selected={constructionDone === "No"}
               onPress={() => setConstructionDone("No")}
             />
@@ -477,10 +473,10 @@ console.log('✅ plotKind restored:', restoredPlotKind);
 
           {/* POSSESSION */}
           <Text className="text-[13px] font-semibold text-[#374151] mb-1">
-            Possession By
+            {t('plot_possession_by')}
           </Text>
           <TextInput
-            placeholder="Year"
+            placeholder={t('plot_possession_year_placeholder')}
             value={possessionYear}
             onChangeText={(t) => setPossessionYear(t.replace(/[^0-9]/g, ""))}
             keyboardType="numeric"
@@ -508,11 +504,16 @@ console.log('✅ plotKind restored:', restoredPlotKind);
           )}
 
           <Text className="text-sm font-semibold mb-2">
-            What type of construction has been done?
+            {t('plot_construction_type')}
           </Text>
 
           <View className="flex-row flex-wrap">
-            {["+ Shed", "+ Room(s)", "+ Washroom", "+ Other"].map(item => (
+            {[
+              t('plot_construction_shed'), 
+              t('plot_construction_room'), 
+              t('plot_construction_washroom'), 
+              t('plot_construction_other')
+            ].map(item => (
               <PillButton
                 key={item}
                 label={item}
@@ -531,14 +532,14 @@ console.log('✅ plotKind restored:', restoredPlotKind);
             className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
             onPress={handleBack}
           >
-            <Text className="font-semibold">Cancel</Text>
+            <Text className="font-semibold">{t('button_cancel')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             className="px-5 py-3 rounded-lg bg-green-500"
             onPress={handleNext}
           >
-            <Text className="text-white font-semibold">Next</Text>
+            <Text className="text-white font-semibold">{t('button_next')}</Text>
           </TouchableOpacity>
         </View>
       </View>

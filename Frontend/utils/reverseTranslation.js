@@ -130,6 +130,112 @@ export const reverseTranslationMap = {
   'దక్షిణం వైపు': 'Towards South',
   'दक्षिण की ओर': 'Towards South',
 
+  // Office Kind
+  'వెంటనే తరలించగల కార్యాలయ స్థలం': 'Ready to Move-in Office',
+  'तुरंत स्थानांतरित कार्यालय स्थान': 'Ready to Move-in Office',
+  
+  // Located Inside
+  'వ్యాపార పార్క్': 'Business Park',
+  'व्यापार पार्क': 'Business Park',
+  'ఐటి పార్క్': 'IT Park',
+  'आईटी पार्क': 'IT Park',
+  
+  // Zone Types
+  'ప్రజా మరియు సెమీ ప్రజా వినియోగం': 'Public and Semi Public use',
+  'सार्वजनिक और अर्ध सार्वजनिक उपयोग': 'Public and Semi Public use',
+  'వాణిజ్య': 'Commercial',
+  'वाणिज्यिक': 'Commercial',
+  
+  // Fire Safety
+  'అగ్నిమాపక పరికరం': 'Fire Extinguisher',
+  'अग्निशामक यंत्र': 'Fire Extinguisher',
+  
+  // Age of Property
+  '0-1 సంవత్సరాలు': '0-1 years',
+  '0-1 वर्ष': '0-1 years',
+  '1-5 సంవత్సరాలు': '1-5 years',
+  '1-5 वर्ष': '1-5 years',
+  '5-10 సంవత్సరాలు': '5-10 years',
+  '5-10 वर्ष': '5-10 years',
+  '10+ సంవత్సరాలు': '10+ years',
+  '10+ वर्ष': '10+ years',
+  
+  // Previously Used For
+  'వాణిజ్య': 'Commercial',
+  'वाणिज्यिक': 'Commercial',
+  'నివాస': 'Residential',
+  'आवासीय': 'Residential',
+  'గిడ్డంగి/నిల్వ': 'Warehouse/Storage',
+  'गोदाम/भंडारण': 'Warehouse/Storage',
+  
+  // Pantry Type
+  'ప్రైవేట్': 'Private',
+  'निजी': 'Private',
+  'షేర్డ్': 'Shared',
+  'साझा': 'Shared',
+
+  // ✅ ADD STORAGE-SPECIFIC MAPPINGS
+  
+  // Flooring - Storage
+  'కాంక్రీటు': 'Concrete',
+  'कंक्रीट': 'Concrete',
+  'టైల్స్': 'Tiles',
+  'टाइल्स': 'Tiles',
+  'ఎపాక్సీ': 'Epoxy',
+  'इपॉक्सी': 'Epoxy',
+  
+  // Ventilation
+  'సహజ': 'Natural',
+  'प्राकृतिक': 'Natural',
+  'యాంత్రిక': 'Mechanical',
+  'यांत्रिक': 'Mechanical',
+  'రెండూ': 'Both',
+  'दोनों': 'Both',
+  
+  // Storage Type
+  'కవర్డ్': 'Covered',
+  'कवर्ड': 'Covered',
+  'ఓపెన్': 'Open',
+  'खुला': 'Open',
+  
+  // Security
+  'సిసిటివి': 'CCTV',
+  'सीसीटीवी': 'CCTV',
+  'భద్రతా గార్డు': 'Security Guard',
+  'सुरक्षा गार्ड': 'Security Guard',
+  'అలారం వ్యవస్థ': 'Alarm System',
+  'अलार्म सिस्टम': 'Alarm System',
+  'అగ్ని భద్రత': 'Fire Safety',
+  'अग्नि सुरक्षा': 'Fire Safety',
+  
+  // Accessibility
+  'డాక్ స్థాయి': 'Dock Level',
+  'डॉक लेवल': 'Dock Level',
+  'నేల స్థాయి': 'Ground Level',
+  'जमीनी स्तर': 'Ground Level',
+  'ర్యాంప్ యాక్సెస్': 'Ramp Access',
+  'रैंप एक्सेस': 'Ramp Access',
+
+  'రవాణా మరియు కమ్యూనికేషన్': 'Transport and Communication',
+  'परिवहन और संचार': 'Transport and Communication',
+  'నివాస': 'Residential',
+  'आवासीय': 'Residential',
+  'వాణిజ్య': 'Commercial',
+  'वाणिज्यिक': 'Commercial',
+  'ప్రజా మరియు సెమీ ప్రజా వినియోగం': 'Public and Semi Public use',
+  'सार्वजनिक और अर्ध सार्वजनिक उपयोग': 'Public and Semi Public use',
+  'ఓపెన్ స్పేస్': 'Open Spaces',
+  'खुली जगह': 'Open Spaces',
+  'వ్యవసాయ జోన్': 'Agricultural Zone',
+  'कृषि क्षेत्र': 'Agricultural Zone',
+  'SEZ': 'SEZ',
+  'పరిరక్షణ జోన్': 'Conservation Zone',
+  'संरक्षण क्षेत्र': 'Conservation Zone',
+  'ప్రభుత్వ వినియోగం': 'Government Use',
+  'सरकारी उपयोग': 'Government Use',
+
+
+
  
 };
 
