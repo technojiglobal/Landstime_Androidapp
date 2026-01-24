@@ -63,7 +63,8 @@ const setRetail = (key, value) =>
 
       {/* ==================== AREA ==================== */}
       <div className="border-t pt-6">
-        <h3 className="text-lg font-semibold text-left mb-4">Area (sqft)</h3>
+        <h3 className="text-lg font-semibold text-left mb-4">Area (sqft)<span className="text-red-500 ml-1">*</span>
+</h3>
         
         <div className="grid grid-cols-2 gap-4">
           <NumberField
@@ -83,8 +84,11 @@ const setRetail = (key, value) =>
         
         <div className="grid grid-cols-2 gap-4">
           <TextField
+           label="Entrance Width"
+  name="entranceWidth"
   value={retail.entranceWidth}
   onChange={(value) => setRetail('entranceWidth', value)}
+  placeholder="ft"
 />
 
           
@@ -109,7 +113,7 @@ const setRetail = (key, value) =>
             onClick={() => {
               const current = retail.washroomTypes || [];
               if (current.includes('Private')) {
-                updateField('washroomTypes', current.filter(t => t !== 'Private'));
+                setRetail('washroomTypes', current.filter(t => t !== 'Private'));
               } else {
                 setRetail('washroomTypes', [...current, 'Private']);
               }
@@ -128,13 +132,13 @@ const setRetail = (key, value) =>
             onClick={() => {
               const current = retail.washroomTypes || [];
               if (current.includes('Public')) {
-                updateField('washroomTypes', current.filter(t => t !== 'Public'));
+                setRetail('washroomTypes', current.filter(t => t !== 'Public'));
               } else {
-                updateField('washroomTypes', [...current, 'Public']);
+                setRetail('washroomTypes', [...current, 'Public']);
               }
             }}
             className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-              (formData.washroomTypes || []).includes('Public')
+              (retail.washroomTypes|| []).includes('Public')
                 ? 'bg-white text-gray-700 border-gray-300'
                 : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
             }`}
@@ -144,9 +148,9 @@ const setRetail = (key, value) =>
           
           <button
             type="button"
-            onClick={() => updateField('washroomTypes', [])}
+            onClick={() => setRetail('washroomTypes', [])}
             className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-              (formData.washroomTypes || []).length === 0
+              (retail.washroomTypes|| []).length === 0
                 ? 'bg-white text-gray-700 border-gray-300'
                 : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
             }`}
@@ -212,9 +216,9 @@ value={retail.totalFloors}
             onClick={() => {
               const current = retail.parkingType || [];
               if (current.includes('Private Parking')) {
-                updateField('parkingType', current.filter(t => t !== 'Private Parking'));
+                setRetail('parkingType', current.filter(t => t !== 'Private Parking'));
               } else {
-                updateField('parkingType', [...current, 'Private Parking']);
+                setRetail('parkingType', [...current, 'Private Parking']);
               }
             }}
             className={`px-4 py-2 rounded-full border text-sm transition-colors ${
@@ -231,7 +235,7 @@ value={retail.totalFloors}
             onClick={() => {
               const current = retail.parkingType || [];
               if (current.includes('Public Parking')) {
-                updateField('parkingType', current.filter(t => t !== 'Public Parking'));
+                setRetail('parkingType', current.filter(t => t !== 'Public Parking'));
               } else {
                setRetail('parkingType', [...current, 'Public Parking']);
 
@@ -251,9 +255,9 @@ value={retail.totalFloors}
             onClick={() => {
               const current = retail.parkingType || [];
               if (current.includes('Multilevel Parking')) {
-                updateField('parkingType', current.filter(t => t !== 'Multilevel Parking'));
+                setRetail('parkingType', current.filter(t => t !== 'Multilevel Parking'));
               } else {
-                updateField('parkingType', [...current, 'Multilevel Parking']);
+                setRetail('parkingType', [...current, 'Multilevel Parking']);
               }
             }}
             className={`px-4 py-2 rounded-full border text-sm transition-colors ${
@@ -267,7 +271,7 @@ value={retail.totalFloors}
           
           <button
             type="button"
-            onClick={() => updateField('parkingType', [])}
+            onClick={() => setRetail('parkingType', [])}
             className={`px-4 py-2 rounded-full border text-sm transition-colors ${
               (retail.parkingType || []).length === 0
                 ? 'bg-white text-gray-700 border-gray-300'
@@ -369,13 +373,19 @@ value={retail.totalFloors}
       <div className="border-t pt-6">
         
 
-    <NumberField
-      label="Expected Price"
-      name="expectedPrice"
-       value={retail.expectedPrice}
+   <NumberField
+  label={
+    <>
+      Expected Price
+      <span className="text-red-500 ml-1">*</span>
+    </>
+  }
+  name="expectedPrice"
+  value={retail.expectedPrice}
   onChange={(value) => setRetail('expectedPrice', value)}
-      placeholder="₹ Expected Price"
-    />
+  placeholder="₹ Expected Price"
+/>
+
         <PricingSection formData={formData} updateField={updateField} />
         
         <div className="space-y-4">
@@ -387,17 +397,17 @@ value={retail.totalFloors}
           <RadioButtons
             label="Is it Pre leased? (Pre leased?)"
             name="preLeased"
-            value={formData.preLeased}
-            onChange={(value) => updateField('preLeased', value)}
+            value={retail.preLeased}
+            onChange={(value) => setRetail('preLeased', value)}
             options={['Yes', 'No']}
           />
           
-          {formData.preLeased === 'Yes' && (
+          {retail.preLeased === 'Yes' && (
             <NumberField
               label="Is it Pre leased? (Pre leased?)"
               name="preLeasedAmount"
-              value={formData.preLeasedAmount}
-              onChange={(value) => updateField('preLeasedAmount', value)}
+              value={retail.preLeasedAmount}
+              onChange={(value) => setRetail('preLeasedAmount', value)}
               placeholder="Enter amount"
             />
           )}
