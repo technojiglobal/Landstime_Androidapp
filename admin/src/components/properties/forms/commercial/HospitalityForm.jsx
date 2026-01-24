@@ -21,63 +21,78 @@ import {
 } from '../../../../constants/propertyConstants';
 import AvailabilityStatus from '../../sections/AvailabilityStatus';
 import FurnishingModal from '../../sections/FurnishingModal';
-const HospitalityForm = ({ formData, updateField }) => {
-  const isReadyToMove = formData.availabilityStatus === 'Ready to move';
-  const isUnderConstruction = formData.availabilityStatus === 'Under construction';
-  const isPreLeased = formData.preLeased === 'Yes';
+import ImageUpload from '../../fields/ImageUpload';
+import VaasthuDetails from '../../sections/VaasthuDetails';
+import { hospitalityVaasthuFields } from '../../../../constants/vastuFields';
+const HospitalityForm = ({ formData, updateField,images, setImages }) => {
+   const hospitalityData = formData.commercialDetails?.hospitalityDetails || {};
+  const isReadyToMove = hospitalityData.availability === 'Ready';
+const isUnderConstruction = hospitalityData.availability === 'UnderConstruction';
+const isPreLeased = hospitalityData.preLeased === 'Yes';
 const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
   const [pricingDetails, setPricingDetails] = useState(null);
   const [showFurnishingModal, setShowFurnishingModal] = useState(false);
     const [furnishingModalType, setFurnishingModalType] = useState('');
   
     const handleFurnishingChange = (value) => {
-      updateField('furnishing', value);
+      updateField('commercialDetails.hospitalityDetails.furnishingType', value);
      if (value === 'Semi-Furnished' || value === 'Furnished') {
     setShowFurnishingModal(true);
     setFurnishingModalType(value === 'Semi-Furnished' ? 'SemiFurnished' : value);
   }
     };
   const handlePricingSubmit = (data) => {
-    setPricingDetails(data);
-    console.log('Pricing details:', data);
-    // You can store this in your main form state or send to API
-  };
+  setPricingDetails(data);
+  updateField('commercialDetails.hospitalityDetails.additionalPricing', {
+    maintenanceCharges: data.maintenanceCharges || 0,
+    maintenancePeriod: data.maintenancePeriod || '',
+    expectedRental: data.expectedRental || 0,
+    bookingAmount: data.bookingAmount || 0,
+    annualDuesPayable: data.annualDuesPayable || 0
+  });
+};
   return (
     <div className="space-y-6 border-t pt-6">
       
       {/* ==================== LOCATION ==================== */}
       <LocationSection formData={formData} updateField={updateField} />
-
+       <ImageUpload
+       label="Property Images"
+        images={images}
+        onChange={setImages}
+        maxImages={20}
+        required={true}
+      /> 
       {/* ==================== ROOM DETAILS ==================== */}
       <div className="border-t pt-6">
         <h3 className="font-semibold mb-4">Add Room Details</h3>
         
-        <NumberField
-          label="No.of Rooms"
-          name="noOfRooms"
-          value={formData.noOfRooms}
-          onChange={(value) => updateField('noOfRooms', value)}
-          placeholder="Enter the total no.of rooms"
-        />
+       <NumberField
+  label="No.of Rooms"
+  name="rooms"
+  value={hospitalityData.rooms}
+  onChange={(value) => updateField('commercialDetails.hospitalityDetails.rooms', value)}
+  placeholder="Enter the total no.of rooms"
+/>
 
         <div className="mt-4">
           <NumberButtonGroup
-            label="No.of Washrooms"
-            name="noOfWashrooms"
-            value={formData.noOfWashrooms}
-            onChange={(value) => updateField('noOfWashrooms', value)}
-            options={[ '1', '2', '3', '4', '4+']}
-          />
+  label="No.of Washrooms"
+  name="washroomType"
+  value={hospitalityData.washroomType}
+  onChange={(value) => updateField('commercialDetails.hospitalityDetails.washroomType', value)}
+  options={['None', 'Shared', '1', '2', '3', '4+']}
+/>
         </div>
 
         <div className="mt-4">
-          <NumberButtonGroup
-            label="Balconies"
-            name="balconies"
-            value={formData.balconies}
-            onChange={(value) => updateField('balconies', value)}
-            options={['0', '1', '2', '3', '3+']}
-          />
+         <NumberButtonGroup
+  label="Balconies"
+  name="balconies"
+  value={hospitalityData.balconies}
+  onChange={(value) => updateField('commercialDetails.hospitalityDetails.balconies', value)}
+  options={['0', '1', '2', '3', 'More than 3']}
+/>
         </div>
 
         <div className="mt-4">
@@ -88,17 +103,17 @@ const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
                 key={room}
                 type="button"
                 onClick={() => {
-                  const current = formData.otherRooms || [];
-                  const updated = current.includes(room)
-                    ? current.filter(r => r !== room)
-                    : [...current, room];
-                  updateField('otherRooms', updated);
-                }}
-                className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-                  (formData.otherRooms || []).includes(room)
-                    ? 'bg-green-500 text-white border-green-500'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
-                }`}
+  const current = hospitalityData.otherRooms || [];
+  const updated = current.includes(room)
+    ? current.filter(r => r !== room)
+    : [...current, room];
+  updateField('commercialDetails.hospitalityDetails.otherRooms', updated);
+}}
+className={`... ${
+  (hospitalityData.otherRooms || []).includes(room)
+    ? 'bg-green-500 text-white border-green-500'
+    : '...'
+}`}
               >
                 + {room}
               </button>
@@ -108,23 +123,28 @@ const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
       </div>
 
       {/* ==================== FURNISHING WITH MODAL ==================== */}
-      <RadioButtons
-        label="Furnishing"
-        name="furnishing"
-        value={formData.furnishing}
-        onChange={handleFurnishingChange}
-        options={FURNISHING_OPTIONS}
-      />
+     <RadioButtons
+  label="Furnishing"
+  name="furnishingType"
+  value={hospitalityData.furnishingType}
+  onChange={handleFurnishingChange}
+  options={FURNISHING_OPTIONS}
+/>
 
       {/* Furnishing Modal */}
       <FurnishingModal
-        isOpen={showFurnishingModal}
-        furnishingType={furnishingModalType}
-        selectedItems={formData.furnishingItems || []}
-        onClose={() => setShowFurnishingModal(false)}
-        onItemToggle={(items) => updateField('furnishingItems', items)}
-      />
-<AvailabilityStatus formData={formData} updateField={updateField} />
+  isOpen={showFurnishingModal}
+  furnishingType={furnishingModalType}
+  selectedItems={hospitalityData.furnishingDetails || []}
+  onClose={() => setShowFurnishingModal(false)}
+  onItemToggle={(items) => updateField('commercialDetails.hospitalityDetails.furnishingDetails', items)}
+/>
+<AvailabilityStatus 
+  formData={hospitalityData} 
+  updateField={(key, value) => 
+    updateField(`commercialDetails.hospitalityDetails.${key}`, value)
+  } 
+/>
     
       {/* ==================== OWNERSHIP ==================== */}
       <div className="border-t pt-6">
@@ -134,9 +154,9 @@ const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
             <button
               key={type}
               type="button"
-              onClick={() => updateField('ownershipType', type)}
+              onClick={() => updateField('commercialDetails.hospitalityDetails.ownership', type)}
               className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-                formData.ownershipType === type
+                hospitalityData.ownership === type
                   ? 'bg-green-500 text-white border-green-500'
                   : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
               }`}
@@ -149,37 +169,42 @@ const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
 
       {/* ==================== AUTHORITY APPROVAL ==================== */}
       <TextField
-        label="Which authority the property is approved by?(optional)"
-        name="approvedBy"
-        value={formData.approvedBy}
-        onChange={(value) => updateField('approvedBy', value)}
-        placeholder="+ Local Authority"
-      />
+  label="Which authority the property is approved by?(optional)"
+  name="IndustryApprovedBy"
+  value={hospitalityData.IndustryApprovedBy}
+  onChange={(value) => updateField('commercialDetails.hospitalityDetails.IndustryApprovedBy', value)}
+  placeholder="+ Local Authority"
+/>
 
       {/* ==================== INDUSTRY TYPE (For Hospitality it's optional) ==================== */}
-      <SelectField
-        label="Approved for Industry Type(optional)"
-        name="approvedIndustryType"
-        value={formData.approvedIndustryType}
-        onChange={(value) => updateField('approvedIndustryType', value)}
-        options={['Hospitality', 'Hotel', 'Resort', 'Guest House', 'Restaurant', 'Other']}
-        placeholder="Select Industry Type"
-      />
+     <SelectField
+  label="Approved for Industry Type(optional)"
+  name="approvedIndustryType"
+  value={hospitalityData.approvedIndustryType}
+  onChange={(value) => updateField('commercialDetails.hospitalityDetails.approvedIndustryType', value)}
+  options={['Hospitality', 'Hotel', 'Resort', 'Guest House', 'Restaurant', 'Other']}
+  placeholder="Select Industry Type"
+/>
 
       {/* ==================== PRICING DETAILS ==================== */}
       <div className="border-t pt-6">
         <h3 className="font-semibold mb-4">Expected Price Details</h3>
         
         <NumberField
-          label="Expected Price"
-          name="expectedPrice"
-          value={formData.expectedPrice}
-          onChange={(value) => updateField('expectedPrice', value)}
-          placeholder="₹ Expected Price"
-        />
+  label="Expected Price"
+  name="expectedPrice"
+  value={hospitalityData.expectedPrice}
+  onChange={(value) => updateField('commercialDetails.hospitalityDetails.expectedPrice', value)}
+  placeholder="₹ Expected Price"
+/>
 
         <div className="mt-3">
-          <PricingSection formData={formData} updateField={updateField} />
+          <PricingSection 
+  formData={hospitalityData} 
+  updateField={(key, value) => 
+    updateField(`commercialDetails.hospitalityDetails.${key}`, value)
+  } 
+/>
         </div>
 
         <button 
@@ -197,54 +222,53 @@ const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
       </div>
 
       {/* ==================== PRE-LEASED ==================== */}
-      <RadioButtons
-        label="Is it Pre-leased/ Pre-Reneted?"
-        name="preLeased"
-        value={formData.preLeased}
-        onChange={(value) => {
-          updateField('preLeased', value);
-          // Clear fields when switching to No
-          if (value === 'No') {
-            updateField('currentRent', '');
-            updateField('leaseTenure', '');
-          }
-        }}
-        options={['Yes', 'No']}
-      />
+    <RadioButtons
+  label="Is it Pre-leased/ Pre-Rented?"
+  name="preLeased"
+  value={hospitalityData.preLeased}
+  onChange={(value) => {
+    updateField('commercialDetails.hospitalityDetails.preLeased', value);
+    if (value === 'No') {
+      updateField('commercialDetails.hospitalityDetails.monthlyRent', '');
+      updateField('commercialDetails.hospitalityDetails.leaseDuration', '');
+    }
+  }}
+  options={['Yes', 'No']}
+/>
 
       {/* Show only if Pre-leased is Yes */}
-      {isPreLeased && (
-        <div className="space-y-4">
-          <NumberField
-            label="Current rent per month"
-            name="currentRent"
-            value={formData.currentRent}
-            onChange={(value) => updateField('currentRent', value)}
-            placeholder="₹ Current rent per month"
-          />
+     {isPreLeased && (
+  <div className="space-y-4">
+    <NumberField
+      label="Current rent per month"
+      name="monthlyRent"
+      value={hospitalityData.monthlyRent}
+      onChange={(value) => updateField('commercialDetails.hospitalityDetails.monthlyRent', value)}
+      placeholder="₹ Current rent per month"
+    />
 
-          <NumberField
-            label="Lease tenure in years"
-            name="leaseTenure"
-            value={formData.leaseTenure}
-            onChange={(value) => updateField('leaseTenure', value)}
-            placeholder="Lease tenure in years"
-          />
-        </div>
-      )}
+    <NumberField
+      label="Lease Duration"
+      name="leaseDuration"
+      value={hospitalityData.leaseDuration}
+      onChange={(value) => updateField('commercialDetails.hospitalityDetails.leaseDuration', value)}
+      placeholder="e.g., 3 Years"
+    />
+  </div>
+)}
 
-      {/* ====================  ==================== */}
+      
      
       {/* ==================== OTHER FEATURES ==================== */}
       <div className="border-t pt-6">
         <h3 className="font-semibold mb-4">Other Features</h3>
         <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={formData.wheelchairFriendly || false}
-            onChange={(e) => updateField('wheelchairFriendly', e.target.checked)}
-            className="w-4 h-4 text-green-600 rounded"
-          />
+         <input
+  type="checkbox"
+  checked={hospitalityData.wheelchairFriendly || false}
+  onChange={(e) => updateField('commercialDetails.hospitalityDetails.wheelchairFriendly', e.target.checked)}
+  className="w-4 h-4 text-green-600 rounded"
+/>
           <span className="text-sm">Wheelchair friendly</span>
         </label>
       </div>
@@ -252,27 +276,33 @@ const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
       {/* ==================== TYPE OF FLOORING ==================== */}
       <div className="border-t pt-6">
         <SelectField
-          label="Type of Flooring"
-          name="flooringType"
-          value={formData.flooringType}
-          onChange={(value) => updateField('flooringType', value)}
-          options={FLOORING_TYPES}
-          placeholder="Marble"
-        />
+  label="Type of Flooring"
+  name="flooringType"
+  value={hospitalityData.flooringType}
+  onChange={(value) => updateField('commercialDetails.hospitalityDetails.flooringType', value)}
+  options={FLOORING_TYPES}
+  placeholder="Marble"
+/>
       </div>
 
       {/* ==================== DESCRIPTION ==================== */}
      <DescriptionSection formData={formData} updateField={updateField} />{/* ==================== AMENITIES ==================== */}
       <div className="border-t pt-6">
         <h3 className="font-semibold mb-4">Amenities</h3>
-        <CheckboxGroup
-          name="amenities"
-          selected={formData.amenities || []}
-          onChange={(value) => updateField('amenities', value)}
-          options={HOSPITALITY_AMENITIES}
-        />
+       <CheckboxGroup
+  name="amenities"
+  selected={hospitalityData.amenities || []}
+  onChange={(value) => updateField('commercialDetails.hospitalityDetails.amenities', value)}
+  options={HOSPITALITY_AMENITIES}
+/>
       </div>
-
+      <VaasthuDetails 
+  formData={hospitalityData}
+  updateField={(key, value) =>
+    updateField(`commercialDetails.hospitalityDetails.vastuDetails.${key}`, value)
+  }
+  fields={hospitalityVaasthuFields}
+/>
 
     </div>
   );
