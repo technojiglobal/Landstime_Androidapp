@@ -1,7 +1,7 @@
 // Frontend/context/AuthContext.js
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { getUserData, saveUserData, clearUserData, getToken, saveToken, removeToken } from '../utils/api';
-
+import { clearGoogleMapsCache } from '../utils/googleMapsApi';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -49,6 +49,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await clearUserData();
+      clearGoogleMapsCache(); // ADD THIS LINE
       setUser(null);
       setToken(null);
       setIsAuthenticated(false);
