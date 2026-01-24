@@ -21,6 +21,7 @@ import reviewRoutes from "./UserRoutes/ReviewRoutes.js";
 import bannerRoutes from './AdminRoutes/BannerRoutes.js';
 import adminPropertyViewRoutes from './AdminRoutes/PropertyViewRoute.js';
 import userPropertyViewRoutes from './UserRoutes/PropertyViewRoute.js';
+import Config from "./UserRoutes/ConfigRoute.js" // 🔽 ADD
 
 import savedPropertiesRoutes from './UserRoutes/savedPropertiesRoutes.js';
 
@@ -109,6 +110,7 @@ app.use('/api/user/notifications', userNotificationRoutes); // ✅ NEW
 app.use('/api/banners', bannerRoutes);
 app.use('/api/property-views', userPropertyViewRoutes);
 app.use('/api/admin/property-views', adminPropertyViewRoutes);
+app.use("/api/config", Config);
 // 🔽 ADD
 
 // 🔽 ADD
