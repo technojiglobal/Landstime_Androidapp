@@ -643,12 +643,54 @@ useEffect(() => {
         });
         break;
 
-      case "Retail":
-        router.push({
-          pathname: `${base}/Retail`,
-          params: commonParams,
-        });
-        break;
+    case "Retail":
+  // ✅ ADD VALIDATION
+  if (!retailKinds.length) {
+    Alert.alert(
+      t('alert_retail_type_required') || 'Retail Type Required',
+      t('alert_select_retail_kind') || 'Please select shop or showroom type'
+    );
+    return;
+  }
+
+  if (!locatedInside) {
+    Alert.alert(
+      t('alert_located_inside_required') || 'Located Inside Required',
+      t('alert_select_located_inside') || 'Please select where the property is located'
+    );
+    return;
+  }
+
+  const retailDraftData = {
+    selectedType: "Retail",
+    propertyTitle,
+    retailKind: retailKinds[0],
+    locatedInside: locatedInside,
+    images,
+    area: area || neighborhoodArea,
+    timestamp: new Date().toISOString(),
+  };
+
+  try {
+    await AsyncStorage.setItem('draft_commercial_retail', JSON.stringify(retailDraftData));
+    console.log('✅ Retail draft saved to AsyncStorage');
+  } catch (e) {
+    console.log('⚠️ Failed to save Retail draft:', e);
+  }
+
+  router.push({
+    pathname: `${base}/Retail`,
+    params: {
+      ...commonParams,
+      commercialBaseDetails: JSON.stringify({
+        subType: "Retail",
+        retailKind: retailKinds[0],
+        locatedInside: locatedInside,
+        propertyTitle,
+      }),
+    },
+  });
+  break;
 
       case "Plot/Land":
         router.push({

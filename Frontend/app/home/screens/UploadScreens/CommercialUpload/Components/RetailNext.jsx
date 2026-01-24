@@ -1,6 +1,6 @@
-//CommericialUpload//Components//RetailNext.jsx
+//Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/RetailNext.jsx
 
-import React, { useState,useEffect,useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-toast-message";
 import {
@@ -11,11 +11,12 @@ import {
   ScrollView,
   Image,
   Alert,
-  ToastAndroid,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import MorePricingDetailsModal from "../../MorePricingDetailsModal";
+import { useTranslation } from 'react-i18next';
+import { toEnglish, convertToEnglish } from '../../../../../../utils/reverseTranslation';
 
 /* ---------- UI HELPERS ---------- */
 const PillButton = ({ label, selected, onPress }) => (
@@ -49,46 +50,47 @@ const Checkbox = ({ label, checked, onPress }) => (
 export default function RetailNext() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { t } = useTranslation();
 
   const [area, setArea] = useState("");
 
- // ✅ Use useMemo to prevent infinite re-renders
-const images = useMemo(() => {
-  try {
-    if (!params.images) return [];
-    if (Array.isArray(params.images)) return params.images;
-    return JSON.parse(params.images);
-  } catch (e) {
-    console.error('❌ Error parsing images:', e);
-    return [];
-  }
-}, [params.images]);
+  // ✅ Parse images
+  const images = useMemo(() => {
+    try {
+      if (!params.images) return [];
+      if (Array.isArray(params.images)) return params.images;
+      return JSON.parse(params.images);
+    } catch (e) {
+      console.error('❌ Error parsing images:', e);
+      return [];
+    }
+  }, [params.images]);
 
-const commercialDetails = useMemo(() => {
-  try {
-    if (!params.commercialDetails) return null;
-    if (typeof params.commercialDetails === 'object') return params.commercialDetails;
-    return JSON.parse(params.commercialDetails);
-  } catch (e) {
-    console.error('❌ Error parsing commercialDetails:', e);
-    return null;
-  }
-}, [params.commercialDetails]);
-const forwardedPropertyTitle = params.propertyTitle ||  (commercialDetails && commercialDetails.propertyTitle);
+  // ✅ Parse commercialDetails
+  const commercialDetails = useMemo(() => {
+    try {
+      if (!params.commercialDetails) return null;
+      if (typeof params.commercialDetails === 'object') return params.commercialDetails;
+      return JSON.parse(params.commercialDetails);
+    } catch (e) {
+      console.error('❌ Error parsing commercialDetails:', e);
+      return null;
+    }
+  }, [params.commercialDetails]);
 
-// ✅ NEW - Add missing baseDetails extraction
-const baseDetails = useMemo(() => {
-  try {
-    if (!params.commercialBaseDetails) return null;
-    if (typeof params.commercialBaseDetails === 'object') return params.commercialBaseDetails;
-    return JSON.parse(params.commercialBaseDetails);
-  } catch (e) {
-    console.error('❌ Error parsing commercialBaseDetails:', e);
-    return null;
-  }
-}, [params.commercialBaseDetails]);
+  // ✅ Parse baseDetails
+  const baseDetails = useMemo(() => {
+    try {
+      if (!params.commercialBaseDetails) return null;
+      if (typeof params.commercialBaseDetails === 'object') return params.commercialBaseDetails;
+      return JSON.parse(params.commercialBaseDetails);
+    } catch (e) {
+      console.error('❌ Error parsing commercialBaseDetails:', e);
+      return null;
+    }
+  }, [params.commercialBaseDetails]);
 
-
+  const forwardedPropertyTitle = params.propertyTitle || (commercialDetails && commercialDetails.propertyTitle);
 
   /* ---------- STATE ---------- */
   const [ownership, setOwnership] = useState("");
@@ -109,166 +111,45 @@ const baseDetails = useMemo(() => {
   const [locationAdvantages, setLocationAdvantages] = useState([]);
 
   const [focusedField, setFocusedField] = useState(null);
-  const [isMorePricingModalVisible, setIsMorePricingModalVisible] =
-    useState(false);
-
-  // ✅ NEW - Add handleBack function (matching OfficeNext pattern)
-const handleBack = () => {
-  if (!commercialDetails || !commercialDetails.retailDetails) {
-    router.back();
-    return;
-  }
-
-  // Save current state before going back
-  const currentData = {
-    ...commercialDetails.retailDetails,
-    ownership,
-    expectedPrice: Number(expectedPrice) || undefined,
-    priceDetails: {
-      allInclusive,
-      negotiable,
-      taxExcluded,
-    },
-    preLeased,
-    leaseDuration: leaseDuration || undefined,
-    monthlyRent: monthlyRent ? Number(monthlyRent) : undefined,
-    previouslyUsedFor: prevUsedFor,
-    description,
-    amenities,
-    locationAdvantages,
-  };
-
-  router.push({
-    pathname: "/home/screens/UploadScreens/CommercialUpload/Components/Retail",
-    params: {
-      retailDetails: JSON.stringify(currentData),
-      images: JSON.stringify(images),
-      area: params.area || area,
-      commercialBaseDetails: params.commercialBaseDetails,
-    },
-  });
-};
-
-
-  // ✅ NEW - Load draft from AsyncStorage
-useEffect(() => {
-  const loadDraft = async () => {
-    try {
-      const draft = await AsyncStorage.getItem('draft_retail_pricing');
-      if (draft) {
-        const savedData = JSON.parse(draft);
-        console.log('📦 Loading Retail pricing draft from AsyncStorage');
-        
-        setOwnership(savedData.ownership || '');
-        setExpectedPrice(savedData.expectedPrice?.toString() || '');
-        setAllInclusive(savedData.allInclusive || false);
-        setNegotiable(savedData.negotiable || false);
-        setTaxExcluded(savedData.taxExcluded || false);
-        setPreLeased(savedData.preLeased || null);
-        setLeaseDuration(savedData.leaseDuration || '');
-        setMonthlyRent(savedData.monthlyRent?.toString() || '');
-        setPrevUsedFor(savedData.previouslyUsedFor || 'Commercial');
-        setDescription(savedData.description || '');
-        setAmenities(savedData.amenities || []);
-        setLocationAdvantages(savedData.locationAdvantages || []);
-        
-        console.log('✅ Retail pricing draft loaded');
-        return;
-      }
-    } catch (e) {
-      console.log('⚠️ Failed to load Retail pricing draft:', e);
-    }
-
-    // ✅ FALLBACK: Load from params
-    if (commercialDetails?.retailDetails) {
-      const retail = commercialDetails.retailDetails;
-      console.log('🔄 Restoring RetailNext data from params');
-      
-      setOwnership(retail.ownership || '');
-      setExpectedPrice(retail.expectedPrice?.toString() || '');
-      setAllInclusive(retail.priceDetails?.allInclusive || false);
-      setNegotiable(retail.priceDetails?.negotiable || false);
-      setTaxExcluded(retail.priceDetails?.taxExcluded || false);
-      setPreLeased(retail.preLeased || null);
-      setLeaseDuration(retail.leaseDuration || '');
-      setMonthlyRent(retail.monthlyRent?.toString() || '');
-      setPrevUsedFor(retail.previouslyUsedFor || 'Commercial');
-      setDescription(retail.description || '');
-      setAmenities(retail.amenities || []);
-      setLocationAdvantages(retail.locationAdvantages || []);
-    }
-  };
-
-  loadDraft();
-}, [commercialDetails]);
-
-// ✅ NEW - Auto-save pricing draft
-useEffect(() => {
-  const saveDraft = async () => {
-    const pricingDraft = {
-      ownership,
-      expectedPrice,
-      allInclusive,
-      negotiable,
-      taxExcluded,
-      preLeased,
-      leaseDuration,
-      monthlyRent,
-      previouslyUsedFor: prevUsedFor,
-      description,
-      amenities,
-      locationAdvantages,
-      timestamp: new Date().toISOString(),
-    };
-
-    try {
-      await AsyncStorage.setItem('draft_retail_pricing', JSON.stringify(pricingDraft));
-      console.log('💾 Retail pricing draft auto-saved');
-    } catch (e) {
-      console.log('⚠️ Failed to save Retail pricing draft:', e);
-    }
-  };
-
-  const timer = setTimeout(saveDraft, 1000);
-  return () => clearTimeout(timer);
-}, [ownership, expectedPrice, allInclusive, negotiable, taxExcluded, 
-    preLeased, leaseDuration, monthlyRent, prevUsedFor, description, 
-    amenities, locationAdvantages]);
-
+  const [isMorePricingModalVisible, setIsMorePricingModalVisible] = useState(false);
 
   /* ---------- OPTIONS ---------- */
   const ownershipOptions = [
-    "Freehold",
-    "Leasehold",
-    "Co-operative Society",
-    "Power of Attorney",
+    t('retail_ownership_freehold'),
+    t('retail_ownership_leasehold'),
+    t('retail_ownership_cooperative'),
+    t('retail_ownership_poa'),
   ];
 
-  const prevUsedOptions = ["Commercial", "Retail", "Warehouse"];
+  const prevUsedOptions = [
+    t('retail_used_commercial'),
+    t('retail_used_retail'),
+    t('retail_used_warehouse'),
+  ];
 
   const amenitiesOptions = [
-    "+ Service/Goods Lift",
-    "+ Maintenance Staff",
-    "+ Water Storage",
-    "+ ATM",
-    "+ Water Disposal",
-    "+ Rainwater Harvesting",
-    "+ Security Fire Alarm",
-    "+ Near Bank",
-    "+ Visitor Parking",
-    "+ Security Guard",
-    "+ Lift(s)",
+    t('retail_amenity_lift'),
+    t('retail_amenity_maintenance'),
+    t('retail_amenity_water_storage'),
+    t('retail_amenity_atm'),
+    t('retail_amenity_water_disposal'),
+    t('retail_amenity_rainwater'),
+    t('retail_amenity_fire_alarm'),
+    t('retail_amenity_near_bank'),
+    t('retail_amenity_visitor_parking'),
+    t('retail_amenity_security_guard'),
+    t('retail_amenity_lifts'),
   ];
 
   const locationAdvOptions = [
-    "+ Close to Metro Station",
-    "+ Close to School",
-    "+ Close to Hospital",
-    "+ Close to Market",
-    "+ Close to Railway Station",
-    "+ Close to Airport",
-    "+ Close to Mall",
-    "+ Close to Highway",
+    t('retail_loc_metro'),
+    t('retail_loc_school'),
+    t('retail_loc_hospital'),
+    t('retail_loc_market'),
+    t('retail_loc_railway'),
+    t('retail_loc_airport'),
+    t('retail_loc_mall'),
+    t('retail_loc_highway'),
   ];
 
   const toggleItem = (value, list, setList) => {
@@ -277,95 +158,205 @@ useEffect(() => {
     );
   };
 
-  /* ---------- VALIDATION (OfficeNext style) ---------- */
- const handleNext = () => {
-  if (!commercialDetails) {
-    Alert.alert(
-      "Missing Data",
-      "Retail details are missing. Please go back and complete the previous step.",
-      [{ text: "Go Back", onPress: () => router.back() }]
-    );
-    return;
-  }
+  // ✅ Load draft from AsyncStorage
+  useEffect(() => {
+    const loadDraft = async () => {
+      try {
+        const draft = await AsyncStorage.getItem('draft_retail_pricing');
+        if (draft) {
+          const savedData = JSON.parse(draft);
+          console.log('📦 Loading Retail pricing draft from AsyncStorage');
+          
+          setOwnership(toEnglish(savedData.ownership) || '');
+          setExpectedPrice(savedData.expectedPrice?.toString() || '');
+          setAllInclusive(savedData.allInclusive || false);
+          setNegotiable(savedData.negotiable || false);
+          setTaxExcluded(savedData.taxExcluded || false);
+          setPreLeased(toEnglish(savedData.preLeased) || null);
+          setLeaseDuration(savedData.leaseDuration || '');
+          setMonthlyRent(savedData.monthlyRent?.toString() || '');
+          setPrevUsedFor(toEnglish(savedData.previouslyUsedFor) || 'Commercial');
+          setDescription(savedData.description || '');
+          setAmenities(convertToEnglish(savedData.amenities) || []);
+          setLocationAdvantages(convertToEnglish(savedData.locationAdvantages) || []);
+          
+          console.log('✅ Retail pricing draft loaded');
+          return;
+        }
+      } catch (e) {
+        console.log('⚠️ Failed to load Retail pricing draft:', e);
+      }
 
-  if (!expectedPrice) {
-    Toast.show({
-      type: "error",
-      text1: "Expected price is required",
-    });
-    return;
-  }
+      // ✅ FALLBACK: Load from params
+      if (commercialDetails?.retailDetails) {
+        const retail = commercialDetails.retailDetails;
+        console.log('🔄 Restoring RetailNext data from params');
+        
+        setOwnership(toEnglish(retail.ownership) || '');
+        setExpectedPrice(retail.expectedPrice?.toString() || '');
+        setAllInclusive(retail.priceDetails?.allInclusive || false);
+        setNegotiable(retail.priceDetails?.negotiable || false);
+        setTaxExcluded(retail.priceDetails?.taxExcluded || false);
+        setPreLeased(toEnglish(retail.preLeased) || null);
+        setLeaseDuration(retail.leaseDuration || '');
+        setMonthlyRent(retail.monthlyRent?.toString() || '');
+        setPrevUsedFor(toEnglish(retail.previouslyUsedFor) || 'Commercial');
+        setDescription(retail.description || '');
+       setAmenities(convertToEnglish(retail.amenities) || []);
+      setLocationAdvantages(convertToEnglish(retail.locationAdvantages) || []);
+      }
+    };
 
-  if (!description.trim()) {
-    Toast.show({
-      type: "error",
-      text1: "Description is required",
-    });
-    return;
-  }
+    loadDraft();
+  }, [commercialDetails]);
 
-  // ✅ BUILD COMPLETE commercialDetails OBJECT (matching Office structure)
-  const updatedCommercialDetails = {
-    subType: "Retail",
-    
-    retailDetails: {
-      ...commercialDetails.retailDetails, // ✅ Preserve all fields from Retail.jsx
-      
-      // ✅ ADD NEW FIELDS from this screen
+  // ✅ Auto-save pricing draft
+  useEffect(() => {
+    const saveDraft = async () => {
+      const pricingDraft = {
+        ownership,
+        expectedPrice,
+        allInclusive,
+        negotiable,
+        taxExcluded,
+        preLeased,
+        leaseDuration,
+        monthlyRent,
+        previouslyUsedFor: prevUsedFor,
+        description,
+        amenities,
+        locationAdvantages,
+        timestamp: new Date().toISOString(),
+      };
+
+      try {
+        await AsyncStorage.setItem('draft_retail_pricing', JSON.stringify(pricingDraft));
+        console.log('💾 Retail pricing draft auto-saved');
+      } catch (e) {
+        console.log('⚠️ Failed to save Retail pricing draft:', e);
+      }
+    };
+
+    const timer = setTimeout(saveDraft, 1000);
+    return () => clearTimeout(timer);
+  }, [ownership, expectedPrice, allInclusive, negotiable, taxExcluded, 
+      preLeased, leaseDuration, monthlyRent, prevUsedFor, description, 
+      amenities, locationAdvantages]);
+
+  // ✅ handleBack function
+  const handleBack = () => {
+    if (!commercialDetails || !commercialDetails.retailDetails) {
+      router.back();
+      return;
+    }
+
+    // Save current state before going back
+    const currentData = {
+      ...commercialDetails.retailDetails,
       ownership,
-      expectedPrice: Number(expectedPrice),
-      
+      expectedPrice: Number(expectedPrice) || undefined,
       priceDetails: {
         allInclusive,
         negotiable,
         taxExcluded,
       },
-      
       preLeased,
       leaseDuration: leaseDuration || undefined,
       monthlyRent: monthlyRent ? Number(monthlyRent) : undefined,
-      
       previouslyUsedFor: prevUsedFor,
-      
       description,
-      
       amenities,
       locationAdvantages,
-    },
+    };
 
-    propertyTitle: commercialDetails.retailDetails?.propertyTitle || 
-                   baseDetails?.propertyTitle || 
-                   forwardedPropertyTitle,
-    area: params.area || area, // ✅ Neighborhood area
+    router.push({
+      pathname: "/home/screens/UploadScreens/CommercialUpload/Components/Retail",
+      params: {
+        retailDetails: JSON.stringify(currentData),
+        images: JSON.stringify(images),
+        area: params.area || area,
+        commercialBaseDetails: params.commercialBaseDetails,
+      },
+    });
   };
 
-  console.log('🔄 Passing to RetailVaastu:', {
-    hasCommercialDetails: !!updatedCommercialDetails,
-    hasRetailDetails: !!updatedCommercialDetails.retailDetails,
-    propertyTitle: updatedCommercialDetails.propertyTitle,
-  });
+  /* ---------- VALIDATION & NEXT ---------- */
+  const handleNext = () => {
+    if (!commercialDetails) {
+      Alert.alert(
+        t('alert_missing_data'),
+        t('alert_retail_details_missing'),
+        [{ text: t('button_go_back'), onPress: () => router.back() }]
+      );
+      return;
+    }
 
-  router.push({
-    pathname: "/home/screens/UploadScreens/CommercialUpload/Components/RetailVaastu",
-    params: {
-      commercialDetails: JSON.stringify(updatedCommercialDetails),
-      images: JSON.stringify(images),
-      area: params.area || area,
-      propertyTitle: updatedCommercialDetails.propertyTitle,
+    if (!expectedPrice) {
+      Toast.show({
+        type: "error",
+        text1: t('retail_price_required'),
+      });
+      return;
+    }
+
+    if (!description.trim()) {
+      Toast.show({
+        type: "error",
+        text1: t('retail_description_required'),
+      });
+      return;
+    }
+
+    // ✅ BUILD COMPLETE commercialDetails OBJECT
+  const updatedCommercialDetails = {
+  ...commercialDetails,
+  retailDetails: {
+    ...commercialDetails.retailDetails,
+    
+    ownership: toEnglish(ownership),  // ✅ ADD
+    expectedPrice: Number(expectedPrice),
+    
+    priceDetails: {
+      allInclusive,
+      negotiable,
+      taxExcluded,
     },
-  });
+    
+    preLeased: toEnglish(preLeased),  // ✅ ADD
+    leaseDuration: leaseDuration || undefined,
+    monthlyRent: monthlyRent ? Number(monthlyRent) : undefined,
+    
+    previouslyUsedFor: toEnglish(prevUsedFor),  // ✅ ADD
+    
+    description,
+    
+    amenities: convertToEnglish(amenities),  // ✅ ADD
+    locationAdvantages: convertToEnglish(locationAdvantages),  // ✅ ADD
+  },
 };
+    console.log('🔄 Passing to RetailVaastu:', {
+      hasCommercialDetails: !!updatedCommercialDetails,
+      hasRetailDetails: !!updatedCommercialDetails.retailDetails,
+      propertyTitle: updatedCommercialDetails.propertyTitle,
+    });
 
-  
+    router.push({
+      pathname: "/home/screens/UploadScreens/CommercialUpload/Components/RetailVaastu",
+      params: {
+        commercialDetails: JSON.stringify(updatedCommercialDetails),
+        images: JSON.stringify(images),
+        area: params.area || area,
+        propertyTitle: updatedCommercialDetails.propertyTitle,
+        commercialBaseDetails: params.commercialBaseDetails,
+      },
+    });
+  };
 
   return (
     <View className="flex-1 bg-gray-50">
       {/* HEADER */}
       <View className="flex-row items-center mt-6 mb-4">
-      <TouchableOpacity 
-  onPress={handleBack}
-  className="p-2"
->
+        <TouchableOpacity onPress={handleBack} className="p-2">
           <Image
             source={require("../../../../../../assets/arrow.png")}
             className="w-5 h-5"
@@ -373,9 +364,9 @@ useEffect(() => {
         </TouchableOpacity>
 
         <View className="ml-2">
-          <Text className="text-base font-semibold">Upload Your Property</Text>
+          <Text className="text-base font-semibold">{t('upload_property_title')}</Text>
           <Text className="text-xs text-gray-500">
-            Add your property details
+            {t('upload_property_subtitle')}
           </Text>
         </View>
       </View>
@@ -386,7 +377,7 @@ useEffect(() => {
       >
         <View className="bg-white border border-gray-200 rounded-2xl p-4">
           {/* OWNERSHIP */}
-          <Text className="font-semibold mb-2">Ownership</Text>
+          <Text className="font-semibold mb-2">{t('retail_ownership')}</Text>
           <View className="flex-row flex-wrap mb-4">
             {ownershipOptions.map((opt) => (
               <PillButton
@@ -400,11 +391,11 @@ useEffect(() => {
 
           {/* EXPECTED PRICE */}
           <Text className="font-semibold mb-2">
-            Expected Price Details <Text className="text-red-500">*</Text>
+            {t('retail_expected_price')} <Text className="text-red-500">*</Text>
           </Text>
 
           <TextInput
-            placeholder="₹ Expected Price"
+            placeholder={t('retail_enter_price')}
             value={expectedPrice}
             onChangeText={(t) => setExpectedPrice(t.replace(/[^0-9]/g, ""))}
             keyboardType="numeric"
@@ -418,17 +409,17 @@ useEffect(() => {
           />
 
           <Checkbox
-            label="All inclusive price"
+            label={t('retail_all_inclusive')}
             checked={allInclusive}
             onPress={() => setAllInclusive(!allInclusive)}
           />
           <Checkbox
-            label="Price negotiable"
+            label={t('retail_price_negotiable')}
             checked={negotiable}
             onPress={() => setNegotiable(!negotiable)}
           />
           <Checkbox
-            label="Tax & govt. charges excluded"
+            label={t('retail_tax_excluded')}
             checked={taxExcluded}
             onPress={() => setTaxExcluded(!taxExcluded)}
           />
@@ -441,17 +432,17 @@ useEffect(() => {
 
           {/* PRE-LEASED */}
           <Text className="font-semibold mt-4 mb-2">
-            Is it Pre-leased / Pre-rented?
+            {t('retail_pre_leased')}
           </Text>
 
           <View className="flex-row mb-2">
             <PillButton
-              label="Yes"
+              label={t('retail_yes')}
               selected={preLeased === "Yes"}
               onPress={() => setPreLeased("Yes")}
             />
             <PillButton
-              label="No"
+              label={t('retail_no')}
               selected={preLeased === "No"}
               onPress={() => setPreLeased("No")}
             />
@@ -460,7 +451,7 @@ useEffect(() => {
           {preLeased === "Yes" && (
             <>
               <TextInput
-                placeholder="Lease duration (eg: 5 years)"
+                placeholder={t('retail_lease_duration')}
                 value={leaseDuration}
                 onChangeText={setLeaseDuration}
                 onFocus={() => setFocusedField("lease")}
@@ -472,7 +463,7 @@ useEffect(() => {
                 }}
               />
               <TextInput
-                placeholder="₹ Monthly rent"
+                placeholder={t('retail_monthly_rent')}
                 value={monthlyRent}
                 onChangeText={(t) => setMonthlyRent(t.replace(/[^0-9]/g, ""))}
                 keyboardType="numeric"
@@ -489,7 +480,7 @@ useEffect(() => {
 
           {/* PREVIOUS USE */}
           <Text className="font-semibold mt-4 mb-2">
-            Property previously used for (optional)
+            {t('retail_previously_used')}
           </Text>
 
           <TouchableOpacity
@@ -516,10 +507,10 @@ useEffect(() => {
 
           {/* DESCRIPTION */}
           <Text className="font-semibold mt-4 mb-2">
-            Description <Text className="text-red-500">*</Text>
+            {t('retail_description')} <Text className="text-red-500">*</Text>
           </Text>
           <TextInput
-            placeholder="Write here what makes your property unique"
+            placeholder={t('retail_describe_placeholder')}
             value={description}
             onChangeText={(t) =>
               setDescription(t.replace(/[^a-zA-Z0-9\s]/g, ""))
@@ -536,7 +527,7 @@ useEffect(() => {
           />
 
           {/* AMENITIES */}
-          <Text className="font-semibold mt-6 mb-3">Amenities</Text>
+          <Text className="font-semibold mt-6 mb-3">{t('retail_amenities')}</Text>
           <View className="flex-row flex-wrap">
             {amenitiesOptions.map((item) => (
               <PillButton
@@ -549,7 +540,7 @@ useEffect(() => {
           </View>
 
           {/* LOCATION ADVANTAGES */}
-          <Text className="font-semibold mt-6 mb-3">Location Advantages</Text>
+          <Text className="font-semibold mt-6 mb-3">{t('retail_location_advantages')}</Text>
           <View className="flex-row flex-wrap">
             {locationAdvOptions.map((item) => (
               <PillButton
@@ -571,17 +562,17 @@ useEffect(() => {
         className="mb-8 justify-end mt-4 space-x-5 mx-3"
       >
         <TouchableOpacity 
-  className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
-  onPress={handleBack}
->
-  <Text className="font-semibold">Cancel</Text>
-</TouchableOpacity>
+          className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
+          onPress={handleBack}
+        >
+          <Text className="font-semibold">{t('button_cancel')}</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity
           className="px-5 py-3 rounded-lg bg-green-500"
           onPress={handleNext}
         >
-          <Text className="text-white font-semibold">Next</Text>
+          <Text className="text-white font-semibold">{t('button_next')}</Text>
         </TouchableOpacity>
       </View>
 
