@@ -1,7 +1,169 @@
-// Backend/controllers/propertyController.js
 import Property from '../UserModels/Property.js';
 import User from '../UserModels/User.js';
 import { translatePropertyFields, normalizeAreaKey } from '../services/translationService.js';
+
+// ✅ ADD THIS - Reverse translation utility
+const reverseTranslationMap = {
+  // Ownership
+  'ఇతర': 'Other',
+  'अन्य': 'Other',
+  'ఫ్రీహోల్డ్': 'Freehold',
+  'फ्रीहोल्ड': 'Freehold',
+  'లీజ్‌హోల్డ్': 'Leasehold',
+  'लीजहोल्ड': 'Leasehold',
+  'కో-ఆపరేటివ్ సొసైటీ': 'Co-operative Society',
+  'सहकारी समिति': 'Co-operative Society',
+
+  // Authority
+  'స్థానిక అథారిటీ': 'Local Authority',
+  'स्थानीय प्राधिकरण': 'Local Authority',
+
+  // Flooring
+  'కాంక్రీటు': 'Concrete',
+  'कंक्रीट': 'Concrete',
+  'పాలరాయి': 'Marble',
+  'संगमरमर': 'Marble',
+  'సిరామిక్': 'Ceramic',
+  'सिरेमिक': 'Ceramic',
+  'మొజాయిక్': 'Mosaic',
+  'मोज़ेक': 'Mosaic',
+  'సిమెంట్': 'Cement',
+  'सीमेंट': 'Cement',
+  'రాయి': 'Stone',
+  'पत्थर': 'Stone',
+  'వినైల్': 'Vinyl',
+  'विनाइल': 'Vinyl',
+  'స్పార్టెక్స్': 'Spartex',
+  'स्पार्टेक्स': 'Spartex',
+  'ఐపీఎస్': 'IPS',
+  'आईपीएस': 'IPS',
+  'విట్రిఫైడ్': 'Vitrified',
+  'विट्रिफाइड': 'Vitrified',
+  'చెక్క': 'Wooden',
+  'लकड़ी': 'Wooden',
+  'గ్రానైట్': 'Granite',
+  'ग्रेनाइट': 'Granite',
+  'ఇతరములు': 'Others',
+  'अन्य': 'Others',
+
+  // Directions
+  'ఈశాన్యం': 'North-East',
+  'उत्तर-पूर्व': 'North-East',
+  'ఉత్తరం': 'North',
+  'उत्तर': 'North',
+  'తూర్పు': 'East',
+  'पूर्व': 'East',
+  'పడమర': 'West',
+  'पश्चिम': 'West',
+  'దక్షిణం': 'South',
+  'दक्षिण': 'South',
+  'నైరుతి': 'South-West',
+  'दक्षिण-पश्चिम': 'South-West',
+  'వాయువ్యం': 'North-West',
+  'उत्तर-पश्चिम': 'North-West',
+  'ఆగ్నేయం': 'South-East',
+  'दक्षिण-पूर्व': 'South-East',
+
+  // Vastu specific
+  'ఉత్తరం వైపు': 'Towards North',
+  'उत्तर की ओर': 'Towards North',
+  'సంతులిత ఓపెన్ స్పేస్': 'Balanced Open Space',
+  'संतुलित खुली जगह': 'Balanced Open Space',
+  'చతురస్రం': 'Square',
+  'वर्ग': 'Square',
+  'ఉత్తరం నీటి వనరు': 'Water Source in North',
+  'उत्तर में जल स्रोत': 'Water Source in North',
+  'సమాన ఎత్తు': 'Equal Height',
+  'समान ऊंचाई': 'Equal Height',
+  'నిర్మాణాలు లేవు': 'No Structures Above',
+  'कोई संरचना नहीं': 'No Structures Above',
+
+  // Other Rooms
+  'పూజా గది': 'Pooja Room',
+  'पूजा कक्ष': 'Pooja Room',
+  'అధ్యయన గది': 'Study Room',
+  'अध्ययन कक्ष': 'Study Room',
+  'సేవకుల గది': 'Servant Room',
+  'नौकर का कमरा': 'Servant Room',
+
+  // Washroom
+  'ఏదీ లేదు': 'None',
+  'कोई नहीं': 'None',
+  'భాగస్వామ్యం': 'Shared',
+  'साझा': 'Shared',
+
+  // Balconies
+  '3 కంటే ఎక్కువ': 'More than 3',
+  '3 से अधिक': 'More than 3',
+
+  // Furnishing
+  'అమర్చబడనిది': 'Unfurnished',
+  'असुसज्जित': 'Unfurnished',
+  'పాక్షిక సమర్పించబడింది': 'Semi-furnished',
+  'अर्ध-सुसज्जित': 'Semi-furnished',
+  'అమర్చబడినది': 'Furnished',
+  'सुसज्जित': 'Furnished',
+
+  // Yes/No
+  'అవును': 'Yes',
+  'हाँ': 'Yes',
+  'లేదు': 'No',
+  'नहीं': 'No',
+  // Construction Types
+'+ Shed': '+ Shed',
+'+ Room(s)': '+ Room(s)',
+'+ Washroom': '+ Washroom',
+'+ Other': '+ Other',
+'+ शेड': '+ Shed',
+'+ कमरा(ए)': '+ Room(s)',
+'+ वॉशरूम': '+ Washroom',
+'+ अन्य': '+ Other',
+'+ షెడ్': '+ Shed',
+'+ గది(లు)': '+ Room(s)',
+'+ వాష్‌రూమ్': '+ Washroom',
+'+ ఇతర': '+ Other',
+
+// Vastu Directions - Towards
+'తూర్పు వైపు': 'Towards East',
+'पूर्व की ओर': 'Towards East',
+'దక్షిణం వైపు': 'Towards South',
+'दक्षिण की ओर': 'Towards South',
+'పడమర వైపు': 'Towards West',
+'पश्चिम की ओर': 'Towards West',
+
+// Open Space
+'ఉత్తరం & తూర్పులో ఎక్కువ': 'More in North & East',
+'उत्तर और पूर्व में अधिक': 'More in North & East',
+
+};
+
+const toEnglish = (text) => {
+  if (!text) return text;
+  if (typeof text !== 'string') return text;
+  return reverseTranslationMap[text.trim()] || text;
+};
+
+const convertToEnglish = (obj) => {
+  if (!obj || typeof obj !== 'object') {
+    return typeof obj === 'string' ? toEnglish(obj) : obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(item => convertToEnglish(item));
+  }
+
+  const result = {};
+  for (const [key, value] of Object.entries(obj)) {
+    // Skip multilingual fields
+    if (['propertyTitle', 'description', 'location', 'area'].includes(key)) {
+      result[key] = value;
+    } else {
+      result[key] = convertToEnglish(value);
+    }
+  }
+  
+  return result;
+};
 
 // Utility: normalize filesystem path to URL-friendly forward slashes
 const normalizePath = (p) => (p ? p.replace(/\\+/g, '/') : p);
@@ -12,6 +174,7 @@ const bufferToBase64 = (buffer, mimetype) => {
   return `data:${mimetype};base64,${buffer.toString('base64')}`;
 };
 export const createProperty = async (req, res) => {
+
   try {
     console.log('📥 Property upload request');
     if (!req.body.propertyData) {
@@ -72,8 +235,7 @@ console.log('📄 Files received:', {
       return res.status(400).json({ success: false, message: 'Property type is required' });
     }
 
-    
-
+  
 
    const finalData = {
   propertyType: propertyData.propertyType,
@@ -91,17 +253,17 @@ console.log('📄 Files received:', {
 };
 
 // ✅ ADD THIS NEW CODE FOR HOUSE PROPERTIES
-if (propertyData.propertyType === "House") {
-  finalData.location = propertyData.location;
-  finalData.area = propertyData.area; // This should be the neighborhood name from frontend
-  finalData.houseDetails = propertyData.houseDetails;
-  
-  console.log('🏠 House property data:', {
-    location: finalData.location,
-    area: finalData.area,
-    sqft: propertyData.houseDetails?.area
-  });
-}
+   if (propertyData.propertyType === "House" || propertyData.propertyType === "House/Flat") {
+      finalData.location = propertyData.location;
+      finalData.area = propertyData.area;
+      finalData.houseDetails = propertyData.houseDetails;
+      
+      console.log(`🏠 ${propertyData.propertyType} property data:`, {
+        location: finalData.location,
+        area: finalData.area,
+        sqft: propertyData.houseDetails?.area
+      });
+    }
 
 // ✅ ADD THIS NEW CODE FOR SITE/PLOT/LAND PROPERTIES
 if (propertyData.propertyType === "Site/Plot/Land") {
@@ -418,6 +580,26 @@ if (canonicalSubType === "Storage") {
     });
   }
 
+  // ✅ ADD THIS CONVERSION HERE
+  const storageTypeMap = {
+    'వేర్‌హౌస్': 'Warehouse',
+    'गोदाम': 'Warehouse',
+    'కోల్డ్ స్టోరేజ్': 'Cold Storage',
+    'कोल्ड स्टोरेज': 'Cold Storage'
+  };
+
+  const rawStorageType = commercialDetails.storageDetails.storageType;
+  const convertedStorageType = storageTypeMap[rawStorageType] || rawStorageType;
+
+  console.log('🔄 Backend Storage Type Conversion:', {
+    raw: rawStorageType,
+    converted: convertedStorageType
+  });
+
+  // ✅ OVERRIDE with English value
+  commercialDetails.storageDetails.storageType = convertedStorageType;
+
+
   console.log('📦 Processing Storage details:', {
     hasNeighborhoodArea: !!commercialDetails.storageDetails.neighborhoodArea,
     propertyDataArea: propertyData.area,
@@ -602,13 +784,13 @@ if (canonicalSubType === "Hospitality") {
   console.log('🏨 Processing Hospitality details:', {
     hasNeighborhoodArea: !!commercialDetails.hospitalityDetails.neighborhoodArea,
     propertyDataArea: propertyData.area,
-    hasAllFields: !!commercialDetails.hospitalityDetails.rooms,
+    hasHospitalityType: !!commercialDetails.hospitalityType,
+    rawPossessionBy: commercialDetails.hospitalityDetails.possessionBy,
+    rawExpectedMonth: commercialDetails.hospitalityDetails.expectedMonth,
   });
 
-  // ✅ CRITICAL FIX: Store location and area properly
   finalData.location = commercialDetails.hospitalityDetails.location;
 
-  // ✅ Priority order for neighborhoodArea
   const neighborhoodArea = commercialDetails.hospitalityDetails.neighborhoodArea ||
                            propertyData.area ||
                            '';
@@ -617,71 +799,90 @@ if (canonicalSubType === "Hospitality") {
 
   console.log('✅ Hospitality area set to:', finalData.area);
 
-  // ✅ IMPORTANT: Store COMPLETE hospitality details
-  finalData.commercialDetails.hospitalityDetails = {
-    // Basic Location
-    location: commercialDetails.hospitalityDetails.location,
-    neighborhoodArea: neighborhoodArea,
-
-    // Area
-    area: {
-      value: Number(commercialDetails.hospitalityDetails.area?.value) || 0,
-      unit: commercialDetails.hospitalityDetails.area?.unit || 'sqft',
-    },
-
-    // Room Details (from Hospitality.jsx)
-    rooms: Number(commercialDetails.hospitalityDetails.rooms) || 0,
-    washroomType: commercialDetails.hospitalityDetails.washroomType,
-    balconies: commercialDetails.hospitalityDetails.balconies,
-    otherRooms: commercialDetails.hospitalityDetails.otherRooms || [],
-
-    // Furnishing
-    furnishingType: commercialDetails.hospitalityDetails.furnishingType || 'Unfurnished',
-    furnishingDetails: commercialDetails.hospitalityDetails.furnishingDetails || [],
-
-    // Availability
-    availability: commercialDetails.hospitalityDetails.availability,
-    ageOfProperty: commercialDetails.hospitalityDetails.ageOfProperty,
-    possessionBy: commercialDetails.hospitalityDetails.possessionBy,
-    expectedMonth: commercialDetails.hospitalityDetails.expectedMonth,
-
-    // Pricing (from HospitalityNext.jsx)
-    ownership: commercialDetails.hospitalityDetails.ownership,
-    IndustryApprovedBy: commercialDetails.hospitalityDetails.IndustryApprovedBy,
-    approvedIndustryType: commercialDetails.hospitalityDetails.approvedIndustryType,
-    expectedPrice: Number(commercialDetails.hospitalityDetails.expectedPrice) || 0,
-    priceDetails: {
-      allInclusive: commercialDetails.hospitalityDetails.priceDetails?.allInclusive || false,
-      negotiable: commercialDetails.hospitalityDetails.priceDetails?.negotiable || false,
-      taxExcluded: commercialDetails.hospitalityDetails.priceDetails?.taxExcluded || false,
-    },
-
-    // Pre-Leased Details
-    preLeased: commercialDetails.hospitalityDetails.preLeased,
-    leaseDuration: commercialDetails.hospitalityDetails.leaseDuration,
-    monthlyRent: Number(commercialDetails.hospitalityDetails.monthlyRent) || 0,
-
-    // Description & Features
-    description: commercialDetails.hospitalityDetails.description,
-    amenities: commercialDetails.hospitalityDetails.amenities || [],
-    locationAdvantages: commercialDetails.hospitalityDetails.locationAdvantages || [],
-    wheelchairFriendly: commercialDetails.hospitalityDetails.wheelchairFriendly || false,
-    flooringType: commercialDetails.hospitalityDetails.flooringType,
-
-    // Vastu Details (from HospitalityVaastu.jsx)
-    vastuDetails: commercialDetails.hospitalityDetails.vastuDetails || {},
+  // ✅ CRITICAL - Convert ALL Telugu/Hindi to English BEFORE saving
+  const rawDetails = commercialDetails.hospitalityDetails;
+  const convertedDetails = {
+    ...rawDetails,
+    // ✅ Convert possession timeline
+    possessionBy: toEnglish(rawDetails.possessionBy),
+    expectedMonth: toEnglish(rawDetails.expectedMonth),
+    // ✅ Convert other fields
+    ownership: toEnglish(rawDetails.ownership),
+    washroomType: toEnglish(rawDetails.washroomType),
+    balconies: toEnglish(rawDetails.balconies),
+    otherRooms: convertToEnglish(rawDetails.otherRooms || []),
+    furnishingType: toEnglish(rawDetails.furnishingType),
+    IndustryApprovedBy: toEnglish(rawDetails.IndustryApprovedBy),
+    preLeased: toEnglish(rawDetails.preLeased),
+    flooringType: toEnglish(rawDetails.flooringType),
+    amenities: convertToEnglish(rawDetails.amenities || []),
+    locationAdvantages: convertToEnglish(rawDetails.locationAdvantages || []),
+    vastuDetails: convertToEnglish(rawDetails.vastuDetails || {}),
   };
 
-  finalData.expectedPrice = Number(commercialDetails.hospitalityDetails.expectedPrice) || 0;
+  console.log('🌐 Converted Hospitality data:', {
+    possessionBy: convertedDetails.possessionBy,
+    expectedMonth: convertedDetails.expectedMonth,
+    ownership: convertedDetails.ownership,
+    flooringType: convertedDetails.flooringType,
+  });
 
+  finalData.commercialDetails.hospitalityDetails = {
+    // ✅ CRITICAL - hospitalityType from multiple sources
+    hospitalityType: commercialDetails.hospitalityType || 
+                     commercialDetails.hospitalityDetails.hospitalityType ||
+                     propertyData.hospitalityType,
 
+    location: convertedDetails.location,
+    neighborhoodArea: neighborhoodArea,
 
-  console.log('✅ Hospitality details stored:', {
-    location: finalData.location,
-    area: finalData.area,
-    rooms: finalData.commercialDetails.hospitalityDetails.rooms,
-    hasDescription: !!finalData.commercialDetails.hospitalityDetails.description,
-    allFields: Object.keys(finalData.commercialDetails.hospitalityDetails),
+    area: {
+      value: Number(convertedDetails.area?.value) || 0,
+      unit: convertedDetails.area?.unit || 'sqft',
+    },
+
+    rooms: Number(convertedDetails.rooms) || 0,
+    washroomType: convertedDetails.washroomType,
+    balconies: convertedDetails.balconies,
+    otherRooms: convertedDetails.otherRooms,
+
+    furnishingType: convertedDetails.furnishingType || 'Unfurnished',
+    furnishingDetails: convertedDetails.furnishingDetails || [],
+
+    availability: convertedDetails.availability,
+    ageOfProperty: convertedDetails.ageOfProperty,
+    possessionBy: convertedDetails.possessionBy, // ✅ Now in English
+    expectedMonth: convertedDetails.expectedMonth, // ✅ Now in English
+
+    ownership: convertedDetails.ownership,
+    IndustryApprovedBy: convertedDetails.IndustryApprovedBy,
+    approvedIndustryType: convertedDetails.approvedIndustryType,
+    expectedPrice: Number(convertedDetails.expectedPrice) || 0,
+    priceDetails: {
+      allInclusive: convertedDetails.priceDetails?.allInclusive || false,
+      negotiable: convertedDetails.priceDetails?.negotiable || false,
+      taxExcluded: convertedDetails.priceDetails?.taxExcluded || false,
+    },
+
+    preLeased: convertedDetails.preLeased,
+    leaseDuration: convertedDetails.leaseDuration,
+    monthlyRent: Number(convertedDetails.monthlyRent) || 0,
+
+    description: convertedDetails.description,
+    amenities: convertedDetails.amenities,
+    locationAdvantages: convertedDetails.locationAdvantages,
+    wheelchairFriendly: convertedDetails.wheelchairFriendly || false,
+    flooringType: convertedDetails.flooringType,
+
+    vastuDetails: convertedDetails.vastuDetails,
+  };
+
+  finalData.expectedPrice = Number(convertedDetails.expectedPrice) || 0;
+
+  console.log('✅ Hospitality details stored with English values:', {
+    hospitalityType: finalData.commercialDetails.hospitalityDetails.hospitalityType,
+    possessionBy: finalData.commercialDetails.hospitalityDetails.possessionBy,
+    expectedMonth: finalData.commercialDetails.hospitalityDetails.expectedMonth,
   });
 }
 
@@ -716,70 +917,72 @@ if (canonicalSubType === "Plot/Land") {
 
   console.log('✅ Plot area set to:', finalData.area);
 
-  // ✅ FIXED: Store COMPLETE plot details including plotKind and all pricing fields
-  finalData.commercialDetails.plotDetails = {
-    // ✅ Plot Kind (Agricultural/Residential/Commercial)
-    plotKind: commercialDetails.plotDetails.plotKind,
+  // ✅ CRITICAL - Convert Telugu/Hindi to English BEFORE saving
+  const rawPlotDetails = commercialDetails.plotDetails;
+  const rawPricingExtras = commercialDetails.pricingExtras || {};
+  const rawVastuDetails = commercialDetails.vastuDetails || {};
 
-    // Basic Location
-    location: commercialDetails.plotDetails.location,
-    locality: commercialDetails.plotDetails.locality,
+  console.log('🌐 Raw Plot data before conversion:', {
+    plotKind: rawPlotDetails.plotKind,
+    constructionTypes: rawPlotDetails.constructionTypes,
+    ownership: rawPricingExtras.ownership,
+    amenities: rawPricingExtras.amenities,
+  });
+
+  // ✅ Convert all Telugu/Hindi values to English
+  const convertedPlotDetails = {
+    plotKind: toEnglish(rawPlotDetails.plotKind),
+    location: rawPlotDetails.location,
+    locality: rawPlotDetails.locality,
     neighborhoodArea: neighborhoodArea,
-    plotType: commercialDetails.plotDetails.plotType,
-
-    // Area & Dimensions (from Plot.jsx)
-    area: Number(commercialDetails.plotDetails.area),
-    areaUnit: commercialDetails.plotDetails.areaUnit || 'sqft',
+    plotType: rawPlotDetails.plotType,
+    area: Number(rawPlotDetails.area),
+    areaUnit: rawPlotDetails.areaUnit || 'sqft',
     dimensions: {
-      length: Number(commercialDetails.plotDetails.dimensions?.length) || 0,
-      breadth: Number(commercialDetails.plotDetails.dimensions?.breadth) || 0,
+      length: Number(rawPlotDetails.dimensions?.length) || 0,
+      breadth: Number(rawPlotDetails.dimensions?.breadth) || 0,
     },
-
-    // Road & Construction
-    roadWidth: Number(commercialDetails.plotDetails.roadWidth) || 0,
-    roadWidthUnit: commercialDetails.plotDetails.roadWidthUnit || 'ft',
-    openSides: commercialDetails.plotDetails.openSides,
-    boundaryWall: commercialDetails.plotDetails.boundaryWall,
-    floorsAllowed: Number(commercialDetails.plotDetails.floorsAllowed) || 0,
-    zoneType: commercialDetails.plotDetails.zoneType,
-
-    constructionDone: commercialDetails.plotDetails.constructionDone,
-    constructionTypes: commercialDetails.plotDetails.constructionTypes || [],
-
-    // Possession
-    possession: commercialDetails.plotDetails.possession,
-
-    // ✅ Pricing fields (from PlotNext.jsx)
-    ownership: commercialDetails.pricingExtras?.ownership || 'Freehold',
-    approvedBy: commercialDetails.pricingExtras?.authority,
-    industryType: commercialDetails.pricingExtras?.industryType, // ✅ NEW
-    
-    // Pre-lease details
-    preLeased: commercialDetails.pricingExtras?.preLeased,
-    leaseDuration: commercialDetails.pricingExtras?.leaseDuration,
-    monthlyRent: Number(commercialDetails.pricingExtras?.monthlyRent) || 0,
-
-    // Features
-    cornerProperty: commercialDetails.pricingExtras?.cornerProperty || false,
-    amenities: commercialDetails.pricingExtras?.amenities || [],
-    locationAdvantages: commercialDetails.pricingExtras?.locationAdvantages || [],
-
-    // ✅ Vastu Details (from PlotVaastu.jsx)
-    vastuDetails: commercialDetails.vastuDetails || {},
+    roadWidth: Number(rawPlotDetails.roadWidth) || 0,
+    roadWidthUnit: rawPlotDetails.roadWidthUnit || 'ft',
+    openSides: rawPlotDetails.openSides,
+    boundaryWall: rawPlotDetails.boundaryWall,
+    floorsAllowed: Number(rawPlotDetails.floorsAllowed) || 0,
+    zoneType: rawPlotDetails.zoneType,
+    constructionDone: toEnglish(rawPlotDetails.constructionDone), // ✅ Convert
+    constructionTypes: convertToEnglish(rawPlotDetails.constructionTypes || []), // ✅ Convert array
+    possession: rawPlotDetails.possession,
+    ownership: toEnglish(rawPricingExtras.ownership) || 'Freehold', // ✅ Convert
+    approvedBy: rawPricingExtras.authority,
+    industryType: rawPricingExtras.industryType,
+    preLeased: toEnglish(rawPricingExtras.preLeased), // ✅ Convert
+    leaseDuration: rawPricingExtras.leaseDuration,
+    monthlyRent: Number(rawPricingExtras.monthlyRent) || 0,
+    cornerProperty: rawPricingExtras.cornerProperty || false,
+    amenities: convertToEnglish(rawPricingExtras.amenities || []), // ✅ Convert array
+    locationAdvantages: convertToEnglish(rawPricingExtras.locationAdvantages || []), // ✅ Convert array
+    vastuDetails: convertToEnglish(rawVastuDetails), // ✅ Convert all vastu fields
   };
 
- // ✅ Override root expectedPrice with plot price
-// ✅ Override root expectedPrice with plot price
-finalData.expectedPrice = Number(commercialDetails.expectedPrice) || 0;
+  console.log('✅ Converted Plot data:', {
+    plotKind: convertedPlotDetails.plotKind,
+    constructionTypes: convertedPlotDetails.constructionTypes,
+    ownership: convertedPlotDetails.ownership,
+    amenities: convertedPlotDetails.amenities,
+    vastuDetails: convertedPlotDetails.vastuDetails,
+  });
 
-  console.log('✅ Plot details stored:', {
+  // ✅ Store converted data
+  finalData.commercialDetails.plotDetails = convertedPlotDetails;
+  finalData.expectedPrice = Number(commercialDetails.expectedPrice) || 0;
+
+  console.log('✅ Plot details stored with English values:', {
     location: finalData.location,
     area: finalData.area,
     plotKind: finalData.commercialDetails.plotDetails.plotKind,
-    expectedPrice: finalData.expectedPrice,
+    constructionDone: finalData.commercialDetails.plotDetails.constructionDone,
     ownership: finalData.commercialDetails.plotDetails.ownership,
-    hasVastu: !!finalData.commercialDetails.plotDetails.vastuDetails,
-    allFields: Object.keys(finalData.commercialDetails.plotDetails),
+    amenitiesCount: finalData.commercialDetails.plotDetails.amenities.length,
+    expectedPrice: finalData.expectedPrice,
   });
 }
 
@@ -882,6 +1085,7 @@ console.log("🏷 Property Type:", property.propertyType);
   }
 };
 // Upload additional images to existing property
+
 export const uploadAdditionalImages = async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
@@ -1097,30 +1301,28 @@ export const getApprovedProperties = async (req, res) => {
     // };
    
   const transformedProperties = properties.map(prop => {
-  const propObj = prop.toObject();
-  
-  // ✅ DON'T transform here - send the full multilingual object
-  return {
-    ...propObj,
-    // Keep the original multilingual objects intact
-    propertyTitle: propObj.propertyTitle,
-    description: propObj.description,
-    location: propObj.location,
-    area: propObj.area,
-    areaKey: propObj.areaKey || ''
-  };
-});
+    let propObj = prop.toObject();
 
-console.log('✅ First transformed property:', {
-  original: properties[0]?.propertyTitle,
-  transformed: transformedProperties[0]?.propertyTitle,
-  language: language
-});
-   
-    console.log('✅ Transformed first property:', transformedProperties[0] ? {
-      propertyTitle: transformedProperties[0].propertyTitle,
-      location: transformedProperties[0].location
-    } : 'No properties');
+    // ✅ Normalize user data for consistent frontend handling
+    if (propObj.uploadedBy === 'admin' && !propObj.userId) {
+      propObj.userId = {
+        name: propObj.ownerDetails?.name || 'Admin',
+        phone: propObj.ownerDetails?.phone || 'N/A',
+        email: propObj.ownerDetails?.email || 'N/A'
+      };
+    }
+
+    return {
+      ...propObj,
+      propertyTitle: propObj.propertyTitle,
+      description: propObj.description,
+      location: propObj.location,
+      area: propObj.area,
+      areaKey: propObj.areaKey || ''
+    };
+  });
+
+
    
     const count = await Property.countDocuments(query);
    
@@ -1173,25 +1375,27 @@ export const getPropertyById = async (req, res) => {
       });
     }
    
-    const propObj = property.toObject();
-   
-    // ✅ Helper function to extract language-specific text
-    // const getLocalizedText = (field) => {
-    //   if (!field) return '';
-    //   if (typeof field === 'string') return field;
-    //   return field[language] || field.en || field.te || field.hi || '';
-    // };
-   
+    let propObj = property.toObject();
+
+    // ✅ Normalize user data for consistent frontend handling
+    if (propObj.uploadedBy === 'admin' && !propObj.userId) {
+      propObj.userId = {
+        name: propObj.ownerDetails?.name || 'Admin',
+        phone: propObj.ownerDetails?.phone || 'N/A',
+        email: propObj.ownerDetails?.email || 'N/A'
+      };
+    }
+
     // Transform to requested language
-   const transformedProperty = {
-  ...propObj,
-  // ✅ Send full multilingual objects - let frontend handle language selection
-  propertyTitle: propObj.propertyTitle,
-  description: propObj.description,
-  location: propObj.location,
-  area: propObj.area,
-  areaKey: propObj.areaKey || ''
-};
+    const transformedProperty = {
+      ...propObj,
+      // ✅ Send full multilingual objects - let frontend handle language selection
+      propertyTitle: propObj.propertyTitle,
+      description: propObj.description,
+      location: propObj.location,
+      area: propObj.area,
+      areaKey: propObj.areaKey || ''
+    };
    
     console.log('✅ Transformed property:', {
       propertyTitle: transformedProperty.propertyTitle,

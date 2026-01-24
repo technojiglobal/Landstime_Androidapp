@@ -15,15 +15,27 @@ import VaasthuDetails from '../../sections/VaasthuDetails';
 import { storageVaasthuFields } from '../../../../constants/vastuFields';
 import OfficePricingDetailsSection from '../../sections/OfficePricingDetailsSection';
 import AvailabilityStatus from '../../sections/AvailabilityStatus';
+import ImageUpload from '../../fields/ImageUpload';
 
-const StorageForm = ({ formData, updateField }) => {
+const StorageForm = ({ formData, updateField,images, setImages }) => {
+  const storage = formData.commercialDetails?.storageDetails || {};
+
+const setStorage = (key, value) =>
+  updateField(`commercialDetails.storageDetails.${key}`, value);
+
   return (
     <div className="space-y-6 border-t pt-6">
       
      {/* ==================== LOCATION SECTION ==================== */}
       <LocationSection formData={formData} updateField={updateField} />
 
-     
+       <ImageUpload
+       label="Property Images"
+        images={images}
+        onChange={setImages}
+        maxImages={20}
+        required={true}
+      />
 
       {/* ==================== ADD AREA DETAILS ==================== */}
       <div className="border-t pt-6">
@@ -33,8 +45,8 @@ const StorageForm = ({ formData, updateField }) => {
           <NumberField
             label="Plot Area"
             name="plotArea"
-            value={formData.plotArea}
-            onChange={(value) => updateField('plotArea', value)}
+            value={storage.plotArea}
+            onChange={(value) => setStorage('plotArea', value)}
             placeholder="sqft"
             required
           />
@@ -49,16 +61,16 @@ const StorageForm = ({ formData, updateField }) => {
           <TextField
             label="Length of plot(in Ft)"
             name="lengthOfPlot"
-            value={formData.lengthOfPlot}
-            onChange={(value) => updateField('lengthOfPlot', value)}
+            value={storage.lengthOfPlot}
+            onChange={(value) => setStorage('lengthOfPlot', value)}
             placeholder="Ft"
           />
           
           <TextField
             label="Breadth of plot(in Ft)"
             name="breadthOfPlot"
-            value={formData.breadthOfPlot}
-            onChange={(value) => updateField('breadthOfPlot', value)}
+            value={storage.breadthOfPlot}
+            onChange={(value) => setStorage('breadthOfPlot', value)}
             placeholder="Ft"
           />
         </div>
@@ -72,8 +84,8 @@ const StorageForm = ({ formData, updateField }) => {
           <input
             type="text"
             name="widthOfFacingRoad"
-            value={formData.widthOfFacingRoad || ''}
-            onChange={(e) => updateField('widthOfFacingRoad', e.target.value)}
+            value={storage.widthOfFacingRoad || ''}
+            onChange={(e) => setStorage('widthOfFacingRoad', e.target.value)}
             placeholder="Enter the width"
             className="w-full px-4 py-3 pr-20 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
           />
@@ -95,9 +107,9 @@ const StorageForm = ({ formData, updateField }) => {
             <button
               key={side}
               type="button"
-              onClick={() => updateField('noOfOpenSides', side)}
+              onClick={() => setStorage('noOfOpenSides', side)}
               className={`w-12 h-12 rounded-lg border text-sm font-medium transition-colors ${
-                formData.noOfOpenSides === side
+                storage.noOfOpenSides === side
                   ? 'bg-green-500 text-white border-green-500'
                   : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
               }`}
@@ -117,9 +129,9 @@ const StorageForm = ({ formData, updateField }) => {
             <button
               key={option}
               type="button"
-              onClick={() => updateField('constructionDone', option)}
+              onClick={() => setStorage('constructionDone', option)}
               className={`px-8 py-2 rounded-full border text-sm transition-colors ${
-                formData.constructionDone === option
+                storage.constructionDone === option
                   ? 'bg-green-500 text-white border-green-500'
                   : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
               }`}
@@ -131,7 +143,7 @@ const StorageForm = ({ formData, updateField }) => {
       </div>
 
       {/* ==================== CONSTRUCTION TYPE (Only shown when Yes is selected) ==================== */}
-      {formData.constructionDone === 'Yes' && (
+      {storage.constructionDone === 'Yes' && (
         <div className="border-t pt-6">
           <h3 className="text-lg font-semibold text-left mb-4">What type of construction has been done ?</h3>
           
@@ -140,9 +152,9 @@ const StorageForm = ({ formData, updateField }) => {
               <button
                 key={type}
                 type="button"
-                onClick={() => updateField('constructionType', type)}
+                onClick={() => setStorage('constructionType', type)}
                 className={`px-6 py-2 rounded-full border text-sm transition-colors ${
-                  formData.constructionType === type
+                  storage.constructionType === type
                     ? 'bg-green-500 text-white border-green-500'
                     : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
                 }`}
@@ -155,7 +167,7 @@ const StorageForm = ({ formData, updateField }) => {
       )}
 
        {/* ==================== AVAILABILITY STATUS ==================== */}
-      <AvailabilityStatus formData={formData} updateField={updateField} />
+      <AvailabilityStatus formData={storage} updateField={setStorage} />
 
       {/* ==================== OWNERSHIP ==================== */}
       <div className="border-t pt-6">
@@ -166,9 +178,9 @@ const StorageForm = ({ formData, updateField }) => {
             <button
               key={type}
               type="button"
-              onClick={() => updateField('ownershipType', type)}
+              onClick={() => setStorage('ownershipType', type)}
               className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-                formData.ownershipType === type
+                storage.ownershipType === type
                   ? 'bg-green-500 text-white border-green-500'
                   : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
               }`}
@@ -188,9 +200,9 @@ const StorageForm = ({ formData, updateField }) => {
             <button
               key={authority}
               type="button"
-              onClick={() => updateField('authorityApproval', authority)}
+              onClick={() => setStorage('authorityApproval', authority)}
               className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-                formData.authorityApproval === authority
+                storage.authorityApproval === authority
                   ? 'bg-green-500 text-white border-green-500'
                   : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
               }`}
@@ -208,8 +220,8 @@ const StorageForm = ({ formData, updateField }) => {
         <SelectField
           label="Industry Type"
           name="industryType"
-          value={formData.industryType}
-          onChange={(value) => updateField('industryType', value)}
+          value={storage.industryType}
+          onChange={(value) => setStorage('industryType', value)}
           options={[
             '',
             'Residential',
@@ -223,15 +235,15 @@ const StorageForm = ({ formData, updateField }) => {
         />
       </div>
 
-     <OfficePricingDetailsSection formData={formData} updateField={updateField} />
+     <OfficePricingDetailsSection formData={storage} updateField={setStorage} />
 
       {/* ==================== IS IT PRE-LEASED? PRE-RESELLED? ==================== */}
       <div className="border-t pt-6">
         <RadioButtons
           label="Is it Pre-leased? Pre-Reselled?"
           name="preLeased"
-          value={formData.preLeased}
-          onChange={(value) => updateField('preLeased', value)}
+          value={storage.preLeased}
+          onChange={(value) => setStorage('preLeased', value)}
           options={['Yes', 'No']}
         />
       </div>
@@ -244,8 +256,8 @@ const StorageForm = ({ formData, updateField }) => {
         
         <CheckboxGroup
           name="otherFeatures"
-          selected={formData.otherFeatures || []}
-          onChange={(value) => updateField('otherFeatures', value)}
+          selected={storage.otherFeatures || []}
+          onChange={(value) => setStorage('otherFeatures', value)}
           options={[
             'Corner Property',
             'Surrounded by Development'
@@ -258,8 +270,8 @@ const StorageForm = ({ formData, updateField }) => {
         <h3 className="text-lg font-semibold text-left mb-4">Amenities</h3>
         <CheckboxGroup
           name="amenities"
-          selected={formData.amenities || []}
-          onChange={(value) => updateField('amenities', value)}
+          selected={storage.amenities || []}
+          onChange={(value) => setStorage('amenities', value)}
           options={STORAGE_AMENITIES}
         />
       </div>
@@ -270,17 +282,18 @@ const StorageForm = ({ formData, updateField }) => {
         
         <CheckboxGroup
           name="locationAdvantages"
-          selected={formData.locationAdvantages || []}
-          onChange={(value) => updateField('locationAdvantages', value)}
+          selected={storage.locationAdvantages || []}
+          onChange={(value) => setStorage('locationAdvantages', value)}
           options={LOCATION_ADVANTAGES}
         />
       </div>
       {/* ==================== VAASTHU DETAILS ==================== */}
-      <VaasthuDetails
-        formData={formData} 
-        updateField={updateField} 
-        fields={storageVaasthuFields}
-      />
+     <VaasthuDetails
+  formData={storage}  // ✅ Pass the parent storage object
+  updateField={(key, value) => setStorage(`vaasthuDetails.${key}`, value)}
+  fields={storageVaasthuFields}
+/>
+
     </div>
   );
 };

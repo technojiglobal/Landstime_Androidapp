@@ -1,21 +1,20 @@
+
+
+
 //Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/OfficeVaastu.jsx
-
-import React, { useState,useMemo ,useEffect} from "react";
-import AsyncStorage from '@react-native-async-storage/async-storage'; // ✅ ADD THIS LINE
-import { View, Text, ScrollView, TouchableOpacity,Alert } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import React, { useState, useMemo, useEffect } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Text, ScrollView, TouchableOpacity, Image, Alert } from "react-native";
+import { convertToEnglish } from '../../../../../../utils/reverseTranslation'; // ✅ IMPORT THIS
 import VastuDropdown from "../../VastuDropdown";
-import { useRouter,useLocalSearchParams } from "expo-router";
-
-
-/* ---------------- MAIN SCREEN ---------------- */
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { useTranslation } from 'react-i18next';
 
 export default function VastuDetailsScreen() {
-  // ✅ STEP 1: Declare hooks FIRST (before using them)
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { t } = useTranslation();
 
-  // ✅ STEP 2: Then declare state
   const [form, setForm] = useState(() => ({
     officeFacing: "",
     entrance: "",
@@ -32,7 +31,6 @@ export default function VastuDetailsScreen() {
     cashLocker: "",
   }));
 
-  // ✅ STEP 3: Then useMemo that depends on params
   const images = useMemo(() => {
     try {
       if (!params.images) return [];
@@ -81,263 +79,330 @@ export default function VastuDetailsScreen() {
     }
   }, [params.commercialDetails]);
 
-  // ✅ STEP 4: Then useEffect that restores data
-useEffect(() => {
-  // ✅ PRIORITY 1: Load from AsyncStorage
-  const loadDraft = async () => {
-    try {
-      const draft = await AsyncStorage.getItem('draft_office_vaastu');
-      if (draft) {
-        const savedForm = JSON.parse(draft);
-        console.log('📦 Loading Vaastu draft from AsyncStorage');
-        setForm(savedForm);
+  useEffect(() => {
+    const loadDraft = async () => {
+      // ✅ PRIORITY 1: Load from params if coming back from OwnerScreen
+      if (commercialDetails?.officeDetails?.vaasthuDetails) {
+        const vastu = commercialDetails.officeDetails.vaasthuDetails;
+        console.log('🔄 Restoring Vaastu data from params:', vastu);
+        setForm(vastu);
         return;
       }
-    } catch (e) {
-      console.log('⚠️ Failed to load Vaastu draft:', e);
-    }
 
-    // ✅ FALLBACK: Load from params
-    if (commercialDetails?.officeDetails?.vaasthuDetails) {
-      const vastu = commercialDetails.officeDetails.vaasthuDetails;
-      console.log('🔄 Restoring Vaastu data from params:', vastu);
-      setForm(vastu);
-    }
-  };
-
-  loadDraft();
-}, [commercialDetails]);
-
-  // ✅ STEP 5: Add the update function
- const update = (key, value) => {
-  setForm(prev => ({ ...prev, [key]: value }));
-};
-
-// ✅ NEW - Auto-save Vaastu draft
-useEffect(() => {
-  const saveDraft = async () => {
-    try {
-      await AsyncStorage.setItem('draft_office_vaastu', JSON.stringify(form));
-      console.log('💾 Vaastu draft auto-saved');
-    } catch (e) {
-      console.log('⚠️ Failed to save Vaastu draft:', e);
-    }
-  };
-
-  const timer = setTimeout(saveDraft, 1000);
-  return () => clearTimeout(timer);
-}, [form]);
-
-  // ADD THIS NEW FUNCTION after the update function (around line ~106):
-
-const handleBack = () => {
-  if (!commercialDetails || !commercialDetails.officeDetails) {
-    router.back();
-    return;
-  }
-
-  // Save Vaastu data with existing office details
-  const updatedCommercialDetails = {
-    ...commercialDetails,
-    officeDetails: {
-      ...commercialDetails.officeDetails,
-      vaasthuDetails: form,
-    },
-  };
-
-router.push({
-  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OfficeNext",
-  params: {
-    officeDetails: JSON.stringify(commercialDetails.officeDetails),
-    commercialDetails: JSON.stringify(updatedCommercialDetails),
-    images: JSON.stringify(images),
-    area: params.area,
-    propertyTitle: commercialDetails.officeDetails?.propertyTitle || params.propertyTitle,
-    // ✅ ADD THIS
-    commercialBaseDetails: params.commercialBaseDetails,
-  },
-});
-};
-  // ✅ Rest of your code (handleNext function, etc.)
-
-const handleNext = () => {
-  console.log('🔄 handleNext called with:', {
-    hasCommercialDetails: !!commercialDetails,
-    hasOfficeDetails: !!commercialDetails?.officeDetails,
-    hasVaasthuDetails: !!form,
-  });
-
-  if (!commercialDetails || !commercialDetails.officeDetails) {
-    Alert.alert(
-      "Missing Data",
-      "Property details are missing. Please go back and complete all previous steps.",
-      [
-        {
-          text: "Go Back",
-          onPress: () => router.back()
-        },
-        {
-          text: "Cancel",
-          style: "cancel"
+      // ✅ PRIORITY 2: Load from AsyncStorage
+      try {
+        const draft = await AsyncStorage.getItem('draft_office_vaastu');
+        if (draft) {
+          const savedForm = JSON.parse(draft);
+          console.log('📦 Loading Vaastu draft from AsyncStorage');
+          setForm(savedForm);
+          return;
         }
-      ]
-    );
-    return;
-  }
+      } catch (e) {
+        console.log('⚠️ Failed to load Vaastu draft:', e);
+      }
+    };
 
-  const updatedCommercialDetails = {
-    ...commercialDetails,
-    officeDetails: {
-      ...commercialDetails.officeDetails,
-      vaasthuDetails: {
-        officeFacing: form.officeFacing,
-        entrance: form.entrance,
-        cabin: form.cabin,
-        workstations: form.workstations,
-        conference: form.conference,
-        reception: form.reception,
-        accounts: form.accounts,
-        pantry: form.pantry,
-        server: form.server,
-        washrooms: form.washrooms,
-        staircase: form.staircase,
-        storage: form.storage,
-        cashLocker: form.cashLocker,
-      },
-    },
+    loadDraft();
+  }, [commercialDetails]);
+
+  const update = (key, value) => {
+    setForm(prev => ({ ...prev, [key]: value }));
   };
 
-router.push({
-  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
-  params: {
-    commercialDetails: JSON.stringify(updatedCommercialDetails),
-    images: JSON.stringify(images),
-    area: params.area,
-    propertyTitle: commercialDetails.officeDetails?.propertyTitle || params.propertyTitle,
-    commercialBaseDetails: params.commercialBaseDetails,
-    officeDetails: JSON.stringify(commercialDetails.officeDetails), // ✅ ADD THIS LINE
-  },
-});
-};
+  // ✅ Auto-save Vaastu draft
+  useEffect(() => {
+    const saveDraft = async () => {
+      try {
+        await AsyncStorage.setItem('draft_office_vaastu', JSON.stringify(form));
+        console.log('💾 Vaastu draft auto-saved');
+      } catch (e) {
+        console.log('⚠️ Failed to save Vaastu draft:', e);
+      }
+    };
 
-    return (
-        <View className="flex-1 bg-gray-100">
-            <ScrollView className="flex-1 bg-gray-100 px-4 py-6">
-                <View className="bg-white rounded-2xl p-4">
-                    <Text className="text-lg font-bold mb-4">Vaasthu Details</Text>
+    const timer = setTimeout(saveDraft, 1000);
+    return () => clearTimeout(timer);
+  }, [form]);
 
-                    <VastuDropdown
-                        label="Office Facing"
-                        value={form.officeFacing}
-                        options={["North", "East", "North-East", "West", "South"]}
-                        onSelect={(v) => update("officeFacing", v)}
-                    />
+  const handleBack = () => {
+    if (!commercialDetails || !commercialDetails.officeDetails) {
+      router.back();
+      return;
+    }
 
-                    <VastuDropdown
-                        label="Main Entrance Direction"
-                        value={form.entrance}
-                        options={["North", "East", "North-East", "West"]}
-                        onSelect={(v) => update("entrance", v)}
-                    />
+    // Save Vaastu data with existing office details
+    const updatedCommercialDetails = {
+      ...commercialDetails,
+      officeDetails: {
+        ...commercialDetails.officeDetails,
+        vaasthuDetails: form,
+      },
+    };
 
-                    <VastuDropdown
-                        label="Owner / MD / Manager Cabin Direction"
-                        value={form.cabin}
-                        options={["South-West", "West", "South"]}
-                        onSelect={(v) => update("cabin", v)}
-                    />
+    router.push({
+      pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OfficeNext",
+      params: {
+        officeDetails: JSON.stringify(commercialDetails.officeDetails),
+        commercialDetails: JSON.stringify(updatedCommercialDetails),
+        images: JSON.stringify(images),
+        area: params.area,
+        propertyTitle: commercialDetails.officeDetails?.propertyTitle || params.propertyTitle,
+        commercialBaseDetails: params.commercialBaseDetails,
+      },
+    });
+  };
 
-                    <VastuDropdown
-                        label="Workstations / Employee Seating Direction"
-                        value={form.workstations}
-                        options={["North", "East", "North-East"]}
-                        onSelect={(v) => update("workstations", v)}
-                    />
+  const handleNext = () => {
+    console.log('🔄 handleNext called with:', {
+      hasCommercialDetails: !!commercialDetails,
+      hasOfficeDetails: !!commercialDetails?.officeDetails,
+      hasVaasthuDetails: !!form,
+    });
 
-                    <VastuDropdown
-                        label="Conference / Meeting Room Direction"
-                        value={form.conference}
-                        options={["North-West", "West"]}
-                        onSelect={(v) => update("conference", v)}
-                    />
+    if (!commercialDetails || !commercialDetails.officeDetails) {
+      Alert.alert(
+        t('missing_data_title'),
+        t('missing_data_message'),
+        [
+          {
+            text: t('button_go_back'),
+            onPress: () => router.back()
+          },
+          {
+            text: t('button_cancel'),
+            style: "cancel"
+          }
+        ]
+      );
+      return;
+    }
 
-                    <VastuDropdown
-                        label="Reception Area Direction"
-                        value={form.reception}
-                        options={["North", "East", "North-East"]}
-                        onSelect={(v) => update("reception", v)}
-                    />
+    // ✅ CONVERT VASTU DETAILS TO ENGLISH BEFORE SAVING
+    const englishVastuDetails = convertToEnglish(form);
 
-                    <VastuDropdown
-                        label="Accounts / Finance Department Direction"
-                        value={form.accounts}
-                        options={["North", "North-East"]}
-                        onSelect={(v) => update("accounts", v)}
-                    />
+    const updatedCommercialDetails = {
+      ...commercialDetails,
+      officeDetails: {
+        ...commercialDetails.officeDetails,
+        vaasthuDetails: englishVastuDetails, // ✅ USE CONVERTED VERSION
+      },
+    };
 
-                    <VastuDropdown
-                        label="Pantry / Cafeteria Direction"
-                        value={form.pantry}
-                        options={["South-East", "North-West"]}
-                        onSelect={(v) => update("pantry", v)}
-                    />
+    console.log("➡️ Office Vastu → Owner payload:", updatedCommercialDetails);
 
-                    <VastuDropdown
-                        label="Server / IT / Electrical Room Direction"
-                        value={form.server}
-                        options={["South-East", "North-West"]}
-                        onSelect={(v) => update("server", v)}
-                    />
+    router.push({
+      pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
+      params: {
+        commercialDetails: JSON.stringify(updatedCommercialDetails),
+        images: JSON.stringify(images),
+        area: params.area,
+        propertyTitle: commercialDetails.officeDetails?.propertyTitle || params.propertyTitle,
+        commercialBaseDetails: params.commercialBaseDetails,
+        officeDetails: JSON.stringify(commercialDetails.officeDetails),
+      },
+    });
+  };
 
-                    <VastuDropdown
-                        label="Washrooms / Toilets Direction"
-                        value={form.washrooms}
-                        options={["North-West", "West", "South-East"]}
-                        onSelect={(v) => update("washrooms", v)}
-                    />
+  // ✅ Define Vaastu options with translations
+  const vastuOptions = {
+    officeFacing: [
+      t('vaastu_option_north'),
+      t('vaastu_option_east'),
+      t('vaastu_option_north_east'),
+      t('vaastu_option_west'),
+      t('vaastu_option_south')
+    ],
+    entrance: [
+      t('vaastu_option_north'),
+      t('vaastu_option_east'),
+      t('vaastu_option_north_east'),
+      t('vaastu_option_west')
+    ],
+    cabin: [
+      t('vaastu_option_south_west'),
+      t('vaastu_option_west'),
+      t('vaastu_option_south')
+    ],
+    workstations: [
+      t('vaastu_option_north'),
+      t('vaastu_option_east'),
+      t('vaastu_option_north_east')
+    ],
+    conference: [
+      t('vaastu_option_north_west'),
+      t('vaastu_option_west')
+    ],
+    reception: [
+      t('vaastu_option_north'),
+      t('vaastu_option_east'),
+      t('vaastu_option_north_east')
+    ],
+    accounts: [
+      t('vaastu_option_north'),
+      t('vaastu_option_north_east')
+    ],
+    pantry: [
+      t('vaastu_option_south_east'),
+      t('vaastu_option_north_west')
+    ],
+    server: [
+      t('vaastu_option_south_east'),
+      t('vaastu_option_north_west')
+    ],
+    washrooms: [
+      t('vaastu_option_north_west'),
+      t('vaastu_option_west'),
+      t('vaastu_option_south_east')
+    ],
+    staircase: [
+      t('vaastu_option_south'),
+      t('vaastu_option_south_west'),
+      t('vaastu_option_west')
+    ],
+    storage: [
+      t('vaastu_option_south_west'),
+      t('vaastu_option_west')
+    ],
+    cashLocker: [
+      t('vaastu_option_south_west')
+    ],
+  };
 
-                    <VastuDropdown
-                        label="Staircase / Lift Direction"
-                        value={form.staircase}
-                        options={["South", "South-West", "West"]}
-                        onSelect={(v) => update("staircase", v)}
-                    />
+  return (
+    <View className="flex-1 bg-white">
+      {/* HEADER */}
+      <View className="flex-row items-center ml-4 mt-12 mb-2">
+        <TouchableOpacity onPress={handleBack} className="p-2">
+          <Image
+            source={require("../../../../../../assets/arrow.png")}
+            className="w-5 h-5"
+          />
+        </TouchableOpacity>
 
-                    <VastuDropdown
-                        label="Storage / Records Room Direction"
-                        value={form.storage}
-                        options={["South-West", "West"]}
-                        onSelect={(v) => update("storage", v)}
-                    />
-
-                    <VastuDropdown
-                        label="Cash Locker / Safe Direction"
-                        value={form.cashLocker}
-                        options={["South-West"]}
-                        onSelect={(v) => update("cashLocker", v)}
-                    />
-                </View>
-
-            </ScrollView>
-            <View className="flex-row bg-white rounded-lg p-4  justify-end mt-4 space-x-3 mx-3 mb-12">
-               
-<TouchableOpacity
-  className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
-  onPress={handleBack}
->
-  <Text className="font-semibold">Cancel</Text>
-</TouchableOpacity>
-
-                <TouchableOpacity
-                    className="px-5 py-3 rounded-lg bg-green-500"
-                    onPress={handleNext}
-                >
-                    <Text className="text-white font-semibold">Next</Text>
-                </TouchableOpacity>
-
-            </View>
+        <View className="ml-2">
+          <Text className="text-base font-semibold">{t('upload_property_title')}</Text>
+          <Text className="text-xs text-gray-500">
+            {t('upload_property_subtitle')}
+          </Text>
         </View>
+      </View>
 
+      <ScrollView className="flex-1 px-4 py-6">
+        <View className="bg-white border border-gray-200 rounded-2xl p-4">
+          <Text className="text-lg font-bold mb-4">{t('vaastu_details_title')}</Text>
 
-    );
+          <VastuDropdown
+            label={t('office_vaastu_facing')}
+            value={form.officeFacing}
+            options={vastuOptions.officeFacing}
+            onSelect={(v) => update("officeFacing", v)}
+          />
+
+          <VastuDropdown
+            label={t('office_vaastu_entrance')}
+            value={form.entrance}
+            options={vastuOptions.entrance}
+            onSelect={(v) => update("entrance", v)}
+          />
+
+          <VastuDropdown
+            label={t('office_vaastu_cabin')}
+            value={form.cabin}
+            options={vastuOptions.cabin}
+            onSelect={(v) => update("cabin", v)}
+          />
+
+          <VastuDropdown
+            label={t('office_vaastu_workstations')}
+            value={form.workstations}
+            options={vastuOptions.workstations}
+            onSelect={(v) => update("workstations", v)}
+          />
+
+          <VastuDropdown
+            label={t('office_vaastu_conference')}
+            value={form.conference}
+            options={vastuOptions.conference}
+            onSelect={(v) => update("conference", v)}
+          />
+
+          <VastuDropdown
+            label={t('office_vaastu_reception')}
+            value={form.reception}
+            options={vastuOptions.reception}
+            onSelect={(v) => update("reception", v)}
+          />
+
+          <VastuDropdown
+            label={t('office_vaastu_accounts')}
+            value={form.accounts}
+            options={vastuOptions.accounts}
+            onSelect={(v) => update("accounts", v)}
+          />
+
+          <VastuDropdown
+            label={t('office_vaastu_pantry')}
+            value={form.pantry}
+            options={vastuOptions.pantry}
+            onSelect={(v) => update("pantry", v)}
+          />
+
+          <VastuDropdown
+            label={t('office_vaastu_server')}
+            value={form.server}
+            options={vastuOptions.server}
+            onSelect={(v) => update("server", v)}
+          />
+
+          <VastuDropdown
+            label={t('office_vaastu_washrooms')}
+            value={form.washrooms}
+            options={vastuOptions.washrooms}
+            onSelect={(v) => update("washrooms", v)}
+          />
+
+          <VastuDropdown
+            label={t('office_vaastu_staircase')}
+            value={form.staircase}
+            options={vastuOptions.staircase}
+            onSelect={(v) => update("staircase", v)}
+          />
+
+          <VastuDropdown
+            label={t('office_vaastu_storage')}
+            value={form.storage}
+            options={vastuOptions.storage}
+            onSelect={(v) => update("storage", v)}
+          />
+
+          <VastuDropdown
+            label={t('office_vaastu_cash_locker')}
+            value={form.cashLocker}
+            options={vastuOptions.cashLocker}
+            onSelect={(v) => update("cashLocker", v)}
+          />
+        </View>
+      </ScrollView>
+
+      {/* BOTTOM BUTTONS */}
+      <View className="bg-white border-t border-gray-200">
+        <View className="flex-row bg-white rounded-lg p-4 justify-end mx-3 mb-12 space-x-3">
+          <TouchableOpacity
+            className="px-5 py-3 rounded-lg bg-gray-200 mx-3"
+            onPress={handleBack}
+          >
+            <Text className="font-semibold">{t('button_cancel')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className="px-5 py-3 rounded-lg bg-green-500"
+            onPress={handleNext}
+          >
+            <Text className="text-white font-semibold">{t('button_next')}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  );
 }

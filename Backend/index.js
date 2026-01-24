@@ -8,7 +8,9 @@ import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import userRoutes from './UserRoutes/UserRoute.js';
-import propertyRoutes from './UserRoutes/propertyRoutes.js';
+import propertyRoutes from './UserRoutes/PropertyRoutes.js';
+import adminPropertyRoutes from './AdminRoutes/adminPropertyRoute.js';  
+
 import subscriptionRoutes from './UserRoutes/SubscriptionRoute.js';
 import userNotificationRoutes from './UserRoutes/UserNotificationRoute.js'; // ✅ NEW
 import adminAuthRoutes from "./AdminRoutes/AdminRoute.js";
@@ -20,6 +22,8 @@ import bannerRoutes from './AdminRoutes/BannerRoutes.js';
 import adminPropertyViewRoutes from './AdminRoutes/PropertyViewRoute.js';
 import userPropertyViewRoutes from './UserRoutes/PropertyViewRoute.js';
 import Config from "./UserRoutes/ConfigRoute.js" // 🔽 ADD
+
+import savedPropertiesRoutes from './UserRoutes/savedPropertiesRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -97,6 +101,7 @@ app.get('/', (req, res) => {
 // Routes
 app.use('/api/user', userRoutes);
 app.use('/api/properties', propertyRoutes);
+app.use('/api/admin/properties', adminPropertyRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/admin', adminAuthRoutes);
 app.use('/api/admin/interior', interiorDesignRoutes);
@@ -110,6 +115,7 @@ app.use("/api/config", Config);
 
 // 🔽 ADD
 app.use("/uploads", express.static("uploads"));
+app.use('/api/saved', savedPropertiesRoutes);
 
 
 // 404 Handler

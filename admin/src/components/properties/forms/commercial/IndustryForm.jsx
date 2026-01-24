@@ -21,44 +21,57 @@ import {
 import AvailabilityStatus from '../../sections/AvailabilityStatus';
 import { industrialVaasthuFields } from '../../../../constants/vastuFields';
 import VaasthuDetails from '../../sections/VaasthuDetails';
-const IndustryForm = ({ formData, updateField }) => {
-  const isReadyToMove = formData.availabilityStatus === 'Ready to move';
-  const isUnderConstruction = formData.availabilityStatus === 'Under construction';
-  const isPreLeased = formData.preLeased === 'Yes';
+import ImageUpload from '../../fields/ImageUpload';
+const IndustryForm = ({ formData, updateField, images, setImages }) => {
+  const industry = formData.commercialDetails?.industryDetails || {};
+const setIndustry = (key, value) =>
+  updateField(`commercialDetails.industryDetails.${key}`, value);
+  const isReadyToMove = industry.availabilityStatus === 'Ready to move';
+const isUnderConstruction = industry.availabilityStatus === 'Under construction';
+const isPreLeased = industry.preLeased === 'Yes';
+ 
 
   return (
     <div className="space-y-6 border-t pt-6">
 
       {/* ==================== LOCATION ==================== */}
       <LocationSection formData={formData} updateField={updateField} />
-
+       <ImageUpload
+       label="Property Images"
+        images={images}
+        onChange={setImages}
+        maxImages={20}
+        required={true}
+      /> 
       {/* ==================== ROOM DETAILS ==================== */}
       <div className="border-t pt-6">
         <h3 className="font-semibold mb-4">Add Room Details</h3>
         <NumberButtonGroup
           label="No.of Washrooms"
           name="noOfWashrooms"
-          value={formData.noOfWashrooms}
-          onChange={(value) => updateField('noOfWashrooms', value)}
+          value={industry.noOfWashrooms || ''}
+          onChange={(value) => setIndustry('noOfWashrooms', value)}
           options={ROOM_TYPES}
         />
       </div>
 
       {/* ==================== AREA DETAILS ==================== */}
 
-      <div>
-        <label className="block text-sm font-medium mb-2">Carpet Area</label>
+      <div className="border-t pt-6">
+  <label className="block text-sm font-medium mb-2">Carpet Area *</label>
+
         <div className="flex gap-2">
           <input
             type="number"
-            value={formData.plotArea || ''}
-            onChange={(e) => updateField('plotArea', e.target.value)}
-            placeholder="Plot Area"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            value={industry.plotArea || ''}
+            onChange={(e) => setIndustry('plotArea', e.target.value)}
+           placeholder="Carpet Area"
+  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+required
           />
           <select
-            value={formData.carpetAreaUnit || 'sqft'}
-            onChange={(e) => updateField('carpetAreaUnit', e.target.value)}
+            value={industry.carpetAreaUnit || 'sqft'}
+            onChange={(e) => setIndustry('carpetAreaUnit', e.target.value)}
             className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
           >
             <option value="sqft">sqft</option>
@@ -68,7 +81,7 @@ const IndustryForm = ({ formData, updateField }) => {
         </div>
       </div>
       {/* ==================== AVAILABILITY STATUS ==================== */}
-     <AvailabilityStatus formData={formData} updateField={updateField} />
+     <AvailabilityStatus formData={industry} updateField={setIndustry} />
 
       {/* ==================== OWNERSHIP ==================== */}
       <div className="border-t pt-6">
@@ -78,8 +91,8 @@ const IndustryForm = ({ formData, updateField }) => {
             <button
               key={type}
               type="button"
-              onClick={() => updateField('ownershipType', type)}
-              className={`px-4 py-2 rounded-full border text-sm transition-colors ${formData.ownershipType === type
+              onClick={() => setIndustry('ownershipType', type)}
+              className={`px-4 py-2 rounded-full border text-sm transition-colors ${industry.ownershipType === type
                   ? 'bg-green-500 text-white border-green-500'
                   : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
                 }`}
@@ -94,8 +107,8 @@ const IndustryForm = ({ formData, updateField }) => {
       <TextField
         label="Which authority the property is approved by?(optional)"
         name="approvedBy"
-        value={formData.approvedBy}
-        onChange={(value) => updateField('approvedBy', value)}
+        value={industry.approvedBy || ''}
+        onChange={(value) => setIndustry('approvedBy', value)}
         placeholder="+ Local Authority"
       />
 
@@ -103,8 +116,8 @@ const IndustryForm = ({ formData, updateField }) => {
       <SelectField
         label="Approved for Industry Type(optional)"
         name="approvedIndustryType"
-        value={formData.approvedIndustryType}
-        onChange={(value) => updateField('approvedIndustryType', value)}
+        value={industry.approvedIndustryType || ''}
+        onChange={(value) => setIndustry('approvedIndustryType', value)}
         options={INDUSTRY_TYPES_APPROVED}
         placeholder="Select Industry Type"
       />
@@ -116,13 +129,13 @@ const IndustryForm = ({ formData, updateField }) => {
         <NumberField
           label="Expected Price"
           name="expectedPrice"
-          value={formData.expectedPrice}
-          onChange={(value) => updateField('expectedPrice', value)}
+          value={industry.expectedPrice || ''}
+          onChange={(value) => setIndustry('expectedPrice', value)}
           placeholder="₹ Expected Price"
         />
 
         <div className="mt-3">
-          <PricingSection formData={formData} updateField={updateField} />
+          <PricingSection formData={formData} updateField={setIndustry} />
         </div>
 
         <button type="button" className="text-green-600 text-sm mt-2">
@@ -134,13 +147,13 @@ const IndustryForm = ({ formData, updateField }) => {
       <RadioButtons
         label="Is it Pre-leased/ Pre-Reneted?"
         name="preLeased"
-        value={formData.preLeased}
+        value={industry.preLeased || ''}
         onChange={(value) => {
-          updateField('preLeased', value);
+          setIndustry('preLeased', value);
           // Clear fields when switching to No
           if (value === 'No') {
-            updateField('currentRent', '');
-            updateField('leaseTenure', '');
+            setIndustry('currentRent', '');
+            setIndustry('leaseTenure', '');
           }
         }}
         options={['Yes', 'No']}
@@ -152,16 +165,16 @@ const IndustryForm = ({ formData, updateField }) => {
           <NumberField
             label="Current rent per month"
             name="currentRent"
-            value={formData.currentRent}
-            onChange={(value) => updateField('currentRent', value)}
+            value={industry.currentRent}
+            onChange={(value) => setIndustry('currentRent', value)}
             placeholder="₹ Current rent per month"
           />
 
           <NumberField
             label="Lease tenure in years"
             name="leaseTenure"
-            value={formData.leaseTenure}
-            onChange={(value) => updateField('leaseTenure', value)}
+            value={industry.leaseTenure}
+            onChange={(value) => setIndustry('leaseTenure', value)}
             placeholder="Lease tenure in years"
           />
         </div>
@@ -171,8 +184,8 @@ const IndustryForm = ({ formData, updateField }) => {
       <TextAreaField
         label="Description"
         name="description"
-        value={formData.description}
-        onChange={(value) => updateField('description', value)}
+        value={industry.description || ''}
+        onChange={(value) => setIndustry('description', value)}
         placeholder="Write here what makes your property unique"
         rows={4}
       />
@@ -182,8 +195,8 @@ const IndustryForm = ({ formData, updateField }) => {
         <h3 className="font-semibold mb-4">Amenities</h3>
         <CheckboxGroup
           name="amenities"
-          selected={formData.amenities || []}
-          onChange={(value) => updateField('amenities', value)}
+          selected={industry.amenities || []}
+          onChange={(value) => setIndustry('amenities', value)}
           options={INDUSTRY_AMENITIES}
         />
       </div>
@@ -194,8 +207,8 @@ const IndustryForm = ({ formData, updateField }) => {
         <label className="flex items-center gap-2">
           <input
             type="checkbox"
-            checked={formData.wheelchairFriendly || false}
-            onChange={(e) => updateField('wheelchairFriendly', e.target.checked)}
+            checked={industry.wheelchairFriendly || false}
+            onChange={(e) => setIndustry('wheelchairFriendly', e.target.checked)}
             className="w-4 h-4 text-green-600 rounded"
           />
           <span className="text-sm">Wheelchair friendly</span>
@@ -207,8 +220,8 @@ const IndustryForm = ({ formData, updateField }) => {
         <h3 className="font-semibold mb-4">Location Advantages</h3>
         <CheckboxGroup
           name="locationAdvantages"
-          selected={formData.locationAdvantages || []}
-          onChange={(value) => updateField('locationAdvantages', value)}
+          selected={industry.locationAdvantages || []}
+          onChange={(value) => setIndustry('locationAdvantages', value)}
           options={LOCATION_ADVANTAGES}
         />
       </div>

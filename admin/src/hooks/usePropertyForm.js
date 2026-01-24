@@ -1,176 +1,520 @@
+// // admin/src/hooks/usePropertyForm.js
+// import { useState } from 'react';
+
+// const usePropertyForm = () => {
+//   const [formData, setFormData] = useState({
+//     // Common top-level fields
+//     location: '',
+//     description: '',
+//     ownerName: '',
+//     mobileNumber: '',
+//     email: '',
+//     expectedPrice: '',
+//     priceDetails: {
+//       allInclusive: false,
+//       negotiable: false,
+//       taxExcluded: false
+//     },
+
+//     // House/Flat specific fields
+//     houseDetails: {
+//       floors: '',
+//       area: '',
+//       areaUnit: 'sqft',
+//       bedrooms: '',
+//       bathrooms: '',
+//       balconies: '',
+//       floorDetails: '',
+//       availabilityStatus: 'Ready to Move',
+//       ageOfProperty: '',
+//       ownership: '',
+//       possessionBy: '',
+//       otherRooms: [],
+//       furnishing: 'Unfurnished',
+//       furnishingItems: [],
+//       parking: {
+//         covered: 0,
+//         open: 0
+//       },
+//       vaasthuDetails: {
+//         houseFacing: '',
+//         masterBedroom: '',
+//         childrenBedroom: '',
+//         livingRoom: '',
+//         kitchenRoom: '',
+//         poojaRoom: '',
+//         balcony: ''
+//       }
+//     },
+
+//     // Site/Plot specific fields
+//     siteDetails: {
+//       area: '',
+//       areaUnit: 'sqft',
+//       length: '',
+//       breadth: '',
+//       floorsAllowed: '',
+//       boundaryWall: false,
+//       openSides: '',
+//       roadWidth: '',
+//       roadWidthUnit: 'ft',
+//       constructionDone: false,
+//       constructionType: [],
+//       possessionBy: '',
+//       ownership: 'Freehold',
+//       approvedBy: [],
+//       amenities: [],
+//       propertyFacing: '',
+//       overlooking: [],
+//       inGatedSociety: false,
+//       cornerProperty: false,
+//       locationAdvantages: [],
+//       vaasthuDetails: {
+//         plotFacing: '',
+//         mainEntryDirection: '',
+//         plotSlope: '',
+//         openSpace: '',
+//         plotShape: '',
+//         roadPosition: '',
+//         waterSource: '',
+//         drainageDirection: '',
+//         compoundWallHeight: '',
+//         existingStructures: ''
+//       }
+//     },
+
+//     // Resort specific fields
+//     resortDetails: {
+//       resortType: '',
+//       rooms: '',
+//       landArea: '',
+//       floors: '',
+//       buildArea: '',
+//       expectedPrice: '',
+//       priceDetails: {
+//         allInclusive: false,
+//         negotiable: false,
+//         taxExcluded: false
+//       },
+//       locationAdvantages: [],
+//       vaasthuDetails: {
+//         propertyFacing: '',
+//         entranceDirection: '',
+//         receptionAreaFacing: '',
+//         mainLobbyDirection: '',
+//         masterSuitroom: '',
+//         guestRoom: '',
+//         restaurantDirection: '',
+//         vipSuite: '',
+//         conferenceDirection: '',
+//         spaRoom: '',
+//         swimmingPool: '',
+//         yoga: '',
+//         kitchenRoom: '',
+//         poojaRoom: '',
+//         office: '',
+//         recreation: '',
+//         balcony: '',
+//         garden: ''
+//       }
+//     },
+
+//     // Commercial fields - ✅ CRITICAL: All must use vaasthuDetails (double 'a', not vastuDetails or vassthuDetails)
+//     commercialDetails: {
+//       subType: '',
+//       officeDetails: { vaasthuDetails: {} },
+//       retailDetails: { vaasthuDetails: {} },
+//       plotDetails: { vaasthuDetails: {} },
+//       industryDetails: { vaasthuDetails: {} },
+//       storageDetails: { vaasthuDetails: {} },
+//       hospitalityDetails: { vaasthuDetails: {} },
+//       otherDetails: { vaasthuDetails: {} }
+//     },
+
+//     // Vastu details (top-level for backward compatibility)
+//     vaasthuDetails: {}
+//   });
+
+//   // Enhanced updateField to handle nested paths
+//   const updateField = (path, value) => {
+//     setFormData(prev => {
+//       // Handle simple top-level updates
+//       if (!path.includes('.')) {
+//         return { ...prev, [path]: value };
+//       }
+
+//       // Handle nested paths like 'houseDetails.bedrooms' or 'houseDetails.vaasthuDetails.houseFacing'
+//       const keys = path.split('.');
+//       const newData = { ...prev };
+//       let current = newData;
+
+//       // Navigate to the parent object
+//       for (let i = 0; i < keys.length - 1; i++) {
+//         // Create the nested object if it doesn't exist
+//         if (!current[keys[i]]) {
+//           current[keys[i]] = {};
+//         } else {
+//           // Clone the object to avoid mutation
+//           current[keys[i]] = { ...current[keys[i]] };
+//         }
+//         current = current[keys[i]];
+//       }
+
+//       // Set the final value
+//       current[keys[keys.length - 1]] = value;
+
+//       return newData;
+//     });
+//   };
+
+//   const resetForm = () => {
+//     setFormData({
+//       location: '',
+//       description: '',
+//       ownerName: '',
+//       mobileNumber: '',
+//       email: '',
+//       expectedPrice: '',
+//       priceDetails: {
+//         allInclusive: false,
+//         negotiable: false,
+//         taxExcluded: false
+//       },
+//       houseDetails: {
+//         floors: '',
+//         area: '',
+//         areaUnit: 'sqft',
+//         bedrooms: '',
+//         bathrooms: '',
+//         balconies: '',
+//         floorDetails: '',
+//         availabilityStatus: 'Ready to Move',
+//         ageOfProperty: '',
+//         ownership: '',
+//         possessionBy: '',
+//         otherRooms: [],
+//         furnishing: '',
+//         furnishingItems: [],
+//         parking: {
+//           covered: 0,
+//           open: 0
+//         },
+//         vaasthuDetails: {}
+//       },
+//       siteDetails: {
+//         area: '',
+//         areaUnit: 'sqft',
+//         length: '',
+//         breadth: '',
+//         floorsAllowed: '',
+//         boundaryWall: false,
+//         openSides: '',
+//         roadWidth: '',
+//         roadWidthUnit: 'ft',
+//         constructionDone: false,
+//         constructionType: [],
+//         possessionBy: '',
+//         ownership: 'Freehold',
+//         approvedBy: [],
+//         amenities: [],
+//         propertyFacing: '',
+//         overlooking: [],
+//         inGatedSociety: false,
+//         cornerProperty: false,
+//         locationAdvantages: [],
+//         vaasthuDetails: {}
+//       },
+//       resortDetails: {
+//         resortType: '',
+//         rooms: '',
+//         landArea: '',
+//         floors: '',
+//         buildArea: '',
+//         expectedPrice: '',
+//         priceDetails: {
+//           allInclusive: false,
+//           negotiable: false,
+//           taxExcluded: false
+//         },
+//         locationAdvantages: [],
+//         vaasthuDetails: {}
+//       },
+//       // ✅ CRITICAL: All must use vaasthuDetails (double 'a', not vastuDetails or vassthuDetails)
+//       commercialDetails: {
+//         subType: '',
+//         officeDetails: { vaasthuDetails: {} },
+//         retailDetails: { vaasthuDetails: {} },
+//         plotDetails: { vaasthuDetails: {} },
+//         industryDetails: { vaasthuDetails: {} },
+//         storageDetails: { vaasthuDetails: {} },
+//         hospitalityDetails: { vaasthuDetails: {} },
+//         otherDetails: { vaasthuDetails: {} }
+//       },
+//       vaasthuDetails: {}
+//     });
+//   };
+
+//   return { formData, updateField, resetForm };
+// };
+
+// export default usePropertyForm;
+// admin/src/hooks/usePropertyForm.js
 import { useState } from 'react';
 
 const usePropertyForm = () => {
   const [formData, setFormData] = useState({
-    // ================= BASIC =================
-    photos: [],
-    propertyTitle: '',
-    propertyType: '',
-
-    // ================= HOUSE / FLAT =================
-    noOfFloors: '',
-    area: '',
-    bedrooms: '',
-    bathrooms: '',
-    balconies: '',
-    floorDetails: '',
-    availabilityStatus: 'Ready to Move',
-    otherRooms: [],
-    ageOfProperty: [],
-    furnishing: '',
-    parking: [],
-    facilities: [],
-
-    // ================= VAASHTU =================
-    plotFacing: '',
-    mainDoorDirection: '',
-    masterBedroom: '',
-    childrenBedroom: '',
-    livingRoom: '',
-    kitchenRoom: '',
-    poojaRoom: '',
-    balconyDirection: '',
-
-    // ================= SITE / PLOT =================
-    pricePerCent: '',
-    pricePerAcre: '',
-    length: '',
-    breadth: '',
-    floorsAllowed: '',
-    boundaryWall: '',
-    openSides: '',
-    construction: '',
-    locationAdvantages: [],
-
-    // ================= COMMON =================
-    possessionBy: 'Immediate',
-    allInclusivePrice: false,
-    priceNegotiable: false,
-    taxCharges: false,
+    // Common top-level fields
     location: '',
     description: '',
-    ownershipDocs: [],
-    saleConveyance: [],
-    ownerIdentity: [],
-
-    // ================= OWNER =================
     ownerName: '',
     mobileNumber: '',
-
-    // ================= COMMERCIAL =================
-    commercialSubType: '',
-    officeType: '',
-
-    // Office Setup
-    noCabins: '',
-    noMeetingRooms: '',
-    noSeats: '',
-    maxSeats: '',
-    hasConferenceRoom: false,
-    conferenceRoomCount: '',
-    hasWashRoom: false,
-    washRoomCount: '',
-    washRoomType: '',
-    hasReceptionArea: false,
-    hasPantry: false,
-    pantryType: '',
-
-    // Furnishing
-    furnishingItems: [],
-    fireSafety: [],
-
-    // Floor Details
-    floorNumber: '',
-    yourFloorNo: '',
-    noStairCases: '',
-    liftsAvailable: '',
-    passengerLifts: 0,
-    serviceLifts: 0,
-
-    // Parking
-    parkingAvailable: '',
-    parkingLocations: [],
-    noParking: '',
-
-    // Pricing
+    email: '',
     expectedPrice: '',
-    preLeased: '',
-    currentRent: '',
-    leaseTenure: '',
-    fireNOC: '',
-    occupancyCertificate: '',
-    previouslyUsedFor: '',
+    priceDetails: {
+      allInclusive: false,
+      negotiable: false,
+      taxExcluded: false
+    },
 
-    // Office Vaasthu
-    officeFacing: '',
-    mainEntranceDirection: '',
-    ownerCabinDirection: '',
-    workstationsDirection: '',
-    meetingRoomDirection: '',
-    receptionDirection: '',
-    accountsDirection: '',
-    pantryDirection: '',
-    serverRoomDirection: '',
-    washroomDirection: '',
-    staircaseDirection: '',
-    storageDirection: '',
-    cashLockerDirection: '',
+    // House/Flat specific fields
+    houseDetails: {
+      floors: '',
+      area: '',
+      areaUnit: 'sqft',
+      bedrooms: '',
+      bathrooms: '',
+      balconies: '',
+      floorDetails: '',
+      availabilityStatus: 'Ready to Move',
+      ageOfProperty: '',
+      ownership: '',
+      possessionBy: '',
+      otherRooms: [],
+      furnishing: 'Unfurnished',
+      furnishingItems: [],
+      parking: {
+        covered: 0,
+        open: 0
+      },
+      vaasthuDetails: {
+        houseFacing: '',
+        masterBedroom: '',
+        childrenBedroom: '',
+        livingRoom: '',
+        kitchenRoom: '',
+        poojaRoom: '',
+        balcony: ''
+      }
+    },
 
-    // Location
-    locatedInside: '',
-    zoneType: '',
-    carpetArea: '',
-    ownershipType: '',
+    // Site/Plot specific fields
+    siteDetails: {
+      area: '',
+      areaUnit: 'sqft',
+      length: '',
+      breadth: '',
+      floorsAllowed: '',
+      boundaryWall: false,
+      openSides: '',
+      roadWidth: '',
+      roadWidthUnit: 'ft',
+      constructionDone: false,
+      constructionType: [],
+      possessionBy: '',
+      ownership: 'Freehold',
+      approvedBy: [],
+      amenities: [],
+      propertyFacing: '',
+      overlooking: [],
+      inGatedSociety: false,
+      cornerProperty: false,
+      locationAdvantages: [],
+      vaasthuDetails: {
+        plotFacing: '',
+        mainEntryDirection: '',
+        plotSlope: '',
+        openSpace: '',
+        plotShape: '',
+        roadPosition: '',
+        waterSource: '',
+        drainageDirection: '',
+        compoundWallHeight: '',
+        existingStructures: ''
+      }
+    },
 
-   
-  
-  // Industry specific fields
-  industryType: '',
-  noOfWashrooms: '',
-  plotArea: '',
-  possessionYear: '',
-  possessionMonth: '',
-  approvedBy: '',
-  approvedIndustryType: '',
-  preLeased: '',
-  currentRent: '',
-  leaseTenure: '',
-  wheelchairFriendly: false,
+    // Resort specific fields
+    resortDetails: {
+      resortType: '',
+      rooms: '',
+      landArea: '',
+      floors: '',
+      buildArea: '',
+      expectedPrice: '',
+      priceDetails: {
+        allInclusive: false,
+        negotiable: false,
+        taxExcluded: false
+      },
+      locationAdvantages: [],
+      vaasthuDetails: {
+        propertyFacing: '',
+        entranceDirection: '',
+        receptionAreaFacing: '',
+        mainLobbyDirection: '',
+        masterSuitroom: '',
+        guestRoom: '',
+        restaurantDirection: '',
+        vipSuite: '',
+        conferenceDirection: '',
+        spaRoom: '',
+        swimmingPool: '',
+        yoga: '',
+        kitchenRoom: '',
+        poojaRoom: '',
+        office: '',
+        recreation: '',
+        balcony: '',
+        garden: ''
+      }
+    },
 
-  // Hospitality specific fields
-  hospitalityType: '',
-  noOfRooms: '',
-  otherRooms: [],
-  furnishing: '',
-  flooringType: '',
-  
-  
-  
+    // Commercial fields - ✅ CRITICAL: All must use vaasthuDetails (double 'a', not vastuDetails or vassthuDetails)
+    commercialDetails: {
+      subType: '',
+      officeDetails: { vaasthuDetails: {} },
+      retailDetails: { vaasthuDetails: {} },
+      plotDetails: { vaasthuDetails: {} },
+      industryDetails: { vaasthuDetails: {} },
+      storageDetails: { vaasthuDetails: {} },
+      hospitalityDetails: { vaasthuDetails: {} },
+      otherDetails: { vaasthuDetails: {} }
+    },
+
+    // Vastu details (top-level for backward compatibility)
+    vaasthuDetails: {}
   });
 
-  const updateField = (name, value) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  // Enhanced updateField to handle nested paths
+  const updateField = (path, value) => {
+    setFormData(prev => {
+      // Handle simple top-level updates
+      if (!path.includes('.')) {
+        return { ...prev, [path]: value };
+      }
 
-  const updateMultipleFields = (fields) => {
-    setFormData(prev => ({ ...prev, ...fields }));
+      // Handle nested paths like 'houseDetails.bedrooms' or 'houseDetails.vaasthuDetails.houseFacing'
+      const keys = path.split('.');
+      const newData = { ...prev };
+      let current = newData;
+
+      // Navigate to the parent object
+      for (let i = 0; i < keys.length - 1; i++) {
+        // Create the nested object if it doesn't exist
+        if (!current[keys[i]]) {
+          current[keys[i]] = {};
+        } else {
+          // Clone the object to avoid mutation
+          current[keys[i]] = { ...current[keys[i]] };
+        }
+        current = current[keys[i]];
+      }
+
+      // Set the final value
+      current[keys[keys.length - 1]] = value;
+
+      return newData;
+    });
   };
 
   const resetForm = () => {
-    setFormData(prev => ({
-      ...prev,
-      photos: [],
-      propertyTitle: '',
-      propertyType: '',
-      availabilityStatus: 'Ready to Move',
-      possessionBy: 'Immediate'
-    }));
+    setFormData({
+      location: '',
+      description: '',
+      ownerName: '',
+      mobileNumber: '',
+      email: '',
+      expectedPrice: '',
+      priceDetails: {
+        allInclusive: false,
+        negotiable: false,
+        taxExcluded: false
+      },
+      houseDetails: {
+        floors: '',
+        area: '',
+        areaUnit: 'sqft',
+        bedrooms: '',
+        bathrooms: '',
+        balconies: '',
+        floorDetails: '',
+        availabilityStatus: 'Ready to Move',
+        ageOfProperty: '',
+        ownership: '',
+        possessionBy: '',
+        otherRooms: [],
+        furnishing: '',
+        furnishingItems: [],
+        parking: {
+          covered: 0,
+          open: 0
+        },
+        vaasthuDetails: {}
+      },
+      siteDetails: {
+        area: '',
+        areaUnit: 'sqft',
+        length: '',
+        breadth: '',
+        floorsAllowed: '',
+        boundaryWall: false,
+        openSides: '',
+        roadWidth: '',
+        roadWidthUnit: 'ft',
+        constructionDone: false,
+        constructionType: [],
+        possessionBy: '',
+        ownership: 'Freehold',
+        approvedBy: [],
+        amenities: [],
+        propertyFacing: '',
+        overlooking: [],
+        inGatedSociety: false,
+        cornerProperty: false,
+        locationAdvantages: [],
+        vaasthuDetails: {}
+      },
+      resortDetails: {
+        resortType: '',
+        rooms: '',
+        landArea: '',
+        floors: '',
+        buildArea: '',
+        expectedPrice: '',
+        priceDetails: {
+          allInclusive: false,
+          negotiable: false,
+          taxExcluded: false
+        },
+        locationAdvantages: [],
+        vaasthuDetails: {}
+      },
+      // ✅ CRITICAL: All must use vaasthuDetails (double 'a', not vastuDetails or vassthuDetails)
+      commercialDetails: {
+        subType: '',
+        officeDetails: { vaasthuDetails: {} },
+        retailDetails: { vaasthuDetails: {} },
+        plotDetails: { vaasthuDetails: {} },
+        industryDetails: { vaasthuDetails: {} },
+        storageDetails: { vaasthuDetails: {} },
+        hospitalityDetails: { vaasthuDetails: {} },
+        otherDetails: { vaasthuDetails: {} }
+      },
+      vaasthuDetails: {}
+    });
   };
 
-  return { formData, updateField, updateMultipleFields, resetForm };
+  return { formData, updateField, resetForm };
 };
 
-
 export default usePropertyForm;
-
-

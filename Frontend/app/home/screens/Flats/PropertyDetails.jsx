@@ -20,8 +20,9 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { getApprovedProperties } from "../../../../utils/propertyApi";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from "react-i18next";
-import i18n  from "../../../../i18n/index"
-
+import i18n from "../../../../i18n/index"
+import { saveProperty, unsaveProperty, checkIfSaved } from "../../../../utils/savedPropertiesApi";
+import { Alert } from "react-native";
 
 const getLocalizedText = (field, language) => {
   if (!field) return '';
@@ -40,74 +41,126 @@ export default function PropertyListScreen() {
   const scrollY = useRef(new Animated.Value(0)).current;
   const [contentHeight, setContentHeight] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
- const [properties, setProperties] = useState([]);
+  const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { t } = useTranslation();
   const { areaKey, districtKey } = useLocalSearchParams();
-
+  const [savedStates, setSavedStates] = useState({});
   // ✅ Get current language
-const currentLanguage = i18n.language || 'en';
-  
+  const currentLanguage = i18n.language || 'en';
+
   // Get translated area name from areaKey
   const areaName = areaKey ? t(`areas.${areaKey}`) : '';
 
   // ✅ FETCH REAL PROPERTIES
-// ✅ FETCH REAL PROPERTIES
+  // ✅ FETCH REAL PROPERTIES
   useEffect(() => {
     fetchProperties();
   }, [areaKey]);
 
   // ✅ ADD THIS: Refetch when language changes
-useEffect(() => {
-  if (areaKey) {
-    fetchProperties();
+  useEffect(() => {
+    if (areaKey) {
+      fetchProperties();
+    }
+  }, [i18n.language]); // Refetch when language changes
+
+
+  const fetchProperties = async () => {
+    try {
+      setLoading(true);
+      console.log('🔍 Fetching HOUSES for areaKey:', areaKey);
+
+      // ✅ Get current language from i18next (not AsyncStorage)
+      const currentLang = i18n.language || 'en';
+      console.log('🌐 Fetching in language:', currentLang);
+
+      const response = await getApprovedProperties(null, 1, currentLang);
+
+      if (response.success) {
+        console.log('✅ All properties fetched:', response.data);
+        // ✅ FILTER BY PROPERTY TYPE = "House"
+        const houseProperties = (response.data.data || []).filter(
+          property => property.propertyType === 'House'
+        );
+        await checkAllSavedStatuses(houseProperties);
+        console.log('✅ Houses filtered:', houseProperties.length);
+        setProperties(houseProperties);
+      } else {
+        console.error('❌ Failed to fetch properties:', response.error);
+      }
+    } catch (error) {
+      console.error('❌ Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const checkAllSavedStatuses = async (propertyList) => {
+    const savedStatusPromises = propertyList.map(async (property) => {
+      const response = await checkIfSaved(property._id, 'property');
+      return { id: property._id, isSaved: response.success ? response.isSaved : false };
+    });
+
+    const results = await Promise.all(savedStatusPromises);
+    const newSavedStates = {};
+    results.forEach(({ id, isSaved }) => {
+      newSavedStates[id] = isSaved;
+    });
+    setSavedStates(newSavedStates);
+  };
+  const handleToggleSave = async (propertyId) => {
+  const currentState = savedStates[propertyId] || false;
+   const token = await AsyncStorage.getItem('userToken');
+  if (!token) {
+    Alert.alert('Not Logged In', 'Please log in to save properties');
+    return;
   }
-}, [i18n.language]); // Refetch when language changes
+  // ✅ ADD THESE LOGS:
+  console.log('🔖 Toggle Save clicked');
+  console.log('Property ID:', propertyId);
+  console.log('Current state:', currentState);
+  console.log('Will call:', currentState ? 'unsave' : 'save');
+  
+  // Optimistic update
+  setSavedStates(prev => ({ ...prev, [propertyId]: !currentState }));
 
-
-const fetchProperties = async () => {
   try {
-    setLoading(true);
-    console.log('🔍 Fetching HOUSES for areaKey:', areaKey);
-    
-    // ✅ Get current language from i18next (not AsyncStorage)
-    const currentLang = i18n.language || 'en';
-    console.log('🌐 Fetching in language:', currentLang);
-    
-    const response = await getApprovedProperties(null, 1, currentLang);
-    
-    if (response.success) {
-      console.log('✅ All properties fetched:', response.data);
-      // ✅ FILTER BY PROPERTY TYPE = "House"
-      const houseProperties = (response.data.data || []).filter(
-        property => property.propertyType === 'House'
-      );
-      console.log('✅ Houses filtered:', houseProperties.length);
-      setProperties(houseProperties);
+    let response;
+    if (currentState) {
+      response = await unsaveProperty(propertyId, 'property');
     } else {
-      console.error('❌ Failed to fetch properties:', response.error);
+      // ✅ ADD THIS LOG:
+      console.log('Calling saveProperty with:', propertyId, 'property');
+      response = await saveProperty(propertyId, 'property');
+    }
+
+    // ✅ ADD THIS LOG:
+    console.log('Save response:', response);
+
+    if (!response.success) {
+      setSavedStates(prev => ({ ...prev, [propertyId]: currentState }));
+      Alert.alert('Error', response.message || 'Failed to update saved status');
     }
   } catch (error) {
-    console.error('❌ Error:', error);
-  } finally {
-    setLoading(false);
+    console.error('Error toggling save:', error);
+    setSavedStates(prev => ({ ...prev, [propertyId]: currentState }));
   }
 };
 
   // ✅ FILTER BY AREA (location)
-const filteredProperties = properties.filter((property) => {
-  const propertyAreaKey = property.areaKey || '';
-  
-  // ✅ Use helper function to extract title
-  const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
-  
-  // Match by areaKey (consistent across all languages)
-  const matchesArea = propertyAreaKey === areaKey;
-  const matchesSearch = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
-  
-  return matchesArea && matchesSearch;
-});
+  const filteredProperties = properties.filter((property) => {
+    const propertyAreaKey = property.areaKey || '';
+
+    // ✅ Use helper function to extract title
+    const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
+
+    // Match by areaKey (consistent across all languages)
+    const matchesArea = propertyAreaKey === areaKey;
+    const matchesSearch = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
+
+    return matchesArea && matchesSearch;
+  });
 
   const scrollbarHeight = SCREEN_HEIGHT * (SCREEN_HEIGHT / contentHeight) * 0.3;
 
@@ -123,7 +176,7 @@ const filteredProperties = properties.filter((property) => {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      
+
       {/* Header */}
       <View className="flex-row items-center px-5 py-3">
 
@@ -181,7 +234,7 @@ const filteredProperties = properties.filter((property) => {
               color: "#6B7280",
             }}
           >
-           {filteredProperties.length} properties found in {areaName}
+            {filteredProperties.length} properties found in {areaName}
           </Text>
 
           {/* ✅ LOADING SPINNER */}
@@ -228,24 +281,26 @@ const filteredProperties = properties.filter((property) => {
                 
 
 
-                 <Image
-  source={
-    item.images && item.images.length > 0
-      ? { uri: item.images[0] }  // ✅ CHANGED: Removed IP address prefix for base64
-      : require("../../../../assets/Flat1.jpg")
-  }
-  style={{
-    width: CARD_WIDTH,
-    height: 163,
-    borderTopLeftRadius: 17,
-    borderTopRightRadius: 17,
-  }}
-  resizeMode="cover"
-/>
+
+
+                  <Image
+                    source={
+                      item.images && item.images.length > 0
+                        ? { uri: item.images[0] }  // ✅ CHANGED: Removed IP address prefix for base64
+                        : require("../../../../assets/Flat1.jpg")
+                    }
+                    style={{
+                      width: CARD_WIDTH,
+                      height: 163,
+                      borderTopLeftRadius: 17,
+                      borderTopRightRadius: 17,
+                    }}
+                    resizeMode="cover"
+                  />
                 </TouchableOpacity>
 
-                {/* Bookmark Icon */}
-                <View
+                <TouchableOpacity
+                  onPress={() => handleToggleSave(item._id)}
                   style={{
                     position: "absolute",
                     right: 16,
@@ -255,8 +310,12 @@ const filteredProperties = properties.filter((property) => {
                     borderRadius: 50,
                   }}
                 >
-                  <Ionicons name="bookmark-outline" size={20} color="#16A34A" />
-                </View>
+                  <Ionicons
+                    name={savedStates[item._id] ? "bookmark" : "bookmark-outline"}
+                    size={20}
+                    color="#16A34A"
+                  />
+                </TouchableOpacity>
 
                 {/* Card Content */}
                 <View style={{ paddingHorizontal: 12, paddingTop: 10 }}>
@@ -347,7 +406,7 @@ const filteredProperties = properties.filter((property) => {
                         marginLeft: 4,
                       }}
                     >
-                    {getLocalizedText(item.area, currentLanguage) || getLocalizedText(item.location, currentLanguage) || areaName}
+                      {getLocalizedText(item.area, currentLanguage) || getLocalizedText(item.location, currentLanguage) || areaName}
                     </Text>
                   </View>
 
