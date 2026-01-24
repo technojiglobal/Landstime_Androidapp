@@ -20,7 +20,7 @@ import { useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/index';
-import { loginUser, saveToken, saveUserData, sendOTP, verifyOTP } from "../../utils/api";
+import { loginUser, saveToken, saveUserData, sendOTP, verifyOTP,checkPhoneExists } from "../../utils/api";
 
 export default function SignIn() {
   const { t, i18n } = useTranslation();
@@ -107,12 +107,32 @@ const getLocalizedName = (nameField) => {
 
   setOtpLoading(true);
   try {
+    // ✅ STEP 1: First check if phone number is registered
+    const phoneCheckResponse = await checkPhoneExists(phone);
+    
+    if (!phoneCheckResponse.success || !phoneCheckResponse.data.exists) {
+      Toast.show({
+        type: 'error',
+        text1: 'Account not found',
+        text2: 'This number is not registered. Please register first.',
+        position: 'top',
+        visibilityTime: 4000,
+        topOffset: 50,
+      });
+      setOtpLoading(false);
+      return;
+    }
+
+    // ✅ STEP 2: Only send OTP if phone exists
     const response = await sendOTP(phone, "+91");
 
     if (response.success && response.data.success) {
       setStep('enterOtp');
       setTimer(30);
       setOtp(["", "", "", ""]);
+
+      // Check for dev OTP...
+      console.log("🔍 Dev OTP:", response.data.data?.devOtp);
 
       // ✅ FIXED: Check response.data.data.devOtp instead of response.data.devOtp
       if (response.data.data?.devOtp) {
