@@ -4,13 +4,16 @@ import React, { useState, useEffect } from "react";
 import { View, Text, Image, ScrollView, TouchableOpacity, StatusBar, ActivityIndicator } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons, Feather } from "@expo/vector-icons";
-import TopAlert from "../../../../../components/TopAlert";
+
 import VastuModal from "../../../../../components/VastuModal";
 import { getPropertyById } from "../../../../../utils/propertyApi";
 import { getUserProfile } from "../../../../../utils/api";
 import { checkViewAccess } from "../../../../../utils/propertyViewApi";
 import i18n from "../../../../../i18n/index";
 import { Alert } from "react-native";
+import CustomAlert from "../../../../../components/CustomAlert";
+
+
 import { fetchReviews } from "../../../../../utils/reviewApi";
 
 // ✅ Helper: Strip phone number
@@ -452,7 +455,12 @@ export default function OverviewScreen() {
       </ScrollView>
 
       {/* Alerts / Modals */}
-      <TopAlert visible={showAlert} onHide={() => setShowAlert(false)} />
+      <CustomAlert
+              visible={showAlert}
+              title="Brochure Downloaded"
+              message="Brochure  have been downloaded successfully  "
+              onClose={() => setShowAlert(false)}
+            />
       <VastuModal visible={showVastuModal} onClose={() => setShowVastuModal(false)} />
     </View>
   );

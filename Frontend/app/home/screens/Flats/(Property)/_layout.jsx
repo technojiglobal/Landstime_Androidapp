@@ -23,7 +23,13 @@ const params = useLocalSearchParams();
   const isReview = pathname.includes("/Review");
   const isWriteReview = pathname.includes("/WriteReview");
   const isOverview = !isReview && !isWriteReview ;
-
+  const handleBack = () => {
+    if (isReview || isWriteReview) {
+      router.replace("/home/screens/Commercial/(Property)");
+    } else {
+      router.back();
+    }
+  };
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       {/* Header */}
@@ -36,7 +42,7 @@ const params = useLocalSearchParams();
           marginBottom: 8,
         }}
       >
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={handleBack}>
   <Ionicons name="chevron-back-outline" size={22} color="black" />
 </TouchableOpacity>
 
