@@ -52,45 +52,44 @@ export default function SavedPropertiesScreen() {
   };
 
   const applyFilters = () => {
-    let filtered = [...savedItems];
+  let filtered = [...savedItems];
 
-    // Filter by type
-    if (activeFilter !== "All") {
-      filtered = filtered.filter(item => {
-        if (activeFilter === "Interiors") {
-          return item.entityType === 'interior';
-        } else {
-          // For properties, check propertyType
-          if (item.entityType === 'property' && item.entityId) {
-            const propertyType = item.entityId.propertyType;
-            if (activeFilter === "Sites") return propertyType === 'Site/Plot/Land';
-            if (activeFilter === "Resorts") return propertyType === 'Resort';
-            if (activeFilter === "Flats") return propertyType === 'House';
-            if (activeFilter === "Commercial") return propertyType === 'Commercial';
-          }
-          return false;
-        }
-      });
-    }
-
-    // Filter by search query
-    if (searchQuery.trim()) {
-      filtered = filtered.filter(item => {
-        if (item.entityType === 'interior' && item.entityId) {
-          return item.entityId.name?.toLowerCase().includes(searchQuery.toLowerCase());
-        } else if (item.entityType === 'property' && item.entityId) {
-          const title = typeof item.entityId.propertyTitle === 'string' 
-            ? item.entityId.propertyTitle 
-            : item.entityId.propertyTitle?.en || '';
-          return title.toLowerCase().includes(searchQuery.toLowerCase());
+  // Filter by type
+  if (activeFilter !== "All") {
+    filtered = filtered.filter(item => {
+      if (activeFilter === "Interiors") {
+        return item.entityType === 'InteriorDesign';
+      } else {
+        // For properties, check propertyType
+        if (item.entityType === 'Property' && item.entityId) {
+          const propertyType = item.entityId.propertyType;
+          if (activeFilter === "Sites") return propertyType === 'Site/Plot/Land';
+          if (activeFilter === "Resorts") return propertyType === 'Resort';
+          if (activeFilter === "Flats") return propertyType === 'House' || propertyType === 'House/Flat';
+          if (activeFilter === "Commercial") return propertyType === 'Commercial';
         }
         return false;
-      });
-    }
+      }
+    });
+  }
 
-    setFilteredItems(filtered);
-  };
+  // Filter by search query
+  if (searchQuery.trim()) {
+    filtered = filtered.filter(item => {
+      if (item.entityType === 'InteriorDesign' && item.entityId) {
+        return item.entityId.name?.toLowerCase().includes(searchQuery.toLowerCase());
+      } else if (item.entityType === 'Property' && item.entityId) {
+        const title = typeof item.entityId.propertyTitle === 'string' 
+          ? item.entityId.propertyTitle 
+          : item.entityId.propertyTitle?.en || '';
+        return title.toLowerCase().includes(searchQuery.toLowerCase());
+      }
+      return false;
+    });
+  }
 
+  setFilteredItems(filtered);
+};
   const handleUnsave = async (itemId, entityType) => {
     try {
       const response = await unsaveProperty(itemId, entityType);
@@ -111,8 +110,7 @@ export default function SavedPropertiesScreen() {
 
   const renderSavedCard = ({ item }) => {
     if (!item.entityId) return null;
-
-    const isInterior = item.entityType === 'interior';
+const isInterior = item.entityType === 'InteriorDesign';
     const entity = item.entityId;
 
     // Get title

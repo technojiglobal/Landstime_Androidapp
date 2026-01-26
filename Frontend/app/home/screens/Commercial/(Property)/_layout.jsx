@@ -2,13 +2,15 @@
 //Frontend/app/home/screens/Commercial/(Property)/_layout.jsx
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Slot, useRouter, usePathname } from "expo-router";
+import { Slot, useRouter, usePathname, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PropertyLayout() {
   const router = useRouter();
   const pathname = usePathname() ?? "";
-
+  const params = useLocalSearchParams();
+  const propertyId = params.propertyId;
+  const entityType = params.entityType || 'property'; // ✅ Add these two lines
   const tabs = [
     { label: "Overview", route: "/home/screens/Commercial/(Property)" },
     { label: "Reviews(27)", route: "/home/screens/Commercial/(Property)/Review" },
@@ -110,8 +112,8 @@ export default function PropertyLayout() {
       </View>
 
       {/* Page content */}
-     
-<Slot />
+
+      <Slot />
     </SafeAreaView>
   );
 }

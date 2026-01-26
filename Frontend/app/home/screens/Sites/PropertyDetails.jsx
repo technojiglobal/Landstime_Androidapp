@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next";
 import i18n from "../../../../i18n/index";
 import { saveProperty, unsaveProperty, checkIfSaved } from "../../../../utils/savedPropertiesApi";
 import { Alert } from "react-native";
+import { fetchReviews } from "../../../../utils/reviewApi";
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const CARD_WIDTH = 345;
 const CARD_HEIGHT = 298;
@@ -40,6 +41,7 @@ export default function PropertyListScreen() {
   const currentLanguage = i18n.language || 'en';
   const areaName = areaKey ? t(`areas.${areaKey}`) : '';
   const [savedStates, setSavedStates] = useState({});
+  const [reviewSummary, setReviewSummary] = useState({});
   // ✅ Fetch on mount
   useEffect(() => {
     fetchProperties();
@@ -50,6 +52,15 @@ export default function PropertyListScreen() {
       fetchProperties();
     }
   }, [i18n.language]);
+
+  useEffect(() => {
+    if (filteredProperties.length > 0) {
+      filteredProperties.forEach(property => {
+        fetchReviewForProperty(property._id);
+      });
+    }
+  }, [filteredProperties]);
+
   const fetchProperties = async () => {
     try {
       setLoading(true);
@@ -61,7 +72,7 @@ export default function PropertyListScreen() {
       const response = await getApprovedProperties(null, 1, currentLang);
 
       if (response.success) {
-        console.log('✅ All properties fetched:', response.data);
+        //console.log('✅ All properties fetched:', response.data);
         // ✅ FILTER BY PROPERTY TYPE = "Site/Plot/Land"
         const siteProperties = (response.data.data || []).filter(
           property => property.propertyType === 'Site/Plot/Land'
@@ -78,6 +89,7 @@ export default function PropertyListScreen() {
       setLoading(false);
     }
   };
+
   const checkAllSavedStatuses = async (propertyList) => {
     const savedStatusPromises = propertyList.map(async (property) => {
       const response = await checkIfSaved(property._id, 'property');
@@ -115,6 +127,20 @@ export default function PropertyListScreen() {
       setSavedStates(prev => ({ ...prev, [propertyId]: currentState }));
     }
   };
+  const fetchReviewForProperty = async (propertyId) => {
+    try {
+      const res = await fetchReviews('property', propertyId);
+      setReviewSummary(prev => ({
+        ...prev,
+        [propertyId]: {
+          avgRating: res.avgRating || 0,
+          count: res.count || 0
+        }
+      }));
+    } catch (err) {
+      console.error('Failed to fetch reviews:', err);
+    }
+  };
 
 
   // ✅ Filter by areaKey
@@ -141,16 +167,16 @@ export default function PropertyListScreen() {
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
       {/* Header */}
-{/* Header */}
-<View className="flex-row items-center px-5 py-3">
-  <TouchableOpacity onPress={() => router.push({
-    pathname: '/home/screens/Sites/SelectSite',
-    params: { districtKey: districtKey }
-  })}>
-    <Ionicons name="chevron-back" size={24} color="black" />
-  </TouchableOpacity>
-  <Text className="text-xl font-semibold ml-2">{areaName} Properties</Text>
-</View>
+      {/* Header */}
+      <View className="flex-row items-center px-5 py-3">
+        <TouchableOpacity onPress={() => router.push({
+          pathname: '/home/screens/Sites/SelectSite',
+          params: { districtKey: districtKey }
+        })}>
+          <Ionicons name="chevron-back" size={24} color="black" />
+        </TouchableOpacity>
+        <Text className="text-xl font-semibold ml-2">{areaName} Properties</Text>
+      </View>
       <View style={{ flex: 1, flexDirection: "row" }}>
         {/* Scrollable Content */}
         <Animated.ScrollView
@@ -230,30 +256,32 @@ export default function PropertyListScreen() {
                 }}
               >
                 {/* Image */}
-             <TouchableOpacity
-  activeOpacity={0.8}
-  onPress={() => router.push({
-    pathname: '/home/screens/Resorts/(Property)',
-    params: { 
-      propertyId: item._id,
-      propertyData: JSON.stringify(item)  // ✅ Pass entire property object
-    }
-  })}
->
-                 <Image
-  source={
-    item.images && item.images.length > 0
-      ? { uri: item.images[0] }  // ✅ CHANGED: Removed IP address prefix for base64
-      : require("../../../../assets/Flat1.jpg")
-  }
-  style={{
-    width: CARD_WIDTH,
-    height: 163,
-    borderTopLeftRadius: 17,
-    borderTopRightRadius: 17,
-  }}
-  resizeMode="cover"
-/>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => router.push({
+                    pathname: '/home/screens/Sites/(Property)',
+                    params: {
+                      propertyId: item._id,
+                      propertyData: JSON.stringify(item),
+                      areaKey: item.areaKey || areaKey,
+                      entityType: 'property'
+                    }
+                  })}
+                >
+                  <Image
+                    source={
+                      item.images && item.images.length > 0
+                        ? { uri: item.images[0] }  // ✅ CHANGED: Removed IP address prefix for base64
+                        : require("../../../../assets/Flat1.jpg")
+                    }
+                    style={{
+                      width: CARD_WIDTH,
+                      height: 163,
+                      borderTopLeftRadius: 17,
+                      borderTopRightRadius: 17,
+                    }}
+                    resizeMode="cover"
+                  />
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => handleToggleSave(item._id)}
@@ -276,19 +304,19 @@ export default function PropertyListScreen() {
                 <View style={{ paddingHorizontal: 12, paddingTop: 10 }}>
                   {/* Title */}
                   <TouchableOpacity
-                   activeOpacity={0.6}
- onPress={() => {
-  console.log('🔍 Navigating to property:', item._id);
-  // ✅ FIXED: Ensure propertyId is string
-  router.push({
-    pathname: '/home/screens/Sites/(Property)',
-    params: { 
-      propertyId: item._id.toString(),
-      areaKey: item.areaKey || areaKey
-    }
-  });
-}}
->
+                    activeOpacity={0.6}
+                    onPress={() => {
+                      console.log('🔍 Navigating to property:', item._id);
+                      router.push({
+                        pathname: '/home/screens/Sites/(Property)',
+                        params: {
+                          propertyId: item._id.toString(),
+                          areaKey: item.areaKey || areaKey,
+                          entityType: 'property'
+                        }
+                      });
+                    }}
+                  >
                     <Text
                       style={{
                         fontFamily: "Poppins-Medium",
@@ -325,26 +353,10 @@ export default function PropertyListScreen() {
                     />
                   </View>
                   {/* Rating */}
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      marginTop: 6,
-                    }}
-                  >
-                    <Image
-                      source={require("../../../../assets/star.png")}
-                      style={{ width: 100, height: 30, resizeMode: "contain" }}
-                    />
-                    <Text
-                      style={{
-                        fontFamily: "Poppins-Regular",
-                        fontSize: 12,
-                        color: "#000",
-                        marginLeft: 6,
-                      }}
-                    >
-                      4.5 (0 reviews)
+                  <View className="flex-row items-center mb-1">
+                    <Ionicons name="star" size={14} color="#FF9500" />
+                    <Text className="text-xs mx-3 text-gray-700 justify-center item-center">
+                      {reviewSummary[item._id]?.avgRating?.toFixed(1) || '0.0'} ({reviewSummary[item._id]?.count || 0} reviews)
                     </Text>
                   </View>
                   {/* Location */}

@@ -1,19 +1,19 @@
 //Frontend/app/home/screens/Flats/(Property)/index.jsx
-import React, { useState,useEffect } from "react";
-import { View, Text, Image, ScrollView, TouchableOpacity,ActivityIndicator } from "react-native";
-import { useRouter,useLocalSearchParams } from "expo-router";
+import React, { useState, useEffect } from "react";
+import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons, Feather } from "@expo/vector-icons";
-import TopAlert from "../../../../../components/TopAlert";
 import VastuModal from "../../../../../components/VastuModal";
 import { getPropertyById } from "../../../../../utils/propertyApi";
 import { getUserProfile } from "../../../../../utils/api";
 import { checkViewAccess } from "../../../../../utils/propertyViewApi";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from "react-i18next";
-import i18n  from "../../../../../i18n/index"
+import i18n from "../../../../../i18n/index"
 import { Alert } from "react-native";
 import CustomAlert from "../../../../../components/CustomAlert";
 
+import { fetchReviews } from "../../../../../utils/reviewApi";
 
 // ✅ Helper: Strip phone number
 const stripPhone = (phoneNum) => {
@@ -30,176 +30,188 @@ const getLocalizedText = (field, language) => {
 
 export default function OverviewScreen() {
   const router = useRouter();
-   const { propertyId, areaKey, propertyData } = useLocalSearchParams();
+  const { propertyId, areaKey, propertyData } = useLocalSearchParams();
   const [showAlert, setShowAlert] = useState(false);
   const [showVastuModal, setShowVastuModal] = useState(false);
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const [reviewSummary, setReviewSummary] = useState({ avgRating: 0, count: 0 });
   // ✅ Get current language
-const currentLanguage = i18n.language || 'en';
- // const [language, setLanguage] = useState('en');
-
- 
+  const currentLanguage = i18n.language || 'en';
+  // const [language, setLanguage] = useState('en');
 
 
-//   // ✅ ADD THIS: Fetch property on mount
-// useEffect(() => {
-//   if (propertyId) {
-//     fetchPropertyDetails();
-//   }
-// }, [propertyId]);
-
-// // ✅ ADD THIS: Refetch when language changes
-// useEffect(() => {
-//   if (propertyId) {
-//     fetchPropertyDetails();
-//   }
-// }, [i18n.language]);
 
 
-// ✅ Fetch property on mount and when propertyId or language changes
-useEffect(() => {
-  console.log('🔄 Effect triggered - propertyId:', propertyId, 'language:', i18n.language);
-  
-  if (!propertyId || propertyId === 'undefined') {
-    console.error('❌ Invalid propertyId:', propertyId);
-    setLoading(false);
-    return;
-  }
-  
-  // ✅ Try to use passed data first
-  if (propertyData) {
-    try {
-      const parsedProperty = JSON.parse(propertyData);
-      console.log('✅ Using passed property data (instant load)');
-      setProperty(parsedProperty);
+  //   // ✅ ADD THIS: Fetch property on mount
+  // useEffect(() => {
+  //   if (propertyId) {
+  //     fetchPropertyDetails();
+  //   }
+  // }, [propertyId]);
+
+  // // ✅ ADD THIS: Refetch when language changes
+  // useEffect(() => {
+  //   if (propertyId) {
+  //     fetchPropertyDetails();
+  //   }
+  // }, [i18n.language]);
+
+
+  // ✅ Fetch property on mount and when propertyId or language changes
+  useEffect(() => {
+    console.log('🔄 Effect triggered - propertyId:', propertyId, 'language:', i18n.language);
+
+    if (!propertyId || propertyId === 'undefined') {
+      console.error('❌ Invalid propertyId:', propertyId);
       setLoading(false);
-      return;  // ✅ Skip API call
-    } catch (error) {
-      console.error('❌ Failed to parse propertyData:', error);
-    }
-  }
-  
-  // ✅ Fallback to API if no data passed
-  fetchPropertyDetails();
-}, [propertyId, propertyData, i18n.language]);
-
-
-
-const fetchPropertyDetails = async () => {
-  try {
-    setLoading(true);
-    const currentLang = i18n.language || 'en'; // ✅ Get from i18n directly
-    console.log('🔍 Fetching property:', propertyId);
-    console.log('🌐 Current language:', currentLang);
-    
-    const response = await getPropertyById(propertyId, currentLang);
-    
-    if (response.success) {
-      console.log('✅ Property fetched:', response.data);
-      setProperty(response.data.data);
-    } else {
-      console.error('❌ Failed to fetch property:', response.error);
-    }
-  } catch (error) {
-    console.error('❌ Error fetching property:', error);
-  } finally {
-    setLoading(false);
-  }
-};
-
-// ✅ NEW: Handle Contact Agent button press
-const handleContactAgent = async () => {
-  try {
-    if (!property || !property._id) {
-      Alert.alert('Error', 'Property information not available');
       return;
     }
 
-    console.log('🔍 Checking if property already viewed:', property._id);
-
-    // Get user profile to check viewedProperties
-    const userResult = await getUserProfile();
-    
-    if (!userResult.success) {
-      console.log('❌ Failed to get user profile, going to ContactForm');
-      router.push({
-        pathname: "/home/screens/ContactForm",
-        params: { 
-          propertyId: property._id,
-          areaKey: property.areaKey 
-        }
-      });
-      return;
-    }
-
-    const userData = userResult.data.data;
-    const viewedProperties = userData.currentSubscription?.viewedProperties || [];
-    
-    // Check if already viewed
-    if (viewedProperties.includes(property._id)) {
-      console.log('✅ Property already viewed - checking access for direct navigation');
-      
-      // Get user name
-      let userName = '';
-      if (typeof userData.name === 'string') {
-        userName = userData.name;
-      } else if (userData.name && typeof userData.name === 'object') {
-        userName = userData.name.en || userData.name.te || userData.name.hi || '';
+    // ✅ Try to use passed data first
+    if (propertyData) {
+      try {
+        const parsedProperty = JSON.parse(propertyData);
+        console.log('✅ Using passed property data (instant load)');
+        setProperty(parsedProperty);
+        setLoading(false);
+        return;  // ✅ Skip API call
+      } catch (error) {
+        console.error('❌ Failed to parse propertyData:', error);
       }
-      
-      // Get access (will return owner details since already viewed)
-      const accessCheck = await checkViewAccess(
-        property._id,
-        userName,
-        stripPhone(userData.phone)
-      );
-      
-      if (accessCheck.success && accessCheck.data.alreadyViewed) {
-        console.log('✅ Navigating directly to ViewContact');
-        
-        // Navigate directly to ViewContact
+    }
+
+    // ✅ Fallback to API if no data passed
+    fetchPropertyDetails();
+  }, [propertyId, propertyData, i18n.language]);
+
+
+
+  const fetchPropertyDetails = async () => {
+    try {
+      setLoading(true);
+      const currentLang = i18n.language || 'en'; // ✅ Get from i18n directly
+      console.log('🔍 Fetching property:', propertyId);
+      console.log('🌐 Current language:', currentLang);
+
+      const response = await getPropertyById(propertyId, currentLang);
+
+      if (response.success) {
+        console.log('✅ Property fetched:', response.data);
+        setProperty(response.data.data);
+      } else {
+        console.error('❌ Failed to fetch property:', response.error);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching property:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    if (propertyId) {
+      fetchReviews('property', propertyId).then((res) => {
+        setReviewSummary({
+          avgRating: res.avgRating || 0,
+          count: res.count || 0,
+        });
+      }).catch(err => {
+        console.error('Failed to fetch reviews:', err);
+      });
+    }
+  }, [propertyId]);
+
+  // ✅ NEW: Handle Contact Agent button press
+  const handleContactAgent = async () => {
+    try {
+      if (!property || !property._id) {
+        Alert.alert('Error', 'Property information not available');
+        return;
+      }
+
+      console.log('🔍 Checking if property already viewed:', property._id);
+
+      // Get user profile to check viewedProperties
+      const userResult = await getUserProfile();
+
+      if (!userResult.success) {
+        console.log('❌ Failed to get user profile, going to ContactForm');
         router.push({
-          pathname: '/home/screens/ViewContact',
+          pathname: "/home/screens/ContactForm",
           params: {
-            ownerDetails: JSON.stringify(accessCheck.data.ownerDetails),
-            quota: JSON.stringify(accessCheck.data.quota),
-            alreadyViewed: 'true',
-            areaKey: property.areaKey,
-            propertyId: property._id
+            propertyId: property._id,
+            areaKey: property.areaKey
           }
         });
         return;
       }
+
+      const userData = userResult.data.data;
+      const viewedProperties = userData.currentSubscription?.viewedProperties || [];
+
+      // Check if already viewed
+      if (viewedProperties.includes(property._id)) {
+        console.log('✅ Property already viewed - checking access for direct navigation');
+
+        // Get user name
+        let userName = '';
+        if (typeof userData.name === 'string') {
+          userName = userData.name;
+        } else if (userData.name && typeof userData.name === 'object') {
+          userName = userData.name.en || userData.name.te || userData.name.hi || '';
+        }
+
+        // Get access (will return owner details since already viewed)
+        const accessCheck = await checkViewAccess(
+          property._id,
+          userName,
+          stripPhone(userData.phone)
+        );
+
+        if (accessCheck.success && accessCheck.data.alreadyViewed) {
+          console.log('✅ Navigating directly to ViewContact');
+
+          // Navigate directly to ViewContact
+          router.push({
+            pathname: '/home/screens/ViewContact',
+            params: {
+              ownerDetails: JSON.stringify(accessCheck.data.ownerDetails),
+              quota: JSON.stringify(accessCheck.data.quota),
+              alreadyViewed: 'true',
+              areaKey: property.areaKey,
+              propertyId: property._id
+            }
+          });
+          return;
+        }
+      }
+
+      // Not viewed yet - go to ContactForm
+      console.log('📝 Property not viewed yet - going to ContactForm');
+      router.push({
+        pathname: "/home/screens/ContactForm",
+        params: {
+          propertyId: property._id,
+          areaKey: property.areaKey
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ handleContactAgent error:', error);
+      // On error, fallback to ContactForm
+      router.push({
+        pathname: "/home/screens/ContactForm",
+        params: {
+          propertyId: property._id,
+          areaKey: property.areaKey
+        }
+      });
     }
-    
-    // Not viewed yet - go to ContactForm
-    console.log('📝 Property not viewed yet - going to ContactForm');
-    router.push({
-      pathname: "/home/screens/ContactForm",
-      params: { 
-        propertyId: property._id,
-        areaKey: property.areaKey 
-      }
-    });
-    
-  } catch (error) {
-    console.error('❌ handleContactAgent error:', error);
-    // On error, fallback to ContactForm
-    router.push({
-      pathname: "/home/screens/ContactForm",
-      params: { 
-        propertyId: property._id,
-        areaKey: property.areaKey 
-      }
-    });
-  }
-};
+  };
 
   const handleBrochurePress = () => setShowAlert(true);
 
- if (loading) {
+  if (loading) {
     return (
       <View style={{ flex: 1, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator size="large" color="#22C55E" />
@@ -217,7 +229,7 @@ const handleContactAgent = async () => {
         <Text style={{ marginTop: 16, color: '#6B7280', fontFamily: 'Poppins' }}>
           Property not found
         </Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => router.back()}
           style={{ marginTop: 16, backgroundColor: '#22C55E', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
         >
@@ -251,7 +263,7 @@ const handleContactAgent = async () => {
   };
 
   const details = getPropertyDetails();
-  
+
   // Prepare stats based on property type
   const getStats = () => {
     if (property.propertyType === 'House' && property.houseDetails) {
@@ -295,24 +307,24 @@ const handleContactAgent = async () => {
   const stats = getStats();
 
 
-  
+
 
   return (
     <View className="flex-1 bg-white relative">
       {(showAlert) && (
-              <View
-                className="absolute inset-0 bg-black/40"
-                style={{ zIndex: 10 }}
-                pointerEvents={"auto"}
-              />
-            )}
-            {( showVastuModal) && (
-              <View
-                className="absolute inset-0 bg-black/40"
-                //style={{ zIndex: 10 }}
-                pointerEvents={"auto"}
-              />
-            )}
+        <View
+          className="absolute inset-0 bg-black/40"
+          style={{ zIndex: 10 }}
+          pointerEvents={"auto"}
+        />
+      )}
+      {(showVastuModal) && (
+        <View
+          className="absolute inset-0 bg-black/40"
+          //style={{ zIndex: 10 }}
+          pointerEvents={"auto"}
+        />
+      )}
 
       <ScrollView
         className="flex-1 bg-white"
@@ -326,15 +338,15 @@ const handleContactAgent = async () => {
         {/* Resort Image */}
         <View className="items-center relative">
           <View className="relative">
-         <Image
-  source={
-    property.images && property.images.length > 0
-      ? { uri: property.images[0] }  // ✅ CHANGED: Removed IP address prefix for base64
-      : require("../../../../../assets/flatimg.jpg")
-  }
-  className="rounded-[17px]"
-  style={{ height: 223, width: 330, resizeMode: "cover" }}
-/>
+            <Image
+              source={
+                property.images && property.images.length > 0
+                  ? { uri: property.images[0] }  // ✅ CHANGED: Removed IP address prefix for base64
+                  : require("../../../../../assets/flatimg.jpg")
+              }
+              className="rounded-[17px]"
+              style={{ height: 223, width: 330, resizeMode: "cover" }}
+            />
             <View
               className="absolute bg-white rounded-full p-1"
               style={{
@@ -347,8 +359,8 @@ const handleContactAgent = async () => {
                 elevation: 2,
               }}
             >
-                <Image
-                  source={require("../../../../../assets/tick-icon.png")}
+              <Image
+                source={require("../../../../../assets/tick-icon.png")}
                 style={{ width: 13, height: 13, resizeMode: "contain" }}
               />
             </View>
@@ -360,53 +372,42 @@ const handleContactAgent = async () => {
           {/* Name + Location + Rating */}
           <View className="flex-row items-start justify-between">
             <View>
-          <Text className="text-[20px] text-green-500 font-semibold" style={{ fontFamily: "Poppins",fontWeight:"bold" }}>
-  {getLocalizedText(property.propertyTitle, currentLanguage) || 'Property'}
-</Text>
-<View className="flex-row items-center mt-1">
-  <Image
-    source={require("../../../../../assets/location-icon.png")}
-    style={{ width: 12, height: 12, resizeMode: "contain" }}
-  />
-  <Text className="text-[12px] text-[#72707090] ml-1" style={{ fontFamily: "Poppins" }}>
-  {getLocalizedText(property.location, currentLanguage) || 'Location'}
-</Text>
-</View>
-
-            </View>
-
-            <View className="items-end">
-              <View className="flex-row items-center mb-1">
-                <Ionicons name="star" size={14} color="#FF9500" />
-                <Text className="text-[12px] ml-1 text-[#9CA3AF]" style={{ fontFamily: "Poppins" }}>
-                  4.3
+              <Text className="text-[20px] text-green-500 font-semibold" style={{ fontFamily: "Poppins", fontWeight: "bold" }}>
+                {getLocalizedText(property.propertyTitle, currentLanguage) || 'Property'}
+              </Text>
+              <View className="flex-row items-center mt-1">
+                <Image
+                  source={require("../../../../../assets/location-icon.png")}
+                  style={{ width: 12, height: 12, resizeMode: "contain" }}
+                />
+                <Text className="text-[12px] text-[#72707090] ml-1" style={{ fontFamily: "Poppins" }}>
+                  {getLocalizedText(property.location, currentLanguage) || 'Location'}
                 </Text>
               </View>
 
-              <TouchableOpacity
-                className="bg-[#22C55E]/10 px-2 py-1 rounded-md"
-                onPress={() => router.push("/home/screens/Flats/Vrview")}
-              >
-                <Text className="text-[#22C55E] text-[10px]" style={{ fontFamily: "Poppins" }}>
-                  VR View
-                </Text>
-              </TouchableOpacity>
+            </View>
+
+            <View className="flex-row items-center mb-1">
+              <Ionicons name="star" size={14} color="#FF9500" />
+              <Text className="text-[12px] ml-1 text-[#9CA3AF]" style={{ fontFamily: "Poppins" }}>
+                {reviewSummary.avgRating.toFixed(1)} ({reviewSummary.count})
+              </Text>
             </View>
           </View>
 
           {/* Price + Vaastu */}
           <View className="mt-2 flex-row items-center justify-between">
             <Text className="text-[24px] font-semibold text-[#22C55E]" style={{ fontFamily: "Poppins" }}>
-  ₹ {property.expectedPrice ? property.expectedPrice.toLocaleString('en-IN') : '0'}
-</Text>
+              ₹ {property.expectedPrice ? property.expectedPrice.toLocaleString('en-IN') : '0'}
+            </Text>
 
             <TouchableOpacity
               onPress={() => setShowVastuModal(true)}
               className="flex-row items-center px-2 py-[2px] rounded-md"
               style={{ borderWidth: 0.5, borderColor: "#FFA50066" }}
             >
-                <Image
-                  source={require("../../../../../assets/vastu.png")}
+              <Image
+                source={require("../../../../../assets/vastu.png")}
                 style={{ width: 12, height: 12, resizeMode: "contain" }}
               />
               <Text className="ml-1 text-[12px] font-bold text-[#FFA500]" style={{ fontFamily: "Poppins" }}>
@@ -434,9 +435,9 @@ const handleContactAgent = async () => {
             <Text className="text-[20px] font-semibold mb-1" style={{ fontFamily: "Poppins" }}>
               Description
             </Text>
-     <Text className="text-[14px] text-[#00000091]" style={{ fontFamily: "Poppins" }}>
-  {getLocalizedText(property.description, currentLanguage) || 'No description available'}
-</Text>
+            <Text className="text-[14px] text-[#00000091]" style={{ fontFamily: "Poppins" }}>
+              {getLocalizedText(property.description, currentLanguage) || 'No description available'}
+            </Text>
           </View>
 
           {/* Buttons */}
@@ -452,15 +453,15 @@ const handleContactAgent = async () => {
               <Feather name="download" size={16} color="#22C55E" />
             </TouchableOpacity>
 
-           <TouchableOpacity
-  className="flex-1 bg-[#22C55E] py-3 rounded-[12px] items-center justify-center"
-  activeOpacity={0.8}
-  onPress={handleContactAgent}
->
-  <Text className="text-white text-[14px]" style={{ fontFamily: "Poppins" }}>
-    Contact Agent
-  </Text>
-</TouchableOpacity>
+            <TouchableOpacity
+              className="flex-1 bg-[#22C55E] py-3 rounded-[12px] items-center justify-center"
+              activeOpacity={0.8}
+              onPress={handleContactAgent}
+            >
+              <Text className="text-white text-[14px]" style={{ fontFamily: "Poppins" }}>
+                Contact Agent
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
