@@ -10,7 +10,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function PropertyLayout() {
   const router = useRouter();
   const pathname = usePathname() ?? "";
-  const { propertyId } = useLocalSearchParams(); // ✅ Get propertyId from params
+  const params = useLocalSearchParams();
+  const propertyId = params.propertyId;
+  const entityType = params.entityType || 'property'; // ✅ Add these two lines// ✅ Get propertyId from params
 
   const tabs = [
     { label: "Overview", route: "/home/screens/Resorts/(Property)", params: { propertyId } },
@@ -70,10 +72,17 @@ export default function PropertyLayout() {
           return (
             <TouchableOpacity
               key={idx}
-              onPress={() => !isActive && router.push({
-                pathname: tab.route,
-                params: tab.params
-              })}
+              onPress={() => {
+                if (!isActive) {
+                  router.push({
+                    pathname: tab.route,
+                    params: {
+                      propertyId,
+                      entityType
+                    }
+                  });
+                }
+              }}
               activeOpacity={0.7}
               style={{
                 alignItems: "center",

@@ -5,13 +5,15 @@
 //Frontend/app/home/screens/Commercial/(Property)/_layout.jsx
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Slot, useRouter, usePathname } from "expo-router";
+import { Slot, useRouter, usePathname, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PropertyLayout() {
   const router = useRouter();
   const pathname = usePathname() ?? "";
-
+  const params = useLocalSearchParams();
+  const propertyId = params.propertyId;
+  const entityType = params.entityType || 'property'; // ✅ Add these two lines
   const tabs = [
     { label: "Overview", route: "/home/screens/Commercial/(Property)" },
     { label: "Reviews(27)", route: "/home/screens/Commercial/(Property)/Review" },
@@ -35,7 +37,7 @@ export default function PropertyLayout() {
           marginBottom: 8,
         }}
       >
-       <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="chevron-back-outline" size={22} color="black" />
         </TouchableOpacity>
 
@@ -70,7 +72,17 @@ export default function PropertyLayout() {
           return (
             <TouchableOpacity
               key={idx}
-              onPress={() => !isActive && router.push(tab.route)}
+              onPress={() => {
+                if (!isActive) {
+                  router.push({
+                    pathname: tab.route,
+                    params: {
+                      propertyId,
+                      entityType
+                    }
+                  });
+                }
+              }}
               activeOpacity={0.7}
               style={{
                 alignItems: "center",
@@ -106,8 +118,8 @@ export default function PropertyLayout() {
       </View>
 
       {/* Page content */}
-     
-<Slot />
+
+      <Slot />
     </SafeAreaView>
   );
 }

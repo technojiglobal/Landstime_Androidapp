@@ -53,7 +53,7 @@ export default function SelectDistrictScreen() {
   const scrollY = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef(null);
   const dragStartY = useRef(0);
-
+const [reviewSummary, setReviewSummary] = useState({ avgRating: 0, count: 0 });
   const filteredData = districtsData.filter((district) => {
     const translatedName = t(`districts.${district.key}`);
     return translatedName.toLowerCase().includes(searchQuery.toLowerCase());

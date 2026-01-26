@@ -23,7 +23,7 @@ import { useTranslation } from "react-i18next";
 import i18n from "../../../../i18n/index"
 import { saveProperty, unsaveProperty, checkIfSaved } from "../../../../utils/savedPropertiesApi";
 import { Alert } from "react-native";
-
+import { fetchReviews } from "../../../../utils/reviewApi";
 const getLocalizedText = (field, language) => {
   if (!field) return '';
   if (typeof field === 'string') return field;
@@ -49,7 +49,7 @@ export default function PropertyListScreen() {
   const [savedStates, setSavedStates] = useState({});
   // ✅ Get current language
   const currentLanguage = i18n.language || 'en';
-
+  const [reviewSummary, setReviewSummary] = useState({});
   // Get translated area name from areaKey
   const areaName = areaKey ? t(`areas.${areaKey}`) : '';
 
@@ -65,7 +65,13 @@ export default function PropertyListScreen() {
       fetchProperties();
     }
   }, [i18n.language]); // Refetch when language changes
-
+  useEffect(() => {
+    if (filteredProperties.length > 0) {
+      filteredProperties.forEach(property => {
+        fetchReviewForProperty(property._id);
+      });
+    }
+  }, [filteredProperties]);
 
   const fetchProperties = async () => {
     try {
@@ -110,43 +116,43 @@ export default function PropertyListScreen() {
     setSavedStates(newSavedStates);
   };
   const handleToggleSave = async (propertyId) => {
-  const currentState = savedStates[propertyId] || false;
-   const token = await AsyncStorage.getItem('userToken');
-  if (!token) {
-    Alert.alert('Not Logged In', 'Please log in to save properties');
-    return;
-  }
-  // ✅ ADD THESE LOGS:
-  console.log('🔖 Toggle Save clicked');
-  console.log('Property ID:', propertyId);
-  console.log('Current state:', currentState);
-  console.log('Will call:', currentState ? 'unsave' : 'save');
-  
-  // Optimistic update
-  setSavedStates(prev => ({ ...prev, [propertyId]: !currentState }));
+    const currentState = savedStates[propertyId] || false;
+    const token = await AsyncStorage.getItem('userToken');
+    if (!token) {
+      Alert.alert('Not Logged In', 'Please log in to save properties');
+      return;
+    }
+    // ✅ ADD THESE LOGS:
+    console.log('🔖 Toggle Save clicked');
+    console.log('Property ID:', propertyId);
+    console.log('Current state:', currentState);
+    console.log('Will call:', currentState ? 'unsave' : 'save');
 
-  try {
-    let response;
-    if (currentState) {
-      response = await unsaveProperty(propertyId, 'property');
-    } else {
+    // Optimistic update
+    setSavedStates(prev => ({ ...prev, [propertyId]: !currentState }));
+
+    try {
+      let response;
+      if (currentState) {
+        response = await unsaveProperty(propertyId, 'property');
+      } else {
+        // ✅ ADD THIS LOG:
+        console.log('Calling saveProperty with:', propertyId, 'property');
+        response = await saveProperty(propertyId, 'property');
+      }
+
       // ✅ ADD THIS LOG:
-      console.log('Calling saveProperty with:', propertyId, 'property');
-      response = await saveProperty(propertyId, 'property');
-    }
+      console.log('Save response:', response);
 
-    // ✅ ADD THIS LOG:
-    console.log('Save response:', response);
-
-    if (!response.success) {
+      if (!response.success) {
+        setSavedStates(prev => ({ ...prev, [propertyId]: currentState }));
+        Alert.alert('Error', response.message || 'Failed to update saved status');
+      }
+    } catch (error) {
+      console.error('Error toggling save:', error);
       setSavedStates(prev => ({ ...prev, [propertyId]: currentState }));
-      Alert.alert('Error', response.message || 'Failed to update saved status');
     }
-  } catch (error) {
-    console.error('Error toggling save:', error);
-    setSavedStates(prev => ({ ...prev, [propertyId]: currentState }));
-  }
-};
+  };
 
   // ✅ FILTER BY AREA (location)
   const filteredProperties = properties.filter((property) => {
@@ -172,6 +178,21 @@ export default function PropertyListScreen() {
     outputRange: [0, SCREEN_HEIGHT - scrollbarHeight],
     extrapolate: "clamp",
   });
+
+  const fetchReviewForProperty = async (propertyId) => {
+    try {
+      const res = await fetchReviews('property', propertyId);
+      setReviewSummary(prev => ({
+        ...prev,
+        [propertyId]: {
+          avgRating: res.avgRating || 0,
+          count: res.count || 0
+        }
+      }));
+    } catch (err) {
+      console.error('Failed to fetch reviews:', err);
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -266,19 +287,20 @@ export default function PropertyListScreen() {
                 }}
               >
                 {/* ✅ REAL IMAGE with fallback */}
-            <TouchableOpacity
-  activeOpacity={0.8}
-  onPress={() => router.push({
-    pathname: '/home/screens/Flats/(Property)',
-    params: { 
-      propertyId: item._id,
-      propertyData: JSON.stringify(item),  // ✅ Pass entire property object
-      areaKey: item.areaKey || areaKey
-    }
-  })}
->
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => router.push({
+                    pathname: '/home/screens/Flats/(Property)',
+                    params: {
+                      propertyId: item._id,
+                      propertyData: JSON.stringify(item),
+                      areaKey: item.areaKey || areaKey,
+                      entityType: 'property' // ✅ Add this
+                    }
+                  })}
+                >
 
-                
+
 
 
 
@@ -320,27 +342,28 @@ export default function PropertyListScreen() {
                 {/* Card Content */}
                 <View style={{ paddingHorizontal: 12, paddingTop: 10 }}>
                   {/* ✅ REAL TITLE */}
-                <TouchableOpacity
-  activeOpacity={0.6}
-  onPress={() => router.push({
-    pathname: '/home/screens/Flats/(Property)',
-    params: { 
-      propertyId: item._id,
-      areaKey: item.areaKey || areaKey
-    }
-  })}
->
-                   <Text
-  style={{
-    fontFamily: "Poppins-Medium",
-    fontWeight: "500",
-    fontSize: 12,
-    color: "#16A34A",
-    marginTop: 5,
-  }}
->
- {getLocalizedText(item.propertyTitle, currentLanguage) || 'Property'}
-</Text>
+                  <TouchableOpacity
+                    activeOpacity={0.6}
+                    onPress={() => router.push({
+                      pathname: '/home/screens/Flats/(Property)',
+                      params: {
+                        propertyId: item._id,
+                        areaKey: item.areaKey || areaKey,
+                        entityType: 'property' // ✅ Add this
+                      }
+                    })}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: "Poppins-Medium",
+                        fontWeight: "500",
+                        fontSize: 12,
+                        color: "#16A34A",
+                        marginTop: 5,
+                      }}
+                    >
+                      {getLocalizedText(item.propertyTitle, currentLanguage) || 'Property'}
+                    </Text>
                   </TouchableOpacity>
 
                   <View
@@ -369,26 +392,10 @@ export default function PropertyListScreen() {
                   </View>
 
                   {/* ✅ RATING - Using dummy data for now (backend doesn't have ratings yet) */}
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      marginTop: 6,
-                    }}
-                  >
-                    <Image
-                      source={require("../../../../assets/star.png")}
-                      style={{ width: 100, height: 30, resizeMode: "contain" }}
-                    />
-                    <Text
-                      style={{
-                        fontFamily: "Poppins-Regular",
-                        fontSize: 12,
-                        color: "#000",
-                        marginLeft: 6,
-                      }}
-                    >
-                      4.5 (0 reviews)
+                  <View className="flex-row items-center mb-1 mt-2">
+                    <Ionicons name="star" size={14} color="#FF9500" />
+                    <Text className="text-xs mx-3 text-gray-700 justify-center item-center">
+                      {reviewSummary[item._id]?.avgRating?.toFixed(1) || '0.0'} ({reviewSummary[item._id]?.count || 0} reviews)
                     </Text>
                   </View>
 

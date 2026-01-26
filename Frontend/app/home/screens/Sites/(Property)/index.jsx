@@ -11,7 +11,7 @@ import { getUserProfile } from "../../../../../utils/api";
 import { checkViewAccess } from "../../../../../utils/propertyViewApi";
 import i18n from "../../../../../i18n/index";
 import { Alert } from "react-native";
-
+import { fetchReviews } from "../../../../../utils/reviewApi";
 
 // ✅ Helper: Strip phone number
 const stripPhone = (phoneNum) => {
@@ -35,16 +35,16 @@ export default function OverviewScreen() {
   const [loading, setLoading] = useState(true);
 
   const currentLanguage = i18n.language || 'en';
-
+  const [reviewSummary, setReviewSummary] = useState({ avgRating: 0, count: 0 });
   useEffect(() => {
     console.log('🔄 Effect triggered - propertyId:', propertyId, 'language:', i18n.language);
-    
+
     if (!propertyId || propertyId === 'undefined') {
       console.error('❌ Invalid propertyId:', propertyId);
       setLoading(false);
       return;
     }
-    
+
     // ✅ Try to use passed data first
     if (propertyData) {
       try {
@@ -57,7 +57,7 @@ export default function OverviewScreen() {
         console.error('❌ Failed to parse propertyData:', error);
       }
     }
-    
+
     // ✅ Fallback to API if no data passed
     fetchPropertyDetails();
   }, [propertyId, propertyData, i18n.language]);
@@ -68,9 +68,9 @@ export default function OverviewScreen() {
       const currentLang = i18n.language || 'en';
       console.log('🔍 Fetching property:', propertyId);
       console.log('🌐 Current language:', currentLang);
-      
+
       const response = await getPropertyById(propertyId, currentLang);
-      
+
       if (response.success) {
         console.log('✅ Property fetched:', response.data);
         setProperty(response.data.data);
@@ -83,95 +83,107 @@ export default function OverviewScreen() {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    if (propertyId) {
+      fetchReviews('property', propertyId).then((res) => {
+        setReviewSummary({
+          avgRating: res.avgRating || 0,
+          count: res.count || 0,
+        });
+      }).catch(err => {
+        console.error('Failed to fetch reviews:', err);
+      });
+    }
+  }, [propertyId]);
 
 
   // ✅ NEW: Handle Contact Agent button press
-const handleContactAgent = async () => {
-  try {
-    if (!property || !property._id) {
-      Alert.alert('Error', 'Property information not available');
-      return;
-    }
-
-    console.log('🔍 Checking if property already viewed:', property._id);
-
-    // Get user profile to check viewedProperties
-    const userResult = await getUserProfile();
-    
-    if (!userResult.success) {
-      console.log('❌ Failed to get user profile, going to ContactForm');
-      router.push({
-        pathname: "/home/screens/ContactForm",
-        params: { 
-          propertyId: property._id,
-          areaKey: property.areaKey 
-        }
-      });
-      return;
-    }
-
-    const userData = userResult.data.data;
-    const viewedProperties = userData.currentSubscription?.viewedProperties || [];
-    
-    // Check if already viewed
-    if (viewedProperties.includes(property._id)) {
-      console.log('✅ Property already viewed - checking access for direct navigation');
-      
-      // Get user name
-      let userName = '';
-      if (typeof userData.name === 'string') {
-        userName = userData.name;
-      } else if (userData.name && typeof userData.name === 'object') {
-        userName = userData.name.en || userData.name.te || userData.name.hi || '';
+  const handleContactAgent = async () => {
+    try {
+      if (!property || !property._id) {
+        Alert.alert('Error', 'Property information not available');
+        return;
       }
-      
-      // Get access (will return owner details since already viewed)
-      const accessCheck = await checkViewAccess(
-        property._id,
-        userName,
-        stripPhone(userData.phone)
-      );
-      
-      if (accessCheck.success && accessCheck.data.alreadyViewed) {
-        console.log('✅ Navigating directly to ViewContact');
-        
-        // Navigate directly to ViewContact
+
+      console.log('🔍 Checking if property already viewed:', property._id);
+
+      // Get user profile to check viewedProperties
+      const userResult = await getUserProfile();
+
+      if (!userResult.success) {
+        console.log('❌ Failed to get user profile, going to ContactForm');
         router.push({
-          pathname: '/home/screens/ViewContact',
+          pathname: "/home/screens/ContactForm",
           params: {
-            ownerDetails: JSON.stringify(accessCheck.data.ownerDetails),
-            quota: JSON.stringify(accessCheck.data.quota),
-            alreadyViewed: 'true',
-            areaKey: property.areaKey,
-            propertyId: property._id
+            propertyId: property._id,
+            areaKey: property.areaKey
           }
         });
         return;
       }
+
+      const userData = userResult.data.data;
+      const viewedProperties = userData.currentSubscription?.viewedProperties || [];
+
+      // Check if already viewed
+      if (viewedProperties.includes(property._id)) {
+        console.log('✅ Property already viewed - checking access for direct navigation');
+
+        // Get user name
+        let userName = '';
+        if (typeof userData.name === 'string') {
+          userName = userData.name;
+        } else if (userData.name && typeof userData.name === 'object') {
+          userName = userData.name.en || userData.name.te || userData.name.hi || '';
+        }
+
+        // Get access (will return owner details since already viewed)
+        const accessCheck = await checkViewAccess(
+          property._id,
+          userName,
+          stripPhone(userData.phone)
+        );
+
+        if (accessCheck.success && accessCheck.data.alreadyViewed) {
+          console.log('✅ Navigating directly to ViewContact');
+
+          // Navigate directly to ViewContact
+          router.push({
+            pathname: '/home/screens/ViewContact',
+            params: {
+              ownerDetails: JSON.stringify(accessCheck.data.ownerDetails),
+              quota: JSON.stringify(accessCheck.data.quota),
+              alreadyViewed: 'true',
+              areaKey: property.areaKey,
+              propertyId: property._id
+            }
+          });
+          return;
+        }
+      }
+
+      // Not viewed yet - go to ContactForm
+      console.log('📝 Property not viewed yet - going to ContactForm');
+      router.push({
+        pathname: "/home/screens/ContactForm",
+        params: {
+          propertyId: property._id,
+          areaKey: property.areaKey
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ handleContactAgent error:', error);
+      // On error, fallback to ContactForm
+      router.push({
+        pathname: "/home/screens/ContactForm",
+        params: {
+          propertyId: property._id,
+          areaKey: property.areaKey
+        }
+      });
     }
-    
-    // Not viewed yet - go to ContactForm
-    console.log('📝 Property not viewed yet - going to ContactForm');
-    router.push({
-      pathname: "/home/screens/ContactForm",
-      params: { 
-        propertyId: property._id,
-        areaKey: property.areaKey 
-      }
-    });
-    
-  } catch (error) {
-    console.error('❌ handleContactAgent error:', error);
-    // On error, fallback to ContactForm
-    router.push({
-      pathname: "/home/screens/ContactForm",
-      params: { 
-        propertyId: property._id,
-        areaKey: property.areaKey 
-      }
-    });
-  }
-};
+  };
 
   const handleBrochurePress = () => setShowAlert(true);
 
@@ -193,7 +205,7 @@ const handleContactAgent = async () => {
         <Text style={{ marginTop: 16, color: '#6B7280', fontFamily: 'Poppins' }}>
           Property not found
         </Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => router.back()}
           style={{ marginTop: 16, backgroundColor: '#22C55E', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
         >
@@ -220,7 +232,7 @@ const handleContactAgent = async () => {
   };
 
   const details = getPropertyDetails();
-  
+
   // Prepare stats based on property type
   const getStats = () => {
     if (property.propertyType === 'House' && property.houseDetails) {
@@ -266,7 +278,7 @@ const handleContactAgent = async () => {
   return (
     <View className="flex-1 bg-white relative">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      
+
       {(showAlert) && (
         <View
           className="absolute inset-0 bg-black/40"
@@ -291,36 +303,36 @@ const handleContactAgent = async () => {
         }}
       >
 
-   {/* ✅ FIXED: Header with Back Button */}
-<View className="flex-row items-center px-5 py-3">
-  <TouchableOpacity onPress={() => {
-    // ✅ Go back to the area's property list
-    if (areaKey) {
-      router.push({
-        pathname: '/home/screens/Sites/PropertyDetails',
-        params: { areaKey: areaKey }
-      });
-    } else {
-      router.back();
-    }
-  }}>
-    <Ionicons name="chevron-back" size={24} color="black" />
-  </TouchableOpacity>
-  <Text className="text-lg font-semibold ml-3">Property Details</Text>
-</View>
+        {/* ✅ FIXED: Header with Back Button */}
+        <View className="flex-row items-center px-5 py-3">
+          <TouchableOpacity onPress={() => {
+            // ✅ Go back to the area's property list
+            if (areaKey) {
+              router.push({
+                pathname: '/home/screens/Sites/PropertyDetails',
+                params: { areaKey: areaKey }
+              });
+            } else {
+              router.back();
+            }
+          }}>
+            <Ionicons name="chevron-back" size={24} color="black" />
+          </TouchableOpacity>
+          <Text className="text-lg font-semibold ml-3">Property Details</Text>
+        </View>
 
-{/* Property Image */}
-<View className="items-center relative">
+        {/* Property Image */}
+        <View className="items-center relative">
           <View className="relative">
             <Image
-  source={
-    property.images && property.images.length > 0
-      ? { uri: property.images[0] }  // ✅ CHANGED: Removed IP address prefix for base64
-      : require("../../../../../assets/Green-Valley-Site.jpg")
-  }
-  className="rounded-[17px]"
-  style={{ height: 223, width: 330, resizeMode: "cover" }}
-/>
+              source={
+                property.images && property.images.length > 0
+                  ? { uri: property.images[0] }  // ✅ CHANGED: Removed IP address prefix for base64
+                  : require("../../../../../assets/Green-Valley-Site.jpg")
+              }
+              className="rounded-[17px]"
+              style={{ height: 223, width: 330, resizeMode: "cover" }}
+            />
             <View
               className="absolute bg-white rounded-full p-1"
               style={{
@@ -360,13 +372,11 @@ const handleContactAgent = async () => {
               </View>
             </View>
 
-            <View className="items-end">
-              <View className="flex-row items-center mb-1">
-                <Ionicons name="star" size={14} color="#FF9500" />
-                <Text className="text-[12px] ml-1 text-[#9CA3AF]" style={{ fontFamily: "Poppins" }}>
-                  4.3
-                </Text>
-              </View>
+            <View className="flex-row items-center mb-1">
+              <Ionicons name="star" size={14} color="#FF9500" />
+              <Text className="text-[12px] ml-1 text-[#9CA3AF]" style={{ fontFamily: "Poppins" }}>
+                {reviewSummary.avgRating.toFixed(1)} ({reviewSummary.count})
+              </Text>
             </View>
           </View>
 
@@ -428,15 +438,15 @@ const handleContactAgent = async () => {
               <Feather name="download" size={16} color="#22C55E" />
             </TouchableOpacity>
 
-          <TouchableOpacity
-  className="flex-1 bg-[#22C55E] py-3 rounded-[12px] items-center justify-center"
-  activeOpacity={0.8}
-  onPress={handleContactAgent}
->
-  <Text className="text-white text-[14px]" style={{ fontFamily: "Poppins" }}>
-    Contact Agent
-  </Text>
-</TouchableOpacity>
+            <TouchableOpacity
+              className="flex-1 bg-[#22C55E] py-3 rounded-[12px] items-center justify-center"
+              activeOpacity={0.8}
+              onPress={handleContactAgent}
+            >
+              <Text className="text-white text-[14px]" style={{ fontFamily: "Poppins" }}>
+                Contact Agent
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
