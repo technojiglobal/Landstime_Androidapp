@@ -1,8 +1,6 @@
-// Backend/AdminControllers/InteriorDesignController.js
-
+// Landstime_Androidapp/Backend/AdminControllers/InteriorDesignController.js
 import InteriorDesign from '../AdminModels/InteriorDesign.js';
-import Review from "../UserModels/Review.js"; // adjust path if needed
-
+import Review from "../UserModels/Review.js";
 
 // Get all interior designs (with pagination, search, and filters)
 export const getAllDesigns = async (req, res) => {
@@ -11,13 +9,12 @@ export const getAllDesigns = async (req, res) => {
       page = 1,
       limit = 10,
       search = '',
-      category,               // ✅ ADD
+      category,
       sortBy = 'createdAt',
       sortOrder = 'desc',
       minRating,
       location
     } = req.query;
-
 
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
@@ -45,10 +42,10 @@ export const getAllDesigns = async (req, res) => {
     if (location) {
       query.location = { $regex: location, $options: 'i' };
     }
+    
     if (category && category !== "All Rooms") {
       query.category = category;
     }
-
 
     // Sort options
     const sortOptions = {};
@@ -64,43 +61,43 @@ export const getAllDesigns = async (req, res) => {
         .lean(),
       InteriorDesign.countDocuments(query)
     ]);
-  const designsWithRatings = await Promise.all(
-  designs.map(async (design) => {
-    const stats = await Review.aggregate([
-      {
-        $match: {
-          entityId: design._id,
-          entityType: "interior",
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          avgRating: { $avg: "$rating" },
-          reviewCount: { $sum: 1 },
-        },
-      },
-    ]);
 
-    return {
-      ...design,
-      avgRating: Number(stats[0]?.avgRating?.toFixed(1)) || 0,
-      reviewCount: stats[0]?.reviewCount || 0,
-    };
-  })
-);
+    const designsWithRatings = await Promise.all(
+      designs.map(async (design) => {
+        const stats = await Review.aggregate([
+          {
+            $match: {
+              entityId: design._id,
+              entityType: "interior",
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              avgRating: { $avg: "$rating" },
+              reviewCount: { $sum: 1 },
+            },
+          },
+        ]);
 
+        return {
+          ...design,
+          avgRating: Number(stats[0]?.avgRating?.toFixed(1)) || 0,
+          reviewCount: stats[0]?.reviewCount || 0,
+        };
+      })
+    );
 
     res.status(200).json({
-  success: true,
-  data: designsWithRatings,
-  pagination: {
-    currentPage: pageNum,
-    totalPages: Math.ceil(total / limitNum),
-    totalItems: total,
-    itemsPerPage: limitNum
-  }
-});
+      success: true,
+      data: designsWithRatings,
+      pagination: {
+        currentPage: pageNum,
+        totalPages: Math.ceil(total / limitNum),
+        totalItems: total,
+        itemsPerPage: limitNum
+      }
+    });
 
   } catch (error) {
     console.error('Get all designs error:', error);
@@ -145,7 +142,10 @@ export const getDesignById = async (req, res) => {
 // Create new design (Admin only)
 export const createDesign = async (req, res) => {
   try {
-
+    console.log('📝 CREATE DESIGN REQUEST');
+    console.log('req.adminId:', req.adminId);
+    console.log('req.admin:', req.admin);
+    console.log('req.body:', req.body);
 
     const {
       name,
@@ -160,35 +160,97 @@ export const createDesign = async (req, res) => {
       description
     } = req.body;
 
-    // Validation
-    if (
-      !name ||
-      !designer ||
-      !phone ||
-      !area ||
-      !category ||   // ✅ ADD THIS
-      !price ||
-      !duration ||
-      !location
-    ) {
-
+    // ✅ VALIDATION WITH PROPER ERROR MESSAGES
+    
+    // Required fields check
+    if (!name || !designer || !phone || !area || !category || !price || !duration || !location) {
       return res.status(400).json({
         success: false,
         message: 'Please provide all required fields'
       });
     }
-    if (!/^[A-Za-z\s]+$/.test(name))
-      return res.status(400).json({ success: false, message: "Invalid design name" });
 
-    if (!/^[A-Za-z\s]+$/.test(designer))
-      return res.status(400).json({ success: false, message: "Invalid designer name" });
+    // Design name validation (only letters and spaces)
+    if (!/^[A-Za-z\s]+$/.test(name.trim())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Design name must contain only letters and spaces'
+      });
+    }
 
-    if (!/^[0-9]{10}$/.test(phone))
-      return res.status(400).json({ success: false, message: "Invalid phone number" });
+    // Designer name validation (only letters and spaces)
+    if (!/^[A-Za-z\s]+$/.test(designer.trim())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Designer name must contain only letters and spaces'
+      });
+    }
 
-    if (!category)
-      return res.status(400).json({ success: false, message: "Category is required" });
+    // Phone validation (exactly 10 digits)
+    if (!/^[0-9]{10}$/.test(phone.trim())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number must be exactly 10 digits'
+      });
+    }
 
+    // Area validation (only numbers)
+    if (!/^[0-9]+$/.test(area.trim())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Area must contain only numbers'
+      });
+    }
+
+    // Category validation
+    const validCategories = ["Living Area", "Bedroom", "Bathroom", "Kitchen", "Workspace", "Storage"];
+    if (!validCategories.includes(category)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid category selected'
+      });
+    }
+
+    // Price validation (should contain rupee symbol and numbers with dash)
+    if (!/^₹\d+\s*-\s*₹\d+$/.test(price.trim())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Price format should be: ₹1000 - ₹5000'
+      });
+    }
+
+    // Duration validation (can contain numbers and text)
+    if (!duration.trim() || duration.trim().length < 3) {
+      return res.status(400).json({
+        success: false,
+        message: 'Duration must be at least 3 characters'
+      });
+    }
+
+    // Location validation
+    if (!location.trim() || location.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Location must be at least 2 characters'
+      });
+    }
+
+    // Description validation (50-500 characters)
+    if (description) {
+      const descLength = description.trim().length;
+      if (descLength > 0 && descLength < 50) {
+        return res.status(400).json({
+          success: false,
+          message: 'Description must be at least 50 characters'
+        });
+      }
+      if (descLength > 500) {
+        return res.status(400).json({
+          success: false,
+          message: 'Description must not exceed 500 characters'
+        });
+      }
+    }
 
     // Handle uploaded images
     let imageUrls = [];
@@ -196,23 +258,33 @@ export const createDesign = async (req, res) => {
       imageUrls = req.files.map(file => `/uploads/interior-designs/${file.filename}`);
     }
 
+    // ✅ FIXED: Use req.adminId which is now properly set
+    if (!req.adminId) {
+      console.error('❌ req.adminId is undefined!');
+      return res.status(401).json({
+        success: false,
+        message: 'Admin authentication failed'
+      });
+    }
+
     // Create new design
     const newDesign = new InteriorDesign({
-      name,
-      designer,
-      phone,
-      area,
+      name: name.trim(),
+      designer: designer.trim(),
+      phone: phone.trim(),
+      area: area.trim(),
       category,
-      price,
-      duration,
-      location,
+      price: price.trim(),
+      duration: duration.trim(),
+      location: location.trim(),
       rating: rating || 4.8,
-      description,
+      description: description ? description.trim() : '',
       images: imageUrls,
       features: [],
-      uploadedBy: req.adminId // From middleware
+      uploadedBy: req.adminId // ✅ Now this will work!
     });
 
+    console.log('💾 Saving design:', newDesign);
     await newDesign.save();
 
     res.status(201).json({
@@ -220,6 +292,7 @@ export const createDesign = async (req, res) => {
       message: 'Interior design created successfully',
       data: newDesign
     });
+
   } catch (error) {
     console.error('Create design error:', error);
     res.status(500).json({
@@ -289,7 +362,7 @@ export const deleteDesign = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Interior design deleted successfully'
+      message: 'Design deleted successfully'
     });
   } catch (error) {
     console.error('Delete design error:', error);

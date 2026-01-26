@@ -1,6 +1,4 @@
-
-
-// Frontend/app/home/screens/ViewContact.jsx (for reference)
+// Frontend/app/home/screens/Sidebar/ViewContact.jsx (Interior Design Version)
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -20,39 +18,31 @@ import { Ionicons, FontAwesome } from '@expo/vector-icons';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// Property images
-const propertyImage = require('../../../assets/land.jpg');
-const propertyImage2 = require('../../../assets/land.jpg');
+// Placeholder images for similar designs
+const designImage = require('../../../../assets/land.jpg'); // Replace with actual design images
 
 export default function ViewContactScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const [propertyId, setPropertyId] = useState(null);
-
   
-  const [ownerDetails, setOwnerDetails] = useState(null);
-  const [quota, setQuota] = useState(null);
+  const [designId, setDesignId] = useState(null);
+  const [designTitle, setDesignTitle] = useState('');
+  const [designerDetails, setDesignerDetails] = useState(null);
   const [alreadyViewed, setAlreadyViewed] = useState(false);
   const [loading, setLoading] = useState(true);
   
-  // Similar properties (can be fetched from API later)
-  const similarProperties = [
-    { id: '1', title: 'Land', price: '₹25L', image: propertyImage },
-    { id: '2', title: 'Land', price: '₹25L', image: propertyImage2 },
+  // Similar designs (can be fetched from API later)
+  const similarDesigns = [
+    { id: '1', title: 'Modern Living Room', price: '₹2L - ₹5L', image: designImage },
+    { id: '2', title: 'Cozy Bedroom', price: '₹1.5L - ₹3L', image: designImage },
   ];
   
- useEffect(() => {
+  useEffect(() => {
     try {
-      // Parse owner details
-      if (params.ownerDetails) {
-        const parsedOwner = JSON.parse(params.ownerDetails);
-        setOwnerDetails(parsedOwner);
-      }
-      
-      // Parse quota
-      if (params.quota) {
-        const parsedQuota = JSON.parse(params.quota);
-        setQuota(parsedQuota);
+      // Parse designer details
+      if (params.designerDetails) {
+        const parsedDesigner = JSON.parse(params.designerDetails);
+        setDesignerDetails(parsedDesigner);
       }
       
       // Parse already viewed flag
@@ -60,11 +50,13 @@ export default function ViewContactScreen() {
         setAlreadyViewed(params.alreadyViewed === 'true');
       }
 
-      if (params.propertyId) {
-      setPropertyId(params.propertyId);
-    }
+      if (params.designId) {
+        setDesignId(params.designId);
+      }
 
-
+      if (params.designTitle) {
+        setDesignTitle(params.designTitle);
+      }
       
       setLoading(false);
     } catch (error) {
@@ -96,7 +88,7 @@ export default function ViewContactScreen() {
     }
     
     const numeric = phone.replace(/[^\d]/g, '');
-    const message = 'Hi, I found your property on LandsTime and I\'m interested to know more details.';
+    const message = 'Hi, I found your interior design on LandsTime and I\'m interested to know more details.';
     const url = `https://wa.me/${numeric}?text=${encodeURIComponent(message)}`;
     
     Linking.openURL(url).catch(err => {
@@ -105,7 +97,7 @@ export default function ViewContactScreen() {
     });
   };
   
-  if (loading || !ownerDetails || !quota) {
+  if (loading || !designerDetails) {
     return (
       <SafeAreaView className="flex-1 bg-white">
         <View className="flex-1 items-center justify-center">
@@ -116,9 +108,9 @@ export default function ViewContactScreen() {
     );
   }
   
-  // Get owner initials
+  // Get designer initials
   const getInitials = (name) => {
-    if (!name) return 'US';
+    if (!name) return 'DS';
     const parts = name.trim().split(' ');
     if (parts.length >= 2) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
@@ -131,20 +123,17 @@ export default function ViewContactScreen() {
       {/* Header Section */}
       <View className="flex-row items-start px-4 mt-7 py-3">
         <TouchableOpacity onPress={() => {
-  if (propertyId) {
-    router.push({
-      pathname: '/home/screens/Sites/(Property)',
-      params: { 
-        propertyId: propertyId,
-        areaKey: params.areaKey 
-      }
-    });
-  } else {
-    router.back();
-  }
-}}>
-  <Ionicons name="chevron-back-outline" size={22} color="black" />
-</TouchableOpacity>
+          if (designId) {
+            router.push({
+              pathname: '/home/screens/Sidebar/RoomOverview',
+              params: { id: designId }
+            });
+          } else {
+            router.back();
+          }
+        }}>
+          <Ionicons name="chevron-back-outline" size={22} color="black" />
+        </TouchableOpacity>
         
         <View className="ml-3 flex-1 mt-9">
           {/* Success Badge */}
@@ -155,46 +144,27 @@ export default function ViewContactScreen() {
             <Text className="text-sm mx-3 text-gray-700">
               {alreadyViewed 
                 ? 'You have already viewed this contact' 
-                : 'Man, you can use these contact details to contact the Owner'}
+                : 'Great! You can now contact the Designer'}
             </Text>
           </View>
           
-          {/* Quota Information */}
-          {quota && (
-            <View className="mt-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
-              <View className="flex-row items-center justify-between mb-2">
-                <Text className="text-xs font-semibold text-gray-700">
-                  {quota.planName} Plan
-                </Text>
-                <Text className="text-xs text-gray-500">
-                  {quota.remainingViews} of {quota.totalViews} remaining
+          {/* FREE Info Badge */}
+          <View className="mt-3 bg-green-50 rounded-lg p-3 border border-green-200">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center">
+                <Ionicons name="checkmark-circle" size={20} color="#16A34A" />
+                <Text className="ml-2 text-sm font-semibold text-green-700">
+                  100% FREE
                 </Text>
               </View>
-              
-              {/* Progress Bar */}
-              <View className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                <View 
-                  className="h-full bg-green-500"
-                  style={{ 
-                    width: `${(quota.remainingViews / quota.totalViews) * 100}%` 
-                  }}
-                />
-              </View>
-              
-              {/* Low quota warning */}
-              {quota.remainingViews < 3 && quota.remainingViews > 0 && (
-                <TouchableOpacity
-                  className="mt-2 bg-yellow-500 py-1.5 px-3 rounded-md"
-                  onPress={() => router.push('/home/screens/PlanScreen')}
-                  activeOpacity={0.8}
-                >
-                  <Text className="text-white text-center font-semibold text-xs">
-                    Low on views? Upgrade Now
-                  </Text>
-                </TouchableOpacity>
-              )}
+              <Text className="text-xs text-green-600">
+                No subscription required
+              </Text>
             </View>
-          )}
+            <Text className="text-xs text-green-600 mt-1">
+              View unlimited interior design contacts for free!
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -208,17 +178,17 @@ export default function ViewContactScreen() {
           <View className="flex-row">  
             <View className="w-12 h-12 rounded-full bg-green-100 items-center justify-center">
               <Text className="text-green-600 font-semibold text-sm">
-                {getInitials(ownerDetails.name)}
+                {getInitials(designerDetails.name)}
               </Text>
             </View>
 
             {/* Details */}
             <View className="ml-3 flex-1">
               <Text className="text-base font-semibold text-gray-900">
-                {ownerDetails.name || 'Property Owner'}
+                {designerDetails.name || 'Interior Designer'}
               </Text>
               <Text className="text-xs text-gray-500 mt-1">
-                {ownerDetails.email || 'No email provided'}
+                Interior Designer
               </Text>
             </View>
           </View>
@@ -227,20 +197,20 @@ export default function ViewContactScreen() {
           <View className="flex-row items-center mt-3 ml-9">
             {/* Phone */}
             <TouchableOpacity
-              onPress={() => callNumber(ownerDetails.phone)}
+              onPress={() => callNumber(designerDetails.phone)}
               className="flex-row items-center mr-6"
             >
               <View className="p-2 rounded-full bg-blue-100">
                 <Ionicons name="call" size={16} color="#2563EB" />
               </View>
               <Text className="ml-2 text-sm text-gray-700">
-                {ownerDetails.phone?.replace(/[^0-9]/g, '').replace(/^91/, '') || 'N/A'}
+                {designerDetails.phone?.replace(/[^0-9]/g, '').replace(/^91/, '') || 'N/A'}
               </Text>
             </TouchableOpacity>
 
             {/* WhatsApp */}
             <TouchableOpacity
-              onPress={() => openWhatsApp(ownerDetails.phone)}
+              onPress={() => openWhatsApp(designerDetails.phone)}
               className="flex-row items-center"
             >
               <View className="p-2 rounded-full bg-green-100 ml-14">
@@ -249,24 +219,22 @@ export default function ViewContactScreen() {
               <Text className="ml-2 text-sm text-gray-700">Chat</Text>
             </TouchableOpacity>
           </View>
-          
-          {/* Company Info (if available) */}
-          {ownerDetails.company && ownerDetails.company !== 'N/A' && (
-            <View className="mt-3 pt-3 border-t border-gray-100">
-              <View className="flex-row items-center">
-                <Ionicons name="business" size={16} color="#6B7280" />
-                <Text className="ml-2 text-sm text-gray-600">
-                  Company: {ownerDetails.company}
-                </Text>
-              </View>
-            </View>
-          )}
         </View>
 
-        {/* Similar Properties Section */}
+        {/* Design Title (if available) */}
+        {designTitle && (
+          <View className="mx-4 mt-4 bg-gray-50 rounded-lg p-3">
+            <Text className="text-xs text-gray-500">Design Viewed:</Text>
+            <Text className="text-sm font-medium text-gray-800 mt-1">
+              {designTitle}
+            </Text>
+          </View>
+        )}
+
+        {/* Similar Designs Section */}
         <View className="px-4 mt-6">
           <Text className="text-[15px] font-semibold text-gray-900">
-            Similar Properties
+            Similar Designs
           </Text>
         </View>
 
@@ -279,20 +247,20 @@ export default function ViewContactScreen() {
           snapToInterval={SCREEN_WIDTH * 0.7 + 14}
           decelerationRate="fast"
         >
-          {similarProperties.map((item) => (
+          {similarDesigns.map((item) => (
             <View
               key={item.id}
               className="bg-white rounded-xl h-72 mr-4 shadow-md overflow-hidden"
               style={{ width: SCREEN_WIDTH * 0.7 }}
             >
-              {/* Property Image */}
+              {/* Design Image */}
               <View className="w-full aspect-video relative">
                 <Image
                   source={item.image}
                   className="w-full h-full"
                   resizeMode="cover"
                 />
-                <View className="absolute w-20 h-8 bottom-2 left-2 bg-white px-3 py-1.5 rounded-lg shadow-sm">
+                <View className="absolute w-28 h-8 bottom-2 left-2 bg-white px-3 py-1.5 rounded-lg shadow-sm">
                   <Text className="text-xs font-semibold text-gray-800 justify-center item-center">
                     {item.price}
                   </Text>
@@ -304,12 +272,25 @@ export default function ViewContactScreen() {
                   {item.title}
                 </Text>
                 <Text className="text-xs text-gray-500 mt-1">
-                  In Ghatkesar, Hyderabad · posted by Owner
+                  In Visakhapatnam · by {designerDetails.name}
                 </Text>
               </View>
             </View>
           ))}
         </ScrollView>
+        
+        {/* Info Section */}
+        <View className="mx-4 mt-6 mb-6 bg-blue-50 rounded-lg p-4 border border-blue-200">
+          <View className="flex-row items-center">
+            <Ionicons name="information-circle" size={20} color="#2563EB" />
+            <Text className="ml-2 text-sm font-semibold text-blue-700">
+              Why is this FREE?
+            </Text>
+          </View>
+          <Text className="text-xs text-blue-600 mt-2">
+            Interior design contact viewing is completely free for all users. We believe in connecting homeowners with talented designers without barriers.
+          </Text>
+        </View>
         
         {/* Bottom spacing */}
         <View className="h-6" />

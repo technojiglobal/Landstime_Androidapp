@@ -17,6 +17,7 @@ import Notifications from "../pages/Notifications";
 import Banners from "../pages/Banners";
 import InteriorDesign from "../pages/InteriorDesign";
 import PropertyViewers from "../pages/PropertyViewers";
+import InteriorDesignViewers from "../pages/InteriorDesignViewers";
 
 // SuperAdmin Only Pages
 import MyFinance from "../pages/superadmin/MyFinance";
@@ -52,6 +53,7 @@ const App = () => {
             <Route path="/banners" element={<Banners />} />
             <Route path="/interior-design" element={<InteriorDesign />} />
             <Route path="/property-viewers" element={<PropertyViewers />} />
+            <Route path="/interior-design-viewers" element={<InteriorDesignViewers />} />
 
             
             {/* SuperAdmin Only Routes */}

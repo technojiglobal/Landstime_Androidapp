@@ -22,6 +22,9 @@ import bannerRoutes from './AdminRoutes/BannerRoutes.js';
 import adminPropertyViewRoutes from './AdminRoutes/PropertyViewRoute.js';
 import userPropertyViewRoutes from './UserRoutes/PropertyViewRoute.js';
 
+import interiorDesignViewUserRoute from './UserRoutes/InteriorDesignViewRoute.js';
+import interiorDesignViewAdminRoute from './AdminRoutes/InteriorDesignViewRoute.js';
+
 import savedPropertiesRoutes from './UserRoutes/savedPropertiesRoutes.js';
 
 const app = express();
@@ -109,6 +112,12 @@ app.use('/api/user/notifications', userNotificationRoutes); // ✅ NEW
 app.use('/api/banners', bannerRoutes);
 app.use('/api/property-views', userPropertyViewRoutes);
 app.use('/api/admin/property-views', adminPropertyViewRoutes);
+
+// Useer Routes (Interior Design Views)
+app.use('/api/user/interior-design-views', interiorDesignViewUserRoute);
+
+// Admin Routes (Interior Design Views)
+app.use('/api/admin/interior-design-views', interiorDesignViewAdminRoute);
 // 🔽 ADD
 
 // 🔽 ADD

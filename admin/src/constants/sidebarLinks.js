@@ -64,6 +64,16 @@ export const sidebarLinks = {
       title: "Interior Design",
       subtitle: "Interior design requests and assets.",
     },
+     {
+      label: "Interior Design Viewers",  // ✅ NEW
+      path: "/interior-design-viewers",
+      icon: Eye,
+      title: "Interior Design Viewers",
+      subtitle: "Track interior design contact views.",
+    },
+
+
+
   ],
 
   superadmin: [
