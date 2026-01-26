@@ -648,7 +648,7 @@ const [filterApprovalStatus, setFilterApprovalStatus] = useState("All");
       setToast('Failed to update property status');
     }
   };
-
+//src/pages/Properties.jsx
   const updateStatus = async (id, status) => {
     try {
       await updatePropertyStatus(id, status);

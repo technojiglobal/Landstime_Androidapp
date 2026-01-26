@@ -20,6 +20,7 @@ import { useTranslation } from "react-i18next";
 import i18n from "../../../../i18n/index";
 import { saveProperty, unsaveProperty, checkIfSaved } from "../../../../utils/savedPropertiesApi";
 import { Alert } from "react-native";
+import { fetchReviews } from "../../../../utils/reviewApi";
 // ✅ Helper function OUTSIDE component
 const getLocalizedText = (field, language) => {
   if (!field) return '';
@@ -43,7 +44,7 @@ export default function PropertyListScreen() {
   const [savedStates, setSavedStates] = useState({});
   // ✅ Get current language
   const currentLanguage = i18n.language || 'en';
-
+  const [reviewSummary, setReviewSummary] = useState({});
   // Get translated area name from areaKey
   const areaName = areaKey ? t(`areas.${areaKey}`) : '';
 
@@ -58,6 +59,7 @@ export default function PropertyListScreen() {
       fetchProperties();
     }
   }, [i18n.language]);
+  
 
   const fetchProperties = async () => {
     try {
@@ -71,7 +73,7 @@ export default function PropertyListScreen() {
       const response = await getApprovedProperties(null, 1, currentLang);
 
       if (response.success) {
-        console.log('✅ All properties fetched:', response.data);
+        //console.log('✅ All properties fetched:', response.data);
         // ✅ FILTER BY PROPERTY TYPE = "Resort"
         const resortProperties = (response.data.data || []).filter(
           property => property.propertyType === 'Resort'
@@ -88,6 +90,27 @@ export default function PropertyListScreen() {
       setLoading(false);
     }
   };
+  const fetchReviewForProperty = async (propertyId) => {
+    try {
+      const res = await fetchReviews('property', propertyId);
+      setReviewSummary(prev => ({
+        ...prev,
+        [propertyId]: {
+          avgRating: res.avgRating || 0,
+          count: res.count || 0
+        }
+      }));
+    } catch (err) {
+      console.error('Failed to fetch reviews:', err);
+    }
+  };
+  useEffect(() => {
+    if (filteredProperties.length > 0) {
+      filteredProperties.forEach(property => {
+        fetchReviewForProperty(property._id);
+      });
+    }
+  }, [filteredProperties]);
   const checkAllSavedStatuses = async (propertyList) => {
     const savedStatusPromises = propertyList.map(async (property) => {
       const response = await checkIfSaved(property._id, 'property');
@@ -248,7 +271,12 @@ export default function PropertyListScreen() {
                   activeOpacity={0.8}
                   onPress={() => router.push({
                     pathname: '/home/screens/Resorts/(Property)',
-                    params: { propertyId: item._id }
+                    params: {
+                      propertyId: item._id,
+                      propertyData: JSON.stringify(item),
+                      areaKey: item.areaKey || areaKey,
+                      entityType: 'property' // ✅ Add this
+                    }
                   })}
                 >
                   <Image
@@ -293,7 +321,11 @@ export default function PropertyListScreen() {
                     activeOpacity={0.6}
                     onPress={() => router.push({
                       pathname: '/home/screens/Resorts/(Property)',
-                      params: { propertyId: item._id }
+                      params: {
+                        propertyId: item._id,
+                        areaKey: item.areaKey || areaKey,
+                        entityType: 'property' // ✅ Add this
+                      }
                     })}
                   >
                     <Text
@@ -335,26 +367,10 @@ export default function PropertyListScreen() {
                   </View>
 
                   {/* ✅ RATING - Using dummy data for now */}
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      marginTop: 6,
-                    }}
-                  >
-                    <Image
-                      source={require("../../../../assets/star.png")}
-                      style={{ width: 100, height: 30, resizeMode: "contain" }}
-                    />
-                    <Text
-                      style={{
-                        fontFamily: "Poppins-Regular",
-                        fontSize: 12,
-                        color: "#000",
-                        marginLeft: 6,
-                      }}
-                    >
-                      4.5 (0 reviews)
+                  <View className="flex-row items-center mb-1 mt-2">
+                    <Ionicons name="star" size={14} color="#FF9500" />
+                    <Text className="text-xs mx-3 text-gray-700 justify-center item-center">
+                      {reviewSummary[item._id]?.avgRating?.toFixed(1) || '0.0'} ({reviewSummary[item._id]?.count || 0} reviews)
                     </Text>
                   </View>
 
