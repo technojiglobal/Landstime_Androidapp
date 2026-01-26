@@ -36,17 +36,17 @@ const PillButton = ({ label, selected, onPress }) => (
   </TouchableOpacity>
 );
 
-const Checkbox = ({ label, checked, onPress }) => (
+const Checkbox = ({ label, selected, onPress }) => (  // ✅ CHANGE 'checked' to 'selected'
   <TouchableOpacity
     onPress={onPress}
     className="flex-row items-center mb-2"
   >
     <View
       className={`w-4 h-4 mr-2 border items-center justify-center ${
-        checked ? "bg-green-500 border-green-500" : "border-gray-300"
+        selected ? "bg-green-500 border-green-500" : "border-gray-300"  // ✅ CHANGE 'checked' to 'selected'
       }`}
     >
-      {checked && <Text className="text-white text-[10px]">✓</Text>}
+      {selected && <Text className="text-white text-[10px]">✓</Text>}  // ✅ CHANGE 'checked' to 'selected'
     </View>
     <Text className="text-sm text-gray-600">{label}</Text>
   </TouchableOpacity>

@@ -193,10 +193,18 @@ if (params.commercialBaseDetails) {
       console.log('✅ Hospitality type restored from baseDetails:', baseDetails.hospitalityType);
     }
 
-        if (baseDetails.storageKind) {
-          setStorageKinds([baseDetails.storageKind]);
-          console.log('✅ Storage kind restored from baseDetails:', baseDetails.storageKind);
-        }
+      // ✅ Support both storageType and storageKind
+const storageTypeValue = baseDetails.storageType || baseDetails.storageKind;
+if (storageTypeValue) {
+  // ✅ If it's already in English, reverse map to current language for UI
+  const reverseMap = {
+    'Warehouse': t('storage_warehouse'),
+    'Cold Storage': t('storage_cold_storage')
+  };
+  const displayValue = reverseMap[storageTypeValue] || storageTypeValue;
+  setStorageKinds([displayValue]);
+  console.log('✅ Storage type restored from baseDetails:', displayValue);
+}
 
         if (baseDetails.industryKind) {
           setIndustryKinds([baseDetails.industryKind]);
@@ -388,14 +396,27 @@ useEffect(() => {
       }
 
       // Try loading Storage draft
-      const storageDraft = await AsyncStorage.getItem('draft_commercial_storage');
-      if (storageDraft) {
-        const parsed = JSON.parse(storageDraft);
-        console.log('📦 Loading Storage draft from AsyncStorage:', parsed);
+      // Try loading Storage draft
+const storageDraft = await AsyncStorage.getItem('draft_commercial_storage');
+if (storageDraft) {
+  const parsed = JSON.parse(storageDraft);
+  console.log('📦 Loading Storage draft from AsyncStorage:', parsed);
 
-        if (parsed.selectedType) setSelectedType(parsed.selectedType);
-        if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
-        if (parsed.storageKind) setStorageKinds([parsed.storageKind]);
+  if (parsed.selectedType) setSelectedType(parsed.selectedType);
+  if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
+  
+  // ✅ Support both old 'storageKind' and new 'storageType' fields
+  const storageTypeValue = parsed.storageType || parsed.storageKind;
+  if (storageTypeValue) {
+    // ✅ Reverse map back to Telugu/Hindi for UI display
+    const reverseMap = {
+      'Warehouse': t('storage_warehouse'),
+      'Cold Storage': t('storage_cold_storage')
+    };
+    const displayValue = reverseMap[storageTypeValue] || storageTypeValue;
+    setStorageKinds([displayValue]);
+    console.log('✅ Storage type restored:', displayValue);
+  }
         if (parsed.images) setImages(parsed.images);
         if (parsed.neighborhoodArea) {
           setNeighborhoodArea(parsed.neighborhoodArea);
@@ -437,18 +458,31 @@ useEffect(() => {
 }, []); // ✅ Only run on mount
 
   // ✅ Auto-save index.jsx state changes
-  useEffect(() => {
-    const saveDraft = async () => {
-      if (!selectedType) return;
+useEffect(() => {
+  const saveDraft = async () => {
+    if (!selectedType) return;
 
-      const draftData = {
-        selectedType,
-        propertyTitle,
-        images,
-        officeKind: officeKinds.length > 0 ? officeKinds[0] : undefined,
-        retailKind: retailKinds.length > 0 ? retailKinds[0] : undefined,
-        hospitalityKind: HospitalityKinds.length > 0 ? HospitalityKinds[0] : undefined,
-        storageKind: storageKinds.length > 0 ? storageKinds[0] : undefined,
+    // ✅ CONVERT storage type if present
+    let storageTypeValue = undefined;
+    if (storageKinds.length > 0) {
+      const storageTypeMap = {
+        'వేర్‌హౌస్': 'Warehouse',
+        'गोदाम': 'Warehouse',
+        'కోల్డ్ స్టోరేజ్': 'Cold Storage',
+        'कोल्ड स्टोरेज': 'Cold Storage'
+      };
+      const raw = storageKinds[0];
+      storageTypeValue = storageTypeMap[raw] || raw;
+    }
+
+    const draftData = {
+      selectedType,
+      propertyTitle,
+      images,
+      officeKind: officeKinds.length > 0 ? officeKinds[0] : undefined,
+      retailKind: retailKinds.length > 0 ? retailKinds[0] : undefined,
+      hospitalityKind: HospitalityKinds.length > 0 ? HospitalityKinds[0] : undefined,
+      storageType: storageTypeValue, // ✅ CHANGED from storageKind to storageType
         plotKind: plotKinds.length > 0 ? plotKinds[0] : undefined,
         industryKind: industryKinds.length > 0 ? industryKinds[0] : undefined,
         locatedInside: locatedInside || undefined,
@@ -609,12 +643,54 @@ useEffect(() => {
         });
         break;
 
-      case "Retail":
-        router.push({
-          pathname: `${base}/Retail`,
-          params: commonParams,
-        });
-        break;
+    case "Retail":
+  // ✅ ADD VALIDATION
+  if (!retailKinds.length) {
+    Alert.alert(
+      t('alert_retail_type_required') || 'Retail Type Required',
+      t('alert_select_retail_kind') || 'Please select shop or showroom type'
+    );
+    return;
+  }
+
+  if (!locatedInside) {
+    Alert.alert(
+      t('alert_located_inside_required') || 'Located Inside Required',
+      t('alert_select_located_inside') || 'Please select where the property is located'
+    );
+    return;
+  }
+
+  const retailDraftData = {
+    selectedType: "Retail",
+    propertyTitle,
+    retailKind: retailKinds[0],
+    locatedInside: locatedInside,
+    images,
+    area: area || neighborhoodArea,
+    timestamp: new Date().toISOString(),
+  };
+
+  try {
+    await AsyncStorage.setItem('draft_commercial_retail', JSON.stringify(retailDraftData));
+    console.log('✅ Retail draft saved to AsyncStorage');
+  } catch (e) {
+    console.log('⚠️ Failed to save Retail draft:', e);
+  }
+
+  router.push({
+    pathname: `${base}/Retail`,
+    params: {
+      ...commonParams,
+      commercialBaseDetails: JSON.stringify({
+        subType: "Retail",
+        retailKind: retailKinds[0],
+        locatedInside: locatedInside,
+        propertyTitle,
+      }),
+    },
+  });
+  break;
 
       case "Plot/Land":
         router.push({
@@ -631,40 +707,57 @@ useEffect(() => {
         });
         break;
 
-      case "Storage":
-        if (!storageKinds.length) {
-          Alert.alert(t('alert_storage_type_required'), t('alert_select_storage_type'));
-          return;
-        }
+    case "Storage":
+  if (!storageKinds.length) {
+    Alert.alert(t('alert_storage_type_required'), t('alert_select_storage_type'));
+    return;
+  }
 
-        const storageDraftData = {
-          selectedType: "Storage",
-          propertyTitle,
-          storageKind: storageKinds[0],
-          images,
-          area: area || neighborhoodArea,
-          timestamp: new Date().toISOString(),
-        };
+  // ✅ CONVERT Telugu/Hindi to English
+  const storageTypeMap = {
+    'వేర్‌హౌస్': 'Warehouse',
+    'गोदाम': 'Warehouse',
+    'కోల్డ్ స్టోరేజ్': 'Cold Storage',
+    'कोल्ड स्टोरेज': 'Cold Storage'
+  };
 
-        try {
-          await AsyncStorage.setItem('draft_commercial_storage', JSON.stringify(storageDraftData));
-          console.log('✅ Storage draft saved to AsyncStorage');
-        } catch (e) {
-          console.log('⚠️ Failed to save Storage draft:', e);
-        }
+  const rawStorageType = storageKinds[0];
+  const convertedStorageType = storageTypeMap[rawStorageType] || rawStorageType;
 
-        router.push({
-          pathname: `${base}/Storage`,
-          params: {
-            ...commonParams,
-            commercialBaseDetails: JSON.stringify({
-              subType: "Storage",
-              storageType: storageKinds[0],
-              propertyTitle,
-            }),
-          },
-        });
-        break;
+  console.log('🔄 Storage Type Conversion in index.jsx:', {
+    raw: rawStorageType,
+    converted: convertedStorageType
+  });
+
+  const storageDraftData = {
+    selectedType: "Storage",
+    propertyTitle,
+    storageType: convertedStorageType, // ✅ CHANGED from storageKind
+    images,
+    area: area || neighborhoodArea,
+    timestamp: new Date().toISOString(),
+  };
+
+  try {
+    await AsyncStorage.setItem('draft_commercial_storage', JSON.stringify(storageDraftData));
+    console.log('✅ Storage draft saved to AsyncStorage with English type');
+  } catch (e) {
+    console.log('⚠️ Failed to save Storage draft:', e);
+  }
+
+  router.push({
+    pathname: `${base}/Storage`,
+    params: {
+      ...commonParams,
+      commercialBaseDetails: JSON.stringify({
+        subType: "Storage",
+        storageType: convertedStorageType, // ✅ USE CONVERTED VALUE
+        propertyTitle,
+      }),
+    },
+  });
+  break;
+
 
       case "Industry":
         if (!industryKinds.length) {

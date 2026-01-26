@@ -17,9 +17,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import bell from "../../../assets/Bell-icon.png";
-
-const API_URL = process.env.EXPO_PUBLIC_IP_ADDRESS;
-
+import { API_URL } from '../../../utils/apiConfig';
 export default function BannerCarousel({
   toggleSidebar,
   sidebarOpen,

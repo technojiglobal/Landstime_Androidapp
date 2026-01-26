@@ -1,4 +1,4 @@
-// Backend/routes/propertyRoutes.js
+// Backend/UserRoutes/propertyRoutes.js
 import express from 'express';
 const router = express.Router();
 //import propertyController from '../controllers/propertyController.js';
