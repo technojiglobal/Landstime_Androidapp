@@ -347,17 +347,7 @@ const handleContactAgent = async () => {
             ))}
           </View>
 
-          {/* Resort Type */}
-          {resortDetails.resortType && (
-            <View className="mt-4">
-              <Text className="text-[16px] font-semibold mb-1" style={{ fontFamily: "Poppins" }}>
-                Resort Type
-              </Text>
-              <Text className="text-[14px] text-[#00000091]" style={{ fontFamily: "Poppins" }}>
-                {resortDetails.resortType}
-              </Text>
-            </View>
-          )}
+          
 
           {/* Description */}
           <View className="mt-6">
@@ -369,26 +359,7 @@ const handleContactAgent = async () => {
             </Text>
           </View>
 
-          {/* Location Advantages */}
-          {resortDetails.locationAdvantages && resortDetails.locationAdvantages.length > 0 && (
-            <View className="mt-6">
-              <Text className="text-[16px] font-semibold mb-2" style={{ fontFamily: "Poppins" }}>
-                Location Advantages
-              </Text>
-              <View className="flex-row flex-wrap">
-                {resortDetails.locationAdvantages.map((advantage, idx) => (
-                  <View 
-                    key={idx} 
-                    className="bg-green-50 px-3 py-1 rounded-full mr-2 mb-2"
-                  >
-                    <Text className="text-[12px] text-green-700" style={{ fontFamily: "Poppins" }}>
-                      {advantage}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
+      
 
           {/* Buttons */}
           <View className="flex-row justify-between mt-8 mb-10">

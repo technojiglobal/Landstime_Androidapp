@@ -73,10 +73,10 @@ const getApiUrl = () => {
     }
     
     // Fallback to .env
-    return process.env.EXPO_PUBLIC_IP_ADDRESS || 'http://192.168.31.115:8000';
+    return process.env.EXPO_PUBLIC_IP_ADDRESS;
   }
   
-  return process.env.EXPO_PUBLIC_API_URL || 'https://your-production-url.com';
+  return process.env.EXPO_PUBLIC_API_URL;
 };
 
 export const API_URL = getApiUrl();

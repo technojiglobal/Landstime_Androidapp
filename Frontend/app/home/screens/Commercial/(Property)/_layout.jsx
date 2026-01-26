@@ -1,7 +1,4 @@
 
-
-
-
 //Frontend/app/home/screens/Commercial/(Property)/_layout.jsx
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,7 +19,13 @@ export default function PropertyLayout() {
   const isReview = pathname.includes("/Review");
   const isWriteReview = pathname.includes("/WriteReview");
   const isOverview = !isReview && !isWriteReview;
-
+  const handleBack = () => {
+    if (isReview || isWriteReview) {
+      router.replace("/home/screens/Commercial/(Property)");
+    } else {
+      router.back();
+    }
+  };
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       {/* Header */}
@@ -35,9 +38,10 @@ export default function PropertyLayout() {
           marginBottom: 8,
         }}
       >
-       <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="chevron-back-outline" size={22} color="black" />
-        </TouchableOpacity>
+      <TouchableOpacity onPress={handleBack}>
+  <Ionicons name="chevron-back-outline" size={22} color="black" />
+</TouchableOpacity>
+
 
         <Text
           style={{
@@ -70,7 +74,7 @@ export default function PropertyLayout() {
           return (
             <TouchableOpacity
               key={idx}
-              onPress={() => !isActive && router.push(tab.route)}
+              onPress={() => !isActive && router.replace(tab.route)}
               activeOpacity={0.7}
               style={{
                 alignItems: "center",
