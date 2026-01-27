@@ -2,7 +2,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import { API_URL } from './apiConfig.js';
-
+import { getImageUrl, getImageUrls, getDocumentUrls } from './imageHelper.js';
 const API_BASE_URL = `${API_URL}/api/properties`;
 export default API_BASE_URL;
 
@@ -206,43 +206,80 @@ export const createProperty = async (
   }
 };
 
-// Get all approved properties
-// ✅ NEW CODE
+// Add this import at the top
+
+
+// Add this helper function after getToken()
+const transformPropertyData = (property) => {
+  if (!property) return null;
+
+  return {
+    ...property,
+    // Transform image paths to full URLs
+    images: getImageUrls(property.images),
+    imageUrls: getImageUrls(property.images), // Keep both for compatibility
+    
+    // Transform document paths to full URLs
+    documents: {
+      ownership: getImageUrls(property.documents?.ownership || []),
+      identity: getImageUrls(property.documents?.identity || [])
+    },
+    documentUrls: getDocumentUrls(property.documents),
+    
+    // Keep original paths for reference
+    _originalImages: property.images,
+    _originalDocuments: property.documents
+  };
+};
+
+// ✅ UPDATE: Modify getApprovedProperties
 export const getApprovedProperties = async (propertyType = null, page = 1, language = 'en') => {
   let endpoint = `/approved?page=${page}&language=${language}`;
   if (propertyType) {
     endpoint += `&propertyType=${propertyType}`;
   }
-  return await apiRequest(endpoint);
+  
+  const result = await apiRequest(endpoint);
+  
+  // Transform all properties with image URLs
+  if (result.success && result.data?.data) {
+    result.data.data = result.data.data.map(transformPropertyData);
+  }
+  
+  return result;
 };
 
-// Get single property by ID
-// Get single property by ID
-// export const getPropertyById = async (propertyId, language = 'en') => {
-//   return await apiRequest(`/${propertyId}?language=${language}`);
-// };
-
+// ✅ UPDATE: Modify getPropertyById
 export const getPropertyById = async (propertyId, language = 'en') => {
   console.log('🔍 Fetching property with language:', language);
   const response = await apiRequest(`/${propertyId}?language=${language}`);
+  
+  // Transform property with image URLs
+  if (response.success && response.data?.data) {
+    response.data.data = transformPropertyData(response.data.data);
+  }
+  
   console.log('📦 API Response:', response.data);
   return response;
 };
 
-
-// Get user's own properties
+// ✅ UPDATE: Modify getUserProperties
 export const getUserProperties = async () => {
   const result = await apiRequest('/user/my-properties');
   console.log('📦 getUserProperties result:', result);
   
+  let properties = [];
+  
   // Extract the actual properties array from nested structure
   if (result.success && result.data) {
-    return result.data.data || result.data || [];
+    properties = result.data.data || result.data || [];
   }
   
-  return [];
+  // Transform all properties with image URLs
+  properties = properties.map(transformPropertyData);
+  
+  return properties;
 };
-
 // Update property
 export const updateProperty = async (propertyId, propertyData) => {
   return await apiRequest(`/${propertyId}`, 'PUT', propertyData);

@@ -20,7 +20,8 @@ import i18n from "../../../../i18n/index";
 import { saveProperty, unsaveProperty, checkIfSaved } from "../../../../utils/savedPropertiesApi";
 import { Alert } from "react-native";
 import { fetchReviews } from "../../../../utils/reviewApi";
-
+// ADD THIS IMPORT
+import { getImageUrl } from "../../../../utils/imageHelper";
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const CARD_WIDTH = 345;
 const CARD_HEIGHT = 298;
@@ -271,7 +272,7 @@ export default function PropertyListScreen() {
                   <Image
                     source={
                       item.images && item.images.length > 0
-                        ? { uri: item.images[0] }
+                        ? { uri: getImageUrl(item.images[0]) }
                         : require("../../../../assets/CommercialHub.jpg")
                     }
                     style={{

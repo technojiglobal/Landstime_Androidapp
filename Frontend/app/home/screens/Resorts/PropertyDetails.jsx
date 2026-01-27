@@ -21,6 +21,8 @@ import i18n from "../../../../i18n/index";
 import { saveProperty, unsaveProperty, checkIfSaved } from "../../../../utils/savedPropertiesApi";
 import { Alert } from "react-native";
 import { fetchReviews } from "../../../../utils/reviewApi";
+// ADD THIS IMPORT
+import { getImageUrl } from "../../../../utils/imageHelper";
 // ✅ Helper function OUTSIDE component
 const getLocalizedText = (field, language) => {
   if (!field) return '';
@@ -69,13 +71,7 @@ export default function PropertyListScreen() {
     }
   }, [i18n.language]);
   
-  useEffect(() => {
-    if (filteredProperties.length > 0) {
-      filteredProperties.forEach(property => {
-        fetchReviewForProperty(property._id);
-      });
-    }
-  }, [filteredProperties]);
+  
 
   const fetchProperties = async () => {
     try {
@@ -120,7 +116,15 @@ export default function PropertyListScreen() {
       console.error('Failed to fetch reviews:', err);
     }
   };
- 
+ useEffect(() => {
+  console.log('🔄 [SITES] useEffect triggered, properties count:', properties.length);
+  if (properties.length > 0) {
+    console.log('📝 [SITES] Property IDs:', properties.map(p => p._id));
+    properties.forEach(property => {
+      fetchReviewForProperty(property._id);
+    });
+  }
+}, [properties]);
   const checkAllSavedStatuses = async (propertyList) => {
     const savedStatusPromises = propertyList.map(async (property) => {
       const response = await checkIfSaved(property._id, 'property');
@@ -280,7 +284,7 @@ export default function PropertyListScreen() {
                   <Image
                     source={
                       item.images && item.images.length > 0
-                        ? { uri: item.images[0] }  // ✅ CHANGED: Removed IP address prefix for base64
+                        ? { uri: getImageUrl(item.images[0]) }  // ✅ CHANGED: Removed IP address prefix for base64
                         : require("../../../../assets/resort.jpg")
                     }
                     style={{

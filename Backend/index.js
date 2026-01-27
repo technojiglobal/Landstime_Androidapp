@@ -48,11 +48,12 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve static files
 console.log("✅ Static middleware about to mount");
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+//app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/properties', express.static(path.join(__dirname, 'uploads/properties')));
 
 console.log("✅ Static middleware mounted");
 app.use("/api/reviews", reviewRoutes);
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 // MongoDB Connection
 console.log('🔍 Attempting MongoDB connection...');
 console.log('MongoDB URI:', process.env.MONGODB_URI ? 'URI exists ✅' : 'URI missing ❌');
