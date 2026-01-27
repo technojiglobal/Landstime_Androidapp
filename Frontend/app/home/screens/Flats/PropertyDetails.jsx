@@ -24,6 +24,8 @@ import i18n from "../../../../i18n/index"
 import { saveProperty, unsaveProperty, checkIfSaved } from "../../../../utils/savedPropertiesApi";
 import { Alert } from "react-native";
 import { fetchReviews } from "../../../../utils/reviewApi";
+// ADD THIS IMPORT
+import { getImageUrl } from "../../../../utils/imageHelper";
 const getLocalizedText = (field, language) => {
   if (!field) return '';
   if (typeof field === 'string') return field;
@@ -65,13 +67,15 @@ export default function PropertyListScreen() {
       fetchProperties();
     }
   }, [i18n.language]); // Refetch when language changes
-  useEffect(() => {
-    if (filteredProperties.length > 0) {
-      filteredProperties.forEach(property => {
-        fetchReviewForProperty(property._id);
-      });
-    }
-  }, [filteredProperties]);
+ useEffect(() => {
+  //console.log('🔄 [SITES] useEffect triggered, properties count:', properties.length);
+  if (properties.length > 0) {
+    //console.log('📝 [SITES] Property IDs:', properties.map(p => p._id));
+    properties.forEach(property => {
+      fetchReviewForProperty(property._id);
+    });
+  }
+}, [properties]);
 
   const fetchProperties = async () => {
     try {
@@ -83,13 +87,13 @@ export default function PropertyListScreen() {
       console.log('🌐 Fetching in language:', currentLang);
 
       const response = await getApprovedProperties(null, 1, currentLang);
-
-      if (response.success) {
-        //console.log('✅ All properties fetched:', response.data);
-        // ✅ FILTER BY PROPERTY TYPE = "House"
-        const houseProperties = (response.data.data || []).filter(
-          property => property.propertyType === 'House'
-        );
+if (response.success) {
+  console.log('✅ All properties fetched:', response.data.data?.length);
+  console.log('📋 Property types in response:', response.data.data?.map(p => p.propertyType));
+  // ✅ FILTER BY PROPERTY TYPE = "House"
+  const houseProperties = (response.data.data || []).filter(
+    property => property.propertyType === 'House'
+  );
         await checkAllSavedStatuses(houseProperties);
         console.log('✅ Houses filtered:', houseProperties.length);
         setProperties(houseProperties);
@@ -308,7 +312,7 @@ export default function PropertyListScreen() {
                   <Image
                     source={
                       item.images && item.images.length > 0
-                        ? { uri: item.images[0] }  // ✅ CHANGED: Removed IP address prefix for base64
+                        ? { uri: getImageUrl(item.images[0]) }  // ✅ CHANGED: Removed IP address prefix for base64
                         : require("../../../../assets/Flat1.jpg")
                     }
                     style={{

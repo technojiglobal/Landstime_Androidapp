@@ -170,9 +170,7 @@ const normalizePath = (p) => (p ? p.replace(/\\+/g, '/') : p);
 
 // Create a new property
 // Backend/controllers/propertyController.js
-const bufferToBase64 = (buffer, mimetype) => {
-  return `data:${mimetype};base64,${buffer.toString('base64')}`;
-};
+
 export const createProperty = async (req, res) => {
 
   try {
@@ -186,6 +184,7 @@ export const createProperty = async (req, res) => {
     const propertyData = JSON.parse(req.body.propertyData);
    
     console.log('📋 Property Data:', JSON.stringify(propertyData, null, 2));
+    
    
     // Owner details validation
     if (!propertyData.ownerDetails) {
@@ -211,20 +210,17 @@ console.log('📄 Files received:', {
   identityDocs: req.files?.identityDocs?.length || 0
 });
     // Convert uploaded files to base64
-    const images = req.files?.images?.map(file =>
-      bufferToBase64(file.buffer, file.mimetype)
+     const images = req.files?.images?.map(file => 
+      `/uploads/properties/images/${file.filename}`
     ) || [];
 
     const ownershipDocs = req.files?.ownershipDocs?.map(file => 
-      bufferToBase64(file.buffer, file.mimetype)
+      `/uploads/properties/ownership/${file.filename}`
     ) || [];
 
-
-    
-   
- const identityDocs = req.files?.identityDocs?.map(file =>
-  bufferToBase64(file.buffer, file.mimetype)
-) || [];
+    const identityDocs = req.files?.identityDocs?.map(file => 
+      `/uploads/properties/identity/${file.filename}`
+    ) || [];
 
 
     // Backend validation
@@ -1089,42 +1085,44 @@ console.log("🏷 Property Type:", property.propertyType);
 export const uploadAdditionalImages = async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
-   
+    
     if (!property) {
       return res.status(404).json({
         success: false,
         message: 'Property not found'
       });
     }
-   
+    
+    // ✅ NEW: Store paths instead of base64
     const newImages = req.files?.images?.map(file =>
-      bufferToBase64(file.buffer, file.mimetype)
+      `/uploads/properties/images/${file.filename}`
     ) || [];
-   
+    
     if (newImages.length === 0) {
       return res.status(400).json({
         success: false,
         message: 'No images provided'
       });
     }
-   
-    // Add new images to existing ones
+    
     property.images = [...property.images, ...newImages];
     await property.save();
-   
+    
     res.status(200).json({
       success: true,
       message: 'Images uploaded successfully',
       data: property
     });
-   
+    
   } catch (error) {
+    
     console.error('Upload additional images error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to upload images',
       error: error.message
     });
+  
   }
 };
 // Delete specific image from property
@@ -1171,52 +1169,54 @@ export const deletePropertyImage = async (req, res) => {
 // Upload additional documents to existing property
 export const uploadAdditionalDocuments = async (req, res) => {
   try {
-    const { documentType } = req.body; // 'ownership' or 'identity'
-   
+    const { documentType } = req.body;
+    
     if (!['ownership', 'identity'].includes(documentType)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid document type'
       });
     }
-   
+    
     const property = await Property.findById(req.params.id);
-   
+    
     if (!property) {
       return res.status(404).json({
         success: false,
         message: 'Property not found'
       });
     }
-   
+    
     const fieldName = `${documentType}Docs`;
+    
+    // ✅ NEW: Store paths instead of base64
     const newDocs = req.files?.[fieldName]?.map(file =>
-      bufferToBase64(file.buffer, file.mimetype)
+      `/uploads/properties/${documentType}/${file.filename}`
     ) || [];
-   
+    
     if (newDocs.length === 0) {
       return res.status(400).json({
         success: false,
         message: 'No documents provided'
       });
     }
-   
-    // Add new documents to existing ones
+    
     if (documentType === 'ownership') {
       property.documents.ownership = [...property.documents.ownership, ...newDocs];
     } else {
       property.documents.identity = [...property.documents.identity, ...newDocs];
     }
-   
+    
     await property.save();
-   
+    
     res.status(200).json({
       success: true,
       message: 'Documents uploaded successfully',
       data: property
     });
-   
+    
   } catch (error) {
+    
     console.error('Upload additional documents error:', error);
     res.status(500).json({
       success: false,
@@ -1224,6 +1224,7 @@ export const uploadAdditionalDocuments = async (req, res) => {
       error: error.message
     });
   }
+  
 };
 // Delete specific document from property
 export const deletePropertyDocument = async (req, res) => {

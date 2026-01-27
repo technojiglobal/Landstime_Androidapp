@@ -15,6 +15,8 @@ import { useTranslation } from "react-i18next";
 import i18n from "../../../../../i18n/index";
 import { Alert } from "react-native";
 import { fetchReviews } from "../../../../../utils/reviewApi";
+// ADD THIS IMPORT
+import { getImageUrl } from "../../../../../utils/imageHelper";
 // ✅ Helper: Strip phone number
 const stripPhone = (phoneNum) => {
   if (!phoneNum) return '';
@@ -262,7 +264,7 @@ export default function OverviewScreen() {
             <Image
               source={
                 property.images && property.images.length > 0
-                  ? { uri: property.images[0] }  // ✅ CHANGED: Removed IP address prefix for base64
+                  ? { uri: getImageUrl(property.images[0]) }  // ✅ CHANGED: Removed IP address prefix for base64
                   : require("../../../../../assets/resort.jpg")
               }
               className="rounded-[17px]"

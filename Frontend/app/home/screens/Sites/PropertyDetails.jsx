@@ -20,6 +20,7 @@ import i18n from "../../../../i18n/index";
 import { saveProperty, unsaveProperty, checkIfSaved } from "../../../../utils/savedPropertiesApi";
 import { Alert } from "react-native";
 import { fetchReviews } from "../../../../utils/reviewApi";
+import { getImageUrl } from "../../../../utils/imageHelper";
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const CARD_WIDTH = 345;
 const CARD_HEIGHT = 298;
@@ -53,13 +54,15 @@ export default function PropertyListScreen() {
     }
   }, [i18n.language]);
 
-  useEffect(() => {
-    if (filteredProperties.length > 0) {
-      filteredProperties.forEach(property => {
-        fetchReviewForProperty(property._id);
-      });
-    }
-  }, [filteredProperties]);
+ useEffect(() => {
+  console.log('🔄 [SITES] useEffect triggered, properties count:', properties.length);
+  if (properties.length > 0) {
+    console.log('📝 [SITES] Property IDs:', properties.map(p => p._id));
+    properties.forEach(property => {
+      fetchReviewForProperty(property._id);
+    });
+  }
+}, [properties]);
 
   const fetchProperties = async () => {
     try {
@@ -271,7 +274,7 @@ export default function PropertyListScreen() {
                   <Image
                     source={
                       item.images && item.images.length > 0
-                        ? { uri: item.images[0] }  // ✅ CHANGED: Removed IP address prefix for base64
+                        ? { uri:getImageUrl(item.images[0]) }  // ✅ CHANGED: Removed IP address prefix for base64
                         : require("../../../../assets/Flat1.jpg")
                     }
                     style={{
