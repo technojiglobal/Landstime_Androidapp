@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import UploadDesignModal from "../components/InteriorDesign/UploadDesignModal";
 import Toast from "../components/UserManagement/Toast";
 import ViewModal from "../components/InteriorDesign/ViewModal";
+import ViewersModal from "../components/InteriorDesign/ViewersModal";
 import {
   Search,
   Eye,
@@ -14,48 +15,16 @@ import {
 } from "lucide-react";
 
 const API_URL = "http://localhost:8000/api/admin/interior";
+const VIEWERS_API_URL = "http://localhost:8000/api/admin/interior-design-views";
 
 /* ---------------- DATA ---------------- */
-const ENQUIRIES = [
-  {
-    id: 1,
-    name: "Alice Morrison",
-    email: "alice.m@gmail.com",
-    phone: "+1 (555) 111-1111",
-    designType: "Full Home Renovation",
-    designer: "Alexander Chen",
-    designerPhone: "+1 (555) 111-2222",
-    cost: "$85,000",
-    status: "In Progress",
-  },
-  {
-    id: 2,
-    name: "Benjamin Foster",
-    email: "ben.foster@outlook.com",
-    phone: "+1 (555) 222-2222",
-    designType: "Living Room & Kitchen",
-    designer: "Emma Lindberg",
-    designerPhone: "+1 (555) 222-3333",
-    cost: "$42,000",
-    status: "Settled",
-  },
-  {
-    id: 3,
-    name: "Eleanor Hughes",
-    email: "eleanor.h@gmail.com",
-    phone: "+1 (555) 555-5555",
-    designType: "Outdoor Living Space",
-    designer: "Isabella Romano",
-    designerPhone: "+1 (555) 444-5555",
-    cost: "$55,000",
-    status: "Rejected",
-  },
-];
+
 
 /* ---------------- COMPONENT ---------------- */
 export default function InteriorDesign() {
   const [tab, setTab] = useState("enquiry");
   const [designs, setDesigns] = useState([]);
+  const [designViews, setDesignViews] = useState([]);  // ✅ NEW - for enquiry tab
   const [search, setSearch] = useState("");
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
@@ -65,6 +34,11 @@ export default function InteriorDesign() {
   const [loading, setLoading] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [viewersModalDesign, setViewersModalDesign] = useState(null);
+
+
+
+
 
   // Get token from localStorage
   const getToken = () => {
@@ -107,60 +81,121 @@ export default function InteriorDesign() {
     }
   };
 
+  // ADD THIS NEW FUNCTION (after fetchDesigns function - around line 110):
+
+// ✅ NEW - Fetch design views for enquiry tab
+const fetchDesignViews = async () => {
+  try {
+    setLoading(true);
+    const token = getToken();
+    
+    if (!token) {
+      setToast("Please login as admin");
+      return;
+    }
+
+    const queryParams = new URLSearchParams({
+      page: page.toString(),
+      limit: pageSize.toString(),
+      search: search,
+      sortBy: "updatedAt",
+      sortOrder: "desc"
+    });
+
+    const response = await fetch(`${VIEWERS_API_URL}/all?${queryParams}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      setDesignViews(data.data);
+      setTotalPages(data.pagination.totalPages);
+      setTotalItems(data.pagination.totalItems);
+    } else {
+      setToast("Failed to fetch design views");
+    }
+  } catch (error) {
+    console.error("Fetch design views error:", error);
+    setToast("Error fetching design views");
+  } finally {
+    setLoading(false);
+  }
+};
+
   // Fetch designs when tab changes to "designs"
   useEffect(() => {
-    if (tab === "designs") {
-      fetchDesigns();
-    }
-  }, [tab, page, pageSize, search]);
+  if (tab === "designs") {
+    fetchDesigns();
+  } else if (tab === "enquiry") {
+    fetchDesignViews();  // ✅ Fetch real data for enquiry tab
+  }
+}, [tab, page, pageSize, search]);
 
   // Reset page when search or pageSize changes
   useEffect(() => {
     setPage(1);
   }, [search, pageSize]);
 
-  const data = tab === "enquiry" ? ENQUIRIES : designs;
+  const data = tab === "enquiry" ? designViews : designs;
 
   /* ---------- SEARCH (ALL COLUMNS) - For Enquiries only ---------- */
-  const filtered = useMemo(() => {
-    if (tab === "designs") {
-      return designs; // Server-side search for designs
-    }
+  // const filtered = useMemo(() => {
+  //   if (tab === "designs") {
+  //     return designs; // Server-side search for designs
+  //   }
 
-    const q = search.toLowerCase();
-    return data.filter((row) =>
-      Object.values(row)
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-        .includes(q)
-    );
-  }, [data, search, tab, designs]);
+  //   const q = search.toLowerCase();
+  //   return data.filter((row) =>
+  //     Object.values(row)
+  //       .filter(Boolean)
+  //       .join(" ")
+  //       .toLowerCase()
+  //       .includes(q)
+  //   );
+  // }, [data, search, tab, designs]);
+
+
+  const filtered = useMemo(() => {
+  // Both tabs now use server-side search
+  return data;
+}, [data]);
 
   /* ---------- PAGINATION ---------- */
-  const totalPagesCalc =
-    tab === "designs"
-      ? totalPages
-      : Math.max(1, Math.ceil(filtered.length / pageSize));
+  // const totalPagesCalc =
+  //   tab === "designs"
+  //     ? totalPages
+  //     : Math.max(1, Math.ceil(filtered.length / pageSize));
 
-  const paginated =
-    tab === "designs"
-      ? designs
-      : filtered.slice((page - 1) * pageSize, page * pageSize);
+  // const paginated =
+  //   tab === "designs"
+  //     ? designs
+  //     : filtered.slice((page - 1) * pageSize, page * pageSize);
 
-  const start =
-    tab === "designs"
-      ? totalItems
-        ? (page - 1) * pageSize + 1
-        : 0
-      : filtered.length
-      ? (page - 1) * pageSize + 1
-      : 0;
+  // const start =
+  //   tab === "designs"
+  //     ? totalItems
+  //       ? (page - 1) * pageSize + 1
+  //       : 0
+  //     : filtered.length
+  //     ? (page - 1) * pageSize + 1
+  //     : 0;
 
-  const end =
-    tab === "designs"
-      ? Math.min(page * pageSize, totalItems)
-      : Math.min(page * pageSize, filtered.length);
+  // const end =
+  //   tab === "designs"
+  //     ? Math.min(page * pageSize, totalItems)
+  //     : Math.min(page * pageSize, filtered.length);
+
+  //NEW CODE (simplified - both use server pagination):
+const totalPagesCalc = totalPages;
+const paginated = data;
+const start = totalItems ? (page - 1) * pageSize + 1 : 0;
+const end = Math.min(page * pageSize, totalItems);
+
 
   /* ---------- ADD DESIGN ---------- */
   const addDesign = async (design) => {
@@ -249,6 +284,40 @@ export default function InteriorDesign() {
     }
   };
 
+  // ADD THIS NEW FUNCTION (after deleteDesign function - around line 250):
+
+// ✅ NEW - Update design view status
+const updateStatus = async (designId, newStatus) => {
+  try {
+    const token = getToken();
+    if (!token) {
+      setToast("Please login as admin");
+      return;
+    }
+
+    const response = await fetch(`${VIEWERS_API_URL}/design/${designId}/status`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ status: newStatus })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      setToast("Status updated successfully");
+      fetchDesignViews(); // Refresh the list
+    } else {
+      setToast(data.message || "Failed to update status");
+    }
+  } catch (error) {
+    console.error("Update status error:", error);
+    setToast("Error updating status");
+  }
+};
+
   return (
     <div className="space-y-6">
       {/* Tabs + Upload */}
@@ -317,163 +386,172 @@ export default function InteriorDesign() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                {tab === "enquiry" ? (
-                  <>
-                    <th className="px-4 py-3 text-gray-500 font-semibold text-left">
-                      Customer Name
-                    </th>
-                    <th className="px-4 py-3 text-gray-500 font-medium text-left">
-                      Email
-                    </th>
-                    <th className="px-4 py-3 text-gray-500 font-medium text-left">
-                      Phone
-                    </th>
-                    <th className="px-4 py-3 text-gray-500 font-medium text-left">
-                      Design Type
-                    </th>
-                    <th className="px-4 py-3 text-gray-500 font-medium text-left">
-                      Designer
-                    </th>
-                    <th className="px-4 py-3 text-gray-500 font-medium text-left">
-                      Designer Phone
-                    </th>
-                    <th className="px-4 py-3 text-gray-500 font-medium text-left">
-                      Est. Cost
-                    </th>
-                    <th className="px-4 py-3 text-gray-500 font-medium text-left">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 text-gray-500 font-medium text-left">
-                      Actions
-                    </th>
-                  </>
-                ) : (
-                  <>
-                    <th className="px-4 py-3 text-gray-500 font-semibold text-left">
-                      Design Name
-                    </th>
-                    <th className="px-4 py-3 text-gray-500 font-medium text-left">
-                      Designer
-                    </th>
-                    <th className="px-4 py-3 text-gray-500 font-medium text-left">
-                      Phone
-                    </th>
-                    <th className="px-4 py-3 text-gray-500 font-medium text-left">
-                      Area
-                    </th>
-                    <th className="px-4 py-3 text-gray-500 font-medium text-left">
-                      Price Range
-                    </th>
-                    <th className="px-4 py-3 text-gray-500 font-medium text-left">
-                      Duration
-                    </th>
-                    <th className="px-4 py-3 text-gray-500 font-medium text-left">
-                      Location
-                    </th>
-                    <th className="px-4 py-3 text-gray-500 font-medium text-left">
-                      Rating
-                    </th>
-                    <th className="px-4 py-3 text-gray-500 font-medium text-left">
-                      Actions
-                    </th>
-                  </>
-                )}
-              </tr>
-            </thead>
+         // OLD CODE (entire table section from line 330-450):
+// Replace the ENTIRE table section with this NEW CODE:
 
-            <tbody>
-              {paginated.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={9}
-                    className="px-4 py-8 text-center text-gray-500"
-                  >
-                    No {tab === "enquiry" ? "enquiries" : "designs"} found
-                  </td>
-                </tr>
-              ) : (
-                paginated.map((item) => (
-                  <tr key={item.id || item._id} className="border-t hover:bg-gray-50">
-                    {tab === "enquiry" ? (
-                      <>
-                        <td className="px-4 py-3">{item.name}</td>
-                        <td className="px-4 py-3">{item.email}</td>
-                        <td className="px-4 py-3">{item.phone}</td>
-                        <td className="px-4 py-3">{item.designType}</td>
-                        <td className="px-4 py-3">{item.designer}</td>
-                        <td className="px-4 py-3">{item.designerPhone}</td>
-                        <td className="px-4 py-3">{item.cost}</td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              item.status === "Settled"
-                                ? "bg-green-100 text-green-700"
-                                : item.status === "Rejected"
-                                ? "bg-red-500 text-white"
-                                : "bg-blue-100 text-blue-700"
-                            }`}
-                          >
-                            {item.status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <Eye
-                            size={16}
-                            className="cursor-pointer text-blue-600 hover:text-blue-800"
-                            onClick={() => setViewItem(item)}
-                          />
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        <td className="px-4 py-3 font-medium">{item.name}</td>
-                        <td className="px-4 py-3">{item.designer}</td>
-                        <td className="px-4 py-3">{item.phone}</td>
-                        <td className="px-4 py-3">{item.area}</td>
-                        <td className="px-4 py-3">{item.price}</td>
-                        <td className="px-4 py-3">{item.duration}</td>
-                        <td className="px-4 py-3">{item.location}</td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-1">
-                            <Star
-                              size={14}
-                              className="text-yellow-500 fill-yellow-500"
-                            />
-                            <span className="font-medium">{item.rating}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            <Eye
-                              size={16}
-                              className="cursor-pointer text-blue-600 hover:text-blue-800"
-                              onClick={() => setViewItem(item)}
-                            />
-                            <Trash2
-                              size={16}
-                              className="cursor-pointer text-red-600 hover:text-red-800"
-                              onClick={() => deleteDesign(item._id)}
-                            />
-                          </div>
-                        </td>
-                      </>
-                    )}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+<table className="w-full text-sm">
+  <thead className="bg-gray-50">
+    <tr>
+      {tab === "enquiry" ? (
+        <>
+          <th className="px-4 py-3 text-gray-500 font-semibold text-left">
+            Design Title
+          </th>
+          <th className="px-4 py-3 text-gray-500 font-medium text-left">
+            Category
+          </th>
+          <th className="px-4 py-3 text-gray-500 font-medium text-left">
+            Designer
+          </th>
+          <th className="px-4 py-3 text-gray-500 font-medium text-left">
+            Designer Phone
+          </th>
+          <th className="px-4 py-3 text-gray-500 font-medium text-left">
+            Total Views
+          </th>
+          <th className="px-4 py-3 text-gray-500 font-medium text-left">
+            Status
+          </th>
+          <th className="px-4 py-3 text-gray-500 font-medium text-left">
+            Actions
+          </th>
+        </>
+      ) : (
+        <>
+          <th className="px-4 py-3 text-gray-500 font-semibold text-left">
+            Design Name
+          </th>
+          <th className="px-4 py-3 text-gray-500 font-medium text-left">
+            Designer
+          </th>
+          <th className="px-4 py-3 text-gray-500 font-medium text-left">
+            Phone
+          </th>
+          <th className="px-4 py-3 text-gray-500 font-medium text-left">
+            Area
+          </th>
+          <th className="px-4 py-3 text-gray-500 font-medium text-left">
+            Price Range
+          </th>
+          <th className="px-4 py-3 text-gray-500 font-medium text-left">
+            Duration
+          </th>
+          <th className="px-4 py-3 text-gray-500 font-medium text-left">
+            Location
+          </th>
+          <th className="px-4 py-3 text-gray-500 font-medium text-left">
+            Rating
+          </th>
+          <th className="px-4 py-3 text-gray-500 font-medium text-left">
+            Actions
+          </th>
+        </>
+      )}
+    </tr>
+  </thead>
+
+  <tbody>
+    {paginated.length === 0 ? (
+      <tr>
+        <td
+          colSpan={tab === "enquiry" ? 7 : 9}
+          className="px-4 py-8 text-center text-gray-500"
+        >
+          No {tab === "enquiry" ? "design views" : "designs"} found
+        </td>
+      </tr>
+    ) : (
+      paginated.map((item) => (
+        <tr key={item._id} className="border-t hover:bg-gray-50">
+          {tab === "enquiry" ? (
+            <>
+              <td className="px-4 py-3 font-medium">{item.designTitle}</td>
+              <td className="px-4 py-3">
+                <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
+                  {item.category}
+                </span>
+              </td>
+              <td className="px-4 py-3">{item.designerName}</td>
+              <td className="px-4 py-3">{item.designerPhone}</td>
+              <td className="px-4 py-3">
+                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                  {item.totalViews}
+                </span>
+              </td>
+              <td className="px-4 py-3">
+                <select
+                  value={item.status || 'In Progress'}
+                  onChange={(e) => updateStatus(item.designId, e.target.value)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border-none outline-none cursor-pointer ${
+                    item.status === "Settled"
+                      ? "bg-green-100 text-green-700"
+                      : item.status === "Rejected"
+                      ? "bg-red-100 text-red-700"
+                      : item.status === "Work in Progress"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-blue-100 text-blue-700"
+                  }`}
+                >
+                  <option value="In Progress">In Progress</option>
+                  <option value="Work in Progress">Work in Progress</option>
+                  <option value="Settled">Settled</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
+              </td>
+              <td className="px-4 py-3">
+                <Eye
+                  size={16}
+                  className="cursor-pointer text-blue-600 hover:text-blue-800"
+                  onClick={() => setViewersModalDesign(item)}
+                />
+              </td>
+            </>
+          ) : (
+            <>
+              <td className="px-4 py-3 font-medium">{item.name}</td>
+              <td className="px-4 py-3">{item.designer}</td>
+              <td className="px-4 py-3">{item.phone}</td>
+              <td className="px-4 py-3">{item.area}</td>
+              <td className="px-4 py-3">{item.price.includes('₹') ? item.price : `₹${item.price}`}</td>
+              <td className="px-4 py-3">{item.duration}</td>
+              <td className="px-4 py-3">{item.location}</td>
+              <td className="px-4 py-3">
+                <div className="flex items-center gap-1">
+                  <Star
+                    size={14}
+                    className="text-yellow-500 fill-yellow-500"
+                  />
+                  <span className="font-medium">{item.rating}</span>
+                </div>
+              </td>
+              <td className="px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <Eye
+                    size={16}
+                    className="cursor-pointer text-blue-600 hover:text-blue-800"
+                    onClick={() => setViewItem(item)}
+                  />
+                  <Trash2
+                    size={16}
+                    className="cursor-pointer text-red-600 hover:text-red-800"
+                    onClick={() => deleteDesign(item._id)}
+                  />
+                </div>
+              </td>
+            </>
+          )}
+        </tr>
+      ))
+    )}
+  </tbody>
+</table>
         )}
       </div>
       {/* FOOTER */}
   <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center text-sm text-gray-500">
     <span>
-      Showing {start} to {end} of{" "}
-      {tab === "designs" ? totalItems : filtered.length} entries
-    </span>
+  Showing {start} to {end} of {totalItems} entries
+</span>
 
     <div className="flex items-center gap-4">
       <ChevronLeft
@@ -506,10 +584,17 @@ export default function InteriorDesign() {
   )}
 
   {viewItem && (
-    <ViewModal item={viewItem} onClose={() => setViewItem(null)} />
-  )}
+  <ViewModal item={viewItem} onClose={() => setViewItem(null)} />
+)}
 
-  {toast && <Toast message={toast} onClose={() => setToast("")} />}
+{viewersModalDesign && (
+  <ViewersModal
+    design={viewersModalDesign}
+    onClose={() => setViewersModalDesign(null)}
+  />
+)}
+
+{toast && <Toast message={toast} onClose={() => setToast("")} />}
 </div>
   );
 }

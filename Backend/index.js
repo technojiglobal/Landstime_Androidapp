@@ -23,6 +23,9 @@ import adminPropertyViewRoutes from './AdminRoutes/PropertyViewRoute.js';
 import userPropertyViewRoutes from './UserRoutes/PropertyViewRoute.js';
 import Config from "./UserRoutes/ConfigRoute.js" // 🔽 ADD
 
+import interiorDesignViewUserRoute from './UserRoutes/InteriorDesignViewRoute.js';
+import interiorDesignViewAdminRoute from './AdminRoutes/InteriorDesignViewRoute.js';
+
 import savedPropertiesRoutes from './UserRoutes/savedPropertiesRoutes.js';
 
 const app = express();

@@ -1,3 +1,4 @@
+// Landstime_Androidapp/Frontend/components/interior/SavedCard.jsx
 import { View, Text, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
