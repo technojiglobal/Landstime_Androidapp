@@ -1,5 +1,5 @@
 // Landstime_Androidapp/Frontend/app/home/screens/Flats/SelectSite.jsx
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
   Animated,
   PanResponder,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ChevronLeft,
   Search,
@@ -21,10 +21,9 @@ import {
   MapPin,
   ChevronRight,
 } from 'lucide-react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router'; // ✅ Added useLocalSearchParams
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-// ✅ NEW: Use keys for areas
 const sitesData = [
   { key: 'akkayapalem', properties: 1247 },
   { key: 'anandapuram', properties: 892 },
@@ -39,10 +38,9 @@ const { width } = Dimensions.get('window');
 const itemWidth = width * 0.9;
 
 const SelectSiteScreen = () => {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const {t} = useTranslation();
-  const { districtKey } = useLocalSearchParams(); // ✅ Receive district from previous screen
+  const { districtKey, voiceText } = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [contentHeight, setContentHeight] = useState(1);
   const [scrollViewHeight, setScrollViewHeight] = useState(0);
@@ -50,11 +48,23 @@ const SelectSiteScreen = () => {
   const scrollViewRef = useRef(null);
   const scrollPositionOnDragStart = useRef(0);
 
-  // Filter data based on search query
- // ✅ NEW: Filter using translated names
+  // Handle voice text when returned from Voice screen
+  useEffect(() => {
+    if (voiceText) {
+      console.log('Received voice text:', voiceText);
+      setSearchQuery(voiceText);
+    }
+  }, [voiceText]);
+
+  // Filter sites based on search
   const filteredData = sitesData.filter((site) => {
     const translatedName = t(`areas.${site.key}`);
-    return translatedName.toLowerCase().includes(searchQuery.toLowerCase());
+    // Extract only area name from search (remove "properties", "flats", etc.)
+    const cleanQuery = searchQuery
+      .toLowerCase()
+      .replace(/properties|flats|houses|plots|area|in/gi, '')
+      .trim();
+    return translatedName.toLowerCase().includes(cleanQuery);
   });
 
   const scrollIndicatorHeight =
@@ -96,7 +106,7 @@ const SelectSiteScreen = () => {
     })
   ).current;
 
-   const districtName = districtKey ? t(`districts.${districtKey}`) : t('districts.visakhapatnam'); // fallback if no district is passed
+  const districtName = districtKey ? t(`districts.${districtKey}`) : t('districts.visakhapatnam');
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white', paddingTop: 8 }}>
@@ -109,7 +119,6 @@ const SelectSiteScreen = () => {
             <ChevronLeft color="black" size={25} />
           </TouchableOpacity>
 
-          {/* ✅ Dynamic district name */}
           <Text className="text-2xl font-bold ml-3">
             {t('selectSite.title')} {districtName}
           </Text>
@@ -121,14 +130,22 @@ const SelectSiteScreen = () => {
             <Search color="#888" size={20} />
             <TextInput
               className="flex-1 text-base h-full ml-2"
-             placeholder={`${t('selectSite.searchPlaceholder')} ${districtName}...`}
+              placeholder={`${t('selectSite.searchPlaceholder')} ${districtName}...`}
               placeholderTextColor="#888"
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
+            {/* ✅ UPDATED MIC - Pass returnScreen and districtKey */}
             <TouchableOpacity
               className="p-2"
-              onPress={() => router.push('/home/screens/Flats/Voice')}
+              onPress={() => router.push({
+                pathname: '/home/screens/Flats/Voice',
+                params: { 
+                  returnScreen: '/home/screens/Flats/SelectSite',
+                  districtKey: districtKey,
+                  searchType: 'area'
+                }
+              })}
             >
               <Mic color="#888" size={20} />
             </TouchableOpacity>
@@ -157,7 +174,7 @@ const SelectSiteScreen = () => {
         >
           {/* No Results Message */}
           {filteredData.length === 0 && (
-          <View style={{ padding: 20, alignItems: 'center' }}>
+            <View style={{ padding: 20, alignItems: 'center' }}>
               <Text style={{ color: '#888', fontSize: 16 }}>
                 {t('selectSite.noResults')} "{searchQuery}"
               </Text>
@@ -165,7 +182,7 @@ const SelectSiteScreen = () => {
           )}
 
           {/* Site Items */}
-{filteredData.map((site) => (
+          {filteredData.map((site) => (
             <TouchableOpacity
               key={site.key}
               style={[styles.siteItem, { borderLeftColor: '#22C55E', width: itemWidth }]}
@@ -173,8 +190,8 @@ const SelectSiteScreen = () => {
                 router.push({
                   pathname: '/home/screens/Flats/PropertyDetails',
                   params: { 
-                    areaKey: site.key,  // ✅ NEW: Pass areaKey for filtering
-                    districtKey: districtKey  // ✅ NEW: Pass districtKey
+                    areaKey: site.key,
+                    districtKey: districtKey
                   },
                 })
               }

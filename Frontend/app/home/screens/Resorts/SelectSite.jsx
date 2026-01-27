@@ -1,7 +1,5 @@
-
-
 // Frontend/app/home/screens/Resorts/SelectSite.jsx
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,7 +12,7 @@ import {
   Animated,
   PanResponder,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ChevronLeft,
   Search,
@@ -26,7 +24,6 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-// ✅ Use keys for areas (matching Flats implementation)
 const sitesData = [
   { key: 'akkayapalem', properties: 1247 },
   { key: 'anandapuram', properties: 892 },
@@ -41,10 +38,9 @@ const { width } = Dimensions.get('window');
 const itemWidth = width * 0.9;
 
 const SelectSiteScreen = () => {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useTranslation();
-  const { districtKey } = useLocalSearchParams(); // ✅ Receive districtKey
+  const { districtKey, voiceText } = useLocalSearchParams(); // ✅ Get districtKey AND voiceText
   const [searchQuery, setSearchQuery] = useState('');
   const [contentHeight, setContentHeight] = useState(1);
   const [scrollViewHeight, setScrollViewHeight] = useState(0);
@@ -52,10 +48,23 @@ const SelectSiteScreen = () => {
   const scrollViewRef = useRef(null);
   const scrollPositionOnDragStart = useRef(0);
 
-  // ✅ Filter using translated names (matching Flats implementation)
+  // ✅ NEW: Handle voice text when returned from Voice screen
+  useEffect(() => {
+    if (voiceText) {
+      console.log('Received voice text:', voiceText);
+      setSearchQuery(voiceText);
+    }
+  }, [voiceText]);
+
+  // ✅ Filter sites based on search
   const filteredData = sitesData.filter((site) => {
     const translatedName = t(`areas.${site.key}`);
-    return translatedName.toLowerCase().includes(searchQuery.toLowerCase());
+    // Extract only area name from search (remove "properties", "resorts", etc.)
+    const cleanQuery = searchQuery
+      .toLowerCase()
+      .replace(/properties|resorts|flats|houses|plots|area|in/gi, '')
+      .trim();
+    return translatedName.toLowerCase().includes(cleanQuery);
   });
 
   const scrollIndicatorHeight =
@@ -126,9 +135,17 @@ const SelectSiteScreen = () => {
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
+            {/* ✅ UPDATED: MIC - Pass returnScreen and districtKey */}
             <TouchableOpacity
               className="p-2"
-              onPress={() => router.push('/home/screens/Resorts/Voice')}
+              onPress={() => router.push({
+                pathname: '/home/screens/Flats/Voice',
+                params: { 
+                  returnScreen: '/home/screens/Resorts/SelectSite',
+                  districtKey: districtKey,
+                  searchType: 'area'
+                }
+              })}
             >
               <Mic color="#888" size={20} />
             </TouchableOpacity>
@@ -164,7 +181,7 @@ const SelectSiteScreen = () => {
             </View>
           )}
 
-          {/* ✅ Site Items - Pass areaKey */}
+          {/* Site Items */}
           {filteredData.map((site) => (
             <TouchableOpacity
               key={site.key}
@@ -173,8 +190,8 @@ const SelectSiteScreen = () => {
                 router.push({
                   pathname: '/home/screens/Resorts/PropertyDetails',
                   params: { 
-                    areaKey: site.key,  // ✅ Pass areaKey
-                    districtKey: districtKey  // ✅ Pass districtKey
+                    areaKey: site.key,
+                    districtKey: districtKey
                   },
                 })
               }

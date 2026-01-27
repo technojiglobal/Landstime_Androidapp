@@ -1,6 +1,6 @@
 // Frontend/app/home/screens/Sites/SelectSite.jsx
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -42,7 +42,7 @@ const itemWidth = width * 0.9;
 const SelectSiteScreen = () => {
   const router = useRouter();
   const { t } = useTranslation();
-  const { districtKey } = useLocalSearchParams();
+  const { districtKey, voiceText } = useLocalSearchParams(); // ✅ Get districtKey AND voiceText
   const [searchQuery, setSearchQuery] = useState('');
   const [contentHeight, setContentHeight] = useState(1);
   const [scrollViewHeight, setScrollViewHeight] = useState(0);
@@ -50,10 +50,23 @@ const SelectSiteScreen = () => {
   const scrollViewRef = useRef(null);
   const scrollPositionOnDragStart = useRef(0);
 
-  // ✅ Filter using translated names
+  // ✅ NEW: Handle voice text when returned from Voice screen
+  useEffect(() => {
+    if (voiceText) {
+      console.log('Received voice text:', voiceText);
+      setSearchQuery(voiceText);
+    }
+  }, [voiceText]);
+
+  // ✅ Filter sites based on search
   const filteredData = sitesData.filter((site) => {
     const translatedName = t(`areas.${site.key}`);
-    return translatedName.toLowerCase().includes(searchQuery.toLowerCase());
+    // Extract only area name from search (remove "properties", "sites", "plots", etc.)
+    const cleanQuery = searchQuery
+      .toLowerCase()
+      .replace(/properties|sites|plots|area|in/gi, '')
+      .trim();
+    return translatedName.toLowerCase().includes(cleanQuery);
   });
 
   const scrollIndicatorHeight =
@@ -124,7 +137,18 @@ const SelectSiteScreen = () => {
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
-            <TouchableOpacity className="p-2">
+            {/* ✅ UPDATED: MIC - Pass returnScreen and districtKey */}
+            <TouchableOpacity 
+              className="p-2"
+              onPress={() => router.push({
+                pathname: '/home/screens/Flats/Voice',
+                params: { 
+                  returnScreen: '/home/screens/Sites/SelectSite',
+                  districtKey: districtKey,
+                  searchType: 'area'
+                }
+              })}
+            >
               <Mic color="#888" size={20} />
             </TouchableOpacity>
             <View className="w-px h-6 bg-gray-300 mx-2" />

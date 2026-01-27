@@ -47,6 +47,14 @@ export default function PropertyListScreen() {
   const [savedStates, setSavedStates] = useState({});
   const [reviewSummary, setReviewSummary] = useState({});
 
+  const filteredProperties = properties.filter((property) => {
+    const propertyAreaKey = property.areaKey || '';
+    const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
+    const matchesArea = propertyAreaKey === areaKey;
+    const matchesSearch = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesArea && matchesSearch;
+  });
+
   useEffect(() => {
     fetchProperties();
   }, [areaKey]);
@@ -56,6 +64,14 @@ export default function PropertyListScreen() {
       fetchProperties();
     }
   }, [i18n.language]);
+
+  useEffect(() => {
+    if (filteredProperties.length > 0) {
+      filteredProperties.forEach(property => {
+        fetchReviewForProperty(property._id);
+      });
+    }
+  }, [filteredProperties]);
 
   const fetchProperties = async () => {
     try {
@@ -119,15 +135,7 @@ export default function PropertyListScreen() {
     }
   };
 
-  const filteredProperties = properties.filter((property) => {
-    const propertyAreaKey = property.areaKey || '';
-    const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
 
-    const matchesArea = propertyAreaKey === areaKey;
-    const matchesSearch = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
-
-    return matchesArea && matchesSearch;
-  });
 
   // ✅ Get sub-type for display
   const getSubType = (property) => {
@@ -150,14 +158,7 @@ export default function PropertyListScreen() {
     }
   };
 
-  // ✅ Fetch reviews for all filtered properties
-  useEffect(() => {
-    if (filteredProperties.length > 0) {
-      filteredProperties.forEach(property => {
-        fetchReviewForProperty(property._id);
-      });
-    }
-  }, [filteredProperties]);
+  
 
   const scrollbarHeight = SCREEN_HEIGHT * (SCREEN_HEIGHT / contentHeight) * 0.3;
   const scrollIndicator = Animated.multiply(
