@@ -1,6 +1,7 @@
 // admin/src/components/properties/fields/DocumentUpload.jsx
 import React, { useRef } from 'react';
 import { Upload, X, FileText } from 'lucide-react';
+import { toast } from "react-toastify";
 
 const DocumentUpload = ({ 
   label, 
@@ -16,7 +17,7 @@ const DocumentUpload = ({
     const files = Array.from(e.target.files);
     
     if (documents.length + files.length > maxDocuments) {
-      alert(`Maximum ${maxDocuments} documents allowed`);
+      toast.error(`Maximum ${maxDocuments} documents allowed`);
       return;
     }
 

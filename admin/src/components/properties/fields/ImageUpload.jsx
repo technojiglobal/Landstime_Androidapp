@@ -73,17 +73,19 @@
 
 // export default ImageUpload;
 // admin/src/components/properties/fields/ImageUpload.jsx
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Upload, X } from 'lucide-react';
+import { toast } from "react-toastify";
 
 const ImageUpload = ({ label, images = [], onChange, maxImages = 20, required = false }) => {
   const fileInputRef = useRef(null);
-
+   
+const [showGuidelines, setShowGuidelines] = useState(false); // Add this
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
     
     if (images.length + files.length > maxImages) {
-      alert(`Maximum ${maxImages} images allowed`);
+      toast.error(`Maximum ${maxImages} images allowed`);
       return;
     }
 

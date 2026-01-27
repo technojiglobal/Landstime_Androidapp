@@ -19,12 +19,46 @@ import LocationSection from '../../sections/LocationSection';
 import AvailabilityStatus from '../../sections/AvailabilityStatus';
 import ImageUpload from '../../fields/ImageUpload';
 import PricingSection from '../../sections/PricingSection';
+import DescriptionSection from '../../sections/DescriptionSection';
 
 const RetailForm = ({ formData, updateField,images, setImages }) => {
   const retail = formData.commercialDetails?.retailDetails || {};
 
-const setRetail = (key, value) =>
-  updateField(`commercialDetails.retailDetails.${key}`, value);
+const setRetail = (key, value) => {
+  // Ensure retailDetails exists first
+  if (!formData.commercialDetails?.retailDetails) {
+    updateField('commercialDetails.retailDetails', {});
+  }
+
+  // Handle nested paths (e.g., "vaasthuDetails.mainFacing")
+  if (key.includes('.')) {
+    const parts = key.split('.');
+    const mainKey = parts[0];
+    const subKey = parts.slice(1).join('.');
+    
+    // Ensure the parent object exists
+    const currentValue = formData.commercialDetails?.retailDetails?.[mainKey] || {};
+    
+    // Create updated nested object
+    const updatedNested = { ...currentValue };
+    let current = updatedNested;
+    const pathParts = subKey.split('.');
+    
+    for (let i = 0; i < pathParts.length - 1; i++) {
+      current[pathParts[i]] = current[pathParts[i]] || {};
+      current = current[pathParts[i]];
+    }
+    current[pathParts[pathParts.length - 1]] = value;
+    
+    // Update the main key with the nested structure
+    updateField(`commercialDetails.retailDetails.${mainKey}`, updatedNested);
+  } else {
+    // Simple key update
+    updateField(`commercialDetails.retailDetails.${key}`, value);
+  }
+};
+
+
 
   return (
     <div className="space-y-6 border-t pt-6">
@@ -105,60 +139,60 @@ const setRetail = (key, value) =>
 
      {/* ==================== WASHROOM DETAILS ==================== */}
       <div className="border-t pt-6">
-        <h3 className="text-lg font-semibold text-left mb-4">Washroom details</h3>
-        
-        <div className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              const current = retail.washroomTypes || [];
-              if (current.includes('Private')) {
-                setRetail('washroomTypes', current.filter(t => t !== 'Private'));
-              } else {
-                setRetail('washroomTypes', [...current, 'Private']);
-              }
-            }}
-            className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-              (retail.washroomTypes || []).includes('Private')
-                ? 'bg-white text-gray-700 border-gray-300'
-                : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
-            }`}
-          >
-            + Private washrooms
-          </button>
-          
-          <button
-            type="button"
-            onClick={() => {
-              const current = retail.washroomTypes || [];
-              if (current.includes('Public')) {
-                setRetail('washroomTypes', current.filter(t => t !== 'Public'));
-              } else {
-                setRetail('washroomTypes', [...current, 'Public']);
-              }
-            }}
-            className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-              (retail.washroomTypes|| []).includes('Public')
-                ? 'bg-white text-gray-700 border-gray-300'
-                : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
-            }`}
-          >
-            + Public washrooms
-          </button>
-          
-          <button
-            type="button"
-            onClick={() => setRetail('washroomTypes', [])}
-            className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-              (retail.washroomTypes|| []).length === 0
-                ? 'bg-white text-gray-700 border-gray-300'
-                : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
-            }`}
-          >
-            Not Available
-          </button>
-        </div>
-      </div>
+  <h3 className="text-lg font-semibold text-left mb-4">Washroom details</h3>
+  
+  <div className="flex flex-wrap gap-3">
+    <button
+      type="button"
+      onClick={() => {
+        const current = retail.washroomTypes || [];
+        if (current.includes('Private')) {
+          setRetail('washroomTypes', current.filter(t => t !== 'Private'));
+        } else {
+          setRetail('washroomTypes', [...current, 'Private']);
+        }
+      }}
+      className={`px-4 py-2 rounded-full border text-sm transition-colors ${
+        (retail.washroomTypes || []).includes('Private')
+          ? 'bg-green-500 text-white border-green-500'
+          : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+      }`}
+    >
+      Private washrooms
+    </button>
+    
+    <button
+      type="button"
+      onClick={() => {
+        const current = retail.washroomTypes || [];
+        if (current.includes('Public')) {
+          setRetail('washroomTypes', current.filter(t => t !== 'Public'));
+        } else {
+          setRetail('washroomTypes', [...current, 'Public']);
+        }
+      }}
+      className={`px-4 py-2 rounded-full border text-sm transition-colors ${
+        (retail.washroomTypes || []).includes('Public')
+          ? 'bg-green-500 text-white border-green-500'
+          : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+      }`}
+    >
+      Public washrooms
+    </button>
+    
+    <button
+      type="button"
+      onClick={() => setRetail('washroomTypes', [])}
+      className={`px-4 py-2 rounded-full border text-sm transition-colors ${
+        (retail.washroomTypes || []).length === 0
+          ? 'bg-green-500 text-white border-green-500'
+          : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+      }`}
+    >
+      Not Available
+    </button>
+  </div>
+</div>
 
       {/* ==================== FLOOR DETAILS ==================== */}
       <div className="border-t pt-6">
@@ -207,81 +241,80 @@ value={retail.totalFloors}
       </div> */}
 
     {/* ==================== PARKING TYPE ==================== */}
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-semibold text-left mb-4">Parking Type</h3>
-        
-        <div className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              const current = retail.parkingType || [];
-              if (current.includes('Private Parking')) {
-                setRetail('parkingType', current.filter(t => t !== 'Private Parking'));
-              } else {
-                setRetail('parkingType', [...current, 'Private Parking']);
-              }
-            }}
-            className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-              (retail.parkingType || []).includes('Private Parking')
-                ? 'bg-white text-gray-700 border-gray-300'
-                : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
-            }`}
-          >
-            + Private Parking
-          </button>
-          
-          <button
-            type="button"
-            onClick={() => {
-              const current = retail.parkingType || [];
-              if (current.includes('Public Parking')) {
-                setRetail('parkingType', current.filter(t => t !== 'Public Parking'));
-              } else {
-               setRetail('parkingType', [...current, 'Public Parking']);
-
-              }
-            }}
-            className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-              (retail.parkingType || []).includes('Public Parking')
-                ? 'bg-white text-gray-700 border-gray-300'
-                : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
-            }`}
-          >
-            + Public Parking
-          </button>
-          
-          <button
-            type="button"
-            onClick={() => {
-              const current = retail.parkingType || [];
-              if (current.includes('Multilevel Parking')) {
-                setRetail('parkingType', current.filter(t => t !== 'Multilevel Parking'));
-              } else {
-                setRetail('parkingType', [...current, 'Multilevel Parking']);
-              }
-            }}
-            className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-              (retail.parkingType || []).includes('Multilevel Parking')
-                ? 'bg-white text-gray-700 border-gray-300'
-                : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
-            }`}
-          >
-            + Multilevel Parking
-          </button>
-          
-          <button
-            type="button"
-            onClick={() => setRetail('parkingType', [])}
-            className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-              (retail.parkingType || []).length === 0
-                ? 'bg-white text-gray-700 border-gray-300'
-                : 'bg-white text-gray-500 border-gray-300 hover:border-gray-400'
-            }`}
-          >
-            Not Available
-          </button>
-        </div>
-      </div>
+     <div className="border-t pt-6">
+  <h3 className="text-lg font-semibold text-left mb-4">Parking Type</h3>
+  
+  <div className="flex flex-wrap gap-3">
+    <button
+      type="button"
+      onClick={() => {
+        const current = retail.parkingType || [];
+        if (current.includes('Private Parking')) {
+          setRetail('parkingType', current.filter(t => t !== 'Private Parking'));
+        } else {
+          setRetail('parkingType', [...current, 'Private Parking']);
+        }
+      }}
+      className={`px-4 py-2 rounded-full border text-sm transition-colors ${
+        (retail.parkingType || []).includes('Private Parking')
+          ? 'bg-green-500 text-white border-green-500'
+          : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+      }`}
+    >
+      Private Parking
+    </button>
+    
+    <button
+      type="button"
+      onClick={() => {
+        const current = retail.parkingType || [];
+        if (current.includes('Public Parking')) {
+          setRetail('parkingType', current.filter(t => t !== 'Public Parking'));
+        } else {
+          setRetail('parkingType', [...current, 'Public Parking']);
+        }
+      }}
+      className={`px-4 py-2 rounded-full border text-sm transition-colors ${
+        (retail.parkingType || []).includes('Public Parking')
+          ? 'bg-green-500 text-white border-green-500'
+          : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+      }`}
+    >
+      Public Parking
+    </button>
+    
+    <button
+      type="button"
+      onClick={() => {
+        const current = retail.parkingType || [];
+        if (current.includes('Multilevel Parking')) {
+          setRetail('parkingType', current.filter(t => t !== 'Multilevel Parking'));
+        } else {
+          setRetail('parkingType', [...current, 'Multilevel Parking']);
+        }
+      }}
+      className={`px-4 py-2 rounded-full border text-sm transition-colors ${
+        (retail.parkingType || []).includes('Multilevel Parking')
+          ? 'bg-green-500 text-white border-green-500'
+          : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+      }`}
+    >
+      Multilevel Parking
+    </button>
+    
+    <button
+      type="button"
+      onClick={() => setRetail('parkingType', [])}
+      className={`px-4 py-2 rounded-full border text-sm transition-colors ${
+        (retail.parkingType || []).length === 0
+          ? 'bg-green-500 text-white border-green-500'
+          : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+      }`}
+    >
+      Not Available
+    </button>
+  </div>
+</div>
 
      
       {/* ==================== AVAILABILITY STATUS ==================== */}
@@ -412,15 +445,8 @@ value={retail.totalFloors}
             />
           )}
           
-          <TextAreaField
-            label="Description"
-            name="description"
-            value={retail.description}
-  onChange={(value) => setRetail('description', value)}
-
-            placeholder="Describe your property"
-            rows={4}
-          />
+        
+              <DescriptionSection formData={formData} updateField={updateField} />
         </div>
       </div>
      
@@ -446,12 +472,12 @@ selected={retail.locationAdvantages || []}
         />
       </div>
       {/* ==================== VAASTHU DETAILS ==================== */}
-   <VaasthuDetails 
-  formData={retail}
+ <VaasthuDetails 
+  formData={retail.vaasthuDetails || {}}
   updateField={(key, value) => 
-    updateField(`commercialDetails.retailDetails.vaasthuDetails.${key}`, value)
+    setRetail(`vaasthuDetails.${key}`, value)
   }
-  fields={retailVaasthuFields}  // ✅ Add this
+  fields={retailVaasthuFields}
 />
 
     </div>

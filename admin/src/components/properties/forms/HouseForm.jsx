@@ -184,12 +184,17 @@ const updateVaasthuField = (field, value) => {
           value={formData.houseDetails?.floors || ''}
           onChange={(value) => updateField('houseDetails.floors', value)}
         />
-        <NumberField
-          label="Area(Sqft)"
-          name="area"
-          value={formData.houseDetails?.area || ''}
-          onChange={(value) => updateField('houseDetails.area', value)}
-        />
+        <NumberField 
+  label={
+    <>
+      Area (Sqft) <span className="text-red-500">*</span>
+    </>
+  }
+  name="area"
+  value={formData.houseDetails?.area || ''}
+  onChange={(value) => updateField('houseDetails.area', value)}
+/>
+
         <NumberField
           label="Bedrooms"
           name="bedrooms"
@@ -211,7 +216,7 @@ const updateVaasthuField = (field, value) => {
         onChange={(value) => updateField('houseDetails.balconies', value)}
       />
 
-      <TextAreaField
+      <NumberField
         label="Floor Details"
         name="floorDetails"
         value={formData.houseDetails?.floorDetails || ''}
@@ -298,15 +303,19 @@ const updateVaasthuField = (field, value) => {
         onItemToggle={(items) => updateField('houseDetails.furnishingItems', items)}
       />
 
-      <ParkingSection 
-        formData={formData.houseDetails || {}} 
-        updateField={updateField} 
-      />
+     <ParkingSection 
+  formData={formData.houseDetails || {}}
+  updateField={(field, value) =>
+    updateField(`houseDetails.${field}`, value)
+  }
+/>
       
-      <FacilitiesSection 
-        formData={formData.houseDetails || {}} 
-        updateField={updateField} 
-      />
+     <FacilitiesSection 
+  formData={formData.houseDetails || {}}
+  updateField={(field, value) =>
+    updateField(`houseDetails.${field}`, value)
+  }
+/>
 
       <LocationSection formData={formData} updateField={updateField} />
       <DescriptionSection formData={formData} updateField={updateField} />

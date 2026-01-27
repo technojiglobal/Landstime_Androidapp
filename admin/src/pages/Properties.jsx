@@ -580,35 +580,71 @@ const [filterApprovalStatus, setFilterApprovalStatus] = useState("All");
   setPage(1);
 }, [search, pageSize, filterPropertyType, filterPropertyStatus, filterApprovalStatus]);
 
-  /* ---------- FILTER ---------- */
- const filtered = useMemo(() => {
-  const q = search.toLowerCase();
+//   /* ---------- FILTER ---------- */
+//  const filtered = useMemo(() => {
+//   const q = search.toLowerCase();
   
+//   return properties.filter((p) => {
+//     const matchesSearch = 
+//       p.title.toLowerCase().includes(q) ||
+//       p.location.toLowerCase().includes(q) ||
+//       p.type.toLowerCase().includes(q) ||
+//       p.status.toLowerCase().includes(q) ||
+//       p.subscription.toLowerCase().includes(q) ||
+//       p.owner.toLowerCase().includes(q) ||
+//       p.phone.toLowerCase().includes(q);
+
+//     const matchesPropertyType = 
+//       filterPropertyType === "All" || 
+//       p.type === filterPropertyType;
+
+//     const matchesPropertyStatus = 
+//       filterPropertyStatus === "All" || 
+//       p.propertyStatus === filterPropertyStatus;
+
+//     const matchesApprovalStatus = 
+//       filterApprovalStatus === "All" || 
+//       p.status === filterApprovalStatus;
+
+//     return matchesSearch && matchesPropertyType && matchesPropertyStatus && matchesApprovalStatus;
+//   });
+// }, [properties, search, filterPropertyType, filterPropertyStatus, filterApprovalStatus]);
+const safe = (v) => (v != null && typeof v === "string" ? v.toLowerCase() : "");
+
+const filtered = useMemo(() => {
+  const q = search.toLowerCase();
+
   return properties.filter((p) => {
-    const matchesSearch = 
-      p.title.toLowerCase().includes(q) ||
-      p.location.toLowerCase().includes(q) ||
-      p.type.toLowerCase().includes(q) ||
-      p.status.toLowerCase().includes(q) ||
-      p.subscription.toLowerCase().includes(q) ||
-      p.owner.toLowerCase().includes(q) ||
-      p.phone.toLowerCase().includes(q);
+    const matchesSearch =
+      safe(p.title).includes(q) ||
+      safe(p.location).includes(q) ||
+      safe(p.type).includes(q) ||
+      safe(p.status).includes(q) ||
+      safe(p.subscription).includes(q) ||
+      safe(p.owner).includes(q) ||
+      safe(p.phone).includes(q);
 
-    const matchesPropertyType = 
-      filterPropertyType === "All" || 
-      p.type === filterPropertyType;
+    const matchesPropertyType =
+      filterPropertyType === "All" ||
+      (p.type && p.type.trim() === filterPropertyType);
 
-    const matchesPropertyStatus = 
-      filterPropertyStatus === "All" || 
-      p.propertyStatus === filterPropertyStatus;
+    const matchesPropertyStatus =
+      filterPropertyStatus === "All" ||
+      (p.propertyStatus && p.propertyStatus.trim() === filterPropertyStatus);
 
-    const matchesApprovalStatus = 
-      filterApprovalStatus === "All" || 
-      p.status === filterApprovalStatus;
+    const matchesApprovalStatus =
+      filterApprovalStatus === "All" ||
+      (p.status && p.status.toLowerCase() === filterApprovalStatus.toLowerCase());
 
-    return matchesSearch && matchesPropertyType && matchesPropertyStatus && matchesApprovalStatus;
+    return (
+      matchesSearch &&
+      matchesPropertyType &&
+      matchesPropertyStatus &&
+      matchesApprovalStatus
+    );
   });
 }, [properties, search, filterPropertyType, filterPropertyStatus, filterApprovalStatus]);
+
 
   /* ---------- PAGINATION ---------- */
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
@@ -801,10 +837,10 @@ const [filterApprovalStatus, setFilterApprovalStatus] = useState("All");
   onSubmit={handlePropertySubmit}
 />
     {/* Search + Filters + Page Size */}
-<div className="flex flex-col lg:flex-row lg:items-center gap-4">
+<div className="flex flex-col lg:flex-row lg:items-center gap-2">
   
   {/* LEFT: Search + Filters */}
-  <div className="flex flex-wrap items-center gap-4">
+  <div className="flex flex-wrap items-center gap-2">
     
     {/* 🔍 Search Bar (same width as before) */}
     <div className="relative w-full lg:w-[320px]">
@@ -818,7 +854,7 @@ const [filterApprovalStatus, setFilterApprovalStatus] = useState("All");
     </div>
 
     {/* 🎛 Filters */}
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-wrap items-center gap-1">
       <div className="flex items-center gap-2 text-gray-600">
         <Filter size={18} />
         <span className="text-sm font-medium">Filters:</span>

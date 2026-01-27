@@ -1,4 +1,5 @@
-import {useState,React} from 'react';
+import React, { useState } from 'react';
+
 import LocationSection from '../../sections/LocationSection';
 import NumberField from '../../fields/NumberField';
 import TextField from '../../fields/TextField';
@@ -64,63 +65,45 @@ const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
         required={true}
       /> 
       {/* ==================== ROOM DETAILS ==================== */}
-      <div className="border-t pt-6">
-        <h3 className="font-semibold mb-4">Add Room Details</h3>
-        
-       <NumberField
-  label="No.of Rooms"
-  name="rooms"
-  value={hospitalityData.rooms}
-  onChange={(value) => updateField('commercialDetails.hospitalityDetails.rooms', value)}
-  placeholder="Enter the total no.of rooms"
-/>
+     <div className="grid grid-cols-2 gap-4">
+      <NumberField
+          label="No of Floors"
+          name="noOfFloors"
+          value={formData.houseDetails?.floors || ''}
+          onChange={(value) => updateField('houseDetails.floors', value)}
+        />
+  <NumberField 
+    label={
+      <>
+        Area (Sqft) <span className="text-red-500">*</span>
+      </>
+    }
+    name="area"
+    value={formData.houseDetails?.area || ''}
+    onChange={(value) => updateField('houseDetails.area', value)}
+  />
 
-        <div className="mt-4">
-          <NumberButtonGroup
-  label="No.of Washrooms"
-  name="washroomType"
-  value={hospitalityData.washroomType}
-  onChange={(value) => updateField('commercialDetails.hospitalityDetails.washroomType', value)}
-  options={['None', 'Shared', '1', '2', '3', '4+']}
-/>
-        </div>
+  <NumberField
+    label="Bedrooms"
+    name="bedrooms"
+    value={formData.houseDetails?.bedrooms || ''}
+    onChange={(value) => updateField('houseDetails.bedrooms', value)}
+  />
 
-        <div className="mt-4">
-         <NumberButtonGroup
-  label="Balconies"
-  name="balconies"
-  value={hospitalityData.balconies}
-  onChange={(value) => updateField('commercialDetails.hospitalityDetails.balconies', value)}
-  options={['0', '1', '2', '3', 'More than 3']}
-/>
-        </div>
+  <NumberField
+    label="Bathrooms"
+    name="bathrooms"
+    value={formData.houseDetails?.bathrooms || ''}
+    onChange={(value) => updateField('houseDetails.bathrooms', value)}
+  />
+  <NumberField
+        label="Balconies"
+        name="balconies"
+        value={formData.houseDetails?.balconies || ''}
+        onChange={(value) => updateField('houseDetails.balconies', value)}
+      />
+</div>
 
-        <div className="mt-4">
-          <label className="block text-sm font-medium mb-2">Other rooms (optional)</label>
-          <div className="flex flex-wrap gap-2">
-            {['Pooja Room', 'Study Room', 'Servant Room', 'Other'].map((room) => (
-              <button
-                key={room}
-                type="button"
-                onClick={() => {
-  const current = hospitalityData.otherRooms || [];
-  const updated = current.includes(room)
-    ? current.filter(r => r !== room)
-    : [...current, room];
-  updateField('commercialDetails.hospitalityDetails.otherRooms', updated);
-}}
-className={`... ${
-  (hospitalityData.otherRooms || []).includes(room)
-    ? 'bg-green-500 text-white border-green-500'
-    : '...'
-}`}
-              >
-                + {room}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* ==================== FURNISHING WITH MODAL ==================== */}
      <RadioButtons

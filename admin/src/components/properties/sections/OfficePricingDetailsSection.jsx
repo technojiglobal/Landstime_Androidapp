@@ -112,14 +112,7 @@ const OfficePricingDetailsSection = ({ formData, updateField }) => (
       options={['', 'Commercial', 'Residential', 'Industrial', 'Educational', 'Healthcare']}
     />
 
-    <TextAreaField
-      label="Description"
-      name="description"
-      value={formData.description}
-      onChange={(value) => updateField('description', value)}
-      placeholder="Write here what makes your property unique"
-      rows={4}
-    />
+    
   </div>
 );
 

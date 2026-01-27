@@ -2,6 +2,7 @@
 import { X, FileText, Download, Edit2, Upload, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { translateText } from "../../services/translationService";
+import { toast } from "react-toastify";
 
 import {
   uploadPropertyImages,
@@ -680,10 +681,10 @@ else if (property.type === 'Commercial' && property.raw.commercialDetails?.subTy
       setIsEditing(false);
       
       // ✅ Show success message
-      alert('✅ Property updated successfully!');
+      toast.success('Property updated successfully');
     } catch (error) {
       console.error('❌ Save error:', error);
-      alert('Failed to update property: ' + (error.response?.data?.message || error.message));
+      toast.error(error.response?.data?.message || 'Failed to update property');
     }
   };
   // Helper to get property type specific details
@@ -2619,13 +2620,13 @@ if (raw.commercialDetails?.subType === 'Plot/Land' && raw.commercialDetails?.plo
                         try {
                           const result = await uploadPropertyImages(property.id, files);
                           if (result.success) {
-                            alert('Images uploaded successfully!');
+                            toast.success('Images uploaded successfully');
                             onUpdate(property.id, {}); // Trigger refresh
                           } else {
-                            alert('Failed to upload images: ' + result.message);
+                            toast.error(result.message || 'Failed to upload images');
                           }
                         } catch (error) {
-                          alert('Error uploading images');
+                          toast.error('Error uploading images');
                         }
                       }
                     }}
@@ -2668,13 +2669,13 @@ if (raw.commercialDetails?.subType === 'Plot/Land' && raw.commercialDetails?.plo
                           try {
                             const result = await deletePropertyImage(property.id, idx);  // ✅ FIXED: Pass index directly
                               if (result.success) {
-                                alert('Image deleted successfully!');
+                                toast.success('Image deleted successfully');
                                 onUpdate(property.id, {}); // Trigger refresh
                               } else {
-                                alert('Failed to delete image: ' + result.message);
+                                toast.error(result.message || 'Failed to delete image');
                               }
                             } catch (error) {
-                              alert('Error deleting image');
+                              toast.error('Error deleting image');
                             }
                           }
                         }}
@@ -2707,7 +2708,7 @@ if (raw.commercialDetails?.subType === 'Plot/Land' && raw.commercialDetails?.plo
                     onChange={(e) => {
                       const files = Array.from(e.target.files);
                       console.log('New documents selected:', files);
-                      alert('Document upload feature - to be implemented with backend API');
+                      toast.info('Document upload feature will be available soon');
                     }}
                   />
                 </label>
@@ -2793,13 +2794,13 @@ if (raw.commercialDetails?.subType === 'Plot/Land' && raw.commercialDetails?.plo
         try {
           const result = await deletePropertyDocument(property.id, idx, 'ownership');
           if (result.success) {
-            alert('Document deleted successfully!');
+            toast.success('Document deleted successfully');
             onUpdate(property.id, {});
           } else {
-            alert('Failed to delete document: ' + result.message);
+            toast.error(result.message || 'Failed to delete document');
           }
         } catch (error) {
-          alert('Error deleting document');
+          toast.error('Error deleting document');
         }
       }
     }}
@@ -2896,13 +2897,13 @@ if (raw.commercialDetails?.subType === 'Plot/Land' && raw.commercialDetails?.plo
                     try {
                       const result = await deletePropertyDocument(property.id, idx, 'identity');
                       if (result.success) {
-                        alert('Document deleted successfully!');
+                         toast.success('Document deleted successfully');
                         onUpdate(property.id, {});
                       } else {
-                        alert('Failed to delete document: ' + result.message);
+                         toast.error(result.message || 'Failed to delete document');
                       }
                     } catch (error) {
-                      alert('Error deleting document');
+                      toast.error('Error deleting document');
                     }
                   }
                 }}

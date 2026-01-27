@@ -3,7 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AdminLogin from "../pages/AdminLogin";
 import UnifiedProtectedRoute from "../routes/UnifiedProtectedRoute";
 import DynamicLayout from "../layouts/DynamicLayout";
-
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 // Admin Dashboard
 import Dashboard from "../pages/Dashboard";
 
@@ -37,6 +38,9 @@ const DashboardWrapper = () => {
 const App = () => {
   return (
     <BrowserRouter>
+        {/* Toast system for the whole app */}
+      <ToastContainer position="top-right" autoClose={3000} />
+
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Navigate to="/login" replace />} />
