@@ -175,27 +175,7 @@ const OfficeForm = ({ formData, updateField, images, setImages }) => {
         />
       </div>
 
-      {/* ==================== LOCATION ADVANTAGES ==================== */}
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-semibold text-left mb-4">Location Advantages</h3>
-        <CheckboxGroup
-          name="locationAdvantages"
-          selected={office.locationAdvantages || []}
-          onChange={(value) => 
-            updateField('commercialDetails.officeDetails.locationAdvantages', value)
-          }
-          options={[
-            'Near Highway',
-            'Close to Airport',
-            'Close to Railway Station',
-            'Close to Metro Station',
-            'Close to School',
-            'Close to Hospital',
-            'Close to Shopping Mall',
-            'In Business District'
-          ]}
-        />
-      </div>
+   
 
       {/* ==================== VAASTHU DETAILS SECTION ==================== */}
       <VaasthuDetails 

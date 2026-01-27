@@ -88,9 +88,9 @@ export const translateToAllLanguages = async (text, sourceLang = 'en') => {
 // Example structure:
 // ✅ NEW CODE (Working)
 export const translatePropertyFields = async (fields, originalLanguage) => {
-  console.log('\n🌐 === TRANSLATION SERVICE STARTED ===');
-  console.log('📝 Original Language:', originalLanguage);
-  console.log('📝 Fields to translate:', Object.keys(fields));
+  // console.log('\n🌐 === TRANSLATION SERVICE STARTED ===');
+  // console.log('📝 Original Language:', originalLanguage);
+  // console.log('📝 Fields to translate:', Object.keys(fields));
   
   const result = {};
   
@@ -108,7 +108,7 @@ export const translatePropertyFields = async (fields, originalLanguage) => {
   }
   
   console.log('\n✅ === TRANSLATION SERVICE COMPLETE ===');
-  console.log('📦 Final result:', JSON.stringify(result, null, 2));
+ // console.log('📦 Final result:', JSON.stringify(result, null, 2));
   
   return result;
 };

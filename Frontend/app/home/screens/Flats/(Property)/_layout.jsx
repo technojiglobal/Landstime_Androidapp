@@ -2,14 +2,16 @@
 
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Slot, useRouter, usePathname,useLocalSearchParams } from "expo-router";
+import { Slot, useRouter, usePathname, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PropertyLayout() {
   const router = useRouter();
   const pathname = usePathname() ?? "";
-   const { propertyId } = useLocalSearchParams(); // ✅ Get propertyId from params
-
+   // ✅ Get propertyId from params
+const params = useLocalSearchParams();
+  const propertyId = params.propertyId;
+  const entityType = params.entityType || 'property'; // ✅ Add these two lines
 
   const tabs = [
     { label: "Overview", route: "/home/screens/Flats/(Property)", params: { propertyId } },
@@ -21,7 +23,13 @@ export default function PropertyLayout() {
   const isReview = pathname.includes("/Review");
   const isWriteReview = pathname.includes("/WriteReview");
   const isOverview = !isReview && !isWriteReview ;
-
+  const handleBack = () => {
+    if (isReview || isWriteReview) {
+      router.replace("/home/screens/Commercial/(Property)");
+    } else {
+      router.back();
+    }
+  };
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       {/* Header */}
@@ -34,7 +42,7 @@ export default function PropertyLayout() {
           marginBottom: 8,
         }}
       >
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={handleBack}>
   <Ionicons name="chevron-back-outline" size={22} color="black" />
 </TouchableOpacity>
 
@@ -69,10 +77,17 @@ export default function PropertyLayout() {
           return (
             <TouchableOpacity
   key={idx}
-  onPress={() => !isActive && router.push({
-    pathname: tab.route,
-    params: tab.params
-  })}
+ onPress={() => {
+  if (!isActive) {
+    router.push({
+      pathname: tab.route,
+      params: { 
+        propertyId,
+        entityType 
+      }
+    });
+  }
+}}
   activeOpacity={0.7}
   style={{
     alignItems: "center",

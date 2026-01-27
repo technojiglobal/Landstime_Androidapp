@@ -34,6 +34,7 @@ import HowTo360Modal from "../HowTo360Modal";
 import PhotoUploadGuide from "../PhotoUploadGuide";
 import DocumentUpload from "components/Documentupload";
 import OwnerDetails from "components/OwnersDetails";
+import LocationSection from 'components/LocationSection';
 
 export default function UploadPropertyScreen() {
   const { t } = useTranslation();
@@ -576,8 +577,8 @@ export default function UploadPropertyScreen() {
             )}
           </View>
 
-          {/* Location */}
-          <View
+        
+          {/* <View
             className="bg-white rounded-lg p-4 mb-4"
             style={{ borderWidth: 1, borderColor: "#0000001A" }}
           >
@@ -607,7 +608,7 @@ export default function UploadPropertyScreen() {
             </View>
           </View>
 
-          {/* Area */}
+      
           <View className="border border-gray-300 rounded-lg bg-white ml-5 mt-5 mr-4 mb-2 p-5">
             <Text className="text-gray-500 font-semibold mb-2 text-left">
               {t('area')} <Text className="text-red-500">*</Text>
@@ -635,7 +636,24 @@ export default function UploadPropertyScreen() {
                 onBlur={() => setFocusedField(null)}
               />
             </View>
-          </View>
+          </View> */}
+
+          {/* Location with Map Picker */}
+<View className="bg-white rounded-lg p-4 mb-4" style={{ borderWidth: 1, borderColor: "#0000001A" }}>
+  <LocationSection
+    location={location}
+    setLocation={setLocation}
+    neighborhood={neighborhood}
+    setNeighborhood={setNeighborhood}
+    focusedField={focusedField}
+    setFocusedField={setFocusedField}
+    onLocationDetails={(details) => {
+      console.log('📍 Full location details:', details);
+      // Store coordinates for upload
+      // setLocationCoordinates(details.coordinates);
+    }}
+  />
+</View>
 
           {/* Area + Length/Breadth */}
           <View

@@ -5,6 +5,8 @@ import { handleOfficeProperty } from './commercial/officeController.js';
 import { handleRetailProperty } from './commercial/retailController.js';
 import { handlePlotProperty } from './commercial/plotController.js';
 import { handleStorageProperty } from './commercial/storageController.js';
+import { handleIndustryProperty } from './commercial/industryController.js';
+import { handleHospitalityProperty } from './commercial/hospitalityController.js';
 // Utility: Convert buffer to base64
 const bufferToBase64 = (buffer, mimetype) => {
   return `data:${mimetype};base64,${buffer.toString('base64')}`;
@@ -325,6 +327,44 @@ if (canonicalSubType === "Storage") {
   
   handleStorageProperty(propertyData, finalData);
 }
+// 🔹 INDUSTRY HANDLING
+if (canonicalSubType === "Industry") {
+  if (!commercialDetails.industryDetails) {
+    commercialDetails.industryDetails = {};
+  }
+  
+  if (!commercialDetails.industryDetails.expectedPrice && propertyData.expectedPrice) {
+    commercialDetails.industryDetails.expectedPrice = propertyData.expectedPrice;
+  }
+  
+  console.log('🔍 [ADMIN] Industry details before controller:', {
+    hasExpectedPrice: !!commercialDetails.industryDetails.expectedPrice,
+    expectedPrice: commercialDetails.industryDetails.expectedPrice,
+    hasVastu: !!commercialDetails.industryDetails.vaasthuDetails,
+    vaastuFields: Object.keys(commercialDetails.industryDetails.vaasthuDetails || {}),
+  });
+  
+  handleIndustryProperty(propertyData, finalData);
+}
+if (canonicalSubType === "Hospitality") {
+  if (!commercialDetails.hospitalityDetails) {
+    commercialDetails.hospitalityDetails = {};
+  }
+  
+  if (!commercialDetails.hospitalityDetails.expectedPrice && propertyData.expectedPrice) {
+    commercialDetails.hospitalityDetails.expectedPrice = propertyData.expectedPrice;
+  }
+  
+  console.log('🔍 [ADMIN] Hospitality details before controller:', {
+    hasExpectedPrice: !!commercialDetails.hospitalityDetails.expectedPrice,
+    expectedPrice: commercialDetails.hospitalityDetails.expectedPrice,
+    hasVaastu: !!commercialDetails.hospitalityDetails.vaasthuDetails,
+    vaastuFields: Object.keys(commercialDetails.hospitalityDetails.vaasthuDetails || {}),
+  });
+  
+  handleHospitalityProperty(propertyData, finalData);
+}
+
   console.log('🏢 [ADMIN] Commercial property:', canonicalSubType);
 }
 

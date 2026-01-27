@@ -1,4 +1,4 @@
-// Backend/controllers/savedPropertiesController.js
+// Backend/UserControllers/savedPropertiesController.js
 import SavedProperty from '../UserModels/SavedProperty.js';
 
 // Save a property or interior

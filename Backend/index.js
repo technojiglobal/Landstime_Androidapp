@@ -21,6 +21,7 @@ import reviewRoutes from "./UserRoutes/ReviewRoutes.js";
 import bannerRoutes from './AdminRoutes/BannerRoutes.js';
 import adminPropertyViewRoutes from './AdminRoutes/PropertyViewRoute.js';
 import userPropertyViewRoutes from './UserRoutes/PropertyViewRoute.js';
+import Config from "./UserRoutes/ConfigRoute.js" // 🔽 ADD
 
 import interiorDesignViewUserRoute from './UserRoutes/InteriorDesignViewRoute.js';
 import interiorDesignViewAdminRoute from './AdminRoutes/InteriorDesignViewRoute.js';
@@ -36,10 +37,12 @@ const __dirname = path.dirname(__filename);
 
 // Middleware
 app.use(cors({
-  origin: true,
-  credentials: true
+  origin: true, // Allows all origins
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // Explicitly allow PATCH
+  allowedHeaders: ['Content-Type', 'Authorization'] // Optional but recommended
 }));
-
+app.options("*", cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
@@ -112,12 +115,7 @@ app.use('/api/user/notifications', userNotificationRoutes); // ✅ NEW
 app.use('/api/banners', bannerRoutes);
 app.use('/api/property-views', userPropertyViewRoutes);
 app.use('/api/admin/property-views', adminPropertyViewRoutes);
-
-// Useer Routes (Interior Design Views)
-app.use('/api/user/interior-design-views', interiorDesignViewUserRoute);
-
-// Admin Routes (Interior Design Views)
-app.use('/api/admin/interior-design-views', interiorDesignViewAdminRoute);
+app.use("/api/config", Config);
 // 🔽 ADD
 
 // 🔽 ADD

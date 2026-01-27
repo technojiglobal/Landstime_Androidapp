@@ -19,6 +19,8 @@ import { useTranslation } from "react-i18next";
 import i18n from "../../../../i18n/index";
 import { saveProperty, unsaveProperty, checkIfSaved } from "../../../../utils/savedPropertiesApi";
 import { Alert } from "react-native";
+import { fetchReviews } from "../../../../utils/reviewApi";
+
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const CARD_WIDTH = 345;
 const CARD_HEIGHT = 298;
@@ -43,6 +45,8 @@ export default function PropertyListScreen() {
   const currentLanguage = i18n.language || 'en';
   const areaName = areaKey ? t(`areas.${areaKey}`) : '';
   const [savedStates, setSavedStates] = useState({});
+  const [reviewSummary, setReviewSummary] = useState({});
+
   useEffect(() => {
     fetchProperties();
   }, [areaKey]);
@@ -76,6 +80,7 @@ export default function PropertyListScreen() {
       setLoading(false);
     }
   };
+
   const checkAllSavedStatuses = async (propertyList) => {
     const savedStatusPromises = propertyList.map(async (property) => {
       const response = await checkIfSaved(property._id, 'property');
@@ -88,6 +93,7 @@ export default function PropertyListScreen() {
     });
     setSavedStates(newSavedStates);
   };
+
   const handleToggleSave = async (propertyId) => {
     const currentState = savedStates[propertyId] || false;
 
@@ -127,6 +133,31 @@ export default function PropertyListScreen() {
   const getSubType = (property) => {
     return property.commercialDetails?.subType || '';
   };
+
+  // ✅ Helper function to fetch reviews for a property
+  const fetchReviewForProperty = async (propertyId) => {
+    try {
+      const res = await fetchReviews('property', propertyId);
+      setReviewSummary(prev => ({
+        ...prev,
+        [propertyId]: {
+          avgRating: res.avgRating || 0,
+          count: res.count || 0
+        }
+      }));
+    } catch (err) {
+      console.error('Failed to fetch reviews:', err);
+    }
+  };
+
+  // ✅ Fetch reviews for all filtered properties
+  useEffect(() => {
+    if (filteredProperties.length > 0) {
+      filteredProperties.forEach(property => {
+        fetchReviewForProperty(property._id);
+      });
+    }
+  }, [filteredProperties]);
 
   const scrollbarHeight = SCREEN_HEIGHT * (SCREEN_HEIGHT / contentHeight) * 0.3;
   const scrollIndicator = Animated.multiply(
@@ -225,16 +256,17 @@ export default function PropertyListScreen() {
                 }}
               >
                 <TouchableOpacity
-  activeOpacity={0.8}
-  onPress={() => router.push({
-    pathname: '/home/screens/Commercial/(Property)',
-    params: { 
-      propertyId: item._id,
-      propertyData: JSON.stringify(item),
-      areaKey: item.areaKey || areaKey
-    }
-  })}
->
+                  activeOpacity={0.8}
+                  onPress={() => router.push({
+                    pathname: '/home/screens/Commercial/(Property)',
+                    params: {
+                      propertyId: item._id,
+                      propertyData: JSON.stringify(item),
+                      areaKey: item.areaKey || areaKey,
+                      entityType: 'property'
+                    }
+                  })}
+                >
                   <Image
                     source={
                       item.images && item.images.length > 0
@@ -271,15 +303,16 @@ export default function PropertyListScreen() {
 
                 <View style={{ paddingHorizontal: 12, paddingTop: 10 }}>
                   <TouchableOpacity
-  activeOpacity={0.6}
-  onPress={() => router.push({
-    pathname: '/home/screens/Commercial/(Property)',
-    params: { 
-      propertyId: item._id,
-      areaKey: item.areaKey || areaKey
-    }
-  })}
->
+                    activeOpacity={0.6}
+                    onPress={() => router.push({
+                      pathname: '/home/screens/Commercial/(Property)',
+                      params: {
+                        propertyId: item._id,
+                        areaKey: item.areaKey || areaKey,
+                        entityType: 'property'
+                      }
+                    })}
+                  >
                     <Text
                       style={{
                         fontFamily: "Poppins-Medium",
@@ -318,26 +351,10 @@ export default function PropertyListScreen() {
                     />
                   </View>
 
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      marginTop: 6,
-                    }}
-                  >
-                    <Image
-                      source={require("../../../../assets/star.png")}
-                      style={{ width: 100, height: 30, resizeMode: "contain" }}
-                    />
-                    <Text
-                      style={{
-                        fontFamily: "Poppins-Regular",
-                        fontSize: 12,
-                        color: "#000",
-                        marginLeft: 6,
-                      }}
-                    >
-                      4.5 (0 reviews)
+                  <View className="flex-row items-center mb-1">
+                    <Ionicons name="star" size={14} color="#FF9500" />
+                    <Text className="text-xs mx-3 text-gray-700 justify-center item-center">
+                      {reviewSummary[item._id]?.avgRating?.toFixed(1) || '0.0'} ({reviewSummary[item._id]?.count || 0} reviews)
                     </Text>
                   </View>
 
