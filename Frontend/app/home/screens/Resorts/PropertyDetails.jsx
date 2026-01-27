@@ -48,6 +48,15 @@ export default function PropertyListScreen() {
   // Get translated area name from areaKey
   const areaName = areaKey ? t(`areas.${areaKey}`) : '';
 
+
+  const filteredProperties = properties.filter((property) => {
+    const propertyAreaKey = property.areaKey || '';
+    const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
+    const matchesArea = propertyAreaKey === areaKey;
+    const matchesSearch = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesArea && matchesSearch;
+  });
+
   // ✅ FETCH REAL PROPERTIES
   useEffect(() => {
     fetchProperties();
@@ -60,6 +69,13 @@ export default function PropertyListScreen() {
     }
   }, [i18n.language]);
   
+  useEffect(() => {
+    if (filteredProperties.length > 0) {
+      filteredProperties.forEach(property => {
+        fetchReviewForProperty(property._id);
+      });
+    }
+  }, [filteredProperties]);
 
   const fetchProperties = async () => {
     try {
@@ -104,13 +120,7 @@ export default function PropertyListScreen() {
       console.error('Failed to fetch reviews:', err);
     }
   };
-  useEffect(() => {
-    if (filteredProperties.length > 0) {
-      filteredProperties.forEach(property => {
-        fetchReviewForProperty(property._id);
-      });
-    }
-  }, [filteredProperties]);
+ 
   const checkAllSavedStatuses = async (propertyList) => {
     const savedStatusPromises = propertyList.map(async (property) => {
       const response = await checkIfSaved(property._id, 'property');
@@ -150,19 +160,7 @@ export default function PropertyListScreen() {
     }
   };
 
-  // ✅ FILTER BY AREA (location)
-  const filteredProperties = properties.filter((property) => {
-    const propertyAreaKey = property.areaKey || '';
-
-    // ✅ Use helper function to extract title
-    const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
-
-    // Match by areaKey (consistent across all languages)
-    const matchesArea = propertyAreaKey === areaKey;
-    const matchesSearch = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
-
-    return matchesArea && matchesSearch;
-  });
+  
 
   const scrollbarHeight = SCREEN_HEIGHT * (SCREEN_HEIGHT / contentHeight) * 0.3;
 

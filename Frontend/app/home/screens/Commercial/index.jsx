@@ -1,7 +1,5 @@
-
-
 // Frontend/app/home/screens/Commercial/index.jsx
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -22,7 +20,7 @@ import {
   MapPin,
   ChevronRight,
 } from "lucide-react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 const districtsData = [
@@ -45,18 +43,41 @@ const ITEM_WIDTH = 339;
 export default function SelectDistrictScreen() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { voiceText } = useLocalSearchParams(); // ✅ NEW: Get voice input
 
   const [searchQuery, setSearchQuery] = useState("");
-
   const [contentHeight, setContentHeight] = useState(1);
   const [scrollViewHeight, setScrollViewHeight] = useState(0);
   const scrollY = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef(null);
   const dragStartY = useRef(0);
-const [reviewSummary, setReviewSummary] = useState({ avgRating: 0, count: 0 });
+
+  // ✅ NEW: Handle voice text when returned from Voice screen
+  useEffect(() => {
+    if (voiceText) {
+      console.log('Received voice text:', voiceText);
+      
+      // ✅ Clean voice input (remove common words)
+      const cleanedVoice = voiceText
+        .toLowerCase()
+        .replace(/district|properties|commercial|in|show me|find/gi, '')
+        .trim();
+      
+      setSearchQuery(cleanedVoice);
+    }
+  }, [voiceText]);
+
+  // ✅ Filter districts based on search query
   const filteredData = districtsData.filter((district) => {
     const translatedName = t(`districts.${district.key}`);
-    return translatedName.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // ✅ Clean search query
+    const cleanQuery = searchQuery
+      .toLowerCase()
+      .replace(/district|properties|commercial|in/gi, '')
+      .trim();
+    
+    return translatedName.toLowerCase().includes(cleanQuery);
   });
 
   const scrollIndicatorHeight =
@@ -132,7 +153,16 @@ const [reviewSummary, setReviewSummary] = useState({ avgRating: 0, count: 0 });
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
-          <TouchableOpacity>
+          {/* ✅ NEW: CLICKABLE MIC ICON */}
+          <TouchableOpacity
+            onPress={() => router.push({
+              pathname: '/home/screens/Flats/Voice',
+              params: { 
+                returnScreen: '/home/screens/Commercial',
+                searchType: 'district'
+              }
+            })}
+          >
             <Mic color="#888" size={20} />
           </TouchableOpacity>
           <View style={styles.divider} />

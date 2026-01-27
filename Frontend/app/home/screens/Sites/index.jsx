@@ -1,6 +1,6 @@
 // Frontend/app/home/screens/Sites/index.jsx
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,7 @@ import {
   MapPin,
   ChevronRight,
 } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 // ✅ Use keys for districts
@@ -45,6 +45,7 @@ const itemWidth = 339;
 const SelectDistrictScreen = () => {
   const router = useRouter();
   const { t } = useTranslation();
+  const { voiceText } = useLocalSearchParams(); // ✅ NEW: Get voice input
   const [searchQuery, setSearchQuery] = useState('');
   const [contentHeight, setContentHeight] = useState(1);
   const [scrollViewHeight, setScrollViewHeight] = useState(0);
@@ -52,10 +53,32 @@ const SelectDistrictScreen = () => {
   const scrollViewRef = useRef(null);
   const scrollPositionOnDragStart = useRef(0);
 
-  // ✅ Filter using translated names
+  // ✅ NEW: Handle voice text when returned from Voice screen
+  useEffect(() => {
+    if (voiceText) {
+      console.log('Received voice text:', voiceText);
+      
+      // ✅ Clean voice input (remove common words)
+      const cleanedVoice = voiceText
+        .toLowerCase()
+        .replace(/district|properties|sites|plots|in|show me|find/gi, '')
+        .trim();
+      
+      setSearchQuery(cleanedVoice);
+    }
+  }, [voiceText]);
+
+  // ✅ Filter districts based on search query
   const filteredData = districtsData.filter((district) => {
     const translatedName = t(`districts.${district.key}`);
-    return translatedName.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // ✅ Clean search query
+    const cleanQuery = searchQuery
+      .toLowerCase()
+      .replace(/district|properties|sites|plots|in/gi, '')
+      .trim();
+    
+    return translatedName.toLowerCase().includes(cleanQuery);
   });
 
   const scrollIndicatorHeight =
@@ -129,7 +152,17 @@ const SelectDistrictScreen = () => {
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
-            <TouchableOpacity className="p-2">
+            {/* ✅ NEW: CLICKABLE MIC ICON */}
+            <TouchableOpacity 
+              className="p-2"
+              onPress={() => router.push({
+                pathname: '/home/screens/Flats/Voice',
+                params: { 
+                  returnScreen: '/home/screens/Sites',
+                  searchType: 'district'
+                }
+              })}
+            >
               <Mic color="#888" size={20} />
             </TouchableOpacity>
             <View className="w-px h-6 bg-gray-300 mx-2" />
