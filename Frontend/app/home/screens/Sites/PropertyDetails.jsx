@@ -43,6 +43,17 @@ export default function PropertyListScreen() {
   const areaName = areaKey ? t(`areas.${areaKey}`) : '';
   const [savedStates, setSavedStates] = useState({});
   const [reviewSummary, setReviewSummary] = useState({});
+
+
+  const filteredProperties = properties.filter((property) => {
+    const propertyAreaKey = property.areaKey || '';
+    const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
+    const matchesArea = propertyAreaKey === areaKey;
+    const matchesSearch = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesArea && matchesSearch;
+  });
+
+
   // ✅ Fetch on mount
   useEffect(() => {
     fetchProperties();
@@ -63,6 +74,8 @@ export default function PropertyListScreen() {
     });
   }
 }, [properties]);
+
+
 
   const fetchProperties = async () => {
     try {
@@ -147,15 +160,7 @@ export default function PropertyListScreen() {
 
 
   // ✅ Filter by areaKey
-  const filteredProperties = properties.filter((property) => {
-    const propertyAreaKey = property.areaKey || '';
-    const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
 
-    const matchesArea = propertyAreaKey === areaKey;
-    const matchesSearch = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
-
-    return matchesArea && matchesSearch;
-  });
   const scrollbarHeight = SCREEN_HEIGHT * (SCREEN_HEIGHT / contentHeight) * 0.3;
   const scrollIndicator = Animated.multiply(
     scrollY,

@@ -1,9 +1,5 @@
-
-
-
-
 // Frontend/app/home/screens/Resorts/index.jsx
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -24,10 +20,10 @@ import {
   MapPin,
   ChevronRight,
 } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-// ✅ NEW: Use keys for districts (matching Flats implementation)
+// ✅ Districts data with keys
 const districtsData = [
   { key: 'anantapur', properties: 1725 },
   { key: 'chittoor', properties: 1850 },
@@ -48,6 +44,7 @@ const itemWidth = 339;
 const SelectDistrictScreen = () => {
   const router = useRouter();
   const { t } = useTranslation();
+  const { voiceText } = useLocalSearchParams(); // ✅ NEW: Get voice input
   const [searchQuery, setSearchQuery] = useState('');
   const [contentHeight, setContentHeight] = useState(1);
   const [scrollViewHeight, setScrollViewHeight] = useState(0);
@@ -55,10 +52,32 @@ const SelectDistrictScreen = () => {
   const scrollViewRef = useRef(null);
   const scrollPositionOnDragStart = useRef(0);
 
-  // ✅ Filter using translated names (matching Flats implementation)
+  // ✅ NEW: Handle voice text when returned from Voice screen
+  useEffect(() => {
+    if (voiceText) {
+      console.log('Received voice text:', voiceText);
+      
+      // ✅ Clean voice input (remove common words)
+      const cleanedVoice = voiceText
+        .toLowerCase()
+        .replace(/district|properties|resorts|in|show me|find/gi, '')
+        .trim();
+      
+      setSearchQuery(cleanedVoice);
+    }
+  }, [voiceText]);
+
+  // ✅ Filter districts based on search query
   const filteredData = districtsData.filter((district) => {
     const translatedName = t(`districts.${district.key}`);
-    return translatedName.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // ✅ Clean search query
+    const cleanQuery = searchQuery
+      .toLowerCase()
+      .replace(/district|properties|resorts|in/gi, '')
+      .trim();
+    
+    return translatedName.toLowerCase().includes(cleanQuery);
   });
 
   const scrollIndicatorHeight =
@@ -132,7 +151,17 @@ const SelectDistrictScreen = () => {
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
-            <TouchableOpacity className="p-2">
+            {/* ✅ NEW: CLICKABLE MIC ICON */}
+            <TouchableOpacity 
+              className="p-2"
+              onPress={() => router.push({
+                pathname: '/home/screens/Flats/Voice',
+                params: { 
+                  returnScreen: '/home/screens/Resorts',
+                  searchType: 'district'
+                }
+              })}
+            >
               <Mic color="#888" size={20} />
             </TouchableOpacity>
             <View className="w-px h-6 bg-gray-300 mx-2" />
@@ -164,14 +193,13 @@ const SelectDistrictScreen = () => {
             </View>
           )}
 
-          {/* ✅ District Items - Pass districtKey */}
           {filteredData.map((district) => (
             <TouchableOpacity
               key={district.key}
               style={[styles.siteItem, { borderLeftColor: '#22C55E', width: itemWidth }]}
               onPress={() => router.push({
                 pathname: '/home/screens/Resorts/SelectSite',
-                params: { districtKey: district.key }  // ✅ Pass key instead of name
+                params: { districtKey: district.key }
               })}
               activeOpacity={0.85}
             >

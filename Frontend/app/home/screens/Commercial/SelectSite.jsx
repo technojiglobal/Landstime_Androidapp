@@ -1,5 +1,5 @@
 //Frontend/app/home/screens/Commercial/SelectSite.jsx
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
   Animated,
   PanResponder,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ChevronLeft,
   Search,
@@ -38,10 +38,9 @@ const { width } = Dimensions.get('window');
 const itemWidth = width * 0.9;
 
 const SelectSiteScreen = () => {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useTranslation();
-  const { districtKey } = useLocalSearchParams();
+  const { districtKey, voiceText } = useLocalSearchParams(); // ✅ Get districtKey AND voiceText
   const districtName = districtKey ? t(`districts.${districtKey}`) : t('districts.visakhapatnam');
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -51,10 +50,23 @@ const SelectSiteScreen = () => {
   const scrollViewRef = useRef(null);
   const scrollPositionOnDragStart = useRef(0);
 
-  // Filter data based on search query
+  // ✅ NEW: Handle voice text when returned from Voice screen
+  useEffect(() => {
+    if (voiceText) {
+      console.log('Received voice text:', voiceText);
+      setSearchQuery(voiceText);
+    }
+  }, [voiceText]);
+
+  // ✅ Filter sites based on search
   const filteredData = sitesData.filter((site) => {
     const translatedName = t(`areas.${site.key}`);
-    return translatedName.toLowerCase().includes(searchQuery.toLowerCase());
+    // Extract only area name from search (remove "properties", "commercial", etc.)
+    const cleanQuery = searchQuery
+      .toLowerCase()
+      .replace(/properties|commercial|shops|office|area|in/gi, '')
+      .trim();
+    return translatedName.toLowerCase().includes(cleanQuery);
   });
 
   const scrollIndicatorHeight =
@@ -107,7 +119,6 @@ const SelectSiteScreen = () => {
             <ChevronLeft color="black" size={25} />
           </TouchableOpacity>
 
-          {/* ✅ Dynamic district name */}
           <Text className="text-2xl font-bold ml-3">
             Select Area from {districtName}
           </Text>
@@ -124,7 +135,18 @@ const SelectSiteScreen = () => {
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
-            <TouchableOpacity className="p-2">
+            {/* ✅ UPDATED: MIC - Pass returnScreen and districtKey */}
+            <TouchableOpacity 
+              className="p-2"
+              onPress={() => router.push({
+                pathname: '/home/screens/Flats/Voice',
+                params: { 
+                  returnScreen: '/home/screens/Commercial/SelectSite',
+                  districtKey: districtKey,
+                  searchType: 'area'
+                }
+              })}
+            >
               <Mic color="#888" size={20} />
             </TouchableOpacity>
             <View className="w-px h-6 bg-gray-300 mx-2" />
@@ -170,6 +192,7 @@ const SelectSiteScreen = () => {
                   },
                 })
               }
+              activeOpacity={0.85}
             >
               <View className="flex-col">
                 <Text className="text-lg font-semibold text-gray-800">

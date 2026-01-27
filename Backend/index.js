@@ -114,6 +114,8 @@ app.use('/api/admin/interior', interiorDesignRoutes);
 app.use('/api/admin/notifications', notificationRoutes); // NEW
 app.use('/api/user/notifications', userNotificationRoutes); // ✅ NEW
 app.use('/api/banners', bannerRoutes);
+app.use('/api/user/interior-design-views', interiorDesignViewUserRoute);
+app.use('/api/admin/interior-design-views', interiorDesignViewAdminRoute);
 app.use('/api/property-views', userPropertyViewRoutes);
 app.use('/api/admin/property-views', adminPropertyViewRoutes);
 app.use("/api/config", Config);

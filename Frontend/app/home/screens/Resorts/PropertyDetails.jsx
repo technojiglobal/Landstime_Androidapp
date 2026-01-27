@@ -50,6 +50,15 @@ export default function PropertyListScreen() {
   // Get translated area name from areaKey
   const areaName = areaKey ? t(`areas.${areaKey}`) : '';
 
+
+  const filteredProperties = properties.filter((property) => {
+    const propertyAreaKey = property.areaKey || '';
+    const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
+    const matchesArea = propertyAreaKey === areaKey;
+    const matchesSearch = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesArea && matchesSearch;
+  });
+
   // ✅ FETCH REAL PROPERTIES
   useEffect(() => {
     fetchProperties();
@@ -61,6 +70,7 @@ export default function PropertyListScreen() {
       fetchProperties();
     }
   }, [i18n.language]);
+  
   
 
   const fetchProperties = async () => {
@@ -154,19 +164,7 @@ export default function PropertyListScreen() {
     }
   };
 
-  // ✅ FILTER BY AREA (location)
-  const filteredProperties = properties.filter((property) => {
-    const propertyAreaKey = property.areaKey || '';
-
-    // ✅ Use helper function to extract title
-    const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
-
-    // Match by areaKey (consistent across all languages)
-    const matchesArea = propertyAreaKey === areaKey;
-    const matchesSearch = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
-
-    return matchesArea && matchesSearch;
-  });
+  
 
   const scrollbarHeight = SCREEN_HEIGHT * (SCREEN_HEIGHT / contentHeight) * 0.3;
 

@@ -1,37 +1,100 @@
-//Voice.jsx (src/components/searchBar/Voice/voice.jsx)
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StatusBar, Animated } from 'react-native';
+// components/SearchBar/Voice/voice.jsx
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, StatusBar, Animated, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, Mic } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useResponsive } from '../../../utils/responsive';
 
 const VoiceScreen = () => {
   const router = useRouter();
   const { scaleWidth, scaleHeight } = useResponsive();
-  const [status, setStatus] = useState('tryAgain'); // 'tryAgain', 'listening', 'didntHear'
-  const [micColor, setMicColor] = useState('#9CA3AF'); // gray initially
-  const scaleAnim = new Animated.Value(1);
+  
+  // ✅ Get parameters from calling screen
+  const { returnScreen, districtKey, searchType } = useLocalSearchParams();
+  
+  const [status, setStatus] = useState('tryAgain');
+  const [micColor, setMicColor] = useState('#9CA3AF');
+  const [recognizedText, setRecognizedText] = useState('');
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const recognitionRef = useRef(null);
 
   useEffect(() => {
-    // After 5 seconds, turn mic green and start listening
-    const greenTimer = setTimeout(() => {
-      setMicColor('#22C55E');
-      setStatus('listening');
-      startPulseAnimation();
-    }, 5000);
+    if (Platform.OS === 'web') {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      
+      if (SpeechRecognition) {
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = false;
+        recognitionRef.current.lang = 'en-IN';
 
-    // After 35 seconds total (5s + 30s), show "Didn't hear that"
-    const didntHearTimer = setTimeout(() => {
-      setStatus('didntHear');
-      stopPulseAnimation();
-    }, 35000);
+        recognitionRef.current.onstart = () => {
+          setStatus('listening');
+          setMicColor('#22C55E');
+          startPulseAnimation();
+        };
 
-    return () => {
-      clearTimeout(greenTimer);
-      clearTimeout(didntHearTimer);
-    };
-  }, []);
+        recognitionRef.current.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          setRecognizedText(transcript);
+          setStatus('processing');
+          stopPulseAnimation();
+          
+          setTimeout(() => {
+            // ✅ Smart routing - go back to calling screen
+            const params = { voiceText: transcript.toLowerCase() };
+            
+            // ✅ Pass districtKey if it exists (for SelectSite screen)
+            if (districtKey) {
+              params.districtKey = districtKey;
+            }
+            
+            router.push({
+              pathname: returnScreen || '/home/screens/Flats/SelectSite',
+              params: params
+            });
+          }, 1000);
+        };
+
+        recognitionRef.current.onend = () => {
+          if (status === 'listening' && !recognizedText) {
+            setStatus('didntHear');
+            setMicColor('#9CA3AF');
+            stopPulseAnimation();
+          }
+        };
+
+        recognitionRef.current.onerror = (event) => {
+          setStatus('didntHear');
+          setMicColor('#9CA3AF');
+          stopPulseAnimation();
+        };
+
+        const startTimer = setTimeout(() => {
+          startListening();
+        }, 2000);
+
+        return () => {
+          clearTimeout(startTimer);
+          if (recognitionRef.current) {
+            recognitionRef.current.stop();
+          }
+        };
+      }
+    }
+  }, [returnScreen, districtKey]);
+
+  const startListening = () => {
+    if (recognitionRef.current && Platform.OS === 'web') {
+      try {
+        setRecognizedText('');
+        recognitionRef.current.start();
+      } catch (error) {
+        setStatus('didntHear');
+      }
+    }
+  };
 
   const startPulseAnimation = () => {
     Animated.loop(
@@ -55,6 +118,47 @@ const VoiceScreen = () => {
     scaleAnim.setValue(1);
   };
 
+  const handleMicPress = () => {
+    if (status === 'didntHear' || status === 'tryAgain') {
+      setStatus('tryAgain');
+      setMicColor('#9CA3AF');
+      startListening();
+    }
+  };
+
+  // ✅ Dynamic examples based on search type
+  const renderExamples = () => {
+    if (searchType === 'district') {
+      return (
+        <>
+          <Text style={{ fontSize: scaleWidth(14), color: '#6B7280', textAlign: 'center', marginBottom: scaleHeight(4) }}>
+            "Visakhapatnam district"
+          </Text>
+          <Text style={{ fontSize: scaleWidth(14), color: '#6B7280', textAlign: 'center', marginBottom: scaleHeight(4) }}>
+            "Properties in Guntur"
+          </Text>
+          <Text style={{ fontSize: scaleWidth(14), color: '#6B7280', textAlign: 'center' }}>
+            "Krishna district"
+          </Text>
+        </>
+      );
+    } else {
+      return (
+        <>
+          <Text style={{ fontSize: scaleWidth(14), color: '#6B7280', textAlign: 'center', marginBottom: scaleHeight(4) }}>
+            "Akkayapalem properties"
+          </Text>
+          <Text style={{ fontSize: scaleWidth(14), color: '#6B7280', textAlign: 'center', marginBottom: scaleHeight(4) }}>
+            "Gajuwaka area"
+          </Text>
+          <Text style={{ fontSize: scaleWidth(14), color: '#6B7280', textAlign: 'center' }}>
+            "Find houses in Kommadi"
+          </Text>
+        </>
+      );
+    }
+  };
+
   const renderContent = () => {
     switch (status) {
       case 'tryAgain':
@@ -63,15 +167,7 @@ const VoiceScreen = () => {
             <Text style={{ fontSize: scaleWidth(20), fontWeight: 'bold', color: '#1F2937', marginBottom: scaleHeight(8) }}>
               Try Saying
             </Text>
-            <Text style={{ fontSize: scaleWidth(14), color: '#6B7280', textAlign: 'center', marginBottom: scaleHeight(4) }}>
-              "Show me Plots in Vizag"
-            </Text>
-            <Text style={{ fontSize: scaleWidth(14), color: '#6B7280', textAlign: 'center', marginBottom: scaleHeight(4) }}>
-              "Flats under 50 lakhs in Madhurawada"
-            </Text>
-            <Text style={{ fontSize: scaleWidth(14), color: '#6B7280', textAlign: 'center' }}>
-              "Find houses for rent near me"
-            </Text>
+            {renderExamples()}
           </View>
         );
 
@@ -81,11 +177,20 @@ const VoiceScreen = () => {
             <Text style={{ fontSize: scaleWidth(20), fontWeight: 'bold', color: '#1F2937', marginBottom: scaleHeight(8) }}>
               Listening...
             </Text>
-            <Text style={{ fontSize: scaleWidth(14), color: '#6B7280', textAlign: 'center', marginBottom: scaleHeight(8) }}>
-              Try Saying
-            </Text>
             <Text style={{ fontSize: scaleWidth(14), color: '#6B7280', textAlign: 'center' }}>
-              "Show me Plots in Vizag"
+              Speak now...
+            </Text>
+          </View>
+        );
+
+      case 'processing':
+        return (
+          <View style={{ alignItems: 'center' }}>
+            <Text style={{ fontSize: scaleWidth(20), fontWeight: 'bold', color: '#22C55E', marginBottom: scaleHeight(8) }}>
+              Got it!
+            </Text>
+            <Text style={{ fontSize: scaleWidth(16), color: '#1F2937', textAlign: 'center', fontWeight: '600' }}>
+              "{recognizedText}"
             </Text>
           </View>
         );
@@ -108,7 +213,6 @@ const VoiceScreen = () => {
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
-      {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: scaleWidth(16), paddingVertical: scaleHeight(12) }}>
         <TouchableOpacity onPress={() => router.back()}>
           <X color="black" size={scaleWidth(24)} />
@@ -120,11 +224,9 @@ const VoiceScreen = () => {
         </View>
       </View>
 
-      {/* Content */}
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: scaleWidth(32) }}>
         {renderContent()}
 
-        {/* Microphone Button */}
         <Animated.View style={{ marginTop: scaleHeight(60), transform: [{ scale: status === 'listening' ? scaleAnim : 1 }] }}>
           <TouchableOpacity
             style={{
@@ -141,6 +243,7 @@ const VoiceScreen = () => {
               elevation: 8,
             }}
             activeOpacity={0.8}
+            onPress={handleMicPress}
           >
             <Mic color="white" size={scaleWidth(40)} />
           </TouchableOpacity>
