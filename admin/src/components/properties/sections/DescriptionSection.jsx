@@ -1,8 +1,3 @@
-//
-//FILE 2: src/admin/components/properties/sections/DescriptionSection.jsx
-// Description + Amenities + Location Advantages
-// ============================================
-
 import React from 'react';
 import TextAreaField from '../fields/TextAreaField';
 import CheckboxGroup from '../fields/CheckboxGroup';
@@ -11,30 +6,47 @@ import {
   LOCATION_ADVANTAGES, 
 } from '../../../constants/propertyConstants';
 
-const DescriptionSection = ({ formData, updateField }) => (
-  <div className="space-y-6 border-t pt-6">
-    <TextAreaField
-      label="Description"
-      name="description"
-      value={formData.description}
-      onChange={(value) => updateField('description', value)}
-      placeholder="Describe your property"
-      rows={4}
-    />
+const DescriptionSection = ({ formData, updateField }) => {
+  const getWordCount = (text = '') =>
+    text.trim().split(/\s+/).filter(Boolean).length;
 
-  
-    {/* ==================== LOCATION ADVANTAGES ==================== */}
-    <div className="border-t pt-6">
-      <h3 className="text-lg font-semibold text-left mb-4">Location Advantages</h3>
-      <CheckboxGroup
-        name="locationAdvantages"
-        selected={formData.locationAdvantages || []}
-        onChange={(value) => updateField('locationAdvantages', value)}
-        options={LOCATION_ADVANTAGES}
-      />
+  const handleDescriptionChange = (value) => {
+    updateField('description', value);
+  };
+
+  const wordCount = getWordCount(formData.description);
+
+  return (
+    <div className="space-y-6 border-t pt-6">
+      <div>
+        <TextAreaField
+          label="Description"
+          name="description"
+          value={formData.description}
+          onChange={handleDescriptionChange}
+          placeholder="Describe your property (min 50 words)"
+          rows={4}
+        />
+
+        {formData.description && wordCount < 50 && (
+          <p className="text-red-500 text-sm mt-1">
+            Description must contain at least 50 words. ({wordCount}/50)
+          </p>
+        )}
+      </div>
+
+      {/* ==================== LOCATION ADVANTAGES ==================== */}
+      <div className="border-t pt-6">
+        <h3 className="text-lg font-semibold text-left mb-4">Location Advantages</h3>
+        <CheckboxGroup
+          name="locationAdvantages"
+          selected={formData.locationAdvantages || []}
+          onChange={(value) => updateField('locationAdvantages', value)}
+          options={LOCATION_ADVANTAGES}
+        />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default DescriptionSection;
-

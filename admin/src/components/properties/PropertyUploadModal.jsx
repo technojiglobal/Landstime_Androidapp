@@ -114,6 +114,7 @@ import ResortForm from "./forms/ResortForm";
 import CommercialForm from "./forms/commercial/CommercialForm";
 import usePropertyForm from "../../hooks/usePropertyForm";
 import usePropertyUpload from "../../hooks/usePropertyUpload";
+import { toast } from 'react-toastify';
 
 const PropertyUploadModal = ({ isOpen, onClose, onSuccess }) => {
   const [propertyType, setPropertyType] = useState("");
@@ -139,25 +140,26 @@ const PropertyUploadModal = ({ isOpen, onClose, onSuccess }) => {
     
     try {
       // Validation
-      if (!propertyType) {
-        alert('Please select property type');
-        return;
-      }
+    if (!propertyType) {
+  toast.error('Please select property type');
+  return;
+}
 
-      if (images.length === 0) {
-        alert('Please add at least one property image');
-        return;
-      }
+if (images.length === 0) {
+  toast.error('Please add at least one property image');
+  return;
+}
 
-      if (ownershipDocs.length === 0) {
-        alert('Please add ownership documents');
-        return;
-      }
+if (ownershipDocs.length === 0) {
+  toast.error('Please add ownership documents');
+  return;
+}
 
-      if (identityDocs.length === 0) {
-        alert('Please add identity documents');
-        return;
-      }
+if (identityDocs.length === 0) {
+  toast.error('Please add identity documents');
+  return;
+}
+
 
       // Prepare form data
       const propertyData = {
@@ -203,7 +205,8 @@ const PropertyUploadModal = ({ isOpen, onClose, onSuccess }) => {
       const result = await uploadProperty(propertyData, files);
 
       console.log('✅ Property uploaded successfully', result);
-      alert('Property uploaded successfully! It will be reviewed by admin.');
+      toast.success('Property uploaded successfully! It will be reviewed by admin.');
+
       
       if (onSuccess) {
         onSuccess(result);
@@ -213,7 +216,8 @@ const PropertyUploadModal = ({ isOpen, onClose, onSuccess }) => {
 
     } catch (err) {
       console.error('❌ Upload failed:', err);
-      alert(err.message || 'Failed to upload property');
+      toast.error(err.message || 'Failed to upload property');
+
     }
   };
 

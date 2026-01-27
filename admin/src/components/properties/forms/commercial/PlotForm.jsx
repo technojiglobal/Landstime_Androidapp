@@ -336,6 +336,7 @@ import VaasthuDetails from '../../sections/VaasthuDetails';
 import { sitePlotVaasthuFields } from '../../../../constants/vastuFields';
 import OfficePricingDetailsSection from '../../sections/OfficePricingDetailsSection';
 import ImageUpload from '../../fields/ImageUpload';
+import DescriptionSection from '../../sections/DescriptionSection';
 
 const PlotForm = ({ formData, updateField, images, setImages }) => {
   // ✅ Helper to access nested plot details
@@ -587,7 +588,7 @@ const PlotForm = ({ formData, updateField, images, setImages }) => {
         updateField={(key, value) => updatePlotField(key, value)} 
       />
 
-     
+       <DescriptionSection formData={formData} updateField={updateField} />
 
       {/* ==================== OTHER FEATURES ==================== */}
       <div className="border-t pt-6">

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Users, ChevronDown, Calendar, Clock, Send, Info } from "lucide-react";
 import { createNotification, getUserStats } from "../../services/notificationService";
+import { toast } from "react-toastify";
 
 const NotificationForm = ({ notification, setNotification, onSuccess }) => {
   const [audience, setAudience] = useState("all");
@@ -75,7 +76,8 @@ const NotificationForm = ({ notification, setNotification, onSuccess }) => {
         onSuccess(response.message);
       }
 
-      alert(`${response.message}\nSent to ${response.recipientCount} users`);
+       toast.success(
+   `${response.message} — Sent to ${response.recipientCount} users`);
     } catch (err) {
       setError(err.message || "Failed to send notification");
       console.error("Notification error:", err);
