@@ -29,12 +29,12 @@ export const handleStorageProperty = (propertyData, finalData) => {
   // ==================== AREA & DIMENSIONS ====================
   const storageAreaValue = Number(storageDetails.plotArea || storageDetails.storageArea || storageDetails.storageArea?.value) || 0;
   const areaUnit = storageDetails.areaUnit || storageDetails.storageArea?.unit || 'sqft';
-  
+
   // Validation: storage area is required
   if (!storageAreaValue || storageAreaValue === 0) {
     console.error('❌ [STORAGE] Storage area is required but missing or zero');
   }
-  
+
   const length = Number(storageDetails.lengthOfPlot || storageDetails.length || storageDetails.dimensions?.length) || 0;
   const breadth = Number(storageDetails.breadthOfPlot || storageDetails.breadth || storageDetails.dimensions?.breadth) || 0;
 
@@ -59,7 +59,7 @@ export const handleStorageProperty = (propertyData, finalData) => {
   // ==================== CONSTRUCTION DETAILS ====================
   const constructionDone = storageDetails.constructionDone || 'No';
   const constructionTypes = [];
-  
+
   if (constructionDone === 'Yes' && storageDetails.constructionType) {
     constructionTypes.push(storageDetails.constructionType);
   }
@@ -72,7 +72,7 @@ export const handleStorageProperty = (propertyData, finalData) => {
   // ==================== AVAILABILITY & AGE ====================
   // Map frontend values to schema enum values
   let availability = storageDetails.availabilityStatus || storageDetails.availability || '';
-  
+
   // Ensure availability matches schema enum: 'Ready' or 'UnderConstruction'
   if (availability === 'Ready to Move' || availability === 'Ready') {
     availability = 'Ready';
@@ -81,9 +81,9 @@ export const handleStorageProperty = (propertyData, finalData) => {
   } else if (!availability) {
     availability = 'Ready'; // Default to Ready if not specified
   }
-  
+
   const ageOfProperty = storageDetails.ageOfProperty || '';
-  
+
   const possession = {
     expectedBy: storageDetails.possessionYear || storageDetails.possession?.expectedBy || storageDetails.possession?.year || ''
   };
@@ -107,23 +107,23 @@ export const handleStorageProperty = (propertyData, finalData) => {
 
   // ==================== PRICING DETAILS ====================
   const expectedPrice = Number(
-    storageDetails.expectedPrice || 
-    propertyData.expectedPrice || 
+    storageDetails.expectedPrice ||
+    propertyData.expectedPrice ||
     0
   );
 
   const priceDetails = {
-    allInclusive: storageDetails.priceDetails?.allInclusive || 
-                   storageDetails.allInclusive || 
-                   false,
-    negotiable: storageDetails.priceDetails?.negotiable || 
-                storageDetails.priceNegotiable ||
-                storageDetails.negotiable || 
-                false,
-    taxExcluded: storageDetails.priceDetails?.taxExcluded || 
-                 storageDetails.taxCharges ||
-                 storageDetails.taxExcluded || 
-                 false
+    allInclusive: storageDetails.priceDetails?.allInclusive ||
+      storageDetails.allInclusive ||
+      false,
+    negotiable: storageDetails.priceDetails?.negotiable ||
+      storageDetails.priceNegotiable ||
+      storageDetails.negotiable ||
+      false,
+    taxExcluded: storageDetails.priceDetails?.taxExcluded ||
+      storageDetails.taxCharges ||
+      storageDetails.taxExcluded ||
+      false
   };
 
   console.log('💰 [STORAGE] Pricing:', {
@@ -135,6 +135,9 @@ export const handleStorageProperty = (propertyData, finalData) => {
   const preLeased = storageDetails.preLeased || 'No';
   const leaseDuration = storageDetails.leaseDuration || '';
   const monthlyRent = Number(storageDetails.monthlyRent) || 0;
+
+  const nocCertified = storageDetails.nocCertified || '';
+  const occupancyCertified = storageDetails.occupancyCertified || '';
 
   console.log('📋 [STORAGE] Lease Details:', {
     preLeased,
@@ -157,26 +160,26 @@ export const handleStorageProperty = (propertyData, finalData) => {
   // ==================== VASTU DETAILS ====================
   // Form sends vaasthuDetails (double 'a'), schema expects vastuDetails (single 'a')
   const vastuDetails = {
-    buildingFacing: storageDetails.vaasthuDetails?.storageBuildingFacing || 
-                    storageDetails.vastuDetails?.buildingFacing || '',
-    entrance: storageDetails.vaasthuDetails?.mainEntranceDirection || 
-              storageDetails.vastuDetails?.entrance || '',
-    storageArea: storageDetails.vaasthuDetails?.storageAreaDirection || 
-                 storageDetails.vastuDetails?.storageArea || '',
-    lightGoods: storageDetails.vaasthuDetails?.lightGoodsDirection || 
-                storageDetails.vastuDetails?.lightGoods || '',
-    loading: storageDetails.vaasthuDetails?.loadingUnloadingDirection || 
-             storageDetails.vastuDetails?.loading || '',
-    office: storageDetails.vaasthuDetails?.officeAreaDirection || 
-            storageDetails.vastuDetails?.office || '',
-    electrical: storageDetails.vaasthuDetails?.electricalDirection || 
-                storageDetails.vastuDetails?.electrical || '',
-    water: storageDetails.vaasthuDetails?.waterSourceDirection || 
-           storageDetails.vastuDetails?.water || '',
-    washroom: storageDetails.vaasthuDetails?.washroomDirection || 
-              storageDetails.vastuDetails?.washroom || '',
-    height: storageDetails.vaasthuDetails?.heightLevel || 
-            storageDetails.vastuDetails?.height || ''
+    buildingFacing: storageDetails.vaasthuDetails?.storageBuildingFacing ||
+      storageDetails.vastuDetails?.buildingFacing || '',
+    entrance: storageDetails.vaasthuDetails?.mainEntranceDirection ||
+      storageDetails.vastuDetails?.entrance || '',
+    storageArea: storageDetails.vaasthuDetails?.storageAreaDirection ||
+      storageDetails.vastuDetails?.storageArea || '',
+    lightGoods: storageDetails.vaasthuDetails?.lightGoodsDirection ||
+      storageDetails.vastuDetails?.lightGoods || '',
+    loading: storageDetails.vaasthuDetails?.loadingUnloadingDirection ||
+      storageDetails.vastuDetails?.loading || '',
+    office: storageDetails.vaasthuDetails?.officeAreaDirection ||
+      storageDetails.vastuDetails?.office || '',
+    electrical: storageDetails.vaasthuDetails?.electricalDirection ||
+      storageDetails.vastuDetails?.electrical || '',
+    water: storageDetails.vaasthuDetails?.waterSourceDirection ||
+      storageDetails.vastuDetails?.water || '',
+    washroom: storageDetails.vaasthuDetails?.washroomDirection ||
+      storageDetails.vastuDetails?.washroom || '',
+    height: storageDetails.vaasthuDetails?.heightLevel ||
+      storageDetails.vastuDetails?.height || ''
   };
 
   console.log('🧭 [STORAGE] Vastu Details (converted from vaasthuDetails to vastuDetails):', vastuDetails);
@@ -229,6 +232,8 @@ export const handleStorageProperty = (propertyData, finalData) => {
     preLeased,
     leaseDuration,
     monthlyRent,
+    nocCertified,
+    occupancyCertified,
 
     // Description
     description,

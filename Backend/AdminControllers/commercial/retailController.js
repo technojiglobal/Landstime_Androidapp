@@ -10,16 +10,16 @@
 //   // ✅ CRITICAL - Set top-level location and area from propertyData
 //   finalData.location = propertyData.location;
 //   finalData.area = propertyData.area;
-  
+
 //   // ✅ CRITICAL FIX - Set top-level expectedPrice (REQUIRED by schema)
 //   const expectedPriceValue = Number(
 //     retailData.expectedPrice || 
 //     commercialDetails.expectedPrice || 
 //     propertyData.expectedPrice
 //   ) || 0;
-  
+
 //   finalData.expectedPrice = expectedPriceValue;
-  
+
 //   console.log('💰 [RETAIL] Expected price set:', {
 //     retailDataPrice: retailData.expectedPrice,
 //     commercialDetailsPrice: commercialDetails.expectedPrice,
@@ -31,10 +31,10 @@
 //   finalData.commercialDetails.retailDetails = {
 //     // ========== LOCATION & AREA ==========
 //     location: retailData.location || propertyData.location,
-    
+
 //     // ✅ CRITICAL FIX - neighborhoodArea from frontend
 //     neighborhoodArea: retailData.neighborhoodArea || propertyData.area,
-    
+
 //     // ✅ Optional locality field
 //     locality: retailData.locality || '',
 
@@ -68,10 +68,10 @@
 //     // ========== AVAILABILITY & AGE ==========
 //     // Frontend stores availability as: "Ready" or "UnderConstruction"
 //     availability: retailData.availability || '',
-    
+
 //     // Frontend stores propertyAge as string: "0-1 years", "1-5 years", etc.
 //     propertyAge: retailData.propertyAge || '',
-    
+
 //     // ========== POSSESSION (For Under Construction) ==========
 //     possession: {
 //       year: retailData.possession?.year || '',
@@ -93,7 +93,7 @@
 
 //     // ✅ FIX: Check multiple locations for expectedPrice
 //     expectedPrice: expectedPriceValue, // Use the value we set above
-    
+
 //     priceDetails: {
 //       allInclusive: Boolean(retailData.priceDetails?.allInclusive),
 //       negotiable: Boolean(retailData.priceDetails?.negotiable),
@@ -103,15 +103,15 @@
 //     // ========== PRE-LEASED DETAILS ==========
 //     // Frontend stores as: "Yes" or "No"
 //     preLeased: retailData.preLeased || '',
-    
+
 //     // Frontend stores leaseDuration as string: "3 Years", etc.
 //     leaseDuration: retailData.leaseDuration || '',
-    
+
 //     monthlyRent: Number(retailData.rentPerMonth) || 0,
 
 //     // ========== PREVIOUS USE & DESCRIPTION ==========
 //     previouslyUsedFor: retailData.previouslyUsedFor || '',
-    
+
 //     description: retailData.description || propertyData.description || '',
 
 //     // ========== AMENITIES & ADVANTAGES ==========
@@ -164,16 +164,16 @@ export const handleRetailProperty = (propertyData, finalData) => {
   // ✅ CRITICAL - Set top-level location and area from propertyData
   finalData.location = propertyData.location;
   finalData.area = propertyData.area;
-  
+
   // ✅ CRITICAL FIX - Set top-level expectedPrice (REQUIRED by schema)
   const expectedPriceValue = Number(
-    retailData.expectedPrice || 
-    commercialDetails.expectedPrice || 
+    retailData.expectedPrice ||
+    commercialDetails.expectedPrice ||
     propertyData.expectedPrice
   ) || 0;
-  
+
   finalData.expectedPrice = expectedPriceValue;
-  
+
   console.log('💰 [RETAIL] Expected price set:', {
     retailDataPrice: retailData.expectedPrice,
     commercialDetailsPrice: commercialDetails.expectedPrice,
@@ -185,10 +185,10 @@ export const handleRetailProperty = (propertyData, finalData) => {
   finalData.commercialDetails.retailDetails = {
     // ========== LOCATION & AREA ==========
     location: retailData.location || propertyData.location,
-    
+
     // ✅ CRITICAL FIX - neighborhoodArea from frontend
     neighborhoodArea: retailData.neighborhoodArea || propertyData.area,
-    
+
     // ✅ Optional locality field
     locality: retailData.locality || '',
 
@@ -225,10 +225,10 @@ export const handleRetailProperty = (propertyData, finalData) => {
     // ========== AVAILABILITY & AGE ==========
     // Frontend stores availability as: "Ready" or "UnderConstruction"
     availability: retailData.availability || '',
-    
+
     // Frontend stores propertyAge as string: "0-1 years", "1-5 years", etc.
     propertyAge: retailData.propertyAge || '',
-    
+
     // ========== POSSESSION (For Under Construction) ==========
     possession: {
       year: retailData.possession?.year || '',
@@ -250,7 +250,7 @@ export const handleRetailProperty = (propertyData, finalData) => {
 
     // ✅ FIX: Check multiple locations for expectedPrice
     expectedPrice: expectedPriceValue, // Use the value we set above
-    
+
     // ✅ NEW - Properly capture price details from frontend
     priceDetails: {
       allInclusive: Boolean(retailData.priceDetails?.allInclusive || retailData.allInclusive),
@@ -261,26 +261,23 @@ export const handleRetailProperty = (propertyData, finalData) => {
     // ========== PRE-LEASED DETAILS ==========
     // Frontend stores as: "Yes" or "No"
     preLeased: retailData.preLeased || '',
-    
+
     // Frontend stores leaseDuration as string: "3 Years", etc.
     leaseDuration: retailData.leaseDuration || '',
-    
+
     // ✅ FIX - Capture both rentPerMonth AND preLeasedAmount
     monthlyRent: Number(retailData.rentPerMonth || retailData.monthlyRent) || 0,
     preLeasedAmount: Number(retailData.preLeasedAmount) || 0,
 
     // ========== PREVIOUS USE & DESCRIPTION ==========
     previouslyUsedFor: retailData.previouslyUsedFor || '',
-    
+
     description: retailData.description || propertyData.description || '',
 
     // ========== AMENITIES & ADVANTAGES ==========
     // Frontend stores as arrays of strings
     amenities: retailData.amenities || [],
     locationAdvantages: retailData.locationAdvantages || [],
-
-    // ✅ NEW - Furnishing Items (if applicable)
-    furnishingItems: retailData.furnishingItems || [],
 
     // ========== VAASTU DETAILS (from retailVaasthuFields constant) ==========
     // ✅ FIXED - Use consistent spelling (vaasthuDetails) throughout
@@ -311,7 +308,6 @@ export const handleRetailProperty = (propertyData, finalData) => {
     expectedPriceInDetails: finalData.commercialDetails.retailDetails.expectedPrice,
     expectedPriceTopLevel: finalData.expectedPrice,
     preLeasedAmount: finalData.commercialDetails.retailDetails.preLeasedAmount,
-    furnishingItems: finalData.commercialDetails.retailDetails.furnishingItems,
     hasVaastu: !!finalData.commercialDetails.retailDetails.vaastuDetails.shopFacing,
     vaastuFirstField: finalData.commercialDetails.retailDetails.vaastuDetails.shopFacing,
     vaastuKeys: Object.keys(finalData.commercialDetails.retailDetails.vaastuDetails || {}),

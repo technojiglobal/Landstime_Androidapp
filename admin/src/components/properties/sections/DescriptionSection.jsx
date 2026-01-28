@@ -42,15 +42,7 @@ const DescriptionSection = ({ formData, updateField, setIsDescriptionValid }) =>
         )}
       </div>
 
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-semibold text-left mb-4">Location Advantages</h3>
-        <CheckboxGroup
-          name="locationAdvantages"
-          selected={formData.locationAdvantages || []}
-          onChange={(value) => updateField('locationAdvantages', value)}
-          options={LOCATION_ADVANTAGES}
-        />
-      </div>
+      
     </div>
   );
 };

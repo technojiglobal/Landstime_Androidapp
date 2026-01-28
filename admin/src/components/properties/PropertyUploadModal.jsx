@@ -290,8 +290,8 @@ const files = {
           <SitePlotForm 
             formData={formData} 
             updateField={updateField}
-             images={houseImages}
-  setImages={setHouseImages}
+              images={sitePlotImages}        // ✅ Change from 'houseImages' to 'sitePlotImages'
+      setImages={setSitePlotImages}
           />
         );
       case "Commercial":
@@ -320,8 +320,8 @@ const files = {
           <ResortForm 
             formData={formData} 
             updateField={updateField}
-            images={images}
-            setImages={setImages}
+           images={resortImages}        // ✅ Change from 'images' to 'resortImages'
+      setImages={setResortImages}
           />
         );
       default:
