@@ -240,26 +240,40 @@ const SitePlotForm = ({ formData, updateField, images, setImages }) => {
       {/* Price and Area Grid */}
       <div className="grid grid-cols-2 gap-4">
         <NumberField
-          label="Area (sqft)"
-          name="area"
-          value={formData.siteDetails?.area || ''}
-          onChange={(value) => updateSiteField('area', value)}
-        />
+  label={
+    <span>
+      Area (sqft) <span className="text-red-500">*</span>
+    </span>
+  }
+  name="area"
+  value={formData.siteDetails?.area || ''}
+  onChange={(value) => updateSiteField('area', value)}
+/>
 
-        <TextField
-          label="Length (optional)"
-          name="length"
-          value={formData.siteDetails?.length || ''}
-          onChange={(value) => updateSiteField('length', value)}
-          placeholder="in ft."
-        />
-        <TextField
-          label="Breadth (optional)"
-          name="breadth"
-          value={formData.siteDetails?.breadth || ''}
-          onChange={(value) => updateSiteField('breadth', value)}
-          placeholder="in ft."
-        />
+
+       <NumberField
+  label={
+    <span>
+      Length <span className="text-red-500">*</span>
+    </span>
+  }
+  name="length"
+  value={formData.siteDetails?.length || ''}
+  onChange={(value) => updateSiteField('length', value)}
+  placeholder="in ft."
+/>
+
+<NumberField
+  label={
+    <span>
+      Breadth <span className="text-red-500">*</span>
+    </span>
+  }
+  name="breadth"
+  value={formData.siteDetails?.breadth || ''}
+  onChange={(value) => updateSiteField('breadth', value)}
+  placeholder="in ft."
+/>
         <TextField
           label="Floors Allowed for Construction"
           name="floorsAllowed"

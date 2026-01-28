@@ -11,7 +11,104 @@ import { handleHospitalityProperty } from './commercial/hospitalityController.js
 const bufferToBase64 = (buffer, mimetype) => {
   return `data:${mimetype};base64,${buffer.toString('base64')}`;
 };
+const parseNestedArrays = (data) => {
+  // Helper to parse stringified arrays/objects
+  const parseStringified = (items) => {
+    while (typeof items === 'string') {
+      try {
+        items = JSON.parse(items);
+      } catch {
+        return [];
+      }
+    }
+    return Array.isArray(items) ? items : [];
+  };
 
+  // Helper to convert object arrays to string arrays
+  const convertObjectsToStrings = (items) => {
+    return items.map(item => {
+      if (typeof item === 'object' && item !== null) {
+        // If it has name and count, format as "Name (count)"
+        if (item.name) {
+          return item.count > 1 ? `${item.name} (${item.count})` : item.name;
+        }
+        // Otherwise, stringify the object
+        return JSON.stringify(item);
+      }
+      return item;
+    });
+  };
+
+  // HOUSE - furnishingItems
+  if (data.houseDetails?.furnishingItems) {
+    const items = parseStringified(data.houseDetails.furnishingItems);
+    data.houseDetails.furnishingItems = convertObjectsToStrings(items);
+    console.log('✅ [HOUSE] Converted furnishingItems:', data.houseDetails.furnishingItems);
+  }
+
+  // COMMERCIAL - Handle all subtypes
+  if (data.commercialDetails) {
+    const commercial = data.commercialDetails;
+
+    // OFFICE
+    if (commercial.officeDetails?.furnishingItems) {
+      const items = parseStringified(commercial.officeDetails.furnishingItems);
+      commercial.officeDetails.furnishingItems = convertObjectsToStrings(items);
+      console.log('✅ [OFFICE] Converted furnishingItems:', commercial.officeDetails.furnishingItems);
+    }
+
+    // RETAIL
+    if (commercial.retailDetails?.furnishingItems) {
+      const items = parseStringified(commercial.retailDetails.furnishingItems);
+      commercial.retailDetails.furnishingItems = convertObjectsToStrings(items);
+      console.log('✅ [RETAIL] Converted furnishingItems:', commercial.retailDetails.furnishingItems);
+    }
+
+    // HOSPITALITY - furnishingDetails
+    if (commercial.hospitalityDetails?.furnishingDetails) {
+      const items = parseStringified(commercial.hospitalityDetails.furnishingDetails);
+      commercial.hospitalityDetails.furnishingDetails = convertObjectsToStrings(items);
+      console.log('✅ [HOSPITALITY] Converted furnishingDetails:', commercial.hospitalityDetails.furnishingDetails);
+    }
+
+    // STORAGE - Any array fields
+    if (commercial.storageDetails?.security) {
+      const items = parseStringified(commercial.storageDetails.security);
+      commercial.storageDetails.security = items.map(item => typeof item === 'object' ? JSON.stringify(item) : item);
+    }
+
+    // INDUSTRY - Any array fields
+    if (commercial.industryDetails?.pricing?.amenities) {
+      const items = parseStringified(commercial.industryDetails.pricing.amenities);
+      commercial.industryDetails.pricing.amenities = items.map(item => typeof item === 'object' ? JSON.stringify(item) : item);
+    }
+
+    // PLOT - Any array fields
+    if (commercial.plotDetails?.amenities) {
+      const items = parseStringified(commercial.plotDetails.amenities);
+      commercial.plotDetails.amenities = items.map(item => typeof item === 'object' ? JSON.stringify(item) : item);
+    }
+  }
+
+  // SITE/PLOT/LAND
+  if (data.siteDetails) {
+    // Handle any array fields that might be objects
+    ['amenities', 'locationAdvantages', 'constructionType', 'approvedBy', 'overlooking'].forEach(field => {
+      if (data.siteDetails[field]) {
+        const items = parseStringified(data.siteDetails[field]);
+        data.siteDetails[field] = items.map(item => typeof item === 'object' ? JSON.stringify(item) : item);
+      }
+    });
+  }
+
+  // RESORT
+  if (data.resortDetails?.locationAdvantages) {
+    const items = parseStringified(data.resortDetails.locationAdvantages);
+    data.resortDetails.locationAdvantages = items.map(item => typeof item === 'object' ? JSON.stringify(item) : item);
+  }
+
+  return data;
+};
 // ✅ ADMIN CREATE PROPERTY - ALL TYPES SUPPORTED
 export const adminCreateProperty = async (req, res) => {
   try {
@@ -34,18 +131,25 @@ export const adminCreateProperty = async (req, res) => {
         error: parseError.message
       });
     }
+
+    // ✅ FIX: Parse furnishingItems if it's a stringified array
+   
+    propertyData = parseNestedArrays(propertyData);
+    // ✅ END OF NEW BLOCK
+
     // 🔧 Normalize property type to match schema enum
-const normalizePropertyType = (type) => {
-  if (!type) return type;
-  const t = type.trim().toLowerCase();
+    const normalizePropertyType = (type) => {
+      if (!type) return type;
+      const t = type.trim().toLowerCase();
 
-  if (t.includes('site') && t.includes('plot')) return 'Site/Plot/Land';
-  if (t.includes('house')) return 'House';
-  if (t.includes('commercial')) return 'Commercial';
-  if (t.includes('resort')) return 'Resort';
+      if (t.includes('site') && t.includes('plot')) return 'Site/Plot/Land';
+      if (t.includes('house')) return 'House';
+      if (t.includes('commercial')) return 'Commercial';
+      if (t.includes('resort')) return 'Resort';
 
-  return type;
-};
+      return type;
+    };
+
 
 const normalizedPropertyType = normalizePropertyType(propertyData.propertyType);
 

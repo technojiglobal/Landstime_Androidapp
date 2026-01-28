@@ -174,11 +174,16 @@ const updateVaasthuField = (field, value) => {
           />
 
           <NumberField
-            label="Land Area (in sqft)"
-            name="landArea"
-            value={formData.resortDetails?.landArea || ''}
-            onChange={(value) => updateResortField('landArea', value)}
-          />
+  label={
+    <span>
+      Land Area (in sqft) <span className="text-red-500">*</span>
+    </span>
+  }
+  name="landArea"
+  value={formData.resortDetails?.landArea || ''}
+  onChange={(value) => updateResortField('landArea', value)}
+/>
+
 
           <NumberField
             label="Floors"
@@ -186,13 +191,16 @@ const updateVaasthuField = (field, value) => {
             value={formData.resortDetails?.floors || ''}
             onChange={(value) => updateResortField('floors', value)}
           />
-
-          <NumberField
-            label="Build Area (in sqft)"
-            name="buildArea"
-            value={formData.resortDetails?.buildArea || ''}
-            onChange={(value) => updateResortField('buildArea', value)}
-          />
+<NumberField
+  label={
+    <span>
+      Build Area (in sqft) <span className="text-red-500">*</span>
+    </span>
+  }
+  name="buildArea"
+  value={formData.resortDetails?.buildArea || ''}
+  onChange={(value) => updateResortField('buildArea', value)}
+/>
         </div>
 
         <div className="border-t pt-6">
