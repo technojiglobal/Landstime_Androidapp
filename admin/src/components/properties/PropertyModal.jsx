@@ -310,35 +310,47 @@ export default function PropertyModal({ property, onClose, onUpdate }) {
         },
       };
       // Add nested structures based on property type
-       if (property.type === 'House' || property.raw.propertyType === 'House') {
-        formattedData.houseDetails = {
-          floors: parseInt(editData['houseDetails.floors']) || 0,
-          area: parseFloat(editData['houseDetails.area']) || 0,
-          bedrooms: parseInt(editData['houseDetails.bedrooms']) || 0,
-          bathrooms: parseInt(editData['houseDetails.bathrooms']) || 0,
-          balconies: parseInt(editData['houseDetails.balconies']) || 0,
-          ageOfProperty: editData['houseDetails.ageOfProperty'] || '',
-          ownership: editData['houseDetails.ownership'] || '',
-          furnishing: editData['houseDetails.furnishing'] || '',
-          availabilityStatus: editData['houseDetails.availabilityStatus'] || '',
-          floorDetails: editData['houseDetails.floorDetails'] || '',
-          possessionBy: editData['houseDetails.possessionBy'] || '',
-          parking: {
-            covered: parseInt(editData['houseDetails.parking.covered']) || 0,
-            open: parseInt(editData['houseDetails.parking.open']) || 0,
-          },
-          // ADD VASTU DETAILS
-          vaasthuDetails: {
-            houseFacing: editData['houseDetails.vaasthuDetails.houseFacing'] || '',
-            masterBedroom: editData['houseDetails.vaasthuDetails.masterBedroom'] || '',
-            childrenBedroom: editData['houseDetails.vaasthuDetails.childrenBedroom'] || '',
-            livingRoom: editData['houseDetails.vaasthuDetails.livingRoom'] || '',
-            kitchenRoom: editData['houseDetails.vaasthuDetails.kitchenRoom'] || '',
-            poojaRoom: editData['houseDetails.vaasthuDetails.poojaRoom'] || '',
-            balcony: editData['houseDetails.vaasthuDetails.balcony'] || '',
-          }
-        };
+      if (property.type === 'House' || property.raw.propertyType === 'House') {
+  formattedData.houseDetails = {
+    floors: parseInt(editData['houseDetails.floors']) || 0,
+    area: parseFloat(editData['houseDetails.area']) || 0,
+    bedrooms: parseInt(editData['houseDetails.bedrooms']) || 0,
+    bathrooms: parseInt(editData['houseDetails.bathrooms']) || 0,
+    balconies: parseInt(editData['houseDetails.balconies']) || 0,
+    ageOfProperty: editData['houseDetails.ageOfProperty'] || '',
+    ownership: editData['houseDetails.ownership'] || '',
+    furnishing: editData['houseDetails.furnishing'] || '',
+    availabilityStatus: editData['houseDetails.availabilityStatus'] || '',
+    floorDetails: editData['houseDetails.floorDetails'] || '',
+    possessionBy: editData['houseDetails.possessionBy'] || '',
+    parking: {
+      covered: parseInt(editData['houseDetails.parking.covered']) || 0,
+      open: parseInt(editData['houseDetails.parking.open']) || 0,
+    },
+    // ✅ FIX: Properly parse furnishingItems if it's a string
+    furnishingItems: (() => {
+      const items = property.raw.houseDetails?.furnishingItems;
+      if (!items) return [];
+      if (typeof items === 'string') {
+        try {
+          return JSON.parse(items);
+        } catch {
+          return [];
+        }
       }
+      return Array.isArray(items) ? items : [];
+    })(),
+    vaasthuDetails: {
+      houseFacing: editData['houseDetails.vaasthuDetails.houseFacing'] || '',
+      masterBedroom: editData['houseDetails.vaasthuDetails.masterBedroom'] || '',
+      childrenBedroom: editData['houseDetails.vaasthuDetails.childrenBedroom'] || '',
+      livingRoom: editData['houseDetails.vaasthuDetails.livingRoom'] || '',
+      kitchenRoom: editData['houseDetails.vaasthuDetails.kitchenRoom'] || '',
+      poojaRoom: editData['houseDetails.vaasthuDetails.poojaRoom'] || '',
+      balcony: editData['houseDetails.vaasthuDetails.balcony'] || '',
+    }
+  };
+}
 
  else if (property.type === 'Site/Plot/Land' || property.raw.propertyType === 'Site/Plot/Land') {
   formattedData.siteDetails = {

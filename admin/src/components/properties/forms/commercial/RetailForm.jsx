@@ -460,17 +460,7 @@ value={retail.totalFloors}
           options={RETAIL_AMENITIES}
         />
       </div>
-      {/* ==================== LOCATION ADVANTAGES ==================== */}
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-semibold text-left mb-4">Location Advantages</h3>
-        <CheckboxGroup
-          name="locationAdvantages"
-selected={retail.locationAdvantages || []}
-  onChange={(value) => setRetail('locationAdvantages', value)}
-
-          options={LOCATION_ADVANTAGES}
-        />
-      </div>
+      
       {/* ==================== VAASTHU DETAILS ==================== */}
  <VaasthuDetails 
   formData={retail.vaasthuDetails || {}}

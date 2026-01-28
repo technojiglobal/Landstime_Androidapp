@@ -144,6 +144,7 @@ import PricingSection from '../sections/PricingSection';
 const HouseForm = ({ formData, updateField, images, setImages }) => {
   const [showFurnishingModal, setShowFurnishingModal] = useState(false);
   const [furnishingModalType, setFurnishingModalType] = useState('');
+  const [isDescriptionValid, setIsDescriptionValid] = useState(false);
 
   
 
@@ -232,9 +233,7 @@ const updateVaasthuField = (field, value) => {
   possessionMonth={formData.houseDetails?.possessionMonth || ''}
   onChange={(v) => updateField('houseDetails.availabilityStatus', v)}
   updateExtra={(field, v) =>
-    field === 'ageOfProperty'
-      ? updateField('houseDetails.ageOfProperty', v[0] || '')
-      : updateField(`houseDetails.${field}`, v)
+    updateField(`houseDetails.${field}`, v)
   }
 />
 
@@ -318,7 +317,7 @@ const updateVaasthuField = (field, value) => {
 />
 
       <LocationSection formData={formData} updateField={updateField} />
-      <DescriptionSection formData={formData} updateField={updateField} />
+      <DescriptionSection formData={formData} updateField={updateField} setIsDescriptionValid={setIsDescriptionValid}/>
       
       <VaasthuDetails
   formData={formData.houseDetails || {}}
