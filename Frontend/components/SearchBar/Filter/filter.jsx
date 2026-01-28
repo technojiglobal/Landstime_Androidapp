@@ -1,3 +1,4 @@
+// Frontend/components/SearchBar/Filter/filter.jsx
 import React, { useState } from 'react';
 import {
   View,
@@ -6,34 +7,108 @@ import {
   ScrollView,
   StatusBar,
   TextInput,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, Search } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import Slider from '@react-native-community/slider';
+import { useTranslation } from 'react-i18next';
 
 const FilterScreen = () => {
   const router = useRouter();
-  const [selectedFilters, setSelectedFilters] = useState([]);
+  const { t } = useTranslation();
+  const { propertyType, currentFilters } = useLocalSearchParams();
+  
+  console.log('🎬 Filter Screen Opened');
+  console.log('📋 Property Type:', propertyType);
+  console.log('🔍 Current Filters:', currentFilters);
+  
+  // Parse existing filters if any
+  const existingFilters = currentFilters ? JSON.parse(currentFilters) : {};
+  console.log('✅ Parsed Existing Filters:', existingFilters);
+  
+  // ✅ FIXED - Initialize with empty/default values only if they were previously set
+  const [selectedFilters, setSelectedFilters] = useState(existingFilters.selected || []);
   const [activeSection, setActiveSection] = useState(null);
-  const [budgetRange, setBudgetRange] = useState([7, 90]);
-  const [isSizeExpanded, setIsSizeExpanded] = useState(false);
-  const [isPossessionExpanded, setIsPossessionExpanded] = useState(null);
-  const [builderSearchQuery, setBuilderSearchQuery] = useState('');
-  const [projectSearchQuery, setProjectSearchQuery] = useState('');
-  const [selectedSizeUnit, setSelectedSizeUnit] = useState('sq.ft');
-  const [sizeRange, setSizeRange] = useState([0, 100]);
+  const [budgetRange, setBudgetRange] = useState(existingFilters.budgetRange || [1, 500]); // ✅ CHANGED to Lakhs
+  
+  // ✅ RESORT-SPECIFIC STATES
+  const [selectedResortType, setSelectedResortType] = useState(existingFilters.resortType || '');
+  const [resortTypeOpen, setResortTypeOpen] = useState(false);
+  const [selectedRooms, setSelectedRooms] = useState(existingFilters.rooms || '');
+  const [selectedFloors, setSelectedFloors] = useState(existingFilters.floors || '');
+  const [landAreaRange, setLandAreaRange] = useState(existingFilters.landAreaRange || [0, 10000]); // ✅ CHANGED to sqft
+  const [buildAreaRange, setBuildAreaRange] = useState(existingFilters.buildAreaRange || [0, 10000]); // ✅ CHANGED to sqft
+  
+  // ✅ MULTI-SELECT FILTERS
+  const [locAdvantages, setLocAdvantages] = useState(existingFilters.locAdvantages || []);
+  const [quickFilters, setQuickFilters] = useState(existingFilters.quickFilters || []);
+  const [facingDirections, setFacingDirections] = useState(existingFilters.facingDirections || []);
+  
+  // ✅ REMOVED - amenities and propertyFeatures (not in resort schema)
 
+  // ✅ RESORT TYPES (from schema)
+  const RESORT_TYPES = [
+    t("beachfront_resort"),
+    t("hill_station_mountain_resort"),
+    t("forest_jungle_retreat"),
+    t("lakefront_resort"),
+    t("desert_resort"),
+    t("eco_resort"),
+    t("island_resort"),
+    t("wellness_spa_resort"),
+    t("luxury_resort"),
+    t("boutique_resort"),
+    t("family_resort"),
+    t("adventure_activity_resort"),
+    t("safari_wildlife_resort"),
+    t("water_park_resort"),
+    t("golf_resort"),
+    t("riverfront_resort"),
+    t("farm_agri_resort"),
+    t("theme_resort"),
+    t("business_conference_resort"),
+    t("eco_lodge_nature_retreat"),
+  ];
+
+  // ✅ LOCATION ADVANTAGES
+  const LOCATION_ADVANTAGES = [
+    { label: t("close_to_metro_station"), value: 'close_to_metro_station' },
+    { label: t("close_to_school"), value: 'close_to_school' },
+    { label: t("close_to_hospital"), value: 'close_to_hospital' },
+    { label: t("close_to_market"), value: 'close_to_market' },
+    { label: t("close_to_railway_station"), value: 'close_to_railway_station' },
+    { label: t("close_to_airport"), value: 'close_to_airport' },
+    { label: t("close_to_mall"), value: 'close_to_mall' },
+    { label: t("close_to_highway"), value: 'close_to_highway' },
+  ];
+
+  // ✅ FACING DIRECTIONS
+  const FACING_DIRECTIONS = [
+    { label: 'North', value: 'North' },
+    { label: 'South', value: 'South' },
+    { label: 'East', value: 'East' },
+    { label: 'West', value: 'West' },
+    { label: 'North-East', value: 'North-East' },
+    { label: 'North-West', value: 'North-West' },
+    { label: 'South-East', value: 'South-East' },
+    { label: 'South-West', value: 'South-West' },
+  ];
+
+  // ✅ QUICK FILTERS
+  const QUICK_FILTERS = [
+    { label: 'Verified Properties', value: 'verified' },
+    { label: 'With Photos', value: 'with_photos' },
+    { label: 'With Videos', value: 'with_videos' },
+  ];
+
+  // ✅ RESORT FILTER CATEGORIES (REMOVED AMENITIES & PROPERTY FEATURES & POSSESSION STATUS)
   const filterCategories = [
     {
       title: 'Quick Filters',
-      options: [
-        { label: 'Verified Properties', value: 'verified' },
-        { label: 'New Launches', value: 'new_launches' },
-        { label: 'Gated Society', value: 'gated_society' },
-        { label: 'Zero Brokerage', value: 'zero_brokerage' },
-        { label: 'With Photos', value: 'with_photos' },
-      ],
+      options: QUICK_FILTERS,
       hasSelectAll: true,
     },
     {
@@ -42,492 +117,480 @@ const FilterScreen = () => {
       isSpecial: true,
     },
     {
-      title: 'Property Type',
-      options: [
-        { label: 'Residential Apartment', value: 'residential_apartment' },
-        { label: 'Residential Land', value: 'residential_land' },
-        { label: 'Independent House/ Villa', value: 'independent_house_villa' },
-        { label: 'Independent / Builder Floor', value: 'independent_builder' },
-        { label: '1 RK / Studio Apartment', value: '1rk_studio_apartment'}
-      ],
-      hasSelectAll: true,
-    },
-    {
-      title: 'BHK',
-      options: [
-        { label: '1 RK/1 BHK', value: '1bhk' },
-        { label: '2 BHK', value: '2bhk' },
-        { label: '3 BHK', value: '3bhk' },
-        { label: '4 BHK', value: '4bhk' },
-        { label: '4+ BHK', value: '4+bhk' },
-      ],
-      hasSelectAll: true,
-    },
-    {
-      title: 'Bathrooms',
-      options: [
-        { label: '1 +', value: '1' },
-        { label: '2 +', value: '2' },
-        { label: '3 +', value: '3' },
-        { label: '4 +', value: '4' },
-        { label: '5 +', value: '5' },
-      ],
-      hasSelectAll: true,
-    },
-    {
-      title: 'Size',
+      title: 'Resort Type',
       options: [],
       isSpecial: true,
     },
     {
-      title: 'Possession Status',
+      title: 'Rooms',
       options: [
-        { 
-          label: 'Ready to Move', 
-          value: 'ready',
-          subOptions: [
-            { label: '0 - 1 Years', value: 'ready_0_1years' },
-            { label: '3 - 6 Years', value: 'ready_3_6years' },
-            { label: '6 - 12 Years', value: 'ready_6_12years' },
-            { label: '10+ Years', value: 'ready_12years' },
-          ]
-        },
-        { 
-          label: 'Under Construction', 
-          value: 'under_construction',
-          subOptions: [
-            { label: 'In 3 months', value: 'uc_3months' },
-            { label: 'In 6 months', value: 'uc_6months' },
-            { label: 'In 2025', value: 'uc_in_2025' },
-            { label: 'In 2030', value: 'uc_in_2030' },
-          ]
-        },
+        { label: 'Any', value: 'any' },
+        { label: '1-5 Rooms', value: '1-5' },
+        { label: '5-10 Rooms', value: '5-10' },
+        { label: '10-20 Rooms', value: '10-20' },
+        { label: '20+ Rooms', value: '20+' },
       ],
-      isDropdown: true,
+      isSingle: true,
     },
     {
-      title: 'New Booking Resale',
+      title: 'Floors',
       options: [
-        { label: 'New Booking', value: 'new_booking' },
-        { label: 'Resale', value: 'resale' },
+        { label: 'Any', value: 'any' },
+        { label: '1 Floor', value: '1' },
+        { label: '2 Floors', value: '2' },
+        { label: '3 Floors', value: '3' },
+        { label: '4+ Floors', value: '4+' },
       ],
+      isSingle: true,
+    },
+    {
+      title: 'Land Area',
+      options: [],
+      isSpecial: true,
+    },
+    {
+      title: 'Build Area',
+      options: [],
+      isSpecial: true,
+    },
+    // ✅ REMOVED - Amenities (not in resort schema)
+    {
+      title: 'Location Advantages',
+      options: LOCATION_ADVANTAGES,
       hasSelectAll: true,
     },
-    {
-      title: 'Amenities & Facilities',
-      options: [
-        { label: 'Parking', value: 'parking' },
-        { label: 'Park', value: 'park' },
-        { label: 'Vaastu Complaint', value: 'vaastu_complaint' },
-        { label: 'Power Backup', value: 'power_backup' },
-        { label: 'Gas Pipeline', value: 'gas_pipeline' },
-        { label: 'Security Personal', value: 'security_personal' },
-        { label: 'Club House', value: 'club_house' },
-        { label: 'Gymnasium', value: 'gymnasium' },
-        { label: 'Swimming Pool', value: 'pool' },
-      ],
-      hasSelectAll: true,
-    },
-    {
-      title: 'Localities',
-      options: [
-        { label: 'Gajuwaka', value: 'gajuwaka' },
-        { label: 'Madhurawada', value: 'madhurawada' },
-        { label: 'Rushikonda', value: 'rushikonda' },
-      ],
-    },
-    {
-      title: 'Builders',
-      options: [
-        { label: 'Ramky Estates', value: 'ramky' },
-        { label: 'My Home Group', value: 'myhome' },
-        { label: 'Aparna Constructions', value: 'aparna' },
-        { label: 'ATS Group', value: 'ats' },
-        { label: 'Mahindra Lifespace', value: 'mahindra' },
-        { label: 'Omaxe Builders', value: 'omaxe' },
-        { label: 'Parsvnath Developers', value: 'parsvnath' },
-        { label: 'Supertech Limited', value: 'supertech' },
-        { label: 'Unitech Group', value: 'unitech' },
-        { label: 'Sobha Limited', value: 'sobha' },
-      ],
-      hasSearch: true,
-    },
-    {
-      title: 'Projects',
-      options: [
-        { label: 'Green Valley', value: 'green_valley' },
-        { label: 'Ocean View', value: 'ocean_view' },
-        { label: 'Sector 28 RWA', value: 'sector_28_rwa' },
-        { label: 'Sector 26 RWA', value: 'sector_26_rwa' },
-        { label: 'Sector 2 RWA', value: 'sector_2_rwa' },
-        { label: 'Sector 50 RWA', value: 'sector_50_rwa' },
-        { label: 'Sector 54 RWA', value: 'sector_54_rwa' },
-        { label: 'Sector 5 RWA', value: 'sector_5_rwa' },
-        { label: 'Sector 8 RWA', value: 'sector_8_rwa' },
-      ],
-      hasSearch: true,
-    },
-    {
-      title: 'Floor Preference',
-      options: [
-        { label: 'Ground Floor', value: 'ground' },
-        { label: 'Low Rise (1-4)', value: 'low_rise' },
-        { label: 'Mid Rise (5-9)', value: 'mid_rise' },
-        { label: 'High Rise (10+)', value: 'high_rise' },
-      ],
-    },
+    // ✅ REMOVED - Property Features (not in resort schema)
     {
       title: 'Facing Direction',
-      options: [
-        { label: 'North', value: 'north' },
-        { label: 'South', value: 'south' },
-        { label: 'East', value: 'east' },
-        { label: 'West', value: 'west' },
-        { label: 'North - West', value: 'north_west' },
-        { label: 'North - East', value: 'north_east' },
-        { label: 'South - East', value: 'south_east' },
-        { label: 'South - West', value: 'south_west' },
-      ],
+      options: FACING_DIRECTIONS,
       hasSelectAll: true,
     },
-    {
-      title: 'Property Features',
-      options: [
-        { label: 'Corner Property', value: 'corner_property' },
-        { label: 'Park Facing', value: 'park_facing' },
-        { label: 'Road Facing', value: 'road_facing' },
-      ],
-      hasSelectAll: true,
-    },
-    {
-      title: 'Photos',
-      options: [{ label: 'With Photos Only', value: 'photos_only' }],
-    },
-    {
-      title: 'Videos',
-      options: [{ label: 'With Videos Only', value: 'videos_only' }],
-    },
-    {
-      title: 'Furnishing Status',
-      options: [
-        { label: 'Fully Furnished', value: 'fully_furnished' },
-        { label: 'Semi Furnished', value: 'semi_furnished' },
-        { label: 'Unfurnished', value: 'unfurnished' },
-      ],
-      hasSelectAll: true,
-    },
-    {
-      title: 'RERA Approved',
-      options: [
-        { label: 'RERA Approved Properties', value: 'rera_approved_properties' },
-        { label: 'RERA Registered Dealers', value: 'rera_registered_dealers' }
-      ],
-      hasSelectAll: true,
-    },
+    // ✅ REMOVED - Possession Status (not in resort schema)
   ];
 
-  const toggleFilter = (value, label) => {
-    const filterObj = { value, label };
-    const exists = selectedFilters.find((f) => f.value === value);
-
-    if (exists) {
-      setSelectedFilters(selectedFilters.filter((f) => f.value !== value));
-    } else {
-      setSelectedFilters([...selectedFilters, filterObj]);
-    }
+  const toggleArrayItem = (setter, array, value) => {
+    const newArray = array.includes(value)
+      ? array.filter((i) => i !== value)
+      : [...array, value];
+    
+    console.log('🔄 Toggle Array Item:', { value, newArray });
+    setter(newArray);
   };
 
   const selectAllInCategory = (categoryTitle) => {
     const category = filterCategories.find((cat) => cat.title === categoryTitle);
     if (!category || !category.options.length) return;
 
+    const stateMap = {
+      'Location Advantages': [locAdvantages, setLocAdvantages],
+      'Facing Direction': [facingDirections, setFacingDirections],
+      'Quick Filters': [quickFilters, setQuickFilters],
+    };
+
+    const [currentState, setter] = stateMap[categoryTitle] || [[], () => {}];
     const allOptionsInCategory = category.options.map(opt => opt.value);
-    const allSelected = allOptionsInCategory.every(val => 
-      selectedFilters.find(f => f.value === val)
-    );
+    const allSelected = allOptionsInCategory.every(val => currentState.includes(val));
 
     if (allSelected) {
-      // Deselect all
-      setSelectedFilters(selectedFilters.filter(f => 
-        !allOptionsInCategory.includes(f.value)
-      ));
+      setter([]);
+      console.log(`❌ Deselected all in ${categoryTitle}`);
     } else {
-      // Select all
-      const newFilters = category.options.filter(opt => 
-        !selectedFilters.find(f => f.value === opt.value)
-      ).map(opt => ({ value: opt.value, label: opt.label }));
-      setSelectedFilters([...selectedFilters, ...newFilters]);
+      setter(allOptionsInCategory);
+      console.log(`✅ Selected all in ${categoryTitle}:`, allOptionsInCategory);
     }
   };
 
-  const removeFilter = (value) => {
-    setSelectedFilters(selectedFilters.filter((f) => f.value !== value));
-  };
-
   const clearAll = () => {
+    console.log('🧹 Clearing all filters');
+    console.log('🔄 Resetting all states to default');
+    
     setSelectedFilters([]);
-    setBudgetRange([7, 90]);
-    setSizeRange([0, 100]);
-    setSelectedSizeUnit('sq.ft');
+    setBudgetRange([1, 500]); // ✅ CHANGED
+    setSelectedResortType('');
+    setSelectedRooms('');
+    setSelectedFloors('');
+    setLandAreaRange([0, 10000]); // ✅ CHANGED
+    setBuildAreaRange([0, 10000]); // ✅ CHANGED
+    setLocAdvantages([]);
+    setQuickFilters([]);
+    setFacingDirections([]);
     setActiveSection(null);
-    setIsSizeExpanded(false);
-    setIsPossessionExpanded(null);
-    setBuilderSearchQuery('');
-    setProjectSearchQuery('');
+    
+    console.log('✅ All filters cleared');
   };
 
   const handleApply = () => {
+    console.log('✅ Applying Filters...');
+    
+    // ✅ FIXED - Only send non-default values
+    const filters = {};
+    
+    // Only add if not default
+    if (budgetRange[0] !== 1 || budgetRange[1] !== 500) {
+      filters.budgetRange = budgetRange;
+    }
+    
+    if (selectedResortType && selectedResortType !== '') {
+      filters.resortType = selectedResortType;
+    }
+    
+    if (selectedRooms && selectedRooms !== '' && selectedRooms !== 'any') {
+      filters.rooms = selectedRooms;
+    }
+    
+    if (selectedFloors && selectedFloors !== '' && selectedFloors !== 'any') {
+      filters.floors = selectedFloors;
+    }
+    
+    if (landAreaRange[0] !== 0 || landAreaRange[1] !== 10000) {
+      filters.landAreaRange = landAreaRange;
+    }
+    
+    if (buildAreaRange[0] !== 0 || buildAreaRange[1] !== 10000) {
+      filters.buildAreaRange = buildAreaRange;
+    }
+    
+    if (locAdvantages.length > 0) {
+      filters.locAdvantages = locAdvantages;
+    }
+    
+    if (quickFilters.length > 0) {
+      filters.quickFilters = quickFilters;
+    }
+    
+    if (facingDirections.length > 0) {
+      filters.facingDirections = facingDirections;
+    }
+
+    console.log('📦 Final Filters Object:', JSON.stringify(filters, null, 2));
+    console.log('📊 Filter Counts:', {
+      totalFilters: Object.keys(filters).length,
+      locAdvantages: locAdvantages.length,
+      quickFilters: quickFilters.length,
+      facingDirections: facingDirections.length,
+    });
+
+    // ✅ Navigate back with filters
     router.back();
+    
+    setTimeout(() => {
+      if (router.canGoBack()) {
+        router.setParams({ appliedFilters: JSON.stringify(filters) });
+        console.log('✅ Filters sent back to PropertyDetails');
+      }
+    }, 100);
   };
 
   const renderRightSection = () => {
-    // Budget Section
+    // ✅ BUDGET SECTION (LAKHS)
     if (activeSection === 'Budget') {
       return (
         <View className="p-4">
           <View className="flex-row items-center justify-between mb-4">
             <Text className="text-base font-semibold text-gray-800">Budget Range</Text>
-            <Text className="text-xs text-gray-500">INR - ₹</Text>
+            <Text className="text-xs text-gray-500">INR - ₹ (Lakhs)</Text>
           </View>
           
           <View className="flex-row items-center justify-between mb-6">
             <View className="bg-green-50 border border-green-500 rounded-full px-5 py-2.5 min-w-[80px] items-center">
-              <Text className="text-sm font-medium text-green-700">{budgetRange[0]} Cr</Text>
+              <Text className="text-sm font-medium text-green-700">{budgetRange[0]}L</Text>
             </View>
             <Text className="text-sm text-gray-600 mx-3">to</Text>
             <View className="bg-green-50 border border-green-500 rounded-full px-5 py-2.5 min-w-[80px] items-center">
-              <Text className="text-sm font-medium text-green-700">{budgetRange[1]} Cr</Text>
+              <Text className="text-sm font-medium text-green-700">{budgetRange[1]}L</Text>
             </View>
           </View>
 
           <View className="mb-2">
             <Slider
               style={{ width: '100%', height: 40 }}
-              minimumValue={0}
-              maximumValue={100}
+              minimumValue={1}
+              maximumValue={500}
               value={budgetRange[0]}
-              onValueChange={(val) => setBudgetRange([Math.round(val), budgetRange[1]])}
+              onValueChange={(val) => {
+                const newRange = [Math.round(val), budgetRange[1]];
+                console.log('💰 Budget Min Changed:', newRange);
+                setBudgetRange(newRange);
+              }}
               minimumTrackTintColor="#22C55E"
               maximumTrackTintColor="#E5E7EB"
               thumbTintColor="#22C55E"
             />
-            <View className="flex-row justify-between px-1">
-              <Text className="text-xs text-gray-400">0</Text>
-              <Text className="text-xs text-gray-400">100</Text>
-            </View>
+            <Slider
+              style={{ width: '100%', height: 40 }}
+              minimumValue={budgetRange[0]}
+              maximumValue={500}
+              value={budgetRange[1]}
+              onValueChange={(val) => {
+                const newRange = [budgetRange[0], Math.round(val)];
+                console.log('💰 Budget Max Changed:', newRange);
+                setBudgetRange(newRange);
+              }}
+              minimumTrackTintColor="#22C55E"
+              maximumTrackTintColor="#E5E7EB"
+              thumbTintColor="#22C55E"
+            />
           </View>
         </View>
       );
     }
 
-    // Size Section with Dropdown
-    if (activeSection === 'Size') {
-      const sizeUnits = [
-        { label: 'sq.ft', value: 'sq.ft' },
-        { label: 'sq.yards', value: 'sqyards' },
-        { label: 'sq.meters', value: 'sqmeters' },
-        { label: 'acres', value: 'acres' },
-        { label: 'marla', value: 'marla' },
-        { label: 'cents', value: 'cents' },
-        { label: 'bigha', value: 'bigha' },
-        { label: 'kottah', value: 'kottah' },
-        { label: 'kanal', value: 'kanal' },
-        { label: 'grounds', value: 'grounds' },
-        { label: 'ares', value: 'ares' },
-        { label: 'biswa', value: 'biswa' },
-        { label: 'guntha', value: 'guntha' },
-        { label: 'aankadam', value: 'aankadam' },
-        { label: 'hectares', value: 'hectares' },
-        { label: 'rood', value: 'rood' },
-        { label: 'chataks', value: 'chataks' },
-        { label: 'Perch', value: 'perch' },
-      ];
+    // ✅ RESORT TYPE SECTION
+    if (activeSection === 'Resort Type') {
+      return (
+        <View className="p-4">
+          <Text className="text-base font-bold text-gray-800 mb-4">Resort Type</Text>
+          
+          <TouchableOpacity 
+            onPress={() => setResortTypeOpen(!resortTypeOpen)}
+            className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 mb-4"
+          >
+            <Text className="text-gray-800">
+              {selectedResortType || 'Select Resort Type'}
+            </Text>
+            <Text className="text-gray-400 text-lg">{resortTypeOpen ? '▲' : '▼'}</Text>
+          </TouchableOpacity>
 
+          {resortTypeOpen && (
+            <Modal visible={resortTypeOpen} transparent animationType="fade">
+              <Pressable
+                style={{
+                  flex: 1,
+                  backgroundColor: "rgba(0,0,0,0.2)",
+                  justifyContent: "center",
+                  padding: 20,
+                }}
+                onPress={() => setResortTypeOpen(false)}
+              >
+                <View style={{ backgroundColor: "white", borderRadius: 10, maxHeight: "70%" }}>
+                  <ScrollView>
+                    <TouchableOpacity
+                      onPress={() => {
+                        console.log('🏨 Resort Type: Any');
+                        setSelectedResortType('');
+                        setResortTypeOpen(false);
+                      }}
+                      style={{
+                        paddingVertical: 14,
+                        paddingHorizontal: 16,
+                        borderBottomWidth: 1,
+                        borderBottomColor: "#F1F5F9",
+                      }}
+                    >
+                      <Text style={{ color: "#374151", fontWeight: selectedResortType === '' ? 'bold' : 'normal' }}>
+                        Any
+                      </Text>
+                    </TouchableOpacity>
+                    {RESORT_TYPES.map((type) => (
+                      <TouchableOpacity
+                        key={type}
+                        onPress={() => {
+                          console.log('🏨 Resort Type Selected:', type);
+                          setSelectedResortType(type);
+                          setResortTypeOpen(false);
+                        }}
+                        style={{
+                          paddingVertical: 14,
+                          paddingHorizontal: 16,
+                          borderBottomWidth: 1,
+                          borderBottomColor: "#F1F5F9",
+                        }}
+                      >
+                        <Text style={{ 
+                          color: "#374151",
+                          fontWeight: selectedResortType === type ? 'bold' : 'normal'
+                        }}>
+                          {type}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              </Pressable>
+            </Modal>
+          )}
+        </View>
+      );
+    }
+
+    // ✅ LAND AREA SECTION (SQFT)
+    if (activeSection === 'Land Area') {
       return (
         <View className="p-4">
           <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-base font-semibold text-gray-800">Size</Text>
-            <TouchableOpacity 
-              className="flex-row items-center"
-              onPress={() => setIsSizeExpanded(!isSizeExpanded)}
-            >
-              <Text className="text-sm text-gray-600 mr-1">{selectedSizeUnit}</Text>
-              <Text className="text-gray-400 text-lg">{isSizeExpanded ? '▲' : '▼'}</Text>
-            </TouchableOpacity>
+            <Text className="text-base font-semibold text-gray-800">Land Area</Text>
+            <Text className="text-xs text-gray-500">Square Feet (sqft)</Text>
           </View>
-
-          {/* Unit Selection Dropdown */}
-          {isSizeExpanded && (
-            <View className="mb-4 bg-gray-50 rounded-lg p-2 max-h-48">
-              <ScrollView>
-                {sizeUnits.map((unit) => (
-                  <TouchableOpacity
-                    key={unit.value}
-                    className="py-2 px-2"
-                    onPress={() => {
-                      setSelectedSizeUnit(unit.label);
-                      setIsSizeExpanded(false);
-                    }}
-                  >
-                    <Text className={`text-sm ${selectedSizeUnit === unit.label ? 'text-green-600 font-semibold' : 'text-gray-600'}`}>
-                      {unit.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
-
-          {/* Size Range Input Fields */}
+          
           <View className="flex-row items-center justify-between mb-6">
             <View className="bg-green-50 border border-green-500 rounded-full px-5 py-2.5 min-w-[80px] items-center">
-              <Text className="text-sm font-medium text-green-700">{sizeRange[0]}</Text>
+              <Text className="text-sm font-medium text-green-700">{landAreaRange[0]}</Text>
             </View>
             <Text className="text-sm text-gray-600 mx-3">to</Text>
             <View className="bg-green-50 border border-green-500 rounded-full px-5 py-2.5 min-w-[80px] items-center">
-              <Text className="text-sm font-medium text-green-700">{sizeRange[1]}</Text>
+              <Text className="text-sm font-medium text-green-700">{landAreaRange[1]}</Text>
             </View>
-            <Text className="text-xs text-gray-500 ml-2">{selectedSizeUnit}</Text>
           </View>
 
-          {/* Size Range Slider */}
           <View className="mb-2">
             <Slider
               style={{ width: '100%', height: 40 }}
               minimumValue={0}
-              maximumValue={100}
-              value={sizeRange[0]}
-              onValueChange={(val) => setSizeRange([Math.round(val), sizeRange[1]])}
+              maximumValue={10000}
+              step={100}
+              value={landAreaRange[0]}
+              onValueChange={(val) => {
+                const newRange = [Math.round(val), landAreaRange[1]];
+                console.log('🌳 Land Area Min:', newRange);
+                setLandAreaRange(newRange);
+              }}
               minimumTrackTintColor="#22C55E"
               maximumTrackTintColor="#E5E7EB"
               thumbTintColor="#22C55E"
             />
-            <View className="flex-row justify-between px-1">
-              <Text className="text-xs text-gray-400">0</Text>
-              <Text className="text-xs text-gray-400">100</Text>
-            </View>
+            <Slider
+              style={{ width: '100%', height: 40 }}
+              minimumValue={landAreaRange[0]}
+              maximumValue={10000}
+              step={100}
+              value={landAreaRange[1]}
+              onValueChange={(val) => {
+                const newRange = [landAreaRange[0], Math.round(val)];
+                console.log('🌳 Land Area Max:', newRange);
+                setLandAreaRange(newRange);
+              }}
+              minimumTrackTintColor="#22C55E"
+              maximumTrackTintColor="#E5E7EB"
+              thumbTintColor="#22C55E"
+            />
           </View>
         </View>
       );
     }
 
-    // Possession Status Section with Nested Dropdowns
-    if (activeSection === 'Possession Status') {
-      const category = filterCategories.find((cat) => cat.title === 'Possession Status');
+    // ✅ BUILD AREA SECTION (SQFT)
+    if (activeSection === 'Build Area') {
       return (
         <View className="p-4">
-          <Text className="text-base font-semibold text-gray-800 mb-3">Possession Status</Text>
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-base font-semibold text-gray-800">Build Area</Text>
+            <Text className="text-xs text-gray-500">Square Feet (sqft)</Text>
+          </View>
           
-          {category.options.map((option) => {
-            const isParentSelected = selectedFilters.find((f) => f.value === option.value);
-            const isExpanded = isPossessionExpanded === option.value;
-            
-            return (
-              <View key={option.value} className="mb-2">
-                <TouchableOpacity
-                  className="flex-row items-center justify-between py-3 border-b border-gray-100"
-                  onPress={() => setIsPossessionExpanded(isExpanded ? null : option.value)}
-                >
-                  <View className="flex-row items-center flex-1">
-                    <TouchableOpacity
-                      onPress={() => toggleFilter(option.value, option.label)}
-                      className="mr-3"
-                    >
-                      <View
-                        className={`w-5 h-5 rounded border-2 justify-center items-center ${
-                          isParentSelected ? 'bg-green-500 border-green-500' : 'border-gray-300'
-                        }`}
-                      >
-                        {isParentSelected && (
-                          <Text className="text-white text-xs font-bold">✓</Text>
-                        )}
-                      </View>
-                    </TouchableOpacity>
-                    <Text className="text-sm text-gray-800">{option.label}</Text>
-                  </View>
-                  <Text className="text-gray-400 text-xl">{isExpanded ? '−' : '+'}</Text>
-                </TouchableOpacity>
-                
-                {isExpanded && option.subOptions && (
-                  <View className="ml-8 mt-2">
-                    {option.subOptions.map((subOption) => {
-                      const isSubSelected = selectedFilters.find((f) => f.value === subOption.value);
-                      return (
-                        <TouchableOpacity
-                          key={subOption.value}
-                          className="flex-row items-center py-2.5"
-                          onPress={() => toggleFilter(subOption.value, subOption.label)}
-                        >
-                          <View
-                            className={`w-4 h-4 rounded border-2 mr-3 justify-center items-center ${
-                              isSubSelected ? 'bg-green-500 border-green-500' : 'border-gray-300'
-                            }`}
-                          >
-                            {isSubSelected && (
-                              <Text className="text-white text-[10px] font-bold">✓</Text>
-                            )}
-                          </View>
-                          <Text className="text-xs text-gray-700">{subOption.label}</Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                )}
-              </View>
-            );
-          })}
+          <View className="flex-row items-center justify-between mb-6">
+            <View className="bg-green-50 border border-green-500 rounded-full px-5 py-2.5 min-w-[80px] items-center">
+              <Text className="text-sm font-medium text-green-700">{buildAreaRange[0]}</Text>
+            </View>
+            <Text className="text-sm text-gray-600 mx-3">to</Text>
+            <View className="bg-green-50 border border-green-500 rounded-full px-5 py-2.5 min-w-[80px] items-center">
+              <Text className="text-sm font-medium text-green-700">{buildAreaRange[1]}</Text>
+            </View>
+          </View>
+
+          <View className="mb-2">
+            <Slider
+              style={{ width: '100%', height: 40 }}
+              minimumValue={0}
+              maximumValue={10000}
+              step={100}
+              value={buildAreaRange[0]}
+              onValueChange={(val) => {
+                const newRange = [Math.round(val), buildAreaRange[1]];
+                console.log('🏗️ Build Area Min:', newRange);
+                setBuildAreaRange(newRange);
+              }}
+              minimumTrackTintColor="#22C55E"
+              maximumTrackTintColor="#E5E7EB"
+              thumbTintColor="#22C55E"
+            />
+            <Slider
+              style={{ width: '100%', height: 40 }}
+              minimumValue={buildAreaRange[0]}
+              maximumValue={10000}
+              step={100}
+              value={buildAreaRange[1]}
+              onValueChange={(val) => {
+                const newRange = [buildAreaRange[0], Math.round(val)];
+                console.log('🏗️ Build Area Max:', newRange);
+                setBuildAreaRange(newRange);
+              }}
+              minimumTrackTintColor="#22C55E"
+              maximumTrackTintColor="#E5E7EB"
+              thumbTintColor="#22C55E"
+            />
+          </View>
         </View>
       );
     }
 
-    // Default rendering for other sections with Select All
+    // ✅ DEFAULT RENDERING FOR OTHER SECTIONS
     const category = filterCategories.find((cat) => cat.title === activeSection);
     if (category && category.options.length > 0) {
-      const allOptionsSelected = category.options.every(opt => 
-        selectedFilters.find(f => f.value === opt.value)
-      );
-
-      // Filter options based on search query for Builders and Projects
-      let filteredOptions = category.options;
-      if (category.hasSearch) {
-        const searchQuery = activeSection === 'Builders' ? builderSearchQuery : projectSearchQuery;
-        filteredOptions = category.options.filter(opt =>
-          opt.label.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      }
-
       return (
         <View className="p-4">
           <Text className="text-base font-bold text-gray-800 mb-4">{activeSection}</Text>
           
-          {/* Search Bar for Builders and Projects */}
-          {category.hasSearch && (
-            <View className="flex-row items-center bg-gray-100 rounded-lg px-3 py-2 mb-4">
-              <Search color="#9CA3AF" size={18} />
-              <TextInput
-                className="flex-1 ml-2 text-sm text-gray-800"
-                placeholder={`Search ${activeSection}`}
-                placeholderTextColor="#9CA3AF"
-                value={activeSection === 'Builders' ? builderSearchQuery : projectSearchQuery}
-                onChangeText={(text) => {
-                  if (activeSection === 'Builders') {
-                    setBuilderSearchQuery(text);
-                  } else {
-                    setProjectSearchQuery(text);
-                  }
-                }}
-              />
-            </View>
-          )}
+          {category.options.map((option) => {
+            // ✅ Single-select categories
+            if (category.isSingle) {
+              const isSelected = 
+                (activeSection === 'Rooms' && selectedRooms === option.value) ||
+                (activeSection === 'Floors' && selectedFloors === option.value);
+              
+              return (
+                <TouchableOpacity
+                  key={option.value}
+                  className="flex-row items-center py-3"
+                  onPress={() => {
+                    if (activeSection === 'Rooms') {
+                      console.log('🛏️ Rooms Selected:', option.value);
+                      setSelectedRooms(option.value === 'any' ? '' : option.value);
+                    } else if (activeSection === 'Floors') {
+                      console.log('🏢 Floors Selected:', option.value);
+                      setSelectedFloors(option.value === 'any' ? '' : option.value);
+                    }
+                  }}
+                >
+                  <View
+                    className={`w-5 h-5 rounded-full border-2 mr-3 justify-center items-center ${
+                      isSelected ? 'bg-green-500 border-green-500' : 'border-gray-300'
+                    }`}
+                  >
+                    {isSelected && (
+                      <View className="w-2 h-2 rounded-full bg-white" />
+                    )}
+                  </View>
+                  <Text className="text-sm text-gray-800">{option.label}</Text>
+                </TouchableOpacity>
+              );
+            }
 
-          {/* Options List */}
-          {filteredOptions.map((option) => {
-            const isSelected = selectedFilters.find((f) => f.value === option.value);
+            // ✅ Multi-select categories
+            const stateMap = {
+              'Location Advantages': locAdvantages,
+              'Facing Direction': facingDirections,
+              'Quick Filters': quickFilters,
+            };
+
+            const setterMap = {
+              'Location Advantages': setLocAdvantages,
+              'Facing Direction': setFacingDirections,
+              'Quick Filters': setQuickFilters,
+            };
+
+            const currentState = stateMap[activeSection] || [];
+            const setter = setterMap[activeSection];
+            const isSelected = currentState.includes(option.value);
+
             return (
               <TouchableOpacity
                 key={option.value}
                 className="flex-row items-center py-3"
-                onPress={() => toggleFilter(option.value, option.label)}
+                onPress={() => {
+                  if (setter) {
+                    toggleArrayItem(setter, currentState, option.value);
+                  }
+                }}
               >
                 <View
                   className={`w-5 h-5 rounded border-2 mr-3 justify-center items-center ${
@@ -542,13 +605,6 @@ const FilterScreen = () => {
               </TouchableOpacity>
             );
           })}
-
-          {/* No Results Message */}
-          {category.hasSearch && filteredOptions.length === 0 && (
-            <Text className="text-sm text-gray-400 text-center py-4">
-              No results found
-            </Text>
-          )}
 
           {category.hasSelectAll && (
             <TouchableOpacity 
@@ -577,42 +633,139 @@ const FilterScreen = () => {
 
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 py-4 border-gray-200">
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => {
+          console.log('❌ Filter Cancelled');
+          router.back();
+        }}>
           <X color="black" size={24} />
         </TouchableOpacity>
         <Text className="text-lg font-bold text-gray-800">
-          Filters ({selectedFilters.length})
+          Filters
         </Text>
         <TouchableOpacity onPress={clearAll}>
           <Text className="text-sm text-green-500 font-semibold">Clear All</Text>
         </TouchableOpacity>
       </View>
-
-      {/* Selected Filters Tags */}
-      {selectedFilters.length > 0 && (
-        <ScrollView
-          horizontal
-          persistentScrollbar={true}
-          className="max-h-16 border-b border-gray-200"
-          contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12, gap: 8 }}
-        >
-          {selectedFilters.map((filter) => (
-            <View
-              key={filter.value}
-              className="flex-row items-center bg-green-50 rounded-full px-3 py-1.5 mr-2 border border-green-500"
-            >
-              <Text className="text-xs text-green-500 mr-1.5 font-medium">{filter.label}</Text>
-              <TouchableOpacity onPress={() => removeFilter(filter.value)}>
-                <X color="#22C55E" size={16} />
-              </TouchableOpacity>
+      
+     {/* ✅ SELECTED FILTERS CHIPS - REAL-TIME DISPLAY (REMOVED AMENITIES & PROPERTY FEATURES) */}
+{(selectedResortType || 
+  selectedRooms !== '' || 
+  selectedFloors !== '' || 
+  (budgetRange[0] !== 1 || budgetRange[1] !== 500) ||
+  (landAreaRange[0] !== 0 || landAreaRange[1] !== 10000) ||
+  (buildAreaRange[0] !== 0 || buildAreaRange[1] !== 10000) ||
+  locAdvantages.length > 0 ||
+  facingDirections.length > 0 ||
+  quickFilters.length > 0) && (
+  <View className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+    <View className="flex-row items-center justify-between mb-2">
+      <Text className="text-xs font-semibold text-gray-600">
+        SELECTED FILTERS
+      </Text>
+      <TouchableOpacity onPress={clearAll}>
+        <Text className="text-xs text-red-500 font-semibold">Clear All</Text>
+      </TouchableOpacity>
+    </View>
+          
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View className="flex-row flex-wrap gap-2">
+              {/* Resort Type */}
+              {selectedResortType && (
+                <View className="flex-row items-center bg-green-500 rounded-full px-3 py-1.5">
+                  <Text className="text-xs text-white mr-2">{selectedResortType}</Text>
+                  <TouchableOpacity onPress={() => setSelectedResortType('')}>
+                    <Text className="text-white text-xs font-bold">✕</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              
+              {/* Rooms */}
+              {selectedRooms && selectedRooms !== '' && (
+                <View className="flex-row items-center bg-green-500 rounded-full px-3 py-1.5">
+                  <Text className="text-xs text-white mr-2">{selectedRooms} Rooms</Text>
+                  <TouchableOpacity onPress={() => setSelectedRooms('')}>
+                    <Text className="text-white text-xs font-bold">✕</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              
+              {/* Floors */}
+              {selectedFloors && selectedFloors !== '' && (
+                <View className="flex-row items-center bg-green-500 rounded-full px-3 py-1.5">
+                  <Text className="text-xs text-white mr-2">{selectedFloors} Floors</Text>
+                  <TouchableOpacity onPress={() => setSelectedFloors('')}>
+                    <Text className="text-white text-xs font-bold">✕</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              
+              {/* Budget */}
+              {(budgetRange[0] !== 1 || budgetRange[1] !== 500) && (
+                <View className="flex-row items-center bg-green-500 rounded-full px-3 py-1.5">
+                  <Text className="text-xs text-white mr-2">₹{budgetRange[0]}-{budgetRange[1]}L</Text>
+                  <TouchableOpacity onPress={() => setBudgetRange([1, 500])}>
+                    <Text className="text-white text-xs font-bold">✕</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              
+              {/* Land Area */}
+              {(landAreaRange[0] !== 0 || landAreaRange[1] !== 10000) && (
+                <View className="flex-row items-center bg-green-500 rounded-full px-3 py-1.5">
+                  <Text className="text-xs text-white mr-2">Land: {landAreaRange[0]}-{landAreaRange[1]} sqft</Text>
+                  <TouchableOpacity onPress={() => setLandAreaRange([0, 10000])}>
+                    <Text className="text-white text-xs font-bold">✕</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              
+              {/* Build Area */}
+              {(buildAreaRange[0] !== 0 || buildAreaRange[1] !== 10000) && (
+                <View className="flex-row items-center bg-green-500 rounded-full px-3 py-1.5">
+                  <Text className="text-xs text-white mr-2">Build: {buildAreaRange[0]}-{buildAreaRange[1]} sqft</Text>
+                  <TouchableOpacity onPress={() => setBuildAreaRange([0, 10000])}>
+                    <Text className="text-white text-xs font-bold">✕</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              
+              {/* Location Advantages */}
+              {locAdvantages.length > 0 && (
+                <View className="flex-row items-center bg-green-500 rounded-full px-3 py-1.5">
+                  <Text className="text-xs text-white mr-2">{locAdvantages.length} Location</Text>
+                  <TouchableOpacity onPress={() => setLocAdvantages([])}>
+                    <Text className="text-white text-xs font-bold">✕</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              
+              {/* Facing Directions */}
+              {facingDirections.length > 0 && (
+                <View className="flex-row items-center bg-green-500 rounded-full px-3 py-1.5">
+                  <Text className="text-xs text-white mr-2">{facingDirections.join(', ')}</Text>
+                  <TouchableOpacity onPress={() => setFacingDirections([])}>
+                    <Text className="text-white text-xs font-bold">✕</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              
+              {/* Quick Filters */}
+              {quickFilters.length > 0 && (
+                <View className="flex-row items-center bg-green-500 rounded-full px-3 py-1.5">
+                  <Text className="text-xs text-white mr-2">{quickFilters.length} Quick</Text>
+                  <TouchableOpacity onPress={() => setQuickFilters([])}>
+                    <Text className="text-white text-xs font-bold">✕</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
-          ))}
-        </ScrollView>
+          </ScrollView>
+        </View>
       )}
 
       {/* Main Content */}
       <View className="flex-1 flex-row">
-        {/* Left Section - 40% width */}
+        {/* Left Section */}
         <ScrollView 
           className="w-[40%] bg-gray-50 border-r border-gray-200"
           persistentScrollbar={true}
@@ -625,7 +778,10 @@ const FilterScreen = () => {
                   ? 'bg-white border-l-green-500'
                   : 'border-l-transparent'
               }`}
-              onPress={() => setActiveSection(category.title)}
+              onPress={() => {
+                console.log('📂 Section Opened:', category.title);
+                setActiveSection(category.title);
+              }}
             >
               <Text
                 className={`text-sm ${
@@ -640,7 +796,7 @@ const FilterScreen = () => {
           ))}
         </ScrollView>
 
-        {/* Right Section - 60% width */}
+        {/* Right Section */}
         <ScrollView 
           className="w-[60%]"
           persistentScrollbar={true}
@@ -649,11 +805,14 @@ const FilterScreen = () => {
         </ScrollView>
       </View>
 
-      {/* Footer Buttons */}
+      {/* Footer */}
       <View className="flex-row px-4 py-3 border-t border-gray-200 gap-3">
         <TouchableOpacity
           className="flex-1 py-3.5 rounded-lg border border-green-500 items-center"
-          onPress={() => router.back()}
+          onPress={() => {
+            console.log('❌ Filter Cancelled');
+            router.back();
+          }}
         >
           <Text className="text-base text-green-500 font-semibold">Cancel</Text>
         </TouchableOpacity>
