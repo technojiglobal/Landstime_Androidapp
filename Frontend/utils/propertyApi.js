@@ -233,10 +233,71 @@ const transformPropertyData = (property) => {
 };
 
 // ✅ UPDATE: Modify getApprovedProperties
-export const getApprovedProperties = async (propertyType = null, page = 1, language = 'en') => {
+// ✅ UPDATE: Modify getApprovedProperties with filters support
+export const getApprovedProperties = async (propertyType = null, page = 1, language = 'en', filters = null) => {
   let endpoint = `/approved?page=${page}&language=${language}`;
   if (propertyType) {
     endpoint += `&propertyType=${propertyType}`;
+  }
+
+  // ✅ NEW: Add filter parameters
+  if (filters) {
+    // Budget
+    if (filters.budgetRange) {
+      const minPrice = filters.budgetRange[0] * 10000000; // Convert Cr to actual price
+      const maxPrice = filters.budgetRange[1] * 10000000;
+      endpoint += `&minPrice=${minPrice}&maxPrice=${maxPrice}`;
+    }
+
+    // Resort Type
+    if (filters.resortType) {
+      endpoint += `&resortType=${encodeURIComponent(filters.resortType)}`;
+    }
+
+    // Rooms
+    if (filters.rooms && filters.rooms !== 'any') {
+      const roomsRange = {
+        '1-5': { min: 1, max: 5 },
+        '5-10': { min: 5, max: 10 },
+        '10-20': { min: 10, max: 20 },
+        '20+': { min: 20, max: 9999 }
+      };
+      const range = roomsRange[filters.rooms];
+      if (range) {
+        endpoint += `&minRooms=${range.min}&maxRooms=${range.max}`;
+      }
+    }
+
+    // Floors
+    if (filters.floors && filters.floors !== 'any') {
+      const floorsRange = {
+        '1': { min: 1, max: 1 },
+        '2': { min: 2, max: 2 },
+        '3': { min: 3, max: 3 },
+        '4+': { min: 4, max: 9999 }
+      };
+      const range = floorsRange[filters.floors];
+      if (range) {
+        endpoint += `&minFloors=${range.min}&maxFloors=${range.max}`;
+      }
+    }
+
+    // Land Area
+    if (filters.landAreaRange) {
+      endpoint += `&minLandArea=${filters.landAreaRange[0]}&maxLandArea=${filters.landAreaRange[1]}`;
+    }
+
+    // Build Area
+    if (filters.buildAreaRange) {
+      endpoint += `&minBuildArea=${filters.buildAreaRange[0]}&maxBuildArea=${filters.buildAreaRange[1]}`;
+    }
+
+    // Location Advantages
+    if (filters.locAdvantages && filters.locAdvantages.length > 0) {
+      filters.locAdvantages.forEach(adv => {
+        endpoint += `&locationAdvantages=${encodeURIComponent(adv)}`;
+      });
+    }
   }
   
   const result = await apiRequest(endpoint);

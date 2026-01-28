@@ -1281,11 +1281,74 @@ export const deletePropertyDocument = async (req, res) => {
 // Keep all other existing functions unchanged
 export const getApprovedProperties = async (req, res) => {
   try {
-    const { propertyType, page = 1, limit = 3000, language = 'en' } = req.query;  // ✅ ADD language from query
+    const { 
+      propertyType, 
+      page = 1, 
+      limit = 3000, 
+      language = 'en',
+      // ✅ NEW: Filter parameters
+      minPrice,
+      maxPrice,
+      resortType,
+      minRooms,
+      maxRooms,
+      minFloors,
+      maxFloors,
+      minLandArea,
+      maxLandArea,
+      minBuildArea,
+      maxBuildArea,
+      locationAdvantages
+    } = req.query;
     
     const query = { status: 'approved' };
     if (propertyType) {
       query.propertyType = propertyType;
+    }
+
+    // ✅ NEW: Price filter (works for all property types)
+    if (minPrice || maxPrice) {
+      query.expectedPrice = {};
+      if (minPrice) query.expectedPrice.$gte = Number(minPrice);
+      if (maxPrice) query.expectedPrice.$lte = Number(maxPrice);
+    }
+
+    // ✅ NEW: Resort-specific filters
+    if (propertyType === 'Resort') {
+      if (resortType) {
+        query['resortDetails.resortType'] = resortType;
+      }
+      
+      if (minRooms || maxRooms) {
+        query['resortDetails.rooms'] = {};
+        if (minRooms) query['resortDetails.rooms'].$gte = Number(minRooms);
+        if (maxRooms) query['resortDetails.rooms'].$lte = Number(maxRooms);
+      }
+
+      if (minFloors || maxFloors) {
+        query['resortDetails.floors'] = {};
+        if (minFloors) query['resortDetails.floors'].$gte = Number(minFloors);
+        if (maxFloors) query['resortDetails.floors'].$lte = Number(maxFloors);
+      }
+
+      if (minLandArea || maxLandArea) {
+        query['resortDetails.landArea'] = {};
+        if (minLandArea) query['resortDetails.landArea'].$gte = Number(minLandArea);
+        if (maxLandArea) query['resortDetails.landArea'].$lte = Number(maxLandArea);
+      }
+
+      if (minBuildArea || maxBuildArea) {
+        query['resortDetails.buildArea'] = {};
+        if (minBuildArea) query['resortDetails.buildArea'].$gte = Number(minBuildArea);
+        if (maxBuildArea) query['resortDetails.buildArea'].$lte = Number(maxBuildArea);
+      }
+
+      if (locationAdvantages) {
+        const advantages = Array.isArray(locationAdvantages) 
+          ? locationAdvantages 
+          : [locationAdvantages];
+        query['resortDetails.locationAdvantages'] = { $in: advantages };
+      }
     }
    
     const properties = await Property.find(query)
