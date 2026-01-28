@@ -111,6 +111,8 @@ import { resortVaasthuFields } from '../../../constants/vastuFields';
 import LocationSection from '../sections/LocationSection';
 import DescriptionSection from '../sections/DescriptionSection';
 import PricingSection from '../sections/PricingSection';
+import PricingDetailsModal from '../PricingDetailsModal';
+import { useState } from 'react';
 
 const ResortForm = ({
   propertyType,
@@ -120,6 +122,8 @@ const ResortForm = ({
   images,
   setImages
 }) => {
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+  const [pricingDetails, setPricingDetails] = useState(null);
   // Helper function to update nested resortDetails fields
  // ResortForm.jsx
 const updateResortField = (field, value) => {
@@ -139,7 +143,16 @@ const updateVaasthuField = (field, value) => {
   });
 };
 
-
+  const handlePricingSubmit = (data) => {
+    setPricingDetails(data);
+    updateResortField('additionalPricing', {
+      maintenanceCharges: data.maintenance || 0,
+      maintenancePeriod: data.maintenanceFrequency || '',
+      expectedRental: data.expectedRental || 0,
+      bookingAmount: data.bookingAmount || 0,
+      annualDuesPayable: data.annualDuesPayable || 0
+    });
+  };
 
   return (
     <>
@@ -220,6 +233,18 @@ const updateVaasthuField = (field, value) => {
       updateField={updateField}
     />
   </div>
+  <button 
+    type="button" 
+    className="text-green-600 text-sm mt-2"
+    onClick={() => setIsPricingModalOpen(true)}
+  >
+    + Add more pricing details
+  </button>
+  <PricingDetailsModal
+    isOpen={isPricingModalOpen}
+    onClose={() => setIsPricingModalOpen(false)}
+    onSubmit={handlePricingSubmit}
+  />
 </div>
 
 

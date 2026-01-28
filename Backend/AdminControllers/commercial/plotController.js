@@ -25,7 +25,7 @@ export const handlePlotProperty = (propertyData, finalData) => {
   // ==================== AREA & DIMENSIONS ====================
   const area = Number(plotDetails.plotArea || plotDetails.area) || 0;
   const areaUnit = plotDetails.areaUnit || 'sqft';
-  
+
   const length = Number(plotDetails.lengthOfPlot || plotDetails.dimensions?.length) || 0;
   const breadth = Number(plotDetails.breadthOfPlot || plotDetails.dimensions?.breadth) || 0;
 
@@ -50,7 +50,7 @@ export const handlePlotProperty = (propertyData, finalData) => {
   // ==================== CONSTRUCTION DETAILS ====================
   const constructionDone = plotDetails.constructionDone || 'No';
   const constructionTypes = [];
-  
+
   if (constructionDone === 'Yes' && plotDetails.constructionType) {
     constructionTypes.push(plotDetails.constructionType);
   }
@@ -81,21 +81,21 @@ export const handlePlotProperty = (propertyData, finalData) => {
 
   // ==================== PRICING DETAILS ====================
   const expectedPrice = Number(
-    plotDetails.expectedPrice || 
-    propertyData.expectedPrice || 
+    plotDetails.expectedPrice ||
+    propertyData.expectedPrice ||
     0
   );
 
   const priceDetails = {
-    allInclusive: plotDetails.priceDetails?.allInclusive || 
-                   plotDetails.allInclusive || 
-                   false,
-    negotiable: plotDetails.priceDetails?.negotiable || 
-                plotDetails.negotiable || 
-                false,
-    taxExcluded: plotDetails.priceDetails?.taxExcluded || 
-                 plotDetails.taxExcluded || 
-                 false
+    allInclusive: plotDetails.priceDetails?.allInclusive ||
+      plotDetails.allInclusive ||
+      false,
+    negotiable: plotDetails.priceDetails?.negotiable ||
+      plotDetails.negotiable ||
+      false,
+    taxExcluded: plotDetails.priceDetails?.taxExcluded ||
+      plotDetails.taxExcluded ||
+      false
   };
 
   console.log('💰 [PLOT] Pricing:', {
@@ -108,6 +108,9 @@ export const handlePlotProperty = (propertyData, finalData) => {
   const leaseDuration = plotDetails.leaseDuration || '';
   const monthlyRent = Number(plotDetails.monthlyRent) || 0;
 
+  const nocCertified = plotDetails.nocCertified || '';
+  const occupancyCertified = plotDetails.occupancyCertified || '';
+
   console.log('📋 [PLOT] Lease Details:', {
     preLeased,
     leaseDuration,
@@ -115,9 +118,9 @@ export const handlePlotProperty = (propertyData, finalData) => {
   });
 
   // ==================== FEATURES ====================
-  const cornerProperty = plotDetails.otherFeatures?.includes('Corner Property') || 
-                         plotDetails.cornerProperty || 
-                         false;
+  const cornerProperty = plotDetails.otherFeatures?.includes('Corner Property') ||
+    plotDetails.cornerProperty ||
+    false;
 
   const amenities = plotDetails.amenities || [];
   const locationAdvantages = plotDetails.locationAdvantages || [];
@@ -133,26 +136,26 @@ export const handlePlotProperty = (propertyData, finalData) => {
 
   // ==================== VASTU DETAILS ====================
   const vastuDetails = {
-    plotFacing: plotDetails.vaasthuDetails?.plotFacing || 
-                plotDetails.vastuDetails?.plotFacing || '',
-    mainEntry: plotDetails.vaasthuDetails?.mainEntryDirection || 
-               plotDetails.vastuDetails?.mainEntry || '',
-    plotSlope: plotDetails.vaasthuDetails?.plotSlope || 
-               plotDetails.vastuDetails?.plotSlope || '',
-    openSpace: plotDetails.vaasthuDetails?.openSpace || 
-               plotDetails.vastuDetails?.openSpace || '',
-    shape: plotDetails.vaasthuDetails?.plotShape || 
-           plotDetails.vastuDetails?.shape || '',
-    roadPosition: plotDetails.vaasthuDetails?.roadPosition || 
-                  plotDetails.vastuDetails?.roadPosition || '',
-    waterSource: plotDetails.vaasthuDetails?.waterSource || 
-                 plotDetails.vastuDetails?.waterSource || '',
-    drainage: plotDetails.vaasthuDetails?.drainageDirection || 
-              plotDetails.vastuDetails?.drainage || '',
-    compoundWall: plotDetails.vaasthuDetails?.compoundWallHeight || 
-                  plotDetails.vastuDetails?.compoundWall || '',
-    structures: plotDetails.vaasthuDetails?.existingStructures || 
-                plotDetails.vastuDetails?.structures || ''
+    plotFacing: plotDetails.vaasthuDetails?.plotFacing ||
+      plotDetails.vastuDetails?.plotFacing || '',
+    mainEntry: plotDetails.vaasthuDetails?.mainEntryDirection ||
+      plotDetails.vastuDetails?.mainEntry || '',
+    plotSlope: plotDetails.vaasthuDetails?.plotSlope ||
+      plotDetails.vastuDetails?.plotSlope || '',
+    openSpace: plotDetails.vaasthuDetails?.openSpace ||
+      plotDetails.vastuDetails?.openSpace || '',
+    shape: plotDetails.vaasthuDetails?.plotShape ||
+      plotDetails.vastuDetails?.shape || '',
+    roadPosition: plotDetails.vaasthuDetails?.roadPosition ||
+      plotDetails.vastuDetails?.roadPosition || '',
+    waterSource: plotDetails.vaasthuDetails?.waterSource ||
+      plotDetails.vastuDetails?.waterSource || '',
+    drainage: plotDetails.vaasthuDetails?.drainageDirection ||
+      plotDetails.vastuDetails?.drainage || '',
+    compoundWall: plotDetails.vaasthuDetails?.compoundWallHeight ||
+      plotDetails.vastuDetails?.compoundWall || '',
+    structures: plotDetails.vaasthuDetails?.existingStructures ||
+      plotDetails.vastuDetails?.structures || ''
   };
 
   console.log('🧭 [PLOT] Vastu Details:', vastuDetails);
@@ -202,6 +205,8 @@ export const handlePlotProperty = (propertyData, finalData) => {
     preLeased,
     leaseDuration,
     monthlyRent,
+    nocCertified,
+    occupancyCertified,
 
     // Features
     cornerProperty,

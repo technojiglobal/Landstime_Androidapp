@@ -9,7 +9,7 @@ import RadioButtons from '../../fields/RadioButtons';
 import LocationSection from '../../sections/LocationSection';
 import {
   LOCATION_ADVANTAGES,
-  OWNERSHIP_TYPES,STORAGE_AMENITIES
+  OWNERSHIP_TYPES, STORAGE_AMENITIES
 } from '../../../../constants/propertyConstants';
 import VaasthuDetails from '../../sections/VaasthuDetails';
 import { storageVaasthuFields } from '../../../../constants/vastuFields';
@@ -17,20 +17,20 @@ import OfficePricingDetailsSection from '../../sections/OfficePricingDetailsSect
 import AvailabilityStatus from '../../sections/AvailabilityStatus';
 import ImageUpload from '../../fields/ImageUpload';
 
-const StorageForm = ({ formData, updateField,images, setImages }) => {
+const StorageForm = ({ formData, updateField, images, setImages }) => {
   const storage = formData.commercialDetails?.storageDetails || {};
 
-const setStorage = (key, value) =>
-  updateField(`commercialDetails.storageDetails.${key}`, value);
+  const setStorage = (key, value) =>
+    updateField(`commercialDetails.storageDetails.${key}`, value);
 
   return (
     <div className="space-y-6 border-t pt-6">
-      
-     {/* ==================== LOCATION SECTION ==================== */}
+
+      {/* ==================== LOCATION SECTION ==================== */}
       <LocationSection formData={formData} updateField={updateField} />
 
-       <ImageUpload
-       label="Property Images"
+      <ImageUpload
+        label="Property Images"
         images={images}
         onChange={setImages}
         maxImages={20}
@@ -40,7 +40,7 @@ const setStorage = (key, value) =>
       {/* ==================== ADD AREA DETAILS ==================== */}
       <div className="border-t pt-6">
         <h3 className="text-lg font-semibold text-left mb-4">Add Area Details</h3>
-        
+
         <div className="grid grid-cols-2 gap-4">
           <NumberField
             label="Plot Area"
@@ -56,7 +56,7 @@ const setStorage = (key, value) =>
       {/* ==================== PROPERTY DIMENSIONS (OPTIONAL) ==================== */}
       <div className="border-t pt-6">
         <h3 className="text-lg font-semibold text-left mb-4">Property Dimensions (optional)</h3>
-        
+
         <div className="grid grid-cols-2 gap-4">
           <TextField
             label="Length of plot(in Ft)"
@@ -65,7 +65,7 @@ const setStorage = (key, value) =>
             onChange={(value) => setStorage('lengthOfPlot', value)}
             placeholder="Ft"
           />
-          
+
           <TextField
             label="Breadth of plot(in Ft)"
             name="breadthOfPlot"
@@ -76,10 +76,10 @@ const setStorage = (key, value) =>
         </div>
       </div>
 
-     {/* ==================== WIDTH OF FACING ROAD ==================== */}
+      {/* ==================== WIDTH OF FACING ROAD ==================== */}
       <div className="border-t pt-6">
         <h3 className="text-base font-medium text-gray-700 text-left mb-3">Width of facing road</h3>
-        
+
         <div className="relative">
           <input
             type="text"
@@ -101,18 +101,17 @@ const setStorage = (key, value) =>
       {/* ==================== NO OF OPEN SIDES ==================== */}
       <div className="border-t pt-6">
         <h3 className="text-lg font-semibold text-left mb-4">No of open sides</h3>
-        
+
         <div className="flex gap-3">
           {['1', '2', '3', '4'].map((side) => (
             <button
               key={side}
               type="button"
               onClick={() => setStorage('noOfOpenSides', side)}
-              className={`w-12 h-12 rounded-lg border text-sm font-medium transition-colors ${
-                storage.noOfOpenSides === side
+              className={`w-12 h-12 rounded-lg border text-sm font-medium transition-colors ${storage.noOfOpenSides === side
                   ? 'bg-green-500 text-white border-green-500'
                   : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
-              }`}
+                }`}
             >
               {side}
             </button>
@@ -123,18 +122,17 @@ const setStorage = (key, value) =>
       {/* ==================== ANY CONSTRUCTION DONE ON THE PROPERTY ==================== */}
       <div className="border-t pt-6">
         <h3 className="text-lg font-semibold text-left mb-4">Any construction done on the property?</h3>
-        
+
         <div className="flex gap-3">
           {['Yes', 'No'].map((option) => (
             <button
               key={option}
               type="button"
               onClick={() => setStorage('constructionDone', option)}
-              className={`px-8 py-2 rounded-full border text-sm transition-colors ${
-                storage.constructionDone === option
+              className={`px-8 py-2 rounded-full border text-sm transition-colors ${storage.constructionDone === option
                   ? 'bg-green-500 text-white border-green-500'
                   : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
-              }`}
+                }`}
             >
               {option}
             </button>
@@ -146,18 +144,17 @@ const setStorage = (key, value) =>
       {storage.constructionDone === 'Yes' && (
         <div className="border-t pt-6">
           <h3 className="text-lg font-semibold text-left mb-4">What type of construction has been done ?</h3>
-          
+
           <div className="flex flex-wrap gap-3">
             {['Small', 'Extensive', 'Other'].map((type) => (
               <button
                 key={type}
                 type="button"
                 onClick={() => setStorage('constructionType', type)}
-                className={`px-6 py-2 rounded-full border text-sm transition-colors ${
-                  storage.constructionType === type
+                className={`px-6 py-2 rounded-full border text-sm transition-colors ${storage.constructionType === type
                     ? 'bg-green-500 text-white border-green-500'
                     : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
-                }`}
+                  }`}
               >
                 {type}
               </button>
@@ -166,24 +163,23 @@ const setStorage = (key, value) =>
         </div>
       )}
 
-       {/* ==================== AVAILABILITY STATUS ==================== */}
+      {/* ==================== AVAILABILITY STATUS ==================== */}
       <AvailabilityStatus formData={storage} updateField={setStorage} />
 
       {/* ==================== OWNERSHIP ==================== */}
       <div className="border-t pt-6">
         <h3 className="text-lg font-semibold text-left mb-4">Ownership</h3>
-        
+
         <div className="flex flex-wrap gap-2">
           {OWNERSHIP_TYPES.map((type) => (
             <button
               key={type}
               type="button"
               onClick={() => setStorage('ownershipType', type)}
-              className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-                storage.ownershipType === type
+              className={`px-4 py-2 rounded-full border text-sm transition-colors ${storage.ownershipType === type
                   ? 'bg-green-500 text-white border-green-500'
                   : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
-              }`}
+                }`}
             >
               {type}
             </button>
@@ -194,18 +190,17 @@ const setStorage = (key, value) =>
       {/* ==================== AUTHORITY APPROVAL (OPTIONAL) ==================== */}
       <div className="border-t pt-6">
         <h3 className="text-lg font-semibold text-left mb-4">Which authority the property is approved by?(optional)</h3>
-        
+
         <div className="flex flex-wrap gap-3">
           {['Gram Panchayat', 'Local Authority'].map((authority) => (
             <button
               key={authority}
               type="button"
               onClick={() => setStorage('authorityApproval', authority)}
-              className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-                storage.authorityApproval === authority
+              className={`px-4 py-2 rounded-full border text-sm transition-colors ${storage.authorityApproval === authority
                   ? 'bg-green-500 text-white border-green-500'
                   : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
-              }`}
+                }`}
             >
               {authority}
             </button>
@@ -216,7 +211,7 @@ const setStorage = (key, value) =>
       {/* ==================== APPROVED FOR INDUSTRY TYPE (OPTIONAL) ==================== */}
       <div className="border-t pt-6">
         <h3 className="text-lg font-semibold text-left mb-4">Approved for Industry Type(optional)</h3>
-        
+
         <SelectField
           label="Industry Type"
           name="industryType"
@@ -235,25 +230,16 @@ const setStorage = (key, value) =>
         />
       </div>
 
-     <OfficePricingDetailsSection formData={storage} updateField={setStorage} />
+      <OfficePricingDetailsSection formData={storage} updateField={setStorage} />
 
-      {/* ==================== IS IT PRE-LEASED? PRE-RESELLED? ==================== */}
-      <div className="border-t pt-6">
-        <RadioButtons
-          label="Is it Pre-leased? Pre-Reselled?"
-          name="preLeased"
-          value={storage.preLeased}
-          onChange={(value) => setStorage('preLeased', value)}
-          options={['Yes', 'No']}
-        />
-      </div>
 
-     
+
+
 
       {/* ==================== OTHER FEATURES ==================== */}
       <div className="border-t pt-6">
         <h3 className="text-lg font-semibold text-left mb-4">Other Features</h3>
-        
+
         <CheckboxGroup
           name="otherFeatures"
           selected={storage.otherFeatures || []}
@@ -265,7 +251,7 @@ const setStorage = (key, value) =>
         />
       </div>
 
-     {/* ==================== AMENITIES ==================== */}
+      {/* ==================== AMENITIES ==================== */}
       <div className="border-t pt-6">
         <h3 className="text-lg font-semibold text-left mb-4">Amenities</h3>
         <CheckboxGroup
@@ -279,7 +265,7 @@ const setStorage = (key, value) =>
       {/* ==================== LOCATION ADVANTAGES ==================== */}
       <div className="border-t pt-6">
         <h3 className="text-lg font-semibold text-left mb-4">Location Advantages</h3>
-        
+
         <CheckboxGroup
           name="locationAdvantages"
           selected={storage.locationAdvantages || []}
@@ -288,11 +274,11 @@ const setStorage = (key, value) =>
         />
       </div>
       {/* ==================== VAASTHU DETAILS ==================== */}
-     <VaasthuDetails
-  formData={storage}  // ✅ Pass the parent storage object
-  updateField={(key, value) => setStorage(`vaasthuDetails.${key}`, value)}
-  fields={storageVaasthuFields}
-/>
+      <VaasthuDetails
+        formData={storage}  // ✅ Pass the parent storage object
+        updateField={(key, value) => setStorage(`vaasthuDetails.${key}`, value)}
+        fields={storageVaasthuFields}
+      />
 
     </div>
   );

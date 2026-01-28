@@ -11,16 +11,16 @@ export const handleHospitalityProperty = (propertyData, finalData) => {
   // ✅ CRITICAL - Set top-level location and area from propertyData
   finalData.location = propertyData.location;
   finalData.area = propertyData.area;
-  
+
   // ✅ CRITICAL FIX - Set top-level expectedPrice (REQUIRED by schema)
   const expectedPriceValue = Number(
-    hospitalityData.expectedPrice || 
-    commercialDetails.expectedPrice || 
+    hospitalityData.expectedPrice ||
+    commercialDetails.expectedPrice ||
     propertyData.expectedPrice
   ) || 0;
-  
+
   finalData.expectedPrice = expectedPriceValue;
-  
+
   console.log('💰 [HOSPITALITY] Expected price set:', {
     hospitalityDataPrice: hospitalityData.expectedPrice,
     commercialDetailsPrice: commercialDetails.expectedPrice,
@@ -29,8 +29,8 @@ export const handleHospitalityProperty = (propertyData, finalData) => {
   });
 
   // ✅ NEW: Extract location string from propertyData
-  const locationString = typeof propertyData.location === 'string' 
-    ? propertyData.location 
+  const locationString = typeof propertyData.location === 'string'
+    ? propertyData.location
     : (propertyData.location?.en || propertyData.location?.te || propertyData.location?.hi || '');
 
   // ✅ NEW: Extract area value (this could be from multiple sources)
@@ -51,7 +51,7 @@ export const handleHospitalityProperty = (propertyData, finalData) => {
   });
 
   // ✅ Build hospitalityDetails with correct field mappings from frontend
- finalData.commercialDetails.hospitalityDetails = {
+  finalData.commercialDetails.hospitalityDetails = {
     // ========== HOSPITALITY TYPE ==========
     hospitalityType: hospitalityData.hospitalityType || propertyData.hospitalityType,  // ✅ NEW
 
@@ -60,7 +60,7 @@ export const handleHospitalityProperty = (propertyData, finalData) => {
 
     // ========== LOCATION (CRITICAL REQUIRED FIELD) ==========
     location: locationString,  // ✅ FIXED - Always string format
-    
+
     // ✅ CRITICAL FIX - neighborhoodArea from frontend
     neighborhoodArea: hospitalityData.neighborhoodArea || propertyData.area,
 
@@ -71,42 +71,45 @@ export const handleHospitalityProperty = (propertyData, finalData) => {
       unit: hospitalityData.area?.unit || 'sqft',  // ✅ NEW - Default to sqft
     },
 
+    // ========== FLOORS ==========
+    totalFloors: hospitalityData.totalFloors || hospitalityData.noOfFloors || '',
+
     // ========== ROOM DETAILS ==========
     // Frontend stores noOfRooms as number
-     rooms: Number(hospitalityData.rooms) || 0,  // ✅ FIXED - correct field name
-    
+    rooms: Number(hospitalityData.rooms) || 0,  // ✅ FIXED - correct field name
+
     // Frontend stores washroomType as string: "None", "Shared", "1", "2", "3", "4+"
     washroomType: hospitalityData.washroomType || '',  // ✅ FIXED - correct field name
-    
+
     // Frontend stores balconies as string: "0", "1", "2", "3", "More than 3"
     balconies: hospitalityData.balconies || '',  // ✅ FIXED - updated comment
-    
+
     // Frontend stores otherRooms as array: ["Pooja Room", "Study Room", "Servant Room", "Other"]
     otherRooms: hospitalityData.otherRooms || [],
 
     // ========== FURNISHING ==========
     // Frontend stores as: "Unfurnished", "Semi-Furnished", "Furnished"
-furnishingType: hospitalityData.furnishingType || '',  // ✅ FIXED - correct field name
-    
+    furnishingType: hospitalityData.furnishingType || '',  // ✅ FIXED - correct field name
+
     // Frontend stores furnishingDetails as array of selected items from modal
     furnishingDetails: hospitalityData.furnishingDetails || [],  // ✅ FIXED - correct field name
 
     // ========== AVAILABILITY ==========
     // Frontend stores as: "Ready to move" or "Under construction"
-     availability: hospitalityData.availability || '',  // ✅ FIXED - correct field name
-    
+    availability: hospitalityData.availability || '',  // ✅ FIXED - correct field name
+
     // Frontend stores ageOfProperty as string for "Ready" properties
     ageOfProperty: hospitalityData.ageOfProperty || '',  // ✅ FIXED - now string
-    
+
     // Frontend stores possessionBy as string for "UnderConstruction"
     possessionBy: hospitalityData.possessionBy || '',
-    
+
     // Frontend stores expectedMonth for possession
     expectedMonth: hospitalityData.expectedMonth || '',
 
     // ========== OWNERSHIP ==========
     // Frontend stores as string: "Freehold", "Leasehold", "Co-operative Society", "Power of Attorney"
-   ownership: hospitalityData.ownership || '',
+    ownership: hospitalityData.ownership || '',
 
     // ========== AUTHORITY APPROVAL ==========
     // Frontend stores as string (optional field)
@@ -117,8 +120,8 @@ furnishingType: hospitalityData.furnishingType || '',  // ✅ FIXED - correct fi
     approvedIndustryType: hospitalityData.approvedIndustryType || '',
 
     // ========== PRICING DETAILS ==========
-       expectedPrice: expectedPriceValue,  // ✅ REQUIRED - Use the value we calculated above
-    
+    expectedPrice: expectedPriceValue,  // ✅ REQUIRED - Use the value we calculated above
+
     // ✅ Pricing details from PricingSection component
     priceDetails: {
       allInclusive: Boolean(hospitalityData.priceDetails?.allInclusive),
@@ -129,9 +132,9 @@ furnishingType: hospitalityData.furnishingType || '',  // ✅ FIXED - correct fi
     // ========== PRE-LEASED/PRE-RENTED ==========
     // Frontend stores as: "Yes" or "No"
     preLeased: hospitalityData.preLeased || '',
-    
+
     // Only if preLeased === "Yes"
-   leaseDuration: hospitalityData.leaseDuration || '',
+    leaseDuration: hospitalityData.leaseDuration || '',
     monthlyRent: Number(hospitalityData.monthlyRent) || 0,
 
     // ========== OTHER FEATURES ==========
@@ -171,7 +174,7 @@ furnishingType: hospitalityData.furnishingType || '',  // ✅ FIXED - correct fi
     },
   };
 
- console.log('✅ [HOSPITALITY] Hospitality details processed:', {
+  console.log('✅ [HOSPITALITY] Hospitality details processed:', {
     hospitalityType: finalData.commercialDetails.hospitalityDetails.hospitalityType,  // ✅ NEW
     location: finalData.commercialDetails.hospitalityDetails.location,
     neighborhoodArea: finalData.commercialDetails.hospitalityDetails.neighborhoodArea,

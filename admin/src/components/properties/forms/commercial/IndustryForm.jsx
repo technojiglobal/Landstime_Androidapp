@@ -29,7 +29,7 @@
 //   const isReadyToMove = industry.availabilityStatus === 'Ready to move';
 // const isUnderConstruction = industry.availabilityStatus === 'Under construction';
 // const isPreLeased = industry.preLeased === 'Yes';
- 
+
 
 //   return (
 //     <div className="space-y-6 border-t pt-6">
@@ -265,7 +265,7 @@ import ImageUpload from '../../fields/ImageUpload';
 
 const IndustryForm = ({ formData, updateField, images, setImages }) => {
   const industry = formData.commercialDetails?.industryDetails || {};
-  
+
   // ✅ FIX: Create proper setter that updates the nested path
   const setIndustry = (key, value) => {
     updateField(`commercialDetails.industryDetails.${key}`, value);
@@ -275,7 +275,7 @@ const IndustryForm = ({ formData, updateField, images, setImages }) => {
   const setPricing = (key, value) => {
     updateField(`commercialDetails.industryDetails.pricing.${key}`, value);
   };
-  
+
   const isReadyToMove = industry.availabilityStatus === 'Ready to move';
   const isUnderConstruction = industry.availabilityStatus === 'Under construction';
   const isPreLeased = industry.preLeased === 'Yes';
@@ -304,14 +304,14 @@ const IndustryForm = ({ formData, updateField, images, setImages }) => {
 
       {/* ==================== LOCATION ==================== */}
       <LocationSection formData={formData} updateField={updateField} />
-      
+
       <ImageUpload
         label="Property Images"
         images={images}
         onChange={setImages}
         maxImages={20}
         required={true}
-      /> 
+      />
 
       {/* ==================== ROOM DETAILS ==================== */}
       <div className="border-t pt-6">
@@ -372,11 +372,10 @@ const IndustryForm = ({ formData, updateField, images, setImages }) => {
                 console.log('Ownership clicked:', type);
                 setIndustry('ownershipType', type);
               }}
-              className={`px-4 py-2 rounded-full border text-sm transition-colors ${
-                industry.ownershipType === type
+              className={`px-4 py-2 rounded-full border text-sm transition-colors ${industry.ownershipType === type
                   ? 'bg-green-500 text-white border-green-500'
                   : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
-              }`}
+                }`}
             >
               {type}
             </button>
@@ -420,15 +419,15 @@ const IndustryForm = ({ formData, updateField, images, setImages }) => {
         />
 
         <div className="mt-3">
-          {/* ✅ FIX: Pass industry.pricing if it exists, otherwise pass industry */}
-          <PricingSection 
-            formData={industry.pricing || industry} 
-            updateField={setPricing} 
+          {/* ✅ FIX: Pass industry object to PricingSection */}
+          <PricingSection
+            formData={industry}
+            updateField={setIndustry}
           />
         </div>
 
-        <button 
-          type="button" 
+        <button
+          type="button"
           onClick={(e) => e.preventDefault()}
           className="text-green-600 text-sm mt-2"
         >
@@ -442,12 +441,11 @@ const IndustryForm = ({ formData, updateField, images, setImages }) => {
         name="preLeased"
         value={industry.preLeased || ''}
         onChange={(value) => {
-          console.log('PreLeased changed:', value);
           setIndustry('preLeased', value);
           // Clear fields when switching to No
           if (value === 'No') {
-            setIndustry('currentRent', '');
-            setIndustry('leaseTenure', '');
+            setIndustry('monthlyRent', '');
+            setIndustry('leaseDuration', '');
           }
         }}
         options={['Yes', 'No']}
@@ -458,17 +456,17 @@ const IndustryForm = ({ formData, updateField, images, setImages }) => {
         <div className="space-y-4">
           <NumberField
             label="Current rent per month"
-            name="currentRent"
-            value={industry.currentRent || ''}
-            onChange={(value) => setIndustry('currentRent', value)}
+            name="monthlyRent"
+            value={industry.monthlyRent || ''}
+            onChange={(value) => setIndustry('monthlyRent', value)}
             placeholder="₹ Current rent per month"
           />
 
           <NumberField
             label="Lease tenure in years"
-            name="leaseTenure"
-            value={industry.leaseTenure || ''}
-            onChange={(value) => setIndustry('leaseTenure', value)}
+            name="leaseDuration"
+            value={industry.leaseDuration || ''}
+            onChange={(value) => setIndustry('leaseDuration', value)}
             placeholder="Lease tenure in years"
           />
         </div>
