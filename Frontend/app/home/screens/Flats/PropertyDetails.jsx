@@ -1,4 +1,3 @@
-//Frontend/app/home/screens/Flats/PropertyDetails.jsx
 import React, { useRef, useState, useEffect } from "react";
 import {
   View,
@@ -9,7 +8,8 @@ import {
   Animated,
   Dimensions,
   StatusBar,
-  ActivityIndicator
+  ActivityIndicator,
+  Alert
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,104 +19,124 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from "react-i18next";
 import i18n from "../../../../i18n/index"
 import { saveProperty, unsaveProperty, checkIfSaved } from "../../../../utils/savedPropertiesApi";
-import { Alert } from "react-native";
 import { fetchReviews } from "../../../../utils/reviewApi";
-// ADD THIS IMPORT
 import { getImageUrl } from "../../../../utils/imageHelper";
+
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+const CARD_WIDTH = 345;
+const CARD_HEIGHT = 298;
+
+// ✅ Helper function OUTSIDE component
 const getLocalizedText = (field, language) => {
   if (!field) return '';
   if (typeof field === 'string') return field;
   return field[language] || field.en || field.te || field.hi || '';
 };
 
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
-const CARD_WIDTH = 345;
-const CARD_HEIGHT = 298;
-
-// ✅ Helper function OUTSIDE component - extract language text
-
-
 export default function PropertyListScreen() {
+  // ✅ 1. REFS
   const scrollY = useRef(new Animated.Value(0)).current;
+  
+  // ✅ 2. ROUTER & TRANSLATION
+  const router = useRouter();
+  const { t } = useTranslation();
+  const { areaKey, districtKey } = useLocalSearchParams();
+  
+  // ✅ 3. STATE
   const [contentHeight, setContentHeight] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
-  const { t } = useTranslation();
-  const { areaKey, districtKey } = useLocalSearchParams();
   const [savedStates, setSavedStates] = useState({});
-  // ✅ Get current language
-  const currentLanguage = i18n.language || 'en';
   const [reviewSummary, setReviewSummary] = useState({});
-  // Get translated area name from areaKey
+  
+  // ✅ 4. COMPUTED VALUES
+  const currentLanguage = i18n.language || 'en';
   const areaName = areaKey ? t(`areas.${areaKey}`) : '';
-
-
-    const filteredProperties = properties.filter((property) => {
+  
+  const filteredProperties = properties.filter((property) => {
     const propertyAreaKey = property.areaKey || '';
-
-    // ✅ Use helper function to extract title
     const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
-
-    // Match by areaKey (consistent across all languages)
-    const matchesArea = propertyAreaKey === areaKey;
+    //const matchesArea = propertyAreaKey === areaKey;
     const matchesSearch = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
-
-    return matchesArea && matchesSearch;
+    return matchesSearch;
   });
 
-  // ✅ FETCH REAL PROPERTIES
-  // ✅ FETCH REAL PROPERTIES
-  useEffect(() => {
-    fetchProperties();
-  }, [areaKey]);
+  const scrollbarHeight = SCREEN_HEIGHT * (SCREEN_HEIGHT / contentHeight) * 0.3;
+  const scrollIndicator = Animated.multiply(
+    scrollY,
+    SCREEN_HEIGHT / contentHeight
+  ).interpolate({
+    inputRange: [0, SCREEN_HEIGHT],
+    outputRange: [0, SCREEN_HEIGHT - scrollbarHeight],
+    extrapolate: "clamp",
+  });
 
-  // ✅ ADD THIS: Refetch when language changes
-  useEffect(() => {
-    if (areaKey) {
-      fetchProperties();
-    }
-  }, [i18n.language]); // Refetch when language changes
- useEffect(() => {
-  //console.log('🔄 [SITES] useEffect triggered, properties count:', properties.length);
-  if (properties.length > 0) {
-    //console.log('📝 [SITES] Property IDs:', properties.map(p => p._id));
-    properties.forEach(property => {
-      fetchReviewForProperty(property._id);
-    });
-  }
-}, [properties]);
-
+  // ✅ 5. FUNCTIONS (before useEffect)
   const fetchProperties = async () => {
     try {
       setLoading(true);
       console.log('🔍 Fetching HOUSES for areaKey:', areaKey);
 
-      // ✅ Get current language from i18next (not AsyncStorage)
       const currentLang = i18n.language || 'en';
       console.log('🌐 Fetching in language:', currentLang);
 
       const response = await getApprovedProperties(null, 1, currentLang);
-if (response.success) {
-  console.log('✅ All properties fetched:', response.data.data?.length);
-  console.log('📋 Property types in response:', response.data.data?.map(p => p.propertyType));
-  // ✅ FILTER BY PROPERTY TYPE = "House"
-  const houseProperties = (response.data.data || []).filter(
-    property => property.propertyType === 'House'
-  );
+      
+      console.log('=== API RESPONSE DEBUG ===');
+      console.log('response.success:', response.success);
+      console.log('response.data type:', typeof response.data);
+      
+      if (response.success && response.data) {
+        // Find the actual array
+        let allProperties = [];
+        
+        if (Array.isArray(response.data)) {
+          allProperties = response.data;
+          console.log('✅ Found array in response.data');
+        } else if (Array.isArray(response.data.data)) {
+          allProperties = response.data.data;
+          console.log('✅ Found array in response.data.data');
+        } else if (Array.isArray(response.data.properties)) {
+          allProperties = response.data.properties;
+          console.log('✅ Found array in response.data.properties');
+        } else {
+          console.error('❌ Could not find properties array');
+          console.error('response.data keys:', Object.keys(response.data));
+          setProperties([]);
+          return;
+        }
+        
+        console.log('📊 Total properties:', allProperties.length);
+        
+        if (allProperties.length > 0) {
+          console.log('First property sample:', {
+            type: allProperties[0]?.propertyType,
+            areaKey: allProperties[0]?.areaKey
+          });
+        }
+        
+        const houseProperties = allProperties.filter(
+          property => property?.propertyType?.toLowerCase() === 'house'
+        );
+        
+        console.log('🏡 Filtered houses:', houseProperties.length);
+        console.log('🔑 Target areaKey:', areaKey);
+        
         await checkAllSavedStatuses(houseProperties);
-        console.log('✅ Houses filtered:', houseProperties.length);
         setProperties(houseProperties);
       } else {
-        console.error('❌ Failed to fetch properties:', response.error);
+        console.error('❌ API failed:', response.error);
+        setProperties([]);
       }
     } catch (error) {
-      console.error('❌ Error:', error);
+      console.error('❌ Fetch error:', error);
+      setProperties([]);
     } finally {
       setLoading(false);
     }
   };
+
   const checkAllSavedStatuses = async (propertyList) => {
     const savedStatusPromises = propertyList.map(async (property) => {
       const response = await checkIfSaved(property._id, 'property');
@@ -130,18 +150,15 @@ if (response.success) {
     });
     setSavedStates(newSavedStates);
   };
+
   const handleToggleSave = async (propertyId) => {
     const currentState = savedStates[propertyId] || false;
     const token = await AsyncStorage.getItem('userToken');
+    
     if (!token) {
       Alert.alert('Not Logged In', 'Please log in to save properties');
       return;
     }
-    // ✅ ADD THESE LOGS:
-    console.log('🔖 Toggle Save clicked');
-    console.log('Property ID:', propertyId);
-    console.log('Current state:', currentState);
-    console.log('Will call:', currentState ? 'unsave' : 'save');
 
     // Optimistic update
     setSavedStates(prev => ({ ...prev, [propertyId]: !currentState }));
@@ -151,13 +168,8 @@ if (response.success) {
       if (currentState) {
         response = await unsaveProperty(propertyId, 'property');
       } else {
-        // ✅ ADD THIS LOG:
-        console.log('Calling saveProperty with:', propertyId, 'property');
         response = await saveProperty(propertyId, 'property');
       }
-
-      // ✅ ADD THIS LOG:
-      console.log('Save response:', response);
 
       if (!response.success) {
         setSavedStates(prev => ({ ...prev, [propertyId]: currentState }));
@@ -168,31 +180,6 @@ if (response.success) {
       setSavedStates(prev => ({ ...prev, [propertyId]: currentState }));
     }
   };
-
-  // ✅ FILTER BY AREA (location)
-  // const filteredProperties = properties.filter((property) => {
-  //   const propertyAreaKey = property.areaKey || '';
-
-  //   // ✅ Use helper function to extract title
-  //   const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
-
-  //   // Match by areaKey (consistent across all languages)
-  //   const matchesArea = propertyAreaKey === areaKey;
-  //   const matchesSearch = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
-
-  //   return matchesArea && matchesSearch;
-  // });
-
-  const scrollbarHeight = SCREEN_HEIGHT * (SCREEN_HEIGHT / contentHeight) * 0.3;
-
-  const scrollIndicator = Animated.multiply(
-    scrollY,
-    SCREEN_HEIGHT / contentHeight
-  ).interpolate({
-    inputRange: [0, SCREEN_HEIGHT],
-    outputRange: [0, SCREEN_HEIGHT - scrollbarHeight],
-    extrapolate: "clamp",
-  });
 
   const fetchReviewForProperty = async (propertyId) => {
     try {
@@ -209,13 +196,32 @@ if (response.success) {
     }
   };
 
+  // ✅ 6. EFFECTS (after all functions)
+  useEffect(() => {
+    fetchProperties();
+  }, [areaKey]);
+
+  useEffect(() => {
+    if (areaKey) {
+      fetchProperties();
+    }
+  }, [i18n.language]);
+
+  useEffect(() => {
+    if (properties.length > 0) {
+      properties.forEach(property => {
+        fetchReviewForProperty(property._id);
+      });
+    }
+  }, [properties]);
+
+  // ✅ 7. RENDER
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
       {/* Header */}
       <View className="flex-row items-center px-5 py-3">
-
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={24} color="black" />
         </TouchableOpacity>
@@ -273,7 +279,7 @@ if (response.success) {
             {filteredProperties.length} properties found in {areaName}
           </Text>
 
-          {/* ✅ LOADING SPINNER */}
+          {/* Content */}
           {loading ? (
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 50 }}>
               <ActivityIndicator size="large" color="#16A34A" />
@@ -284,7 +290,7 @@ if (response.success) {
           ) : filteredProperties.length > 0 ? (
             filteredProperties.map((item, index) => (
               <View
-                key={item._id}  // ✅ CHANGED: item.id → item._id
+                key={item._id}
                 style={{
                   width: CARD_WIDTH,
                   height: CARD_HEIGHT,
@@ -301,7 +307,6 @@ if (response.success) {
                   borderColor: "#E5E7EB",
                 }}
               >
-                {/* ✅ REAL IMAGE with fallback */}
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => router.push({
@@ -310,20 +315,14 @@ if (response.success) {
                       propertyId: item._id,
                       propertyData: JSON.stringify(item),
                       areaKey: item.areaKey || areaKey,
-                      entityType: 'property' // ✅ Add this
+                      entityType: 'property'
                     }
                   })}
                 >
-
-
-
-
-
-
                   <Image
                     source={
                       item.images && item.images.length > 0
-                        ? { uri: getImageUrl(item.images[0]) }  // ✅ CHANGED: Removed IP address prefix for base64
+                        ? { uri: getImageUrl(item.images[0]) }
                         : require("../../../../assets/Flat1.jpg")
                     }
                     style={{
@@ -354,9 +353,7 @@ if (response.success) {
                   />
                 </TouchableOpacity>
 
-                {/* Card Content */}
                 <View style={{ paddingHorizontal: 12, paddingTop: 10 }}>
-                  {/* ✅ REAL TITLE */}
                   <TouchableOpacity
                     activeOpacity={0.6}
                     onPress={() => router.push({
@@ -364,7 +361,7 @@ if (response.success) {
                       params: {
                         propertyId: item._id,
                         areaKey: item.areaKey || areaKey,
-                        entityType: 'property' // ✅ Add this
+                        entityType: 'property'
                       }
                     })}
                   >
@@ -389,7 +386,6 @@ if (response.success) {
                       marginTop: 3,
                     }}
                   >
-                    {/* ✅ REAL PROPERTY TYPE */}
                     <Text
                       style={{
                         fontFamily: "Poppins-Regular",
@@ -406,15 +402,13 @@ if (response.success) {
                     />
                   </View>
 
-                  {/* ✅ RATING - Using dummy data for now (backend doesn't have ratings yet) */}
                   <View className="flex-row items-center mb-1 mt-2">
                     <Ionicons name="star" size={14} color="#FF9500" />
-                    <Text className="text-xs mx-3 text-gray-700 justify-center item-center">
+                    <Text className="text-xs mx-3 text-gray-700">
                       {reviewSummary[item._id]?.avgRating?.toFixed(1) || '0.0'} ({reviewSummary[item._id]?.count || 0} reviews)
                     </Text>
                   </View>
 
-                  {/* ✅ REAL LOCATION */}
                   <View className="flex-row items-center mt-1">
                     <Image
                       source={require("../../../../assets/location.png")}
@@ -432,7 +426,6 @@ if (response.success) {
                     </Text>
                   </View>
 
-                  {/* ✅ REAL PRICE */}
                   <View
                     style={{
                       position: "absolute",
@@ -498,7 +491,7 @@ if (response.success) {
           )}
         </Animated.ScrollView>
 
-        {/* Custom Green Scroll Bar */}
+        {/* Custom Scroll Bar */}
         <View
           style={{
             width: 7,
