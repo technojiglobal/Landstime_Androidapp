@@ -536,7 +536,7 @@ const getFilterCategories = () => {
       return categories;
     }
 
-    // ✅ EXISTING - HOUSE/FLAT FILTERS (keep as is)
+     // ✅ HOUSE/FLAT FILTERS
     if (propertyType === 'House' || propertyType === 'House/Flat') {
       return [
         ...commonCategories,
@@ -545,11 +545,64 @@ const getFilterCategories = () => {
           options: BEDROOMS_OPTIONS,
           isSingle: true,
         },
-        // ... rest of house filters (keep existing code)
+        {
+          title: 'Bathrooms',
+          options: BATHROOMS_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Balconies',
+          options: BALCONIES_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Floors',
+          options: FLOORS_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Area (sqft)',
+          options: [],
+          isSpecial: true,
+        },
+        {
+          title: 'Furnishing',
+          options: FURNISHING_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Age of Property',
+          options: AGE_OF_PROPERTY_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Availability Status',
+          options: AVAILABILITY_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Other Rooms',
+          options: OTHER_ROOMS_OPTIONS,
+          hasSelectAll: true,
+        },
+        {
+          title: 'Location Advantages',
+          options: LOCATION_ADVANTAGES,
+          hasSelectAll: true,
+        },
+        {
+          title: 'Facing Direction',
+          options: FACING_DIRECTIONS,
+          hasSelectAll: true,
+        },
       ];
     }
 
+
+
+
     // ✅ EXISTING - SITE FILTERS (keep as is)
+// ✅ SITE/PLOT/LAND FILTERS
     if (propertyType === 'Site/Plot/Land') {
       return [
         ...commonCategories,
@@ -558,11 +611,56 @@ const getFilterCategories = () => {
           options: OWNERSHIP_OPTIONS,
           isSingle: true,
         },
-        // ... rest of site filters (keep existing code)
+        {
+          title: 'Floors Allowed',
+          options: FLOORS_ALLOWED_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Area',
+          options: [],
+          isSpecial: true,
+        },
+        {
+          title: 'Boundary Wall',
+          options: BOUNDARY_WALL_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Open Sides',
+          options: OPEN_SIDES_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Construction Done',
+          options: CONSTRUCTION_DONE_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Construction Type',
+          options: CONSTRUCTION_TYPE_OPTIONS,
+          hasSelectAll: true,
+        },
+        {
+          title: 'Approved By',
+          options: APPROVED_BY_OPTIONS,
+          hasSelectAll: true,
+        },
+        {
+          title: 'Location Advantages',
+          options: LOCATION_ADVANTAGES,
+          hasSelectAll: true,
+        },
+        {
+          title: 'Facing Direction',
+          options: FACING_DIRECTIONS,
+          hasSelectAll: true,
+        },
       ];
     }
 
-    // ✅ EXISTING - RESORT FILTERS (keep as is)
+   
+   // ✅ RESORT FILTERS
     if (propertyType === 'Resort') {
       return [
         ...commonCategories,
@@ -571,14 +669,44 @@ const getFilterCategories = () => {
           options: [],
           isSpecial: true,
         },
-        // ... rest of resort filters (keep existing code)
+        {
+          title: 'Rooms',
+          options: ROOMS_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Floors',
+          options: FLOORS_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Land Area',
+          options: [],
+          isSpecial: true,
+        },
+        {
+          title: 'Build Area',
+          options: [],
+          isSpecial: true,
+        },
+        {
+          title: 'Location Advantages',
+          options: LOCATION_ADVANTAGES,
+          hasSelectAll: true,
+        },
+        {
+          title: 'Facing Direction',
+          options: FACING_DIRECTIONS,
+          hasSelectAll: true,
+        },
       ];
     }
-
     return commonCategories;
   };
 
-  const filterCategories = getFilterCategories();
+  const filterCategories = getFilterCategories();  // ✅ ADD THIS LINE
+
+  
 
   const toggleArrayItem = (setter, array, value) => {
     const newArray = array.includes(value)
