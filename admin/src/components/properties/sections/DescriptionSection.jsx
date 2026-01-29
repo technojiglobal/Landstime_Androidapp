@@ -6,12 +6,15 @@ import {
   LOCATION_ADVANTAGES, 
 } from '../../../constants/propertyConstants';
 
-const DescriptionSection = ({ formData, updateField }) => {
+const DescriptionSection = ({ formData, updateField, setIsDescriptionValid }) => {
   const getWordCount = (text = '') =>
     text.trim().split(/\s+/).filter(Boolean).length;
 
   const handleDescriptionChange = (value) => {
     updateField('description', value);
+
+    const count = getWordCount(value);
+    setIsDescriptionValid(count >= 50);
   };
 
   const wordCount = getWordCount(formData.description);
@@ -20,7 +23,11 @@ const DescriptionSection = ({ formData, updateField }) => {
     <div className="space-y-6 border-t pt-6">
       <div>
         <TextAreaField
-          label="Description"
+          label={
+            <span>
+              Description <span className="text-red-500">*</span>
+            </span>
+          }
           name="description"
           value={formData.description}
           onChange={handleDescriptionChange}
@@ -35,18 +42,10 @@ const DescriptionSection = ({ formData, updateField }) => {
         )}
       </div>
 
-      {/* ==================== LOCATION ADVANTAGES ==================== */}
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-semibold text-left mb-4">Location Advantages</h3>
-        <CheckboxGroup
-          name="locationAdvantages"
-          selected={formData.locationAdvantages || []}
-          onChange={(value) => updateField('locationAdvantages', value)}
-          options={LOCATION_ADVANTAGES}
-        />
-      </div>
+      
     </div>
   );
 };
+
 
 export default DescriptionSection;

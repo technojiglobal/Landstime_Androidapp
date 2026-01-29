@@ -1,7 +1,8 @@
-
+//SiteUpload/index.jsx (src/app/home/screens/UploadScreens/SiteUpload/index.jsx)
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import i18n from "../../../../../i18n/index";
+import "../../../../../assets/location.png";
 import {
   View,
   Text,
@@ -289,11 +290,12 @@ export default function UploadPropertyScreen() {
         return;
       }
 
-      if (!area?.trim()) {
-        showToast(t('area_numeric_required'));
-        setIsSubmitting(false);
-        return;
-      }
+      if (!neighborhood?.trim()) {
+  showToast(t('area_required'));
+  setIsSubmitting(false);
+  return;
+}
+
 
       if (!phone?.trim()) {
         showToast(t('phone_number_required'));
@@ -578,81 +580,61 @@ export default function UploadPropertyScreen() {
           </View>
 
         
-          {/* <View
-            className="bg-white rounded-lg p-4 mb-4"
-            style={{ borderWidth: 1, borderColor: "#0000001A" }}
-          >
-            <Text className="text-[15px] text-[#00000060] mb-3">
-              {t('location')} <Text className="text-red-500">*</Text>
-            </Text>
-            <View
-              className="flex-row items-center rounded-md p-3"
-              style={{
-                backgroundColor: "#D9D9D91C",
-                borderWidth: 2,
-                borderColor: focusedField === 'location' ? '#22C55E' : '#0000001A',
-              }}
-            >
-              <Image
-                source={require("../../../../../assets/location.png")}
-                style={{ width: 18, height: 18, marginRight: 8 }}
-              />
-              <TextInput 
-                placeholder={t('enter_property_location')}
-                className="flex-1"
-                value={location}
-                onChangeText={(text) => setLocation(text.replace(/[^a-zA-Z0-9\s]/g, ''))}
-                onFocus={() => setFocusedField('location')}
-                onBlur={() => setFocusedField(null)}
-              />
-            </View>
-          </View>
+         
 
-      
-          <View className="border border-gray-300 rounded-lg bg-white ml-5 mt-5 mr-4 mb-2 p-5">
-            <Text className="text-gray-500 font-semibold mb-2 text-left">
-              {t('area')} <Text className="text-red-500">*</Text>
-            </Text>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                backgroundColor: "#f3f4f6",
-                borderRadius: 8,
-                padding: 12,
-                marginBottom: 16,
-                borderColor: focusedField === "neighborhood" ? "#22C55E" : "#d1d5db",
-                borderWidth: 2,
-              }}
-            >
-              <Ionicons name="location-outline" size={20} color="#22C55E" />
-              <TextInput
-                placeholder={t('enter_area')}
-                placeholderTextColor="#888"
-                value={neighborhood}
-                onChangeText={(text) => setNeighborhood(text)}
-                style={{ flex: 1, marginLeft: 8, color: "#1f2937" }}
-                onFocus={() => setFocusedField("neighborhood")}
-                onBlur={() => setFocusedField(null)}
-              />
-            </View>
-          </View> */}
+{/* Location */}
+<View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
+  <Text className="text-[15px] font-bold text-gray-600 mb-3">
+    {t('location')} <Text style={{ color: "red" }}>*</Text>
+  </Text>
 
-          {/* Location with Map Picker */}
-<View className="bg-white rounded-lg p-4 mb-4" style={{ borderWidth: 1, borderColor: "#0000001A" }}>
-  <LocationSection
-    location={location}
-    setLocation={setLocation}
-    neighborhood={neighborhood}
-    setNeighborhood={setNeighborhood}
-    focusedField={focusedField}
-    setFocusedField={setFocusedField}
-    onLocationDetails={(details) => {
-      console.log('📍 Full location details:', details);
-      // Store coordinates for upload
-      // setLocationCoordinates(details.coordinates);
+  <View className="flex-row items-center bg-[#D9D9D91C] border border-gray-200 rounded-md p-3 mb-4"
+    style={{
+      borderColor: focusedField === 'location' ? '#22C55E' : '#d1d5db',
+    }}>
+    <Image
+      source={require("../../../../../assets/location.png")}
+      style={{ width: 18, height: 18, marginRight: 8 }}
+    />
+    <TextInput
+      placeholder={t('enter_property_location')}
+      className="flex-1"
+      value={location}
+      onChangeText={setLocation}
+      onFocus={() => setFocusedField('location')}
+      onBlur={() => setFocusedField(null)}
+    />
+  </View>
+</View>
+
+{/* Area/Neighborhood */}
+<View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
+  <Text className="text-gray-500 font-semibold mb-2 text-left">
+    {t('area')} <Text className="text-red-500">*</Text>
+  </Text>
+  <View
+    style={{
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "#f3f4f6",
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 16,
+      borderColor: focusedField === "neighborhood" ? "#22C55E" : "#d1d5db",
+      borderWidth: 2,
     }}
-  />
+  >
+    <Ionicons name="location-outline" size={20} color="#22C55E" />
+    <TextInput
+      placeholder={t('enter_area')}
+      placeholderTextColor="#888"
+      value={neighborhood}
+      onChangeText={(text) => setNeighborhood(text)}
+      style={{ flex: 1, marginLeft: 8, color: "#1f2937" }}
+      onFocus={() => setFocusedField("neighborhood")}
+      onBlur={() => setFocusedField(null)}
+    />
+  </View>
 </View>
 
           {/* Area + Length/Breadth */}

@@ -1,3 +1,4 @@
+// Landstime_Androidapp/Frontend/app/home/screens/Flats/PropertyDetails.jsx ( 1 )
 import React, { useRef, useState, useEffect } from "react";
 import {
   View,
@@ -516,3 +517,5 @@ export default function PropertyListScreen() {
     </SafeAreaView>
   );
 }
+
+

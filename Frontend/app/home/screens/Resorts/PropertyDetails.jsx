@@ -21,9 +21,8 @@ import i18n from "../../../../i18n/index";
 import { saveProperty, unsaveProperty, checkIfSaved } from "../../../../utils/savedPropertiesApi";
 import { Alert } from "react-native";
 import { fetchReviews } from "../../../../utils/reviewApi";
-// ADD THIS IMPORT
 import { getImageUrl } from "../../../../utils/imageHelper";
-// ✅ Helper function OUTSIDE component
+
 const getLocalizedText = (field, language) => {
   if (!field) return '';
   if (typeof field === 'string') return field;
@@ -39,59 +38,123 @@ export default function PropertyListScreen() {
   const [contentHeight, setContentHeight] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [properties, setProperties] = useState([]);
+  const [filteredProperties, setFilteredProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { t } = useTranslation();
-  const { areaKey, districtKey } = useLocalSearchParams();
+  const { areaKey, districtKey, appliedFilters } = useLocalSearchParams();
   const [savedStates, setSavedStates] = useState({});
-  // ✅ Get current language
   const currentLanguage = i18n.language || 'en';
   const [reviewSummary, setReviewSummary] = useState({});
-  // Get translated area name from areaKey
+  
+  // ✅ Filter state
+  const [activeFilters, setActiveFilters] = useState(null);
+  const [displayedProperties, setDisplayedProperties] = useState([]);
+  const [isFiltering, setIsFiltering] = useState(false);
+
   const areaName = areaKey ? t(`areas.${areaKey}`) : '';
 
+  // ✅ PARSE FILTERS when returned from Filter screen
+useEffect(() => {
+  if (appliedFilters) {
+    try {
+      const filters = JSON.parse(appliedFilters);
+      console.log('✅ Filters received from Filter screen:', filters);
+      console.log('📊 Filter breakdown:', {
+        budgetRange: filters.budgetRange,
+        resortType: filters.resortType,
+        rooms: filters.rooms,
+        floors: filters.floors,
+        landAreaRange: filters.landAreaRange,
+        buildAreaRange: filters.buildAreaRange,
+        locAdvantages: filters.locAdvantages?.length || 0,
+        quickFilters: filters.quickFilters?.length || 0,
+        facingDirections: filters.facingDirections?.length || 0,
+      });
+      
+      // ✅ NEW: Check if filters object has any actual filters
+      const hasFilters = Object.keys(filters).length > 0;
+      
+      if (hasFilters) {
+        setActiveFilters(filters);
+        setIsFiltering(true);
+        console.log('✅ Filters active, will apply to properties');
+      } else {
+        setActiveFilters(null);
+        setIsFiltering(false);
+        console.log('🔄 Empty filters object, showing all properties');
+      }
+    } catch (error) {
+      console.error('❌ Error parsing filters:', error);
+      setActiveFilters(null);
+      setIsFiltering(false);
+    }
+  } else {
+    console.log('🔄 No filters applied, showing all properties');
+    setActiveFilters(null);
+    setIsFiltering(false);
+  }
+}, [appliedFilters]);
 
-  const filteredProperties = properties.filter((property) => {
-    const propertyAreaKey = property.areaKey || '';
-    const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
-    const matchesArea = propertyAreaKey === areaKey;
-    const matchesSearch = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesArea && matchesSearch;
-  });
+  // ✅ Apply filters whenever properties or activeFilters change
+  useEffect(() => {
+    if (properties.length > 0) {
+      if (activeFilters && isFiltering) {
+        console.log('🔍 Applying filters to properties...');
+        applyFilters(properties, activeFilters);
+      } else {
+        // No filters, just filter by area
+        console.log('📍 Filtering by area only (no active filters)');
+        const areaFiltered = properties.filter((property) => {
+          const propertyAreaKey = property.areaKey || '';
+          return propertyAreaKey === areaKey;
+        });
+        console.log(`✅ Area-filtered: ${areaFiltered.length} properties`);
+        setFilteredProperties(areaFiltered);
+      }
+    }
+  }, [properties, activeFilters, isFiltering, areaKey]);
 
-  // ✅ FETCH REAL PROPERTIES
+  // ✅ FETCH PROPERTIES
   useEffect(() => {
     fetchProperties();
   }, [areaKey]);
 
-  // ✅ Refetch when language changes
   useEffect(() => {
     if (areaKey) {
       fetchProperties();
     }
   }, [i18n.language]);
-  
-  
 
   const fetchProperties = async () => {
     try {
       setLoading(true);
       console.log('🔍 Fetching RESORTS for areaKey:', areaKey);
 
-      // ✅ Get current language from i18next
       const currentLang = i18n.language || 'en';
       console.log('🌐 Fetching in language:', currentLang);
 
       const response = await getApprovedProperties(null, 1, currentLang);
 
       if (response.success) {
-        //console.log('✅ All properties fetched:', response.data);
-        // ✅ FILTER BY PROPERTY TYPE = "Resort"
         const resortProperties = (response.data.data || []).filter(
           property => property.propertyType === 'Resort'
         );
         console.log('✅ Resorts filtered:', resortProperties.length);
         setProperties(resortProperties);
+        
+        // ✅ Apply filters if they exist
+        if (activeFilters) {
+          applyFilters(resortProperties, activeFilters);
+        } else {
+          // ✅ Filter by area only
+          const areaFiltered = resortProperties.filter((property) => {
+            const propertyAreaKey = property.areaKey || '';
+            return propertyAreaKey === areaKey;
+          });
+          setFilteredProperties(areaFiltered);
+        }
+        
         await checkAllSavedStatuses(resortProperties);
       } else {
         console.error('❌ Failed to fetch properties:', response.error);
@@ -102,6 +165,419 @@ export default function PropertyListScreen() {
       setLoading(false);
     }
   };
+
+  // ✅ COMPLETE FILTER APPLICATION FUNCTION WITH ALL FIXES
+  const applyFilters = (propertyList, filters) => {
+    console.log('🔍 ========== STARTING FILTER APPLICATION ==========');
+    console.log('📊 Initial properties count:', propertyList.length);
+    console.log('🎯 Filters received:', JSON.stringify(filters, null, 2));
+    
+    let filtered = [...propertyList];
+    let filterSteps = [];
+
+    // ✅ STEP 1: Filter by area (ALWAYS FIRST)
+    const initialCount = filtered.length;
+    filtered = filtered.filter((property) => {
+      const propertyAreaKey = property.areaKey || '';
+      const matches = propertyAreaKey === areaKey;
+      if (!matches) {
+        console.log(`❌ Filtered out (wrong area): ${property.propertyTitle?.en || property.propertyTitle} - areaKey: ${propertyAreaKey}`);
+      }
+      return matches;
+    });
+    
+    filterSteps.push({
+      step: 'Area Filter',
+      before: initialCount,
+      after: filtered.length,
+      removed: initialCount - filtered.length
+    });
+    
+    console.log(`📍 Area filter (${areaKey}): ${initialCount} → ${filtered.length} properties`);
+
+    // ✅ STEP 2: BUDGET FILTER (LAKHS - FIXED)
+    if (filters.budgetRange && Array.isArray(filters.budgetRange)) {
+      const beforeBudget = filtered.length;
+      const [minBudget, maxBudget] = filters.budgetRange;
+      
+      // ✅ Skip if default range (1-500)
+      if (minBudget !== 1 || maxBudget !== 500) {
+        filtered = filtered.filter(property => {
+          const price = property.expectedPrice / 100000; // Convert to Lakhs
+          const inRange = price >= minBudget && price <= maxBudget;
+          
+          if (!inRange) {
+            console.log(`💰 Filtered out (budget): ${property.propertyTitle?.en || property.propertyTitle} - Price: ₹${price.toFixed(2)}L (Range: ${minBudget}-${maxBudget}L)`);
+          }
+          
+          return inRange;
+        });
+        
+        filterSteps.push({
+          step: `Budget (₹${minBudget}-${maxBudget}L)`,
+          before: beforeBudget,
+          after: filtered.length,
+          removed: beforeBudget - filtered.length
+        });
+        
+        console.log(`💰 Budget filter (${minBudget}-${maxBudget}L): ${beforeBudget} → ${filtered.length} properties`);
+      }
+    }
+
+    // ✅ STEP 3: RESORT TYPE FILTER
+// ✅ STEP 3: RESORT TYPE FILTER (CASE-INSENSITIVE & TRIM)
+if (filters.resortType && filters.resortType !== '' && filters.resortType !== 'Any') {
+  const beforeResortType = filtered.length;
+  
+  // ✅ Normalize for comparison - trim and lowercase
+  const normalizeResortType = (text) => {
+    if (!text) return '';
+    return text.toString().toLowerCase().trim();
+  };
+  
+  const normalizedFilter = normalizeResortType(filters.resortType);
+  console.log('🏨 Normalized filter resort type:', normalizedFilter);
+  
+  filtered = filtered.filter(property => {
+    const propertyResortType = property.resortDetails?.resortType || '';
+    const normalizedProperty = normalizeResortType(propertyResortType);
+    
+    const matches = normalizedProperty === normalizedFilter;
+    
+    if (!matches) {
+      console.log(`🏨 Filtered out (resort type): ${property.propertyTitle?.en || property.propertyTitle}`);
+      console.log(`   Property: "${propertyResortType}" (normalized: "${normalizedProperty}")`);
+      console.log(`   Filter: "${filters.resortType}" (normalized: "${normalizedFilter}")`);
+    } else {
+      console.log(`✅ MATCH: ${property.propertyTitle?.en || property.propertyTitle} - Type: ${propertyResortType}`);
+    }
+    
+    return matches;
+  });
+  
+  filterSteps.push({
+    step: `Resort Type (${filters.resortType})`,
+    before: beforeResortType,
+    after: filtered.length,
+    removed: beforeResortType - filtered.length
+  });
+  
+  console.log(`🏨 Resort type filter (${filters.resortType}): ${beforeResortType} → ${filtered.length} properties`);
+}
+
+
+
+    // ✅ STEP 4: ROOMS FILTER
+    if (filters.rooms && filters.rooms !== 'any' && filters.rooms !== '') {
+      const beforeRooms = filtered.length;
+      
+      filtered = filtered.filter(property => {
+        const rooms = property.resortDetails?.rooms || 0;
+        let matches = false;
+        
+        switch (filters.rooms) {
+          case '1-5':
+            matches = rooms >= 1 && rooms <= 5;
+            break;
+          case '5-10':
+            matches = rooms >= 5 && rooms <= 10;
+            break;
+          case '10-20':
+            matches = rooms >= 10 && rooms <= 20;
+            break;
+          case '20+':
+            matches = rooms >= 20;
+            break;
+          default:
+            matches = true;
+        }
+        
+        if (!matches) {
+          console.log(`🛏️ Filtered out (rooms): ${property.propertyTitle?.en || property.propertyTitle} - Rooms: ${rooms} (Range: ${filters.rooms})`);
+        }
+        
+        return matches;
+      });
+      
+      filterSteps.push({
+        step: `Rooms (${filters.rooms})`,
+        before: beforeRooms,
+        after: filtered.length,
+        removed: beforeRooms - filtered.length
+      });
+      
+      console.log(`🛏️ Rooms filter (${filters.rooms}): ${beforeRooms} → ${filtered.length} properties`);
+    }
+
+    // ✅ STEP 5: FLOORS FILTER
+    if (filters.floors && filters.floors !== 'any' && filters.floors !== '') {
+      const beforeFloors = filtered.length;
+      
+      filtered = filtered.filter(property => {
+        const floors = property.resortDetails?.floors || 0;
+        let matches = false;
+        
+        switch (filters.floors) {
+          case '1':
+            matches = floors === 1;
+            break;
+          case '2':
+            matches = floors === 2;
+            break;
+          case '3':
+            matches = floors === 3;
+            break;
+          case '4+':
+            matches = floors >= 4;
+            break;
+          default:
+            matches = true;
+        }
+        
+        if (!matches) {
+          console.log(`🏢 Filtered out (floors): ${property.propertyTitle?.en || property.propertyTitle} - Floors: ${floors} (Expected: ${filters.floors})`);
+        }
+        
+        return matches;
+      });
+      
+      filterSteps.push({
+        step: `Floors (${filters.floors})`,
+        before: beforeFloors,
+        after: filtered.length,
+        removed: beforeFloors - filtered.length
+      });
+      
+      console.log(`🏢 Floors filter (${filters.floors}): ${beforeFloors} → ${filtered.length} properties`);
+    }
+
+    // ✅ STEP 6: LAND AREA FILTER (SQFT - FIXED)
+    if (filters.landAreaRange && Array.isArray(filters.landAreaRange)) {
+      const beforeLandArea = filtered.length;
+      const [minLand, maxLand] = filters.landAreaRange;
+      
+      // ✅ Skip if default range (0-10000)
+      if (minLand !== 0 || maxLand !== 10000) {
+        filtered = filtered.filter(property => {
+          const landArea = property.resortDetails?.landArea || 0;
+          const inRange = landArea >= minLand && landArea <= maxLand;
+          
+          if (!inRange) {
+            console.log(`🌳 Filtered out (land area): ${property.propertyTitle?.en || property.propertyTitle} - Land: ${landArea} sqft (Range: ${minLand}-${maxLand} sqft)`);
+          }
+          
+          return inRange;
+        });
+        
+        filterSteps.push({
+          step: `Land Area (${minLand}-${maxLand} sqft)`,
+          before: beforeLandArea,
+          after: filtered.length,
+          removed: beforeLandArea - filtered.length
+        });
+        
+        console.log(`🌳 Land area filter (${minLand}-${maxLand}): ${beforeLandArea} → ${filtered.length} properties`);
+      }
+    }
+
+    // ✅ STEP 7: BUILD AREA FILTER (SQFT - FIXED)
+    if (filters.buildAreaRange && Array.isArray(filters.buildAreaRange)) {
+      const beforeBuildArea = filtered.length;
+      const [minBuild, maxBuild] = filters.buildAreaRange;
+      
+      // ✅ Skip if default range (0-10000)
+      if (minBuild !== 0 || maxBuild !== 10000) {
+        filtered = filtered.filter(property => {
+          const buildArea = property.resortDetails?.buildArea || 0;
+          const inRange = buildArea >= minBuild && buildArea <= maxBuild;
+          
+          if (!inRange) {
+            console.log(`🏗️ Filtered out (build area): ${property.propertyTitle?.en || property.propertyTitle} - Build: ${buildArea} sqft (Range: ${minBuild}-${maxBuild} sqft)`);
+          }
+          
+          return inRange;
+        });
+        
+        filterSteps.push({
+          step: `Build Area (${minBuild}-${maxBuild} sqft)`,
+          before: beforeBuildArea,
+          after: filtered.length,
+          removed: beforeBuildArea - filtered.length
+        });
+        
+        console.log(`🏗️ Build area filter (${minBuild}-${maxBuild}): ${beforeBuildArea} → ${filtered.length} properties`);
+      }
+    }
+
+    // ✅ STEP 8: LOCATION ADVANTAGES FILTER (CASE-INSENSITIVE - FIXED)
+    if (filters.locAdvantages && filters.locAdvantages.length > 0) {
+      const beforeLocAdv = filtered.length;
+      
+      filtered = filtered.filter(property => {
+        const propertyAdvantages = property.resortDetails?.locationAdvantages || [];
+        
+        // ✅ FIX: Normalize both arrays for case-insensitive comparison
+        const normalizeText = (text) => text.toLowerCase().replace(/[\s_-]+/g, '');
+        
+        const normalizedPropertyAdvantages = propertyAdvantages.map(adv => normalizeText(adv));
+        const normalizedFilterAdvantages = filters.locAdvantages.map(adv => normalizeText(adv));
+        
+        const hasAdvantage = normalizedFilterAdvantages.some(adv => 
+          normalizedPropertyAdvantages.includes(adv)
+        );
+        
+        if (!hasAdvantage) {
+          console.log(`📍 Filtered out (location advantages): ${property.propertyTitle?.en || property.propertyTitle}`);
+          console.log(`   Property has: [${propertyAdvantages.join(', ')}]`);
+          console.log(`   Looking for: [${filters.locAdvantages.join(', ')}]`);
+        }
+        
+        return hasAdvantage;
+      });
+      
+      filterSteps.push({
+        step: `Location Advantages (${filters.locAdvantages.length} selected)`,
+        before: beforeLocAdv,
+        after: filtered.length,
+        removed: beforeLocAdv - filtered.length
+      });
+      
+      console.log(`📍 Location advantages filter: ${beforeLocAdv} → ${filtered.length} properties`);
+    }
+
+    // ✅ STEP 9: FACING DIRECTIONS FILTER (FIXED PATH)
+    if (filters.facingDirections && filters.facingDirections.length > 0) {
+      const beforeFacing = filtered.length;
+      
+      filtered = filtered.filter(property => {
+        const propertyFacing = property.resortDetails?.vaasthuDetails?.propertyFacing || '';
+        
+        // ✅ Normalize for comparison
+        const normalizeText = (text) => text.toLowerCase().replace(/[\s_-]+/g, '');
+        const normalizedPropertyFacing = normalizeText(propertyFacing);
+        const normalizedFilterFacings = filters.facingDirections.map(f => normalizeText(f));
+        
+        const matchesFacing = normalizedFilterFacings.includes(normalizedPropertyFacing);
+        
+        if (!matchesFacing) {
+          console.log(`🧭 Filtered out (facing): ${property.propertyTitle?.en || property.propertyTitle} - Facing: ${propertyFacing} (Expected: [${filters.facingDirections.join(', ')}])`);
+        }
+        
+        return matchesFacing;
+      });
+      
+      filterSteps.push({
+        step: `Facing Direction (${filters.facingDirections.length} selected)`,
+        before: beforeFacing,
+        after: filtered.length,
+        removed: beforeFacing - filtered.length
+      });
+      
+      console.log(`🧭 Facing direction filter: ${beforeFacing} → ${filtered.length} properties`);
+    }
+
+    // ✅ STEP 10: QUICK FILTERS (Verified, With Photos, With Videos, Ready to Move)
+    if (filters.quickFilters && filters.quickFilters.length > 0) {
+      const beforeQuick = filtered.length;
+      
+      filtered = filtered.filter(property => {
+        let passes = true;
+        
+        filters.quickFilters.forEach(quickFilter => {
+          switch (quickFilter) {
+            case 'verified':
+              if (property.status !== 'approved') {
+                passes = false;
+                console.log(`✅ Filtered out (not verified): ${property.propertyTitle?.en || property.propertyTitle}`);
+              }
+              break;
+            case 'with_photos':
+              if (!property.images || property.images.length === 0) {
+                passes = false;
+                console.log(`📸 Filtered out (no photos): ${property.propertyTitle?.en || property.propertyTitle}`);
+              }
+              break;
+            case 'with_videos':
+              if (!property.videos || property.videos.length === 0) {
+                passes = false;
+                console.log(`🎥 Filtered out (no videos): ${property.propertyTitle?.en || property.propertyTitle}`);
+              }
+              break;
+            case 'ready_to_move':
+              // ✅ Note: Resorts don't have possessionStatus in schema
+              // This filter may not work unless schema is updated
+              if (property.resortDetails?.possessionStatus !== 'Ready to Move') {
+                passes = false;
+                console.log(`🏡 Filtered out (not ready to move): ${property.propertyTitle?.en || property.propertyTitle}`);
+              }
+              break;
+          }
+        });
+        
+        return passes;
+      });
+      
+      filterSteps.push({
+        step: `Quick Filters (${filters.quickFilters.length} selected)`,
+        before: beforeQuick,
+        after: filtered.length,
+        removed: beforeQuick - filtered.length
+      });
+      
+      console.log(`⚡ Quick filters: ${beforeQuick} → ${filtered.length} properties`);
+    }
+
+    // ✅ STEP 11: SEARCH QUERY FILTER (if exists)
+    if (searchQuery && searchQuery.trim()) {
+      const beforeSearch = filtered.length;
+      
+      filtered = filtered.filter((property) => {
+        const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
+        const matches = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        if (!matches) {
+          console.log(`🔎 Filtered out (search): ${propertyTitle} (Query: ${searchQuery})`);
+        }
+        
+        return matches;
+      });
+      
+      filterSteps.push({
+        step: `Search Query (${searchQuery})`,
+        before: beforeSearch,
+        after: filtered.length,
+        removed: beforeSearch - filtered.length
+      });
+      
+      console.log(`🔎 Search filter (${searchQuery}): ${beforeSearch} → ${filtered.length} properties`);
+    }
+
+    // ✅ FINAL SUMMARY
+    console.log('📊 ========== FILTER SUMMARY ==========');
+    console.table(filterSteps);
+    console.log(`✅ Final result: ${propertyList.length} → ${filtered.length} properties`);
+    console.log(`❌ Removed: ${propertyList.length - filtered.length} properties`);
+    console.log('=========================================');
+
+    setFilteredProperties(filtered);
+  };
+
+  // ✅ SEARCH QUERY EFFECT
+  useEffect(() => {
+    if (activeFilters) {
+      applyFilters(properties, activeFilters);
+    } else {
+      const areaFiltered = properties.filter((property) => {
+        const propertyAreaKey = property.areaKey || '';
+        const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
+        const matchesArea = propertyAreaKey === areaKey;
+        const matchesSearch = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesArea && matchesSearch;
+      });
+      setFilteredProperties(areaFiltered);
+    }
+  }, [searchQuery, properties]);
+
   const fetchReviewForProperty = async (propertyId) => {
     try {
       const res = await fetchReviews('property', propertyId);
@@ -116,15 +592,15 @@ export default function PropertyListScreen() {
       console.error('Failed to fetch reviews:', err);
     }
   };
- useEffect(() => {
-  console.log('🔄 [SITES] useEffect triggered, properties count:', properties.length);
-  if (properties.length > 0) {
-    console.log('📝 [SITES] Property IDs:', properties.map(p => p._id));
-    properties.forEach(property => {
-      fetchReviewForProperty(property._id);
-    });
-  }
-}, [properties]);
+
+  useEffect(() => {
+    if (properties.length > 0) {
+      properties.forEach(property => {
+        fetchReviewForProperty(property._id);
+      });
+    }
+  }, [properties]);
+
   const checkAllSavedStatuses = async (propertyList) => {
     const savedStatusPromises = propertyList.map(async (property) => {
       const response = await checkIfSaved(property._id, 'property');
@@ -138,10 +614,10 @@ export default function PropertyListScreen() {
     });
     setSavedStates(newSavedStates);
   };
+
   const handleToggleSave = async (propertyId) => {
     const currentState = savedStates[propertyId] || false;
 
-    // Optimistic update
     setSavedStates(prev => ({ ...prev, [propertyId]: !currentState }));
 
     try {
@@ -153,10 +629,8 @@ export default function PropertyListScreen() {
       }
 
       if (!response.success) {
-        // Revert on failure
         setSavedStates(prev => ({ ...prev, [propertyId]: currentState }));
         Alert.alert('Error', response.message || 'Failed to update saved status');
-
       }
     } catch (error) {
       console.error('Error toggling save:', error);
@@ -164,7 +638,41 @@ export default function PropertyListScreen() {
     }
   };
 
-  
+  // ✅ CLEAR FILTERS FUNCTION
+  const handleClearFilters = () => {
+    setActiveFilters(null);
+    setIsFiltering(false);
+    const areaFiltered = properties.filter((property) => {
+      const propertyAreaKey = property.areaKey || '';
+      return propertyAreaKey === areaKey;
+    });
+    setFilteredProperties(areaFiltered);
+  };
+
+  // ✅ GET ACTIVE FILTER COUNT (FIXED - REMOVED AMENITIES & PROPERTY FEATURES)
+  const getActiveFilterCount = () => {
+    if (!activeFilters) return 0;
+    
+    let count = 0;
+    
+    // Basic filters
+    if (activeFilters.resortType && activeFilters.resortType !== '' && activeFilters.resortType !== 'Any') count++;
+    if (activeFilters.rooms && activeFilters.rooms !== 'any' && activeFilters.rooms !== '') count++;
+    if (activeFilters.floors && activeFilters.floors !== 'any' && activeFilters.floors !== '') count++;
+    
+    // Range filters (UPDATED DEFAULTS)
+    if (activeFilters.budgetRange && (activeFilters.budgetRange[0] !== 1 || activeFilters.budgetRange[1] !== 500)) count++;
+    if (activeFilters.landAreaRange && (activeFilters.landAreaRange[0] !== 0 || activeFilters.landAreaRange[1] !== 10000)) count++;
+    if (activeFilters.buildAreaRange && (activeFilters.buildAreaRange[0] !== 0 || activeFilters.buildAreaRange[1] !== 10000)) count++;
+    
+    // Multi-select filters (AMENITIES & PROPERTY FEATURES REMOVED)
+    if (activeFilters.locAdvantages && activeFilters.locAdvantages.length > 0) count++;
+    if (activeFilters.facingDirections && activeFilters.facingDirections.length > 0) count++;
+    if (activeFilters.quickFilters && activeFilters.quickFilters.length > 0) count++;
+    
+    console.log('🔢 Active filter count:', count);
+    return count;
+  };
 
   const scrollbarHeight = SCREEN_HEIGHT * (SCREEN_HEIGHT / contentHeight) * 0.3;
 
@@ -190,7 +698,6 @@ export default function PropertyListScreen() {
       </View>
 
       <View style={{ flex: 1, flexDirection: "row" }}>
-        {/* Scrollable Content */}
         <Animated.ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
@@ -222,8 +729,115 @@ export default function PropertyListScreen() {
               }}
             />
             <Ionicons name="mic-outline" size={18} />
-            <Ionicons name="options-outline" size={18} style={{ marginLeft: 8 }} />
+            {/* ✅ FILTER ICON - WITH BADGE */}
+            <TouchableOpacity 
+              onPress={() => router.push({
+                pathname: '/home/screens/Resorts/Filter',
+                params: { 
+                  propertyType: 'Resort',
+                  currentFilters: activeFilters ? JSON.stringify(activeFilters) : ''
+                }
+              })}
+              style={{ marginLeft: 8, position: 'relative' }}
+            >
+              <Ionicons name="options-outline" size={18} />
+              {getActiveFilterCount() > 0 && (
+                <View className="absolute -top-1 -right-1 bg-green-500 rounded-full w-4 h-4 items-center justify-center">
+                  <Text className="text-white text-[10px] font-bold">
+                    {getActiveFilterCount()}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </View>
+
+          {/* ✅ ACTIVE FILTERS DISPLAY (FIXED - REMOVED AMENITIES & PROPERTY FEATURES) */}
+          {activeFilters && getActiveFilterCount() > 0 && (
+            <View className="w-full px-5 mt-3">
+              <View className="flex-row items-center justify-between mb-2">
+                <Text className="text-sm text-gray-600">Active Filters: {getActiveFilterCount()}</Text>
+                <TouchableOpacity onPress={handleClearFilters}>
+                  <Text className="text-sm text-green-500 font-semibold">Clear All</Text>
+                </TouchableOpacity>
+              </View>
+              <View className="flex-row flex-wrap gap-2">
+                {/* Resort Type */}
+                {activeFilters.resortType && activeFilters.resortType !== '' && activeFilters.resortType !== 'Any' && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">{activeFilters.resortType}</Text>
+                  </View>
+                )}
+                
+                {/* Rooms */}
+                {activeFilters.rooms && activeFilters.rooms !== 'any' && activeFilters.rooms !== '' && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">{activeFilters.rooms} Rooms</Text>
+                  </View>
+                )}
+                
+                {/* Floors */}
+                {activeFilters.floors && activeFilters.floors !== 'any' && activeFilters.floors !== '' && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">{activeFilters.floors} Floors</Text>
+                  </View>
+                )}
+                
+                {/* Budget (UPDATED TO LAKHS) */}
+                {activeFilters.budgetRange && (activeFilters.budgetRange[0] !== 1 || activeFilters.budgetRange[1] !== 500) && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">
+                      ₹{activeFilters.budgetRange[0]}-{activeFilters.budgetRange[1]}L
+                    </Text>
+                  </View>
+                )}
+                
+                {/* Land Area (UPDATED TO SQFT) */}
+                {activeFilters.landAreaRange && (activeFilters.landAreaRange[0] !== 0 || activeFilters.landAreaRange[1] !== 10000) && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">
+                      Land: {activeFilters.landAreaRange[0]}-{activeFilters.landAreaRange[1]} sqft
+                    </Text>
+                  </View>
+                )}
+                
+                {/* Build Area (UPDATED TO SQFT) */}
+                {activeFilters.buildAreaRange && (activeFilters.buildAreaRange[0] !== 0 || activeFilters.buildAreaRange[1] !== 10000) && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">
+                      Build: {activeFilters.buildAreaRange[0]}-{activeFilters.buildAreaRange[1]} sqft
+                    </Text>
+                  </View>
+                )}
+                
+                {/* Location Advantages */}
+                {activeFilters.locAdvantages && activeFilters.locAdvantages.length > 0 && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">
+                      {activeFilters.locAdvantages.length} Location Advantage{activeFilters.locAdvantages.length > 1 ? 's' : ''}
+                    </Text>
+                  </View>
+                )}
+                
+                {/* Facing Directions */}
+                {activeFilters.facingDirections && activeFilters.facingDirections.length > 0 && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">
+                      Facing: {activeFilters.facingDirections.join(', ')}
+                    </Text>
+                  </View>
+                )}
+                
+                {/* Quick Filters Count */}
+                {activeFilters.quickFilters && activeFilters.quickFilters.length > 0 && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">
+                      {activeFilters.quickFilters.length} Quick Filter{activeFilters.quickFilters.length > 1 ? 's' : ''}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          )}
 
           {/* Property Count */}
           <Text
@@ -240,7 +854,7 @@ export default function PropertyListScreen() {
             {filteredProperties.length} properties found in {areaName}
           </Text>
 
-          {/* ✅ LOADING SPINNER */}
+          {/* LOADING */}
           {loading ? (
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 50 }}>
               <ActivityIndicator size="large" color="#16A34A" />
@@ -268,7 +882,6 @@ export default function PropertyListScreen() {
                   borderColor: "#E5E7EB",
                 }}
               >
-                {/* ✅ REAL IMAGE with fallback */}
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => router.push({
@@ -277,14 +890,14 @@ export default function PropertyListScreen() {
                       propertyId: item._id,
                       propertyData: JSON.stringify(item),
                       areaKey: item.areaKey || areaKey,
-                      entityType: 'property' // ✅ Add this
+                      entityType: 'property'
                     }
                   })}
                 >
                   <Image
                     source={
                       item.images && item.images.length > 0
-                        ? { uri: getImageUrl(item.images[0]) }  // ✅ CHANGED: Removed IP address prefix for base64
+                        ? { uri: getImageUrl(item.images[0]) }
                         : require("../../../../assets/resort.jpg")
                     }
                     style={{
@@ -297,7 +910,6 @@ export default function PropertyListScreen() {
                   />
                 </TouchableOpacity>
 
-                {/* Bookmark Icon */}
                 <TouchableOpacity
                   onPress={() => handleToggleSave(item._id)}
                   style={{
@@ -316,9 +928,7 @@ export default function PropertyListScreen() {
                   />
                 </TouchableOpacity>
 
-                {/* Card Content */}
                 <View style={{ paddingHorizontal: 12, paddingTop: 10 }}>
-                  {/* ✅ REAL TITLE */}
                   <TouchableOpacity
                     activeOpacity={0.6}
                     onPress={() => router.push({
@@ -326,7 +936,7 @@ export default function PropertyListScreen() {
                       params: {
                         propertyId: item._id,
                         areaKey: item.areaKey || areaKey,
-                        entityType: 'property' // ✅ Add this
+                        entityType: 'property'
                       }
                     })}
                   >
@@ -351,7 +961,6 @@ export default function PropertyListScreen() {
                       marginTop: 3,
                     }}
                   >
-                    {/* ✅ REAL PROPERTY TYPE */}
                     <Text
                       style={{
                         fontFamily: "Poppins-Regular",
@@ -368,7 +977,6 @@ export default function PropertyListScreen() {
                     />
                   </View>
 
-                  {/* ✅ RATING - Using dummy data for now */}
                   <View className="flex-row items-center mb-1 mt-2">
                     <Ionicons name="star" size={14} color="#FF9500" />
                     <Text className="text-xs mx-3 text-gray-700 justify-center item-center">
@@ -376,7 +984,6 @@ export default function PropertyListScreen() {
                     </Text>
                   </View>
 
-                  {/* ✅ REAL LOCATION */}
                   <View className="flex-row items-center mt-1">
                     <Image
                       source={require("../../../../assets/location.png")}
@@ -394,7 +1001,6 @@ export default function PropertyListScreen() {
                     </Text>
                   </View>
 
-                  {/* ✅ REAL PRICE */}
                   <View
                     style={{
                       position: "absolute",
@@ -454,13 +1060,13 @@ export default function PropertyListScreen() {
                   fontFamily: "Poppins-Regular",
                 }}
               >
-                Try adjusting your search
+                Try adjusting your filters
               </Text>
             </View>
           )}
         </Animated.ScrollView>
 
-        {/* Custom Green Scroll Bar */}
+        {/* Custom Scroll Bar */}
         <View
           style={{
             width: 7,

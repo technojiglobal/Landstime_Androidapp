@@ -81,10 +81,10 @@ const OfficeForm = ({ formData, updateField, images, setImages }) => {
 
       {/* ==================== AREA SECTION ==================== */}
       <div className="border-t pt-6">
-        <h3 className="text-lg font-semibold text-left mb-4">Area</h3>
+        <h3 className="text-lg font-semibold text-left mb-4">Area <span className="text-red-500">*</span></h3>
         <div className="grid grid-cols-1 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Carpet Area *</label>
+            <label className="block text-sm font-medium mb-2">Carpet Area </label>
             <div className="flex gap-2">
               <input
                 type="number"

@@ -201,8 +201,13 @@ import LocationSection from '../sections/LocationSection';
 import PricingSection from '../sections/PricingSection';
 import DescriptionSection from '../sections/DescriptionSection';
 import AvailabilityStatus from '../sections/AvailabilityStatus';
+import { useState } from 'react';
+import PricingDetailsModal from '../PricingDetailsModal';
 
 const SitePlotForm = ({ formData, updateField, images, setImages }) => {
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+  const [pricingDetails, setPricingDetails] = useState(null);
+
   // Helper function to update nested siteDetails fields
   const updateSiteField = (field, value) => {
     updateField('siteDetails', {
@@ -219,6 +224,17 @@ const SitePlotForm = ({ formData, updateField, images, setImages }) => {
         ...(formData.siteDetails?.vaasthuDetails || {}),
         [field]: value
       }
+    });
+  };
+
+  const handlePricingSubmit = (data) => {
+    setPricingDetails(data);
+    updateSiteField('additionalPricing', {
+      maintenanceCharges: data.maintenance || 0,
+      maintenancePeriod: data.maintenanceFrequency || '',
+      expectedRental: data.expectedRental || 0,
+      bookingAmount: data.bookingAmount || 0,
+      annualDuesPayable: data.annualDuesPayable || 0
     });
   };
 
@@ -240,26 +256,40 @@ const SitePlotForm = ({ formData, updateField, images, setImages }) => {
       {/* Price and Area Grid */}
       <div className="grid grid-cols-2 gap-4">
         <NumberField
-          label="Area (sqft)"
-          name="area"
-          value={formData.siteDetails?.area || ''}
-          onChange={(value) => updateSiteField('area', value)}
-        />
+  label={
+    <span>
+      Area (sqft) <span className="text-red-500">*</span>
+    </span>
+  }
+  name="area"
+  value={formData.siteDetails?.area || ''}
+  onChange={(value) => updateSiteField('area', value)}
+/>
 
-        <TextField
-          label="Length (optional)"
-          name="length"
-          value={formData.siteDetails?.length || ''}
-          onChange={(value) => updateSiteField('length', value)}
-          placeholder="in ft."
-        />
-        <TextField
-          label="Breadth (optional)"
-          name="breadth"
-          value={formData.siteDetails?.breadth || ''}
-          onChange={(value) => updateSiteField('breadth', value)}
-          placeholder="in ft."
-        />
+
+       <NumberField
+  label={
+    <span>
+      Length <span className="text-red-500">*</span>
+    </span>
+  }
+  name="length"
+  value={formData.siteDetails?.length || ''}
+  onChange={(value) => updateSiteField('length', value)}
+  placeholder="in ft."
+/>
+
+<NumberField
+  label={
+    <span>
+      Breadth <span className="text-red-500">*</span>
+    </span>
+  }
+  name="breadth"
+  value={formData.siteDetails?.breadth || ''}
+  onChange={(value) => updateSiteField('breadth', value)}
+  placeholder="in ft."
+/>
         <TextField
           label="Floors Allowed for Construction"
           name="floorsAllowed"
@@ -359,6 +389,18 @@ const SitePlotForm = ({ formData, updateField, images, setImages }) => {
         <div className="mt-3">
           <PricingSection formData={formData} updateField={updateField} />
         </div>
+        <button 
+          type="button" 
+          className="text-green-600 text-sm mt-2"
+          onClick={() => setIsPricingModalOpen(true)}
+        >
+          + Add more pricing details
+        </button>
+        <PricingDetailsModal
+          isOpen={isPricingModalOpen}
+          onClose={() => setIsPricingModalOpen(false)}
+          onSubmit={handlePricingSubmit}
+        />
       </div>
 
       <DescriptionSection formData={formData} updateField={updateField} />

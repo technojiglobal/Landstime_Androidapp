@@ -118,21 +118,46 @@ import { toast } from 'react-toastify';
 
 const PropertyUploadModal = ({ isOpen, onClose, onSuccess }) => {
   const [propertyType, setPropertyType] = useState("");
+  const [isDescriptionValid, setIsDescriptionValid] = useState(false);
+
   const { formData, updateField, resetForm } = usePropertyForm();
   const { uploadProperty, loading, error } = usePropertyUpload();
   
   // File states
-  const [images, setImages] = useState([]);
-  const [ownershipDocs, setOwnershipDocs] = useState([]);
-  const [identityDocs, setIdentityDocs] = useState([]);
+// File states
+const [basicImages, setBasicImages] = useState([]);
+const [houseImages, setHouseImages] = useState([]);
+const [sitePlotImages, setSitePlotImages] = useState([]);
+const [resortImages, setResortImages] = useState([]);
+// Commercial subtypes
+const [officeImages, setOfficeImages] = useState([]);
+const [storageImages, setStorageImages] = useState([]);
+const [hospitalityImages, setHospitalityImages] = useState([]);
+const [retailImages, setRetailImages] = useState([]);
+const [plotCommercialImages, setPlotCommercialImages] = useState([]);
+const [industryImages, setIndustryImages] = useState([]);
+const [otherCommercialImages, setOtherCommercialImages] = useState([]);
+// Documents
+const [ownershipDocs, setOwnershipDocs] = useState([]);
+const [identityDocs, setIdentityDocs] = useState([]);
 
   const handleClose = () => {
     resetForm();
-    setPropertyType("");
-    setImages([]);
-    setOwnershipDocs([]);
-    setIdentityDocs([]);
-    onClose();
+  setPropertyType("");
+  setBasicImages([]);
+  setHouseImages([]);
+  setSitePlotImages([]);
+  setResortImages([]);
+  setOfficeImages([]);
+  setStorageImages([]);
+  setHospitalityImages([]);
+  setRetailImages([]);
+  setPlotCommercialImages([]);
+  setIndustryImages([]);
+  setOtherCommercialImages([]);
+  setOwnershipDocs([]);
+  setIdentityDocs([]);
+  onClose();
   };
 
   const handleSubmit = async (e) => {
@@ -145,7 +170,21 @@ const PropertyUploadModal = ({ isOpen, onClose, onSuccess }) => {
   return;
 }
 
-if (images.length === 0) {
+const allPropertyImages = [
+  ...basicImages,
+  ...houseImages,
+  ...sitePlotImages,
+  ...resortImages,
+  ...officeImages,
+  ...storageImages,
+  ...hospitalityImages,
+  ...retailImages,
+  ...plotCommercialImages,
+  ...industryImages,
+  ...otherCommercialImages
+];
+
+if (allPropertyImages.length === 0) {
   toast.error('Please add at least one property image');
   return;
 }
@@ -193,11 +232,24 @@ if (identityDocs.length === 0) {
 
 
       // Prepare files
-      const files = {
-        images,
-        ownershipDocs,
-        identityDocs
-      };
+      
+const files = {
+  images: [
+    ...basicImages,
+    ...houseImages,
+    ...sitePlotImages,
+    ...resortImages,
+    ...officeImages,
+    ...storageImages,
+    ...hospitalityImages,
+    ...retailImages,
+    ...plotCommercialImages,
+    ...industryImages,
+    ...otherCommercialImages
+  ],
+  ownershipDocs,
+  identityDocs
+};
 
       console.log('📤 Uploading property...', propertyData);
 
@@ -228,8 +280,9 @@ if (identityDocs.length === 0) {
           <HouseForm 
             formData={formData} 
             updateField={updateField}
-            images={images}
-            setImages={setImages}
+            images={houseImages}        // ✅ CORRECT
+      setImages={setHouseImages}
+            setIsDescriptionValid={setIsDescriptionValid}
           />
         );
       case "Site/Plot(Land)":
@@ -237,26 +290,38 @@ if (identityDocs.length === 0) {
           <SitePlotForm 
             formData={formData} 
             updateField={updateField}
-            images={images}
-            setImages={setImages}
+              images={sitePlotImages}        // ✅ Change from 'houseImages' to 'sitePlotImages'
+      setImages={setSitePlotImages}
           />
         );
       case "Commercial":
         return (
-          <CommercialForm 
-            formData={formData} 
-            updateField={updateField}
-            images={images}
-            setImages={setImages}
-          />
+              <CommercialForm 
+      formData={formData} 
+      updateField={updateField}
+      officeImages={officeImages}
+      setOfficeImages={setOfficeImages}
+      storageImages={storageImages}
+      setStorageImages={setStorageImages}
+      hospitalityImages={hospitalityImages}
+      setHospitalityImages={setHospitalityImages}
+      retailImages={retailImages}
+      setRetailImages={setRetailImages}
+      plotCommercialImages={plotCommercialImages}
+      setPlotCommercialImages={setPlotCommercialImages}
+      industryImages={industryImages}
+      setIndustryImages={setIndustryImages}
+      otherCommercialImages={otherCommercialImages}
+      setOtherCommercialImages={setOtherCommercialImages}
+    />
         );
       case "Resort":
         return (
           <ResortForm 
             formData={formData} 
             updateField={updateField}
-            images={images}
-            setImages={setImages}
+           images={resortImages}        // ✅ Change from 'images' to 'resortImages'
+      setImages={setResortImages}
           />
         );
       default:
@@ -300,6 +365,8 @@ if (identityDocs.length === 0) {
               setPropertyType={setPropertyType}
               formData={formData}
               updateField={updateField}
+              images={basicImages}
+             setImages={setBasicImages}     
             />
 
             {/* Property Specific Form */}

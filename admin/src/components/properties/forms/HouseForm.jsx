@@ -140,10 +140,14 @@ import LocationSection from '../sections/LocationSection';
 import DescriptionSection from '../sections/DescriptionSection';
 import FurnishingModal from '../sections/FurnishingModal';
 import PricingSection from '../sections/PricingSection';
+import PricingDetailsModal from '../PricingDetailsModal';
 
 const HouseForm = ({ formData, updateField, images, setImages }) => {
   const [showFurnishingModal, setShowFurnishingModal] = useState(false);
   const [furnishingModalType, setFurnishingModalType] = useState('');
+  const [isDescriptionValid, setIsDescriptionValid] = useState(false);
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+  const [pricingDetails, setPricingDetails] = useState(null);
 
   
 
@@ -163,6 +167,16 @@ const updateVaasthuField = (field, value) => {
   }
 };
 
+  const handlePricingSubmit = (data) => {
+    setPricingDetails(data);
+    updateField('houseDetails.additionalPricing', {
+      maintenanceCharges: data.maintenance || 0,
+      maintenancePeriod: data.maintenanceFrequency || '',
+      expectedRental: data.expectedRental || 0,
+      bookingAmount: data.bookingAmount || 0,
+      annualDuesPayable: data.annualDuesPayable || 0
+    });
+  };
 
   return (
     <div className="space-y-6 border-t pt-6">
@@ -232,9 +246,7 @@ const updateVaasthuField = (field, value) => {
   possessionMonth={formData.houseDetails?.possessionMonth || ''}
   onChange={(v) => updateField('houseDetails.availabilityStatus', v)}
   updateExtra={(field, v) =>
-    field === 'ageOfProperty'
-      ? updateField('houseDetails.ageOfProperty', v[0] || '')
-      : updateField(`houseDetails.${field}`, v)
+    updateField(`houseDetails.${field}`, v)
   }
 />
 
@@ -270,12 +282,24 @@ const updateVaasthuField = (field, value) => {
           onChange={(value) => updateField('expectedPrice', value)}
           placeholder="₹ Expected Price"
         />
+       
         <div className="mt-3">
           <PricingSection formData={formData} updateField={updateField} />
         </div>
+        <button 
+          type="button" 
+          className="text-green-600 text-sm mt-2"
+          onClick={() => setIsPricingModalOpen(true)}
+        >
+          + Add more pricing details
+        </button>
+        <PricingDetailsModal
+          isOpen={isPricingModalOpen}
+          onClose={() => setIsPricingModalOpen(false)}
+          onSubmit={handlePricingSubmit}
+        />
       </div>
-
-
+     
       <CheckboxGroup
         label="Other Rooms"
         name="otherRooms"
@@ -318,7 +342,7 @@ const updateVaasthuField = (field, value) => {
 />
 
       <LocationSection formData={formData} updateField={updateField} />
-      <DescriptionSection formData={formData} updateField={updateField} />
+      <DescriptionSection formData={formData} updateField={updateField} setIsDescriptionValid={setIsDescriptionValid}/>
       
       <VaasthuDetails
   formData={formData.houseDetails || {}}

@@ -1,10 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import NumberField from '../fields/NumberField';
 import SelectField from '../fields/SelectField';
 import TextAreaField from '../fields/TextAreaField';
 import PricingSection from './PricingSection';
+import PricingDetailsModal from '../PricingDetailsModal';
 
-const OfficePricingDetailsSection = ({ formData, updateField }) => (
+const OfficePricingDetailsSection = ({ formData, updateField }) => {
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+  const [pricingDetails, setPricingDetails] = useState(null);
+
+  const handlePricingSubmit = (data) => {
+    setPricingDetails(data);
+    updateField('additionalPricing', {
+      maintenanceCharges: data.maintenance || 0,
+      maintenancePeriod: data.maintenanceFrequency || '',
+      expectedRental: data.expectedRental || 0,
+      bookingAmount: data.bookingAmount || 0,
+      annualDuesPayable: data.annualDuesPayable || 0
+    });
+  };
+
+  return (
   <div className="space-y-6 border-t pt-6">
     <h3 className="font-semibold">Expected Price Details</h3>
 
@@ -18,9 +34,18 @@ const OfficePricingDetailsSection = ({ formData, updateField }) => (
 
     <PricingSection formData={formData} updateField={updateField} />
 
-    <button type="button" className="text-green-600 text-sm">
+    <button 
+      type="button" 
+      className="text-green-600 text-sm mt-2"
+      onClick={() => setIsPricingModalOpen(true)}
+    >
       + Add more pricing details
     </button>
+    <PricingDetailsModal
+      isOpen={isPricingModalOpen}
+      onClose={() => setIsPricingModalOpen(false)}
+      onSubmit={handlePricingSubmit}
+    />
 
     {/* Pre-leased/Pre-Rented - Pill Style */}
     <div>
@@ -31,11 +56,10 @@ const OfficePricingDetailsSection = ({ formData, updateField }) => (
             key={option}
             type="button"
             onClick={() => updateField('preLeased', option)}
-            className={`px-4 py-2 rounded-full border text-sm ${
-              formData.preLeased === option
+            className={`px-4 py-2 rounded-full border text-sm ${formData.preLeased === option
                 ? 'bg-green-500 text-white border-green-500'
                 : 'bg-white text-gray-700 border-gray-300'
-            }`}
+              }`}
           >
             {option}
           </button>
@@ -47,17 +71,17 @@ const OfficePricingDetailsSection = ({ formData, updateField }) => (
       <div className="grid grid-cols-2 gap-4">
         <NumberField
           label="Current rent per month"
-          name="currentRent"
-          value={formData.currentRent}
-          onChange={(value) => updateField('currentRent', value)}
+          name="monthlyRent"
+          value={formData.monthlyRent}
+          onChange={(value) => updateField('monthlyRent', value)}
           placeholder="₹ Current rent per month"
         />
 
         <NumberField
           label="Lease tenure in years"
-          name="leaseTenure"
-          value={formData.leaseTenure}
-          onChange={(value) => updateField('leaseTenure', value)}
+          name="leaseDuration"
+          value={formData.leaseDuration}
+          onChange={(value) => updateField('leaseDuration', value)}
         />
       </div>
     )}
@@ -70,12 +94,11 @@ const OfficePricingDetailsSection = ({ formData, updateField }) => (
           <button
             key={option}
             type="button"
-            onClick={() => updateField('fireNOC', option)}
-            className={`px-4 py-2 rounded-full border text-sm ${
-              formData.fireNOC === option
+            onClick={() => updateField('nocCertified', option)}
+            className={`px-4 py-2 rounded-full border text-sm ${formData.nocCertified === option
                 ? 'bg-green-500 text-white border-green-500'
                 : 'bg-white text-gray-700 border-gray-300'
-            }`}
+              }`}
           >
             {option}
           </button>
@@ -91,12 +114,11 @@ const OfficePricingDetailsSection = ({ formData, updateField }) => (
           <button
             key={option}
             type="button"
-            onClick={() => updateField('occupancyCertificate', option)}
-            className={`px-4 py-2 rounded-full border text-sm ${
-              formData.occupancyCertificate === option
+            onClick={() => updateField('occupancyCertified', option)}
+            className={`px-4 py-2 rounded-full border text-sm ${formData.occupancyCertified === option
                 ? 'bg-green-500 text-white border-green-500'
                 : 'bg-white text-gray-700 border-gray-300'
-            }`}
+              }`}
           >
             {option}
           </button>
@@ -112,8 +134,8 @@ const OfficePricingDetailsSection = ({ formData, updateField }) => (
       options={['', 'Commercial', 'Residential', 'Industrial', 'Educational', 'Healthcare']}
     />
 
-    
   </div>
-);
+  );
+};
 
 export default OfficePricingDetailsSection;

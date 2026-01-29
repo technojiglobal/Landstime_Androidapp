@@ -100,18 +100,27 @@ const ageOfProperty = rawAge ?? (isArrayAge ? [] : '');
 />
 
 
-      {isReadyToMove && isArrayAge && (
-
-        <div className="mt-6">
-          <CheckboxGroup
-            label="Age of Property"
-            name="ageOfProperty"
-            selected={ageOfProperty}
-            onChange={(v) => handleExtraChange('ageOfProperty', v)}
-            options={AGE_OF_PROPERTY}
-          />
-        </div>
-      )}
+      {isReadyToMove && (
+  <div className="mt-6">
+    {isArrayAge ? (
+      <CheckboxGroup
+        label="Age of Property"
+        name="ageOfProperty"
+        selected={ageOfProperty}
+        onChange={(v) => handleExtraChange('ageOfProperty', v)}
+        options={AGE_OF_PROPERTY}
+      />
+    ) : (
+      <ToggleButtons
+        label="Age of Property"
+        name="ageOfProperty"
+        value={ageOfProperty}
+        onChange={(v) => handleExtraChange('ageOfProperty', v)}
+        options={AGE_OF_PROPERTY}
+      />
+    )}
+  </div>
+)}
 
       {isUnderConstruction && (
         <div className="mt-6">
