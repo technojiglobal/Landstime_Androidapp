@@ -266,44 +266,53 @@ export default function OverviewScreen() {
   const details = getPropertyDetails();
 
   // Prepare stats based on property type
-  const getStats = () => {
-    if (property.propertyType === 'House' && property.houseDetails) {
-      return [
-        { label: "Area", value: `${property.houseDetails.area || 0} ${property.houseDetails.areaUnit || 'sqft'}` },
-        { label: "Bedrooms", value: property.houseDetails.bedrooms || 0 },
-        { label: "Bathrooms", value: property.houseDetails.bathrooms || 0 },
-        { label: "Floors", value: property.houseDetails.floors || 0 },
-      ];
-    } else if (property.propertyType === 'Site/Plot/Land' && property.siteDetails) {
-      return [
-        { label: "Area", value: `${property.siteDetails.area || 0} ${property.siteDetails.areaUnit || 'sqft'}` },
-        { label: "Length", value: `${property.siteDetails.length || 0} ft` },
-        { label: "Breadth", value: `${property.siteDetails.breadth || 0} ft` },
-        { label: "Floors Allowed", value: property.siteDetails.floorsAllowed || 0 },
-      ];
-    } else if (property.propertyType === 'Resort' && property.resortDetails) {
-      return [
-        { label: "Area", value: `${property.resortDetails.area || 0} ${property.resortDetails.areaUnit || 'acres'}` },
-        { label: "Rooms", value: property.resortDetails.rooms || 0 },
-        { label: "Buildings", value: 3 },
-        { label: "Built", value: new Date(property.createdAt).getFullYear() },
-      ];
-    } else if (property.propertyType === 'Commercial' && property.commercialDetails) {
-      const officeDetails = property.commercialDetails.officeDetails || {};
-      return [
-        { label: "Area", value: `${officeDetails.area || 0} ${officeDetails.areaUnit || 'sqft'}` },
-        { label: "Cabins", value: officeDetails.cabins || 0 },
-        { label: "Seats", value: officeDetails.seats || 0 },
-        { label: "Floors", value: officeDetails.totalFloors || 0 },
-      ];
+  // Prepare stats based on property type
+const getStats = () => {
+  if (property.propertyType === 'House' && property.houseDetails) {
+    // ✅ Determine "Built By" value
+    let builtByValue = 'N/A';
+    if (property.houseDetails.ageOfProperty && property.houseDetails.ageOfProperty.trim() !== '') {
+      builtByValue = property.houseDetails.ageOfProperty;
+    } else if (property.houseDetails.possessionBy) {
+      builtByValue = getLocalizedText(property.houseDetails.possessionBy, currentLanguage);
     }
+
     return [
-      { label: "Area", value: "N/A" },
-      { label: "Info", value: "N/A" },
-      { label: "Type", value: property.propertyType },
-      { label: "Year", value: new Date(property.createdAt).getFullYear() },
+      { label: "Area", value: `${property.houseDetails.area || 0} ${property.houseDetails.areaUnit || 'sqft'}` },
+      { label: "Bedrooms", value: property.houseDetails.bedrooms || 0 },
+      { label: "Built By", value: builtByValue }, // ✅ CHANGED: Bathrooms → Built By
+      { label: "Floors", value: property.houseDetails.floors || 0 },
     ];
-  };
+  } else if (property.propertyType === 'Site/Plot/Land' && property.siteDetails) {
+    return [
+      { label: "Area", value: `${property.siteDetails.area || 0} ${property.siteDetails.areaUnit || 'sqft'}` },
+      { label: "Length", value: `${property.siteDetails.length || 0} ft` },
+      { label: "Breadth", value: `${property.siteDetails.breadth || 0} ft` },
+      { label: "Floors Allowed", value: property.siteDetails.floorsAllowed || 0 },
+    ];
+  } else if (property.propertyType === 'Resort' && property.resortDetails) {
+    return [
+      { label: "Area", value: `${property.resortDetails.area || 0} ${property.resortDetails.areaUnit || 'acres'}` },
+      { label: "Rooms", value: property.resortDetails.rooms || 0 },
+      { label: "Buildings", value: 3 },
+      { label: "Built", value: new Date(property.createdAt).getFullYear() },
+    ];
+  } else if (property.propertyType === 'Commercial' && property.commercialDetails) {
+    const officeDetails = property.commercialDetails.officeDetails || {};
+    return [
+      { label: "Area", value: `${officeDetails.area || 0} ${officeDetails.areaUnit || 'sqft'}` },
+      { label: "Cabins", value: officeDetails.cabins || 0 },
+      { label: "Seats", value: officeDetails.seats || 0 },
+      { label: "Floors", value: officeDetails.totalFloors || 0 },
+    ];
+  }
+  return [
+    { label: "Area", value: "N/A" },
+    { label: "Info", value: "N/A" },
+    { label: "Type", value: property.propertyType },
+    { label: "Year", value: new Date(property.createdAt).getFullYear() },
+  ];
+};
 
   const stats = getStats();
 

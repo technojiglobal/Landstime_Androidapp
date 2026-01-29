@@ -18,31 +18,47 @@ const propertySchema = new mongoose.Schema({
     type: String // URLs of uploaded images
   }],
   documents: {
-    ownership: [String], // Sale deed, conveyance
-    identity: [String]   // PAN, Aadhaar, etc
+  ownership: [String], // Sale deed, conveyance
+  identity: [String]   // PAN, Aadhaar, etc
+},
+ownerDetails: {
+  name: {
+    type: String,
+    required: [true, "Owner name is required"],
+    trim: true,
   },
-  ownerDetails: {
-    name: {
-      type: String,
-      required: [true, "Owner name is required"],
-      trim: true,
+  // ✅ NEW CODE - Add this new field
+originalLanguage: {
+  type: String,
+  enum: ['te', 'hi', 'en'],
+  default: 'en'
+},
+  phone: {
+  type: String,
+  required: [true, "Owner phone is required"],
+  validate: {
+    validator: function(v) {
+      // Matches Indian phone numbers: 10 digits, optional +91 or 0 prefix
+      return /^(?:\+91|91|0)?[6-9]\d{9}$/.test(v);
     },
-    // ✅ NEW CODE - Add this new field
-    originalLanguage: {
-      type: String,
-      enum: ['te', 'hi', 'en'],
-      default: 'en'
-    },
-    phone: {
-      type: String,
-      required: [true, "Owner phone is required"],
-    },
-    email: {
-      type: String,
-      required: [true, "Owner email is required"],
-      lowercase: true,
-    },
+    message: props => `${props.value} is not a valid phone number!`
   },
+  trim: true
+},
+email: {
+  type: String,
+  required: [true, "Owner email is required"],
+  lowercase: true,
+  trim: true,
+  validate: {
+    validator: function(v) {
+      // Standard email validation regex
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+    },
+    message: props => `${props.value} is not a valid email address!`
+  }
+}
+},
 
   location: {
     te: { type: String, trim: true },
