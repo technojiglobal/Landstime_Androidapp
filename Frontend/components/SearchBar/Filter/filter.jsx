@@ -46,6 +46,16 @@ const FilterScreen = () => {
   const [selectedAgeOfProperty, setSelectedAgeOfProperty] = useState(existingFilters.ageOfProperty || '');
   const [selectedOtherRooms, setSelectedOtherRooms] = useState(existingFilters.otherRooms || []);
   const [selectedAvailability, setSelectedAvailability] = useState(existingFilters.availabilityStatus || '');
+
+   // Site/Plot/Land specific states
+  const [selectedOwnership, setSelectedOwnership] = useState(existingFilters.ownership || '');
+  const [selectedFloorsAllowed, setSelectedFloorsAllowed] = useState(existingFilters.floorsAllowed || '');
+  const [selectedBoundaryWall, setSelectedBoundaryWall] = useState(existingFilters.boundaryWall || '');
+  const [selectedOpenSides, setSelectedOpenSides] = useState(existingFilters.openSides || '');
+  const [selectedConstructionDone, setSelectedConstructionDone] = useState(existingFilters.constructionDone || '');
+  const [selectedConstructionType, setSelectedConstructionType] = useState(existingFilters.constructionType || []);
+  const [selectedApprovedBy, setSelectedApprovedBy] = useState(existingFilters.approvedBy || []);
+  const [siteAreaRange, setSiteAreaRange] = useState(existingFilters.areaRange || [0, 10000]);
   
   // ✅ RESORT SPECIFIC STATES
   const [selectedResortType, setSelectedResortType] = useState(existingFilters.resortType || '');
@@ -119,6 +129,55 @@ const FilterScreen = () => {
     { label: 'Any', value: 'any' },
     { label: 'Ready to Move', value: 'Ready to Move' },
     { label: 'Under Construction', value: 'Under Construction' },
+  ];
+
+  const OWNERSHIP_OPTIONS = [
+    { label: 'Any', value: 'any' },
+    { label: t("freehold"), value: 'Freehold' },
+    { label: t("leasehold"), value: 'Leasehold' },
+    { label: t("co_operative_society"), value: 'Co-operative Society' },
+    { label: t("power_of_attorney"), value: 'Power of Attorney' },
+  ];
+
+  const FLOORS_ALLOWED_OPTIONS = [
+    { label: 'Any', value: 'any' },
+    { label: '1 Floor', value: '1' },
+    { label: '2 Floors', value: '2' },
+    { label: '3 Floors', value: '3' },
+    { label: '4+ Floors', value: '4+' },
+  ];
+
+  const BOUNDARY_WALL_OPTIONS = [
+    { label: 'Any', value: '' },
+    { label: t("yes"), value: 'Yes' },
+    { label: t("no"), value: 'No' },
+  ];
+
+  const OPEN_SIDES_OPTIONS = [
+    { label: 'Any', value: '' },
+    { label: '1', value: '1' },
+    { label: '2', value: '2' },
+    { label: '3', value: '3' },
+    { label: '3+', value: '3+' },
+  ];
+
+  const CONSTRUCTION_DONE_OPTIONS = [
+    { label: 'Any', value: '' },
+    { label: t("yes"), value: 'Yes' },
+    { label: t("no"), value: 'No' },
+  ];
+
+  const CONSTRUCTION_TYPE_OPTIONS = [
+    { label: t("shed"), value: 'Shed' },
+    { label: t("rooms"), value: 'Room' },
+    { label: t("washroom"), value: 'Washroom' },
+    { label: t("other"), value: 'Other' },
+  ];
+
+  const APPROVED_BY_OPTIONS = [
+    { label: 'GHMC', value: 'GHMC' },
+    { label: 'HMDA', value: 'HMDA' },
+    { label: 'DTCP', value: 'DTCP' },
   ];
 
   // ✅ RESORT TYPES
@@ -258,6 +317,64 @@ const FilterScreen = () => {
       ];
     }
 
+    // ✅ ADD THIS ENTIRE SECTION BEFORE "if (propertyType === 'Resort')":
+
+    if (propertyType === 'Site/Plot/Land') {
+      return [
+        ...commonCategories,
+        {
+          title: 'Ownership',
+          options: OWNERSHIP_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Floors Allowed',
+          options: FLOORS_ALLOWED_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Area',
+          options: [],
+          isSpecial: true,
+        },
+        {
+          title: 'Boundary Wall',
+          options: BOUNDARY_WALL_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Open Sides',
+          options: OPEN_SIDES_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Construction Done',
+          options: CONSTRUCTION_DONE_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Construction Type',
+          options: CONSTRUCTION_TYPE_OPTIONS,
+          hasSelectAll: true,
+        },
+        {
+          title: 'Approved By',
+          options: APPROVED_BY_OPTIONS,
+          hasSelectAll: true,
+        },
+        {
+          title: 'Location Advantages',
+          options: LOCATION_ADVANTAGES,
+          hasSelectAll: true,
+        },
+        {
+          title: 'Facing Direction',
+          options: FACING_DIRECTIONS,
+          hasSelectAll: true,
+        },
+      ];
+    }
+
     if (propertyType === 'Resort') {
       return [
         ...commonCategories,
@@ -323,6 +440,10 @@ const FilterScreen = () => {
       'Facing Direction': [facingDirections, setFacingDirections],
       'Quick Filters': [quickFilters, setQuickFilters],
       'Other Rooms': [selectedOtherRooms, setSelectedOtherRooms],
+      'Construction Type': [selectedConstructionType, setSelectedConstructionType],
+      'Approved By': [selectedApprovedBy, setSelectedApprovedBy],
+     
+    
     };
 
     const [currentState, setter] = stateMap[categoryTitle] || [[], () => {}];
@@ -354,6 +475,17 @@ const FilterScreen = () => {
     setSelectedAgeOfProperty('');
     setSelectedOtherRooms([]);
     setSelectedAvailability('');
+
+     // Site/Plot/Land specific
+    setSelectedOwnership('');
+    setSelectedFloorsAllowed('');
+    setSelectedBoundaryWall('');
+    setSelectedOpenSides('');
+    setSelectedConstructionDone('');
+    setSelectedConstructionType([]);
+    setSelectedApprovedBy([]);
+    setSiteAreaRange([0, 10000]);
+
     
     // Resort specific
     setSelectedResortType('');
@@ -418,6 +550,43 @@ const FilterScreen = () => {
         filters.otherRooms = selectedOtherRooms;
       }
     }
+
+    // Site/Plot/Land specific filters
+    if (propertyType === 'Site/Plot/Land') {
+      if (selectedOwnership && selectedOwnership !== '' && selectedOwnership !== 'any') {
+        filters.ownership = selectedOwnership;
+      }
+      
+      if (selectedFloorsAllowed && selectedFloorsAllowed !== '' && selectedFloorsAllowed !== 'any') {
+        filters.floorsAllowed = selectedFloorsAllowed;
+      }
+      
+      if (selectedBoundaryWall && selectedBoundaryWall !== '') {
+        filters.boundaryWall = selectedBoundaryWall;
+      }
+      
+      if (selectedOpenSides && selectedOpenSides !== '') {
+        filters.openSides = selectedOpenSides;
+      }
+      
+      if (selectedConstructionDone && selectedConstructionDone !== '') {
+        filters.constructionDone = selectedConstructionDone;
+      }
+      
+      if (siteAreaRange[0] !== 0 || siteAreaRange[1] !== 10000) {
+        filters.areaRange = siteAreaRange;
+      }
+      
+      if (selectedConstructionType.length > 0) {
+        filters.constructionType = selectedConstructionType;
+      }
+      
+      if (selectedApprovedBy.length > 0) {
+        filters.approvedBy = selectedApprovedBy;
+      }
+    }
+
+
     
     // Resort specific filters
     if (propertyType === 'Resort') {
@@ -567,6 +736,61 @@ const FilterScreen = () => {
         </View>
       );
     }
+
+    // ✅ AREA SECTION (for Site/Plot/Land)
+    if (activeSection === 'Area' && propertyType === 'Site/Plot/Land') {
+      return (
+        <View className="p-4">
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-base font-semibold text-gray-800">Area</Text>
+            <Text className="text-xs text-gray-500">Square Feet (sqft)</Text>
+          </View>
+          
+          <View className="flex-row items-center justify-between mb-6">
+            <View className="bg-green-50 border border-green-500 rounded-full px-5 py-2.5 min-w-[80px] items-center">
+              <Text className="text-sm font-medium text-green-700">{siteAreaRange[0]}</Text>
+            </View>
+            <Text className="text-sm text-gray-600 mx-3">to</Text>
+            <View className="bg-green-50 border border-green-500 rounded-full px-5 py-2.5 min-w-[80px] items-center">
+              <Text className="text-sm font-medium text-green-700">{siteAreaRange[1]}</Text>
+            </View>
+          </View>
+
+          <View className="mb-2">
+            <Slider
+              style={{ width: '100%', height: 40 }}
+              minimumValue={0}
+              maximumValue={10000}
+              step={100}
+              value={siteAreaRange[0]}
+              onValueChange={(val) => {
+                const newRange = [Math.round(val), siteAreaRange[1]];
+                setSiteAreaRange(newRange);
+              }}
+              minimumTrackTintColor="#22C55E"
+              maximumTrackTintColor="#E5E7EB"
+              thumbTintColor="#22C55E"
+            />
+            <Slider
+              style={{ width: '100%', height: 40 }}
+              minimumValue={siteAreaRange[0]}
+              maximumValue={10000}
+              step={100}
+              value={siteAreaRange[1]}
+              onValueChange={(val) => {
+                const newRange = [siteAreaRange[0], Math.round(val)];
+                setSiteAreaRange(newRange);
+              }}
+              minimumTrackTintColor="#22C55E"
+              maximumTrackTintColor="#E5E7EB"
+              thumbTintColor="#22C55E"
+            />
+          </View>
+        </View>
+      );
+    }
+
+
 
     // ✅ RESORT TYPE SECTION
     if (activeSection === 'Resort Type') {
@@ -768,7 +992,12 @@ const FilterScreen = () => {
                 (activeSection === 'Furnishing' && selectedFurnishing === option.value) ||
                 (activeSection === 'Age of Property' && selectedAgeOfProperty === option.value) ||
                 (activeSection === 'Availability Status' && selectedAvailability === option.value) ||
-                (activeSection === 'Rooms' && selectedRooms === option.value);
+                (activeSection === 'Rooms' && selectedRooms === option.value)||
+                 (activeSection === 'Ownership' && selectedOwnership === option.value) ||
+                (activeSection === 'Floors Allowed' && selectedFloorsAllowed === option.value) ||
+                (activeSection === 'Boundary Wall' && selectedBoundaryWall === option.value) ||
+                (activeSection === 'Open Sides' && selectedOpenSides === option.value) ||
+                (activeSection === 'Construction Done' && selectedConstructionDone === option.value);
               
               return (
                 <TouchableOpacity
@@ -792,6 +1021,17 @@ const FilterScreen = () => {
                     } else if (activeSection === 'Rooms') {
                       setSelectedRooms(option.value === 'any' ? '' : option.value);
                     }
+                     else if (activeSection === 'Ownership') {
+                      setSelectedOwnership(option.value === 'any' ? '' : option.value);
+                    } else if (activeSection === 'Floors Allowed') {
+                      setSelectedFloorsAllowed(option.value === 'any' ? '' : option.value);
+                    } else if (activeSection === 'Boundary Wall') {
+                      setSelectedBoundaryWall(option.value === '' ? '' : option.value);
+                    } else if (activeSection === 'Open Sides') {
+                      setSelectedOpenSides(option.value === '' ? '' : option.value);
+                    } else if (activeSection === 'Construction Done') {
+                      setSelectedConstructionDone(option.value === '' ? '' : option.value);
+                    }
                   }}
                 >
                   <View
@@ -814,6 +1054,9 @@ const FilterScreen = () => {
               'Facing Direction': facingDirections,
               'Quick Filters': quickFilters,
               'Other Rooms': selectedOtherRooms,
+               'Construction Type': selectedConstructionType,
+               'Approved By': selectedApprovedBy,
+
             };
 
             const setterMap = {
@@ -821,6 +1064,8 @@ const FilterScreen = () => {
               'Facing Direction': setFacingDirections,
               'Quick Filters': setQuickFilters,
               'Other Rooms': setSelectedOtherRooms,
+              'Construction Type': setSelectedConstructionType,
+              'Approved By': setSelectedApprovedBy,
             };
 
             const currentState = stateMap[activeSection] || [];
@@ -980,6 +1225,65 @@ const FilterScreen = () => {
         });
       }
     }
+
+    // ✅ NEW - Site/Plot/Land filters
+if (propertyType === 'Site/Plot/Land') {
+  if (selectedOwnership && selectedOwnership !== 'any' && selectedOwnership !== 'Any') {
+    chips.push({
+      label: selectedOwnership,
+      onClear: () => setSelectedOwnership(''),
+    });
+  }
+
+  if (selectedFloorsAllowed && selectedFloorsAllowed !== 'any') {
+    chips.push({
+      label: `${selectedFloorsAllowed} Floors Allowed`,
+      onClear: () => setSelectedFloorsAllowed(''),
+    });
+  }
+
+  if (selectedBoundaryWall && selectedBoundaryWall !== '') {
+    chips.push({
+      label: `Boundary: ${selectedBoundaryWall}`,
+      onClear: () => setSelectedBoundaryWall(''),
+    });
+  }
+
+  if (selectedOpenSides && selectedOpenSides !== '') {
+    chips.push({
+      label: `${selectedOpenSides} Open Sides`,
+      onClear: () => setSelectedOpenSides(''),
+    });
+  }
+
+  if (selectedConstructionDone && selectedConstructionDone !== '') {
+    chips.push({
+      label: `Construction: ${selectedConstructionDone}`,
+      onClear: () => setSelectedConstructionDone(''),
+    });
+  }
+
+  if (siteAreaRange[0] !== 0 || siteAreaRange[1] !== 10000) {
+    chips.push({
+      label: `${siteAreaRange[0]}-${siteAreaRange[1]} sqft`,
+      onClear: () => setSiteAreaRange([0, 10000]),
+    });
+  }
+
+  if (selectedConstructionType.length > 0) {
+    chips.push({
+      label: `${selectedConstructionType.length} Construction Type${selectedConstructionType.length > 1 ? 's' : ''}`,
+      onClear: () => setSelectedConstructionType([]),
+    });
+  }
+
+  if (selectedApprovedBy.length > 0) {
+    chips.push({
+      label: `Approved: ${selectedApprovedBy.join(', ')}`,
+      onClear: () => setSelectedApprovedBy([]),
+    });
+  }
+}
 
     // Common filters
     if (locAdvantages.length > 0) {
