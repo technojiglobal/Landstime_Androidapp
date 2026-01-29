@@ -1,3 +1,6 @@
+
+
+
 // Frontend/components/SearchBar/Filter/filter.jsx
 import React, { useState } from 'react';
 import {
@@ -25,31 +28,100 @@ const FilterScreen = () => {
   console.log('📋 Property Type:', propertyType);
   console.log('🔍 Current Filters:', currentFilters);
   
-  // Parse existing filters if any
   const existingFilters = currentFilters ? JSON.parse(currentFilters) : {};
   console.log('✅ Parsed Existing Filters:', existingFilters);
   
-  // ✅ FIXED - Initialize with empty/default values only if they were previously set
+  // ✅ COMMON STATES
   const [selectedFilters, setSelectedFilters] = useState(existingFilters.selected || []);
   const [activeSection, setActiveSection] = useState(null);
-  const [budgetRange, setBudgetRange] = useState(existingFilters.budgetRange || [1, 500]); // ✅ CHANGED to Lakhs
+  const [budgetRange, setBudgetRange] = useState(existingFilters.budgetRange || [1, 500]);
   
-  // ✅ RESORT-SPECIFIC STATES
+  // ✅ HOUSE/FLAT SPECIFIC STATES
+  const [selectedBedrooms, setSelectedBedrooms] = useState(existingFilters.bedrooms || '');
+  const [selectedBathrooms, setSelectedBathrooms] = useState(existingFilters.bathrooms || '');
+  const [selectedBalconies, setSelectedBalconies] = useState(existingFilters.balconies || '');
+  const [selectedFloors, setSelectedFloors] = useState(existingFilters.floors || '');
+  const [areaRange, setAreaRange] = useState(existingFilters.areaRange || [0, 10000]); // sqft
+  const [selectedFurnishing, setSelectedFurnishing] = useState(existingFilters.furnishing || '');
+  const [selectedAgeOfProperty, setSelectedAgeOfProperty] = useState(existingFilters.ageOfProperty || '');
+  const [selectedOtherRooms, setSelectedOtherRooms] = useState(existingFilters.otherRooms || []);
+  const [selectedAvailability, setSelectedAvailability] = useState(existingFilters.availabilityStatus || '');
+  
+  // ✅ RESORT SPECIFIC STATES
   const [selectedResortType, setSelectedResortType] = useState(existingFilters.resortType || '');
   const [resortTypeOpen, setResortTypeOpen] = useState(false);
   const [selectedRooms, setSelectedRooms] = useState(existingFilters.rooms || '');
-  const [selectedFloors, setSelectedFloors] = useState(existingFilters.floors || '');
-  const [landAreaRange, setLandAreaRange] = useState(existingFilters.landAreaRange || [0, 10000]); // ✅ CHANGED to sqft
-  const [buildAreaRange, setBuildAreaRange] = useState(existingFilters.buildAreaRange || [0, 10000]); // ✅ CHANGED to sqft
+  const [landAreaRange, setLandAreaRange] = useState(existingFilters.landAreaRange || [0, 10000]);
+  const [buildAreaRange, setBuildAreaRange] = useState(existingFilters.buildAreaRange || [0, 10000]);
   
-  // ✅ MULTI-SELECT FILTERS
+  // ✅ MULTI-SELECT FILTERS (common)
   const [locAdvantages, setLocAdvantages] = useState(existingFilters.locAdvantages || []);
   const [quickFilters, setQuickFilters] = useState(existingFilters.quickFilters || []);
   const [facingDirections, setFacingDirections] = useState(existingFilters.facingDirections || []);
-  
-  // ✅ REMOVED - amenities and propertyFeatures (not in resort schema)
 
-  // ✅ RESORT TYPES (from schema)
+  // ✅ HOUSE/FLAT OPTIONS
+  const BEDROOMS_OPTIONS = [
+    { label: 'Any', value: 'any' },
+    { label: '1 BHK', value: '1' },
+    { label: '2 BHK', value: '2' },
+    { label: '3 BHK', value: '3' },
+    { label: '4 BHK', value: '4' },
+    { label: '5+ BHK', value: '5+' },
+  ];
+
+  const BATHROOMS_OPTIONS = [
+    { label: 'Any', value: 'any' },
+    { label: '1', value: '1' },
+    { label: '2', value: '2' },
+    { label: '3', value: '3' },
+    { label: '4+', value: '4+' },
+  ];
+
+  const BALCONIES_OPTIONS = [
+    { label: 'Any', value: 'any' },
+    { label: '0', value: '0' },
+    { label: '1', value: '1' },
+    { label: '2', value: '2' },
+    { label: '3+', value: '3+' },
+  ];
+
+  const FLOORS_OPTIONS = [
+    { label: 'Any', value: 'any' },
+    { label: '1 Floor', value: '1' },
+    { label: '2 Floors', value: '2' },
+    { label: '3 Floors', value: '3' },
+    { label: '4+ Floors', value: '4+' },
+  ];
+
+  const FURNISHING_OPTIONS = [
+    { label: 'Any', value: 'any' },
+    { label: t("furnished"), value: 'Furnished' },
+    { label: t("semi_furnished"), value: 'Semi-furnished' },
+    { label: t("unfurnished"), value: 'Unfurnished' },
+  ];
+
+  const AGE_OF_PROPERTY_OPTIONS = [
+    { label: 'Any', value: 'any' },
+    { label: t("0_1_years"), value: '0-1 years' },
+    { label: t("1_5_years"), value: '1-5 years' },
+    { label: t("5_10_years"), value: '5-10 years' },
+    { label: t("10_years"), value: '10+ years' },
+  ];
+
+  const OTHER_ROOMS_OPTIONS = [
+    { label: t("pooja_room"), value: 'Pooja Room' },
+    { label: t("study_room"), value: 'Study Room' },
+    { label: t("servant_room"), value: 'Servant Room' },
+    { label: t("others"), value: 'Others' },
+  ];
+
+  const AVAILABILITY_OPTIONS = [
+    { label: 'Any', value: 'any' },
+    { label: 'Ready to Move', value: 'Ready to Move' },
+    { label: 'Under Construction', value: 'Under Construction' },
+  ];
+
+  // ✅ RESORT TYPES
   const RESORT_TYPES = [
     t("beachfront_resort"),
     t("hill_station_mountain_resort"),
@@ -73,7 +145,15 @@ const FilterScreen = () => {
     t("eco_lodge_nature_retreat"),
   ];
 
-  // ✅ LOCATION ADVANTAGES
+  const ROOMS_OPTIONS = [
+    { label: 'Any', value: 'any' },
+    { label: '1-5 Rooms', value: '1-5' },
+    { label: '5-10 Rooms', value: '5-10' },
+    { label: '10-20 Rooms', value: '10-20' },
+    { label: '20+ Rooms', value: '20+' },
+  ];
+
+  // ✅ COMMON OPTIONS
   const LOCATION_ADVANTAGES = [
     { label: t("close_to_metro_station"), value: 'close_to_metro_station' },
     { label: t("close_to_school"), value: 'close_to_school' },
@@ -85,7 +165,6 @@ const FilterScreen = () => {
     { label: t("close_to_highway"), value: 'close_to_highway' },
   ];
 
-  // ✅ FACING DIRECTIONS
   const FACING_DIRECTIONS = [
     { label: 'North', value: 'North' },
     { label: 'South', value: 'South' },
@@ -97,76 +176,134 @@ const FilterScreen = () => {
     { label: 'South-West', value: 'South-West' },
   ];
 
-  // ✅ QUICK FILTERS
   const QUICK_FILTERS = [
     { label: 'Verified Properties', value: 'verified' },
     { label: 'With Photos', value: 'with_photos' },
     { label: 'With Videos', value: 'with_videos' },
   ];
 
-  // ✅ RESORT FILTER CATEGORIES (REMOVED AMENITIES & PROPERTY FEATURES & POSSESSION STATUS)
-  const filterCategories = [
-    {
-      title: 'Quick Filters',
-      options: QUICK_FILTERS,
-      hasSelectAll: true,
-    },
-    {
-      title: 'Budget',
-      options: [],
-      isSpecial: true,
-    },
-    {
-      title: 'Resort Type',
-      options: [],
-      isSpecial: true,
-    },
-    {
-      title: 'Rooms',
-      options: [
-        { label: 'Any', value: 'any' },
-        { label: '1-5 Rooms', value: '1-5' },
-        { label: '5-10 Rooms', value: '5-10' },
-        { label: '10-20 Rooms', value: '10-20' },
-        { label: '20+ Rooms', value: '20+' },
-      ],
-      isSingle: true,
-    },
-    {
-      title: 'Floors',
-      options: [
-        { label: 'Any', value: 'any' },
-        { label: '1 Floor', value: '1' },
-        { label: '2 Floors', value: '2' },
-        { label: '3 Floors', value: '3' },
-        { label: '4+ Floors', value: '4+' },
-      ],
-      isSingle: true,
-    },
-    {
-      title: 'Land Area',
-      options: [],
-      isSpecial: true,
-    },
-    {
-      title: 'Build Area',
-      options: [],
-      isSpecial: true,
-    },
-    // ✅ REMOVED - Amenities (not in resort schema)
-    {
-      title: 'Location Advantages',
-      options: LOCATION_ADVANTAGES,
-      hasSelectAll: true,
-    },
-    // ✅ REMOVED - Property Features (not in resort schema)
-    {
-      title: 'Facing Direction',
-      options: FACING_DIRECTIONS,
-      hasSelectAll: true,
-    },
-    // ✅ REMOVED - Possession Status (not in resort schema)
-  ];
+  // ✅ DYNAMIC FILTER CATEGORIES BASED ON PROPERTY TYPE
+  const getFilterCategories = () => {
+    const commonCategories = [
+      {
+        title: 'Quick Filters',
+        options: QUICK_FILTERS,
+        hasSelectAll: true,
+      },
+      {
+        title: 'Budget',
+        options: [],
+        isSpecial: true,
+      },
+    ];
+
+    if (propertyType === 'House' || propertyType === 'House/Flat') {
+      return [
+        ...commonCategories,
+        {
+          title: 'Bedrooms',
+          options: BEDROOMS_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Bathrooms',
+          options: BATHROOMS_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Balconies',
+          options: BALCONIES_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Floors',
+          options: FLOORS_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Area (sqft)',
+          options: [],
+          isSpecial: true,
+        },
+        {
+          title: 'Furnishing',
+          options: FURNISHING_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Age of Property',
+          options: AGE_OF_PROPERTY_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Availability Status',
+          options: AVAILABILITY_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Other Rooms',
+          options: OTHER_ROOMS_OPTIONS,
+          hasSelectAll: true,
+        },
+        {
+          title: 'Location Advantages',
+          options: LOCATION_ADVANTAGES,
+          hasSelectAll: true,
+        },
+        {
+          title: 'Facing Direction',
+          options: FACING_DIRECTIONS,
+          hasSelectAll: true,
+        },
+      ];
+    }
+
+    if (propertyType === 'Resort') {
+      return [
+        ...commonCategories,
+        {
+          title: 'Resort Type',
+          options: [],
+          isSpecial: true,
+        },
+        {
+          title: 'Rooms',
+          options: ROOMS_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Floors',
+          options: FLOORS_OPTIONS,
+          isSingle: true,
+        },
+        {
+          title: 'Land Area',
+          options: [],
+          isSpecial: true,
+        },
+        {
+          title: 'Build Area',
+          options: [],
+          isSpecial: true,
+        },
+        {
+          title: 'Location Advantages',
+          options: LOCATION_ADVANTAGES,
+          hasSelectAll: true,
+        },
+        {
+          title: 'Facing Direction',
+          options: FACING_DIRECTIONS,
+          hasSelectAll: true,
+        },
+      ];
+    }
+
+    // Default for other types
+    return commonCategories;
+  };
+
+  const filterCategories = getFilterCategories();
 
   const toggleArrayItem = (setter, array, value) => {
     const newArray = array.includes(value)
@@ -185,6 +322,7 @@ const FilterScreen = () => {
       'Location Advantages': [locAdvantages, setLocAdvantages],
       'Facing Direction': [facingDirections, setFacingDirections],
       'Quick Filters': [quickFilters, setQuickFilters],
+      'Other Rooms': [selectedOtherRooms, setSelectedOtherRooms],
     };
 
     const [currentState, setter] = stateMap[categoryTitle] || [[], () => {}];
@@ -202,15 +340,28 @@ const FilterScreen = () => {
 
   const clearAll = () => {
     console.log('🧹 Clearing all filters');
-    console.log('🔄 Resetting all states to default');
     
     setSelectedFilters([]);
-    setBudgetRange([1, 500]); // ✅ CHANGED
+    setBudgetRange([1, 500]);
+    
+    // House/Flat specific
+    setSelectedBedrooms('');
+    setSelectedBathrooms('');
+    setSelectedBalconies('');
+    setSelectedFloors('');
+    setAreaRange([0, 10000]);
+    setSelectedFurnishing('');
+    setSelectedAgeOfProperty('');
+    setSelectedOtherRooms([]);
+    setSelectedAvailability('');
+    
+    // Resort specific
     setSelectedResortType('');
     setSelectedRooms('');
-    setSelectedFloors('');
-    setLandAreaRange([0, 10000]); // ✅ CHANGED
-    setBuildAreaRange([0, 10000]); // ✅ CHANGED
+    setLandAreaRange([0, 10000]);
+    setBuildAreaRange([0, 10000]);
+    
+    // Common
     setLocAdvantages([]);
     setQuickFilters([]);
     setFacingDirections([]);
@@ -222,34 +373,72 @@ const FilterScreen = () => {
   const handleApply = () => {
     console.log('✅ Applying Filters...');
     
-    // ✅ FIXED - Only send non-default values
     const filters = {};
     
-    // Only add if not default
+    // Budget
     if (budgetRange[0] !== 1 || budgetRange[1] !== 500) {
       filters.budgetRange = budgetRange;
     }
     
-    if (selectedResortType && selectedResortType !== '') {
-      filters.resortType = selectedResortType;
+    // House/Flat specific filters
+    if (propertyType === 'House' || propertyType === 'House/Flat') {
+      if (selectedBedrooms && selectedBedrooms !== '' && selectedBedrooms !== 'any') {
+        filters.bedrooms = selectedBedrooms;
+      }
+      
+      if (selectedBathrooms && selectedBathrooms !== '' && selectedBathrooms !== 'any') {
+        filters.bathrooms = selectedBathrooms;
+      }
+      
+      if (selectedBalconies && selectedBalconies !== '' && selectedBalconies !== 'any') {
+        filters.balconies = selectedBalconies;
+      }
+      
+      if (selectedFloors && selectedFloors !== '' && selectedFloors !== 'any') {
+        filters.floors = selectedFloors;
+      }
+      
+      if (areaRange[0] !== 0 || areaRange[1] !== 10000) {
+        filters.areaRange = areaRange;
+      }
+      
+      if (selectedFurnishing && selectedFurnishing !== '' && selectedFurnishing !== 'any') {
+        filters.furnishing = selectedFurnishing;
+      }
+      
+      if (selectedAgeOfProperty && selectedAgeOfProperty !== '' && selectedAgeOfProperty !== 'any') {
+        filters.ageOfProperty = selectedAgeOfProperty;
+      }
+      
+      if (selectedAvailability && selectedAvailability !== '' && selectedAvailability !== 'any') {
+        filters.availabilityStatus = selectedAvailability;
+      }
+      
+      if (selectedOtherRooms.length > 0) {
+        filters.otherRooms = selectedOtherRooms;
+      }
     }
     
-    if (selectedRooms && selectedRooms !== '' && selectedRooms !== 'any') {
-      filters.rooms = selectedRooms;
+    // Resort specific filters
+    if (propertyType === 'Resort') {
+      if (selectedResortType && selectedResortType !== '') {
+        filters.resortType = selectedResortType;
+      }
+      
+      if (selectedRooms && selectedRooms !== '' && selectedRooms !== 'any') {
+        filters.rooms = selectedRooms;
+      }
+      
+      if (landAreaRange[0] !== 0 || landAreaRange[1] !== 10000) {
+        filters.landAreaRange = landAreaRange;
+      }
+      
+      if (buildAreaRange[0] !== 0 || buildAreaRange[1] !== 10000) {
+        filters.buildAreaRange = buildAreaRange;
+      }
     }
     
-    if (selectedFloors && selectedFloors !== '' && selectedFloors !== 'any') {
-      filters.floors = selectedFloors;
-    }
-    
-    if (landAreaRange[0] !== 0 || landAreaRange[1] !== 10000) {
-      filters.landAreaRange = landAreaRange;
-    }
-    
-    if (buildAreaRange[0] !== 0 || buildAreaRange[1] !== 10000) {
-      filters.buildAreaRange = buildAreaRange;
-    }
-    
+    // Common filters
     if (locAdvantages.length > 0) {
       filters.locAdvantages = locAdvantages;
     }
@@ -263,14 +452,7 @@ const FilterScreen = () => {
     }
 
     console.log('📦 Final Filters Object:', JSON.stringify(filters, null, 2));
-    console.log('📊 Filter Counts:', {
-      totalFilters: Object.keys(filters).length,
-      locAdvantages: locAdvantages.length,
-      quickFilters: quickFilters.length,
-      facingDirections: facingDirections.length,
-    });
 
-    // ✅ Navigate back with filters
     router.back();
     
     setTimeout(() => {
@@ -282,7 +464,7 @@ const FilterScreen = () => {
   };
 
   const renderRightSection = () => {
-    // ✅ BUDGET SECTION (LAKHS)
+    // ✅ BUDGET SECTION
     if (activeSection === 'Budget') {
       return (
         <View className="p-4">
@@ -309,7 +491,6 @@ const FilterScreen = () => {
               value={budgetRange[0]}
               onValueChange={(val) => {
                 const newRange = [Math.round(val), budgetRange[1]];
-                console.log('💰 Budget Min Changed:', newRange);
                 setBudgetRange(newRange);
               }}
               minimumTrackTintColor="#22C55E"
@@ -323,8 +504,60 @@ const FilterScreen = () => {
               value={budgetRange[1]}
               onValueChange={(val) => {
                 const newRange = [budgetRange[0], Math.round(val)];
-                console.log('💰 Budget Max Changed:', newRange);
                 setBudgetRange(newRange);
+              }}
+              minimumTrackTintColor="#22C55E"
+              maximumTrackTintColor="#E5E7EB"
+              thumbTintColor="#22C55E"
+            />
+          </View>
+        </View>
+      );
+    }
+
+    // ✅ AREA SECTION (for House/Flat)
+    if (activeSection === 'Area (sqft)') {
+      return (
+        <View className="p-4">
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-base font-semibold text-gray-800">Area</Text>
+            <Text className="text-xs text-gray-500">Square Feet (sqft)</Text>
+          </View>
+          
+          <View className="flex-row items-center justify-between mb-6">
+            <View className="bg-green-50 border border-green-500 rounded-full px-5 py-2.5 min-w-[80px] items-center">
+              <Text className="text-sm font-medium text-green-700">{areaRange[0]}</Text>
+            </View>
+            <Text className="text-sm text-gray-600 mx-3">to</Text>
+            <View className="bg-green-50 border border-green-500 rounded-full px-5 py-2.5 min-w-[80px] items-center">
+              <Text className="text-sm font-medium text-green-700">{areaRange[1]}</Text>
+            </View>
+          </View>
+
+          <View className="mb-2">
+            <Slider
+              style={{ width: '100%', height: 40 }}
+              minimumValue={0}
+              maximumValue={10000}
+              step={100}
+              value={areaRange[0]}
+              onValueChange={(val) => {
+                const newRange = [Math.round(val), areaRange[1]];
+                setAreaRange(newRange);
+              }}
+              minimumTrackTintColor="#22C55E"
+              maximumTrackTintColor="#E5E7EB"
+              thumbTintColor="#22C55E"
+            />
+            <Slider
+              style={{ width: '100%', height: 40 }}
+              minimumValue={areaRange[0]}
+              maximumValue={10000}
+              step={100}
+              value={areaRange[1]}
+              onValueChange={(val) => {
+                const newRange = [areaRange[0], Math.round(val)];
+                setAreaRange(newRange);
               }}
               minimumTrackTintColor="#22C55E"
               maximumTrackTintColor="#E5E7EB"
@@ -366,7 +599,6 @@ const FilterScreen = () => {
                   <ScrollView>
                     <TouchableOpacity
                       onPress={() => {
-                        console.log('🏨 Resort Type: Any');
                         setSelectedResortType('');
                         setResortTypeOpen(false);
                       }}
@@ -385,7 +617,6 @@ const FilterScreen = () => {
                       <TouchableOpacity
                         key={type}
                         onPress={() => {
-                          console.log('🏨 Resort Type Selected:', type);
                           setSelectedResortType(type);
                           setResortTypeOpen(false);
                         }}
@@ -413,7 +644,7 @@ const FilterScreen = () => {
       );
     }
 
-    // ✅ LAND AREA SECTION (SQFT)
+    // ✅ LAND AREA SECTION (for Resort)
     if (activeSection === 'Land Area') {
       return (
         <View className="p-4">
@@ -441,7 +672,6 @@ const FilterScreen = () => {
               value={landAreaRange[0]}
               onValueChange={(val) => {
                 const newRange = [Math.round(val), landAreaRange[1]];
-                console.log('🌳 Land Area Min:', newRange);
                 setLandAreaRange(newRange);
               }}
               minimumTrackTintColor="#22C55E"
@@ -456,7 +686,6 @@ const FilterScreen = () => {
               value={landAreaRange[1]}
               onValueChange={(val) => {
                 const newRange = [landAreaRange[0], Math.round(val)];
-                console.log('🌳 Land Area Max:', newRange);
                 setLandAreaRange(newRange);
               }}
               minimumTrackTintColor="#22C55E"
@@ -468,7 +697,7 @@ const FilterScreen = () => {
       );
     }
 
-    // ✅ BUILD AREA SECTION (SQFT)
+    // ✅ BUILD AREA SECTION (for Resort)
     if (activeSection === 'Build Area') {
       return (
         <View className="p-4">
@@ -496,7 +725,6 @@ const FilterScreen = () => {
               value={buildAreaRange[0]}
               onValueChange={(val) => {
                 const newRange = [Math.round(val), buildAreaRange[1]];
-                console.log('🏗️ Build Area Min:', newRange);
                 setBuildAreaRange(newRange);
               }}
               minimumTrackTintColor="#22C55E"
@@ -511,7 +739,6 @@ const FilterScreen = () => {
               value={buildAreaRange[1]}
               onValueChange={(val) => {
                 const newRange = [buildAreaRange[0], Math.round(val)];
-                console.log('🏗️ Build Area Max:', newRange);
                 setBuildAreaRange(newRange);
               }}
               minimumTrackTintColor="#22C55E"
@@ -534,20 +761,36 @@ const FilterScreen = () => {
             // ✅ Single-select categories
             if (category.isSingle) {
               const isSelected = 
-                (activeSection === 'Rooms' && selectedRooms === option.value) ||
-                (activeSection === 'Floors' && selectedFloors === option.value);
+                (activeSection === 'Bedrooms' && selectedBedrooms === option.value) ||
+                (activeSection === 'Bathrooms' && selectedBathrooms === option.value) ||
+                (activeSection === 'Balconies' && selectedBalconies === option.value) ||
+                (activeSection === 'Floors' && selectedFloors === option.value) ||
+                (activeSection === 'Furnishing' && selectedFurnishing === option.value) ||
+                (activeSection === 'Age of Property' && selectedAgeOfProperty === option.value) ||
+                (activeSection === 'Availability Status' && selectedAvailability === option.value) ||
+                (activeSection === 'Rooms' && selectedRooms === option.value);
               
               return (
                 <TouchableOpacity
                   key={option.value}
                   className="flex-row items-center py-3"
                   onPress={() => {
-                    if (activeSection === 'Rooms') {
-                      console.log('🛏️ Rooms Selected:', option.value);
-                      setSelectedRooms(option.value === 'any' ? '' : option.value);
+                    if (activeSection === 'Bedrooms') {
+                      setSelectedBedrooms(option.value === 'any' ? '' : option.value);
+                    } else if (activeSection === 'Bathrooms') {
+                      setSelectedBathrooms(option.value === 'any' ? '' : option.value);
+                    } else if (activeSection === 'Balconies') {
+                      setSelectedBalconies(option.value === 'any' ? '' : option.value);
                     } else if (activeSection === 'Floors') {
-                      console.log('🏢 Floors Selected:', option.value);
                       setSelectedFloors(option.value === 'any' ? '' : option.value);
+                    } else if (activeSection === 'Furnishing') {
+                      setSelectedFurnishing(option.value === 'any' ? '' : option.value);
+                    } else if (activeSection === 'Age of Property') {
+                      setSelectedAgeOfProperty(option.value === 'any' ? '' : option.value);
+                    } else if (activeSection === 'Availability Status') {
+                      setSelectedAvailability(option.value === 'any' ? '' : option.value);
+                    } else if (activeSection === 'Rooms') {
+                      setSelectedRooms(option.value === 'any' ? '' : option.value);
                     }
                   }}
                 >
@@ -570,12 +813,14 @@ const FilterScreen = () => {
               'Location Advantages': locAdvantages,
               'Facing Direction': facingDirections,
               'Quick Filters': quickFilters,
+              'Other Rooms': selectedOtherRooms,
             };
 
             const setterMap = {
               'Location Advantages': setLocAdvantages,
               'Facing Direction': setFacingDirections,
               'Quick Filters': setQuickFilters,
+              'Other Rooms': setSelectedOtherRooms,
             };
 
             const currentState = stateMap[activeSection] || [];
@@ -627,6 +872,142 @@ const FilterScreen = () => {
     );
   };
 
+  // ✅ GET ACTIVE FILTER CHIPS
+  const getActiveFilterChips = () => {
+    const chips = [];
+
+    // Budget
+    if (budgetRange[0] !== 1 || budgetRange[1] !== 500) {
+      chips.push({
+        label: `₹${budgetRange[0]}-${budgetRange[1]}L`,
+        onClear: () => setBudgetRange([1, 500]),
+      });
+    }
+
+    // House/Flat filters
+    if (propertyType === 'House' || propertyType === 'House/Flat') {
+      if (selectedBedrooms && selectedBedrooms !== 'any') {
+        chips.push({
+          label: `${selectedBedrooms} BHK`,
+          onClear: () => setSelectedBedrooms(''),
+        });
+      }
+
+      if (selectedBathrooms && selectedBathrooms !== 'any') {
+        chips.push({
+          label: `${selectedBathrooms} Bath`,
+          onClear: () => setSelectedBathrooms(''),
+        });
+      }
+
+      if (selectedBalconies && selectedBalconies !== 'any') {
+        chips.push({
+          label: `${selectedBalconies} Balcony`,
+          onClear: () => setSelectedBalconies(''),
+        });
+      }
+
+      if (selectedFloors && selectedFloors !== 'any') {
+        chips.push({
+          label: `${selectedFloors} Floors`,
+          onClear: () => setSelectedFloors(''),
+        });
+      }
+
+      if (areaRange[0] !== 0 || areaRange[1] !== 10000) {
+        chips.push({
+          label: `${areaRange[0]}-${areaRange[1]} sqft`,
+          onClear: () => setAreaRange([0, 10000]),
+        });
+      }
+
+      if (selectedFurnishing && selectedFurnishing !== 'any') {
+        chips.push({
+          label: selectedFurnishing,
+          onClear: () => setSelectedFurnishing(''),
+        });
+      }
+
+      if (selectedAgeOfProperty && selectedAgeOfProperty !== 'any') {
+        chips.push({
+          label: selectedAgeOfProperty,
+          onClear: () => setSelectedAgeOfProperty(''),
+        });
+      }
+
+      if (selectedAvailability && selectedAvailability !== 'any') {
+        chips.push({
+          label: selectedAvailability,
+          onClear: () => setSelectedAvailability(''),
+        });
+      }
+
+      if (selectedOtherRooms.length > 0) {
+        chips.push({
+          label: `${selectedOtherRooms.length} Other Rooms`,
+          onClear: () => setSelectedOtherRooms([]),
+        });
+      }
+    }
+
+    // Resort filters
+    if (propertyType === 'Resort') {
+      if (selectedResortType) {
+        chips.push({
+          label: selectedResortType,
+          onClear: () => setSelectedResortType(''),
+        });
+      }
+
+      if (selectedRooms && selectedRooms !== 'any') {
+        chips.push({
+          label: `${selectedRooms} Rooms`,
+          onClear: () => setSelectedRooms(''),
+        });
+      }
+
+      if (landAreaRange[0] !== 0 || landAreaRange[1] !== 10000) {
+        chips.push({
+          label: `Land: ${landAreaRange[0]}-${landAreaRange[1]} sqft`,
+          onClear: () => setLandAreaRange([0, 10000]),
+        });
+      }
+
+      if (buildAreaRange[0] !== 0 || buildAreaRange[1] !== 10000) {
+        chips.push({
+          label: `Build: ${buildAreaRange[0]}-${buildAreaRange[1]} sqft`,
+          onClear: () => setBuildAreaRange([0, 10000]),
+        });
+      }
+    }
+
+    // Common filters
+    if (locAdvantages.length > 0) {
+      chips.push({
+        label: `${locAdvantages.length} Location`,
+        onClear: () => setLocAdvantages([]),
+      });
+    }
+
+    if (facingDirections.length > 0) {
+      chips.push({
+        label: facingDirections.join(', '),
+        onClear: () => setFacingDirections([]),
+      });
+    }
+
+    if (quickFilters.length > 0) {
+      chips.push({
+        label: `${quickFilters.length} Quick`,
+        onClear: () => setQuickFilters([]),
+      });
+    }
+
+    return chips;
+  };
+
+  const activeChips = getActiveFilterChips();
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
@@ -647,117 +1028,28 @@ const FilterScreen = () => {
         </TouchableOpacity>
       </View>
       
-     {/* ✅ SELECTED FILTERS CHIPS - REAL-TIME DISPLAY (REMOVED AMENITIES & PROPERTY FEATURES) */}
-{(selectedResortType || 
-  selectedRooms !== '' || 
-  selectedFloors !== '' || 
-  (budgetRange[0] !== 1 || budgetRange[1] !== 500) ||
-  (landAreaRange[0] !== 0 || landAreaRange[1] !== 10000) ||
-  (buildAreaRange[0] !== 0 || buildAreaRange[1] !== 10000) ||
-  locAdvantages.length > 0 ||
-  facingDirections.length > 0 ||
-  quickFilters.length > 0) && (
-  <View className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-    <View className="flex-row items-center justify-between mb-2">
-      <Text className="text-xs font-semibold text-gray-600">
-        SELECTED FILTERS
-      </Text>
-      <TouchableOpacity onPress={clearAll}>
-        <Text className="text-xs text-red-500 font-semibold">Clear All</Text>
-      </TouchableOpacity>
-    </View>
+      {/* Active Filter Chips */}
+      {activeChips.length > 0 && (
+        <View className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+          <View className="flex-row items-center justify-between mb-2">
+            <Text className="text-xs font-semibold text-gray-600">
+              SELECTED FILTERS
+            </Text>
+            <TouchableOpacity onPress={clearAll}>
+              <Text className="text-xs text-red-500 font-semibold">Clear All</Text>
+            </TouchableOpacity>
+          </View>
           
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View className="flex-row flex-wrap gap-2">
-              {/* Resort Type */}
-              {selectedResortType && (
-                <View className="flex-row items-center bg-green-500 rounded-full px-3 py-1.5">
-                  <Text className="text-xs text-white mr-2">{selectedResortType}</Text>
-                  <TouchableOpacity onPress={() => setSelectedResortType('')}>
+              {activeChips.map((chip, index) => (
+                <View key={index} className="flex-row items-center bg-green-500 rounded-full px-3 py-1.5">
+                  <Text className="text-xs text-white mr-2">{chip.label}</Text>
+                  <TouchableOpacity onPress={chip.onClear}>
                     <Text className="text-white text-xs font-bold">✕</Text>
                   </TouchableOpacity>
                 </View>
-              )}
-              
-              {/* Rooms */}
-              {selectedRooms && selectedRooms !== '' && (
-                <View className="flex-row items-center bg-green-500 rounded-full px-3 py-1.5">
-                  <Text className="text-xs text-white mr-2">{selectedRooms} Rooms</Text>
-                  <TouchableOpacity onPress={() => setSelectedRooms('')}>
-                    <Text className="text-white text-xs font-bold">✕</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-              
-              {/* Floors */}
-              {selectedFloors && selectedFloors !== '' && (
-                <View className="flex-row items-center bg-green-500 rounded-full px-3 py-1.5">
-                  <Text className="text-xs text-white mr-2">{selectedFloors} Floors</Text>
-                  <TouchableOpacity onPress={() => setSelectedFloors('')}>
-                    <Text className="text-white text-xs font-bold">✕</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-              
-              {/* Budget */}
-              {(budgetRange[0] !== 1 || budgetRange[1] !== 500) && (
-                <View className="flex-row items-center bg-green-500 rounded-full px-3 py-1.5">
-                  <Text className="text-xs text-white mr-2">₹{budgetRange[0]}-{budgetRange[1]}L</Text>
-                  <TouchableOpacity onPress={() => setBudgetRange([1, 500])}>
-                    <Text className="text-white text-xs font-bold">✕</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-              
-              {/* Land Area */}
-              {(landAreaRange[0] !== 0 || landAreaRange[1] !== 10000) && (
-                <View className="flex-row items-center bg-green-500 rounded-full px-3 py-1.5">
-                  <Text className="text-xs text-white mr-2">Land: {landAreaRange[0]}-{landAreaRange[1]} sqft</Text>
-                  <TouchableOpacity onPress={() => setLandAreaRange([0, 10000])}>
-                    <Text className="text-white text-xs font-bold">✕</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-              
-              {/* Build Area */}
-              {(buildAreaRange[0] !== 0 || buildAreaRange[1] !== 10000) && (
-                <View className="flex-row items-center bg-green-500 rounded-full px-3 py-1.5">
-                  <Text className="text-xs text-white mr-2">Build: {buildAreaRange[0]}-{buildAreaRange[1]} sqft</Text>
-                  <TouchableOpacity onPress={() => setBuildAreaRange([0, 10000])}>
-                    <Text className="text-white text-xs font-bold">✕</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-              
-              {/* Location Advantages */}
-              {locAdvantages.length > 0 && (
-                <View className="flex-row items-center bg-green-500 rounded-full px-3 py-1.5">
-                  <Text className="text-xs text-white mr-2">{locAdvantages.length} Location</Text>
-                  <TouchableOpacity onPress={() => setLocAdvantages([])}>
-                    <Text className="text-white text-xs font-bold">✕</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-              
-              {/* Facing Directions */}
-              {facingDirections.length > 0 && (
-                <View className="flex-row items-center bg-green-500 rounded-full px-3 py-1.5">
-                  <Text className="text-xs text-white mr-2">{facingDirections.join(', ')}</Text>
-                  <TouchableOpacity onPress={() => setFacingDirections([])}>
-                    <Text className="text-white text-xs font-bold">✕</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-              
-              {/* Quick Filters */}
-              {quickFilters.length > 0 && (
-                <View className="flex-row items-center bg-green-500 rounded-full px-3 py-1.5">
-                  <Text className="text-xs text-white mr-2">{quickFilters.length} Quick</Text>
-                  <TouchableOpacity onPress={() => setQuickFilters([])}>
-                    <Text className="text-white text-xs font-bold">✕</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+              ))}
             </View>
           </ScrollView>
         </View>

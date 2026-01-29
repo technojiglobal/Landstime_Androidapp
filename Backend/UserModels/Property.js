@@ -168,11 +168,11 @@ const propertySchema = new mongoose.Schema({
       type: Number,
     },
 
-    roadWidthUnit: {
-      type: String,
-      enum: ["ft", "m"],
-      default: "ft",
-    },
+   roadWidthUnit: {
+  type: String,
+  enum: ["sqft", "sqm", "acre"],
+  default: "sqft",
+},
 
     /* ---------- CONSTRUCTION ---------- */
     constructionDone: {
