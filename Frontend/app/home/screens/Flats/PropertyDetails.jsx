@@ -1,4 +1,4 @@
-// Landstime_Androidapp/Frontend/app/home/screens/Flats/PropertyDetails.jsx ( 1 )
+// Frontend/app/home/screens/Flats/PropertyDetails.jsx
 import React, { useRef, useState, useEffect } from "react";
 import {
   View,
@@ -41,7 +41,7 @@ export default function PropertyListScreen() {
   // ✅ 2. ROUTER & TRANSLATION
   const router = useRouter();
   const { t } = useTranslation();
-  const { areaKey, districtKey } = useLocalSearchParams();
+  const { areaKey, districtKey, appliedFilters } = useLocalSearchParams();
   
   // ✅ 3. STATE
   const [contentHeight, setContentHeight] = useState(1);
@@ -51,17 +51,14 @@ export default function PropertyListScreen() {
   const [savedStates, setSavedStates] = useState({});
   const [reviewSummary, setReviewSummary] = useState({});
   
+  // ✅ NEW - Filter states
+  const [activeFilters, setActiveFilters] = useState(null);
+  const [filteredProperties, setFilteredProperties] = useState([]);
+  const [isFiltering, setIsFiltering] = useState(false);
+  
   // ✅ 4. COMPUTED VALUES
   const currentLanguage = i18n.language || 'en';
   const areaName = areaKey ? t(`areas.${areaKey}`) : '';
-  
-  const filteredProperties = properties.filter((property) => {
-    const propertyAreaKey = property.areaKey || '';
-    const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
-    const matchesArea = propertyAreaKey === areaKey;
-    const matchesSearch = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesArea && matchesSearch;
-  });
 
   const scrollbarHeight = SCREEN_HEIGHT * (SCREEN_HEIGHT / contentHeight) * 0.3;
   const scrollIndicator = Animated.multiply(
@@ -73,7 +70,52 @@ export default function PropertyListScreen() {
     extrapolate: "clamp",
   });
 
-  // ✅ 5. FUNCTIONS (before useEffect)
+  // ✅ 5. PARSE FILTERS when returned from Filter screen
+  useEffect(() => {
+    if (appliedFilters) {
+      try {
+        const filters = JSON.parse(appliedFilters);
+        console.log('✅ Filters received from Filter screen:', filters);
+        console.log('📊 Filter breakdown:', {
+          budgetRange: filters.budgetRange,
+          bedrooms: filters.bedrooms,
+          bathrooms: filters.bathrooms,
+          balconies: filters.balconies,
+          floors: filters.floors,
+          areaRange: filters.areaRange,
+          furnishing: filters.furnishing,
+          ageOfProperty: filters.ageOfProperty,
+          availabilityStatus: filters.availabilityStatus,
+          otherRooms: filters.otherRooms?.length || 0,
+          locAdvantages: filters.locAdvantages?.length || 0,
+          quickFilters: filters.quickFilters?.length || 0,
+          facingDirections: filters.facingDirections?.length || 0,
+        });
+        
+        const hasFilters = Object.keys(filters).length > 0;
+        
+        if (hasFilters) {
+          setActiveFilters(filters);
+          setIsFiltering(true);
+          console.log('✅ Filters active, will apply to properties');
+        } else {
+          setActiveFilters(null);
+          setIsFiltering(false);
+          console.log('🔄 Empty filters object, showing all properties');
+        }
+      } catch (error) {
+        console.error('❌ Error parsing filters:', error);
+        setActiveFilters(null);
+        setIsFiltering(false);
+      }
+    } else {
+      console.log('🔄 No filters applied, showing all properties');
+      setActiveFilters(null);
+      setIsFiltering(false);
+    }
+  }, [appliedFilters]);
+
+  // ✅ 6. FETCH PROPERTIES
   const fetchProperties = async () => {
     try {
       setLoading(true);
@@ -89,7 +131,6 @@ export default function PropertyListScreen() {
       console.log('response.data type:', typeof response.data);
       
       if (response.success && response.data) {
-        // Find the actual array
         let allProperties = [];
         
         if (Array.isArray(response.data)) {
@@ -118,7 +159,8 @@ export default function PropertyListScreen() {
         }
         
         const houseProperties = allProperties.filter(
-          property => property?.propertyType?.toLowerCase() === 'house'
+          property => property?.propertyType?.toLowerCase() === 'house' || 
+                      property?.propertyType === 'House/Flat'
         );
         
         console.log('🏡 Filtered houses:', houseProperties.length);
@@ -138,6 +180,509 @@ export default function PropertyListScreen() {
     }
   };
 
+  // ✅ 7. APPLY FILTERS FUNCTION
+  const applyFilters = (propertyList, filters) => {
+    console.log('🔍 ========== STARTING FILTER APPLICATION ==========');
+    console.log('📊 Initial properties count:', propertyList.length);
+    console.log('🎯 Filters received:', JSON.stringify(filters, null, 2));
+    
+    let filtered = [...propertyList];
+    let filterSteps = [];
+
+    // ✅ STEP 1: Filter by area (ALWAYS FIRST)
+    const initialCount = filtered.length;
+    filtered = filtered.filter((property) => {
+      const propertyAreaKey = property.areaKey || '';
+      const matches = propertyAreaKey === areaKey;
+      if (!matches) {
+        console.log(`❌ Filtered out (wrong area): ${getLocalizedText(property.propertyTitle, currentLanguage)} - areaKey: ${propertyAreaKey}`);
+      }
+      return matches;
+    });
+    
+    filterSteps.push({
+      step: 'Area Filter',
+      before: initialCount,
+      after: filtered.length,
+      removed: initialCount - filtered.length
+    });
+    
+    console.log(`📍 Area filter (${areaKey}): ${initialCount} → ${filtered.length} properties`);
+
+    // ✅ STEP 2: BUDGET FILTER (LAKHS)
+    if (filters.budgetRange && Array.isArray(filters.budgetRange)) {
+      const beforeBudget = filtered.length;
+      const [minBudget, maxBudget] = filters.budgetRange;
+      
+      if (minBudget !== 1 || maxBudget !== 500) {
+        filtered = filtered.filter(property => {
+          const price = property.expectedPrice / 100000; // Convert to Lakhs
+          const inRange = price >= minBudget && price <= maxBudget;
+          
+          if (!inRange) {
+            console.log(`💰 Filtered out (budget): ${getLocalizedText(property.propertyTitle, currentLanguage)} - Price: ₹${price.toFixed(2)}L (Range: ${minBudget}-${maxBudget}L)`);
+          }
+          
+          return inRange;
+        });
+        
+        filterSteps.push({
+          step: `Budget (₹${minBudget}-${maxBudget}L)`,
+          before: beforeBudget,
+          after: filtered.length,
+          removed: beforeBudget - filtered.length
+        });
+        
+        console.log(`💰 Budget filter (${minBudget}-${maxBudget}L): ${beforeBudget} → ${filtered.length} properties`);
+      }
+    }
+
+    // ✅ STEP 3: BEDROOMS FILTER
+    if (filters.bedrooms && filters.bedrooms !== '' && filters.bedrooms !== 'any') {
+      const beforeBedrooms = filtered.length;
+      
+      filtered = filtered.filter(property => {
+        const bedrooms = property.houseDetails?.bedrooms || 0;
+        let matches = false;
+        
+        if (filters.bedrooms === '5+') {
+          matches = bedrooms >= 5;
+        } else {
+          matches = bedrooms === parseInt(filters.bedrooms);
+        }
+        
+        if (!matches) {
+          console.log(`🛏️ Filtered out (bedrooms): ${getLocalizedText(property.propertyTitle, currentLanguage)} - Bedrooms: ${bedrooms} (Expected: ${filters.bedrooms})`);
+        }
+        
+        return matches;
+      });
+      
+      filterSteps.push({
+        step: `Bedrooms (${filters.bedrooms})`,
+        before: beforeBedrooms,
+        after: filtered.length,
+        removed: beforeBedrooms - filtered.length
+      });
+      
+      console.log(`🛏️ Bedrooms filter (${filters.bedrooms}): ${beforeBedrooms} → ${filtered.length} properties`);
+    }
+
+    // ✅ STEP 4: BATHROOMS FILTER
+    if (filters.bathrooms && filters.bathrooms !== '' && filters.bathrooms !== 'any') {
+      const beforeBathrooms = filtered.length;
+      
+      filtered = filtered.filter(property => {
+        const bathrooms = property.houseDetails?.bathrooms || 0;
+        let matches = false;
+        
+        if (filters.bathrooms === '4+') {
+          matches = bathrooms >= 4;
+        } else {
+          matches = bathrooms === parseInt(filters.bathrooms);
+        }
+        
+        if (!matches) {
+          console.log(`🚿 Filtered out (bathrooms): ${getLocalizedText(property.propertyTitle, currentLanguage)} - Bathrooms: ${bathrooms} (Expected: ${filters.bathrooms})`);
+        }
+        
+        return matches;
+      });
+      
+      filterSteps.push({
+        step: `Bathrooms (${filters.bathrooms})`,
+        before: beforeBathrooms,
+        after: filtered.length,
+        removed: beforeBathrooms - filtered.length
+      });
+      
+      console.log(`🚿 Bathrooms filter (${filters.bathrooms}): ${beforeBathrooms} → ${filtered.length} properties`);
+    }
+
+    // ✅ STEP 5: BALCONIES FILTER
+    if (filters.balconies && filters.balconies !== '' && filters.balconies !== 'any') {
+      const beforeBalconies = filtered.length;
+      
+      filtered = filtered.filter(property => {
+        const balconies = property.houseDetails?.balconies || 0;
+        let matches = false;
+        
+        if (filters.balconies === '3+') {
+          matches = balconies >= 3;
+        } else {
+          matches = balconies === parseInt(filters.balconies);
+        }
+        
+        if (!matches) {
+          console.log(`🪟 Filtered out (balconies): ${getLocalizedText(property.propertyTitle, currentLanguage)} - Balconies: ${balconies} (Expected: ${filters.balconies})`);
+        }
+        
+        return matches;
+      });
+      
+      filterSteps.push({
+        step: `Balconies (${filters.balconies})`,
+        before: beforeBalconies,
+        after: filtered.length,
+        removed: beforeBalconies - filtered.length
+      });
+      
+      console.log(`🪟 Balconies filter (${filters.balconies}): ${beforeBalconies} → ${filtered.length} properties`);
+    }
+
+    // ✅ STEP 6: FLOORS FILTER
+    if (filters.floors && filters.floors !== '' && filters.floors !== 'any') {
+      const beforeFloors = filtered.length;
+      
+      filtered = filtered.filter(property => {
+        const floors = property.houseDetails?.floors || 0;
+        let matches = false;
+        
+        if (filters.floors === '4+') {
+          matches = floors >= 4;
+        } else {
+          matches = floors === parseInt(filters.floors);
+        }
+        
+        if (!matches) {
+          console.log(`🏢 Filtered out (floors): ${getLocalizedText(property.propertyTitle, currentLanguage)} - Floors: ${floors} (Expected: ${filters.floors})`);
+        }
+        
+        return matches;
+      });
+      
+      filterSteps.push({
+        step: `Floors (${filters.floors})`,
+        before: beforeFloors,
+        after: filtered.length,
+        removed: beforeFloors - filtered.length
+      });
+      
+      console.log(`🏢 Floors filter (${filters.floors}): ${beforeFloors} → ${filtered.length} properties`);
+    }
+
+    // ✅ STEP 7: AREA FILTER (SQFT)
+    if (filters.areaRange && Array.isArray(filters.areaRange)) {
+      const beforeArea = filtered.length;
+      const [minArea, maxArea] = filters.areaRange;
+      
+      if (minArea !== 0 || maxArea !== 10000) {
+        filtered = filtered.filter(property => {
+          const area = property.houseDetails?.area || 0;
+          const inRange = area >= minArea && area <= maxArea;
+          
+          if (!inRange) {
+            console.log(`📏 Filtered out (area): ${getLocalizedText(property.propertyTitle, currentLanguage)} - Area: ${area} sqft (Range: ${minArea}-${maxArea} sqft)`);
+          }
+          
+          return inRange;
+        });
+        
+        filterSteps.push({
+          step: `Area (${minArea}-${maxArea} sqft)`,
+          before: beforeArea,
+          after: filtered.length,
+          removed: beforeArea - filtered.length
+        });
+        
+        console.log(`📏 Area filter (${minArea}-${maxArea}): ${beforeArea} → ${filtered.length} properties`);
+      }
+    }
+
+    // ✅ STEP 8: FURNISHING FILTER
+    if (filters.furnishing && filters.furnishing !== '' && filters.furnishing !== 'any') {
+      const beforeFurnishing = filtered.length;
+      
+      filtered = filtered.filter(property => {
+        const furnishing = property.houseDetails?.furnishing || '';
+        const matches = furnishing === filters.furnishing;
+        
+        if (!matches) {
+          console.log(`🛋️ Filtered out (furnishing): ${getLocalizedText(property.propertyTitle, currentLanguage)} - Furnishing: ${furnishing} (Expected: ${filters.furnishing})`);
+        }
+        
+        return matches;
+      });
+      
+      filterSteps.push({
+        step: `Furnishing (${filters.furnishing})`,
+        before: beforeFurnishing,
+        after: filtered.length,
+        removed: beforeFurnishing - filtered.length
+      });
+      
+      console.log(`🛋️ Furnishing filter (${filters.furnishing}): ${beforeFurnishing} → ${filtered.length} properties`);
+    }
+
+    // ✅ STEP 9: AGE OF PROPERTY FILTER
+    if (filters.ageOfProperty && filters.ageOfProperty !== '' && filters.ageOfProperty !== 'any') {
+      const beforeAge = filtered.length;
+      
+      filtered = filtered.filter(property => {
+        const ageOfProperty = property.houseDetails?.ageOfProperty || '';
+        const matches = ageOfProperty === filters.ageOfProperty;
+        
+        if (!matches) {
+          console.log(`🏚️ Filtered out (age): ${getLocalizedText(property.propertyTitle, currentLanguage)} - Age: ${ageOfProperty} (Expected: ${filters.ageOfProperty})`);
+        }
+        
+        return matches;
+      });
+      
+      filterSteps.push({
+        step: `Age of Property (${filters.ageOfProperty})`,
+        before: beforeAge,
+        after: filtered.length,
+        removed: beforeAge - filtered.length
+      });
+      
+      console.log(`🏚️ Age filter (${filters.ageOfProperty}): ${beforeAge} → ${filtered.length} properties`);
+    }
+
+    // ✅ STEP 10: AVAILABILITY STATUS FILTER
+    if (filters.availabilityStatus && filters.availabilityStatus !== '' && filters.availabilityStatus !== 'any') {
+      const beforeAvailability = filtered.length;
+      
+      filtered = filtered.filter(property => {
+        const availability = property.houseDetails?.availabilityStatus || '';
+        const matches = availability === filters.availabilityStatus;
+        
+        if (!matches) {
+          console.log(`🏗️ Filtered out (availability): ${getLocalizedText(property.propertyTitle, currentLanguage)} - Status: ${availability} (Expected: ${filters.availabilityStatus})`);
+        }
+        
+        return matches;
+      });
+      
+      filterSteps.push({
+        step: `Availability (${filters.availabilityStatus})`,
+        before: beforeAvailability,
+        after: filtered.length,
+        removed: beforeAvailability - filtered.length
+      });
+      
+      console.log(`🏗️ Availability filter (${filters.availabilityStatus}): ${beforeAvailability} → ${filtered.length} properties`);
+    }
+
+    // ✅ STEP 11: OTHER ROOMS FILTER
+    if (filters.otherRooms && filters.otherRooms.length > 0) {
+      const beforeOtherRooms = filtered.length;
+      
+      filtered = filtered.filter(property => {
+        const propertyOtherRooms = property.houseDetails?.otherRooms || [];
+        
+        const hasRoom = filters.otherRooms.some(room => 
+          propertyOtherRooms.includes(room)
+        );
+        
+        if (!hasRoom) {
+          console.log(`🚪 Filtered out (other rooms): ${getLocalizedText(property.propertyTitle, currentLanguage)}`);
+          console.log(`   Property has: [${propertyOtherRooms.join(', ')}]`);
+          console.log(`   Looking for: [${filters.otherRooms.join(', ')}]`);
+        }
+        
+        return hasRoom;
+      });
+      
+      filterSteps.push({
+        step: `Other Rooms (${filters.otherRooms.length} selected)`,
+        before: beforeOtherRooms,
+        after: filtered.length,
+        removed: beforeOtherRooms - filtered.length
+      });
+      
+      console.log(`🚪 Other rooms filter: ${beforeOtherRooms} → ${filtered.length} properties`);
+    }
+
+    // ✅ STEP 12: LOCATION ADVANTAGES FILTER
+    if (filters.locAdvantages && filters.locAdvantages.length > 0) {
+      const beforeLocAdv = filtered.length;
+      
+      filtered = filtered.filter(property => {
+        const propertyAdvantages = property.houseDetails?.locationAdvantages || [];
+        
+        const normalizeText = (text) => text.toLowerCase().replace(/[\s_-]+/g, '');
+        
+        const normalizedPropertyAdvantages = propertyAdvantages.map(adv => normalizeText(adv));
+        const normalizedFilterAdvantages = filters.locAdvantages.map(adv => normalizeText(adv));
+        
+        const hasAdvantage = normalizedFilterAdvantages.some(adv => 
+          normalizedPropertyAdvantages.includes(adv)
+        );
+        
+        if (!hasAdvantage) {
+          console.log(`📍 Filtered out (location advantages): ${getLocalizedText(property.propertyTitle, currentLanguage)}`);
+          console.log(`   Property has: [${propertyAdvantages.join(', ')}]`);
+          console.log(`   Looking for: [${filters.locAdvantages.join(', ')}]`);
+        }
+        
+        return hasAdvantage;
+      });
+      
+      filterSteps.push({
+        step: `Location Advantages (${filters.locAdvantages.length} selected)`,
+        before: beforeLocAdv,
+        after: filtered.length,
+        removed: beforeLocAdv - filtered.length
+      });
+      
+      console.log(`📍 Location advantages filter: ${beforeLocAdv} → ${filtered.length} properties`);
+    }
+
+    // ✅ STEP 13: FACING DIRECTIONS FILTER
+    if (filters.facingDirections && filters.facingDirections.length > 0) {
+      const beforeFacing = filtered.length;
+      
+      filtered = filtered.filter(property => {
+        const propertyFacing = property.houseDetails?.vaasthuDetails?.houseFacing || '';
+        
+        const normalizeText = (text) => text.toLowerCase().replace(/[\s_-]+/g, '');
+        const normalizedPropertyFacing = normalizeText(propertyFacing);
+        const normalizedFilterFacings = filters.facingDirections.map(f => normalizeText(f));
+        
+        const matchesFacing = normalizedFilterFacings.includes(normalizedPropertyFacing);
+        
+        if (!matchesFacing) {
+          console.log(`🧭 Filtered out (facing): ${getLocalizedText(property.propertyTitle, currentLanguage)} - Facing: ${propertyFacing} (Expected: [${filters.facingDirections.join(', ')}])`);
+        }
+        
+        return matchesFacing;
+      });
+      
+      filterSteps.push({
+        step: `Facing Direction (${filters.facingDirections.length} selected)`,
+        before: beforeFacing,
+        after: filtered.length,
+        removed: beforeFacing - filtered.length
+      });
+      
+      console.log(`🧭 Facing direction filter: ${beforeFacing} → ${filtered.length} properties`);
+    }
+
+    // ✅ STEP 14: QUICK FILTERS
+    if (filters.quickFilters && filters.quickFilters.length > 0) {
+      const beforeQuick = filtered.length;
+      
+      filtered = filtered.filter(property => {
+        let passes = true;
+        
+        filters.quickFilters.forEach(quickFilter => {
+          switch (quickFilter) {
+            case 'verified':
+              if (property.status !== 'approved') {
+                passes = false;
+                console.log(`✅ Filtered out (not verified): ${getLocalizedText(property.propertyTitle, currentLanguage)}`);
+              }
+              break;
+            case 'with_photos':
+              if (!property.images || property.images.length === 0) {
+                passes = false;
+                console.log(`📸 Filtered out (no photos): ${getLocalizedText(property.propertyTitle, currentLanguage)}`);
+              }
+              break;
+            case 'with_videos':
+              if (!property.videos || property.videos.length === 0) {
+                passes = false;
+                console.log(`🎥 Filtered out (no videos): ${getLocalizedText(property.propertyTitle, currentLanguage)}`);
+              }
+              break;
+          }
+        });
+        
+        return passes;
+      });
+      
+      filterSteps.push({
+        step: `Quick Filters (${filters.quickFilters.length} selected)`,
+        before: beforeQuick,
+        after: filtered.length,
+        removed: beforeQuick - filtered.length
+      });
+      
+      console.log(`⚡ Quick filters: ${beforeQuick} → ${filtered.length} properties`);
+    }
+
+    // ✅ STEP 15: SEARCH QUERY FILTER
+    if (searchQuery && searchQuery.trim()) {
+      const beforeSearch = filtered.length;
+      
+      filtered = filtered.filter((property) => {
+        const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
+        const matches = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        if (!matches) {
+          console.log(`🔎 Filtered out (search): ${propertyTitle} (Query: ${searchQuery})`);
+        }
+        
+        return matches;
+      });
+      
+      filterSteps.push({
+        step: `Search Query (${searchQuery})`,
+        before: beforeSearch,
+        after: filtered.length,
+        removed: beforeSearch - filtered.length
+      });
+      
+      console.log(`🔎 Search filter (${searchQuery}): ${beforeSearch} → ${filtered.length} properties`);
+    }
+
+    // ✅ FINAL SUMMARY
+    console.log('📊 ========== FILTER SUMMARY ==========');
+    console.table(filterSteps);
+    console.log(`✅ Final result: ${propertyList.length} → ${filtered.length} properties`);
+    console.log(`❌ Removed: ${propertyList.length - filtered.length} properties`);
+    console.log('=========================================');
+
+    setFilteredProperties(filtered);
+  };
+
+  // ✅ 8. APPLY FILTERS EFFECT
+  useEffect(() => {
+    if (properties.length > 0) {
+      if (activeFilters && isFiltering) {
+        console.log('🔍 Applying filters to properties...');
+        applyFilters(properties, activeFilters);
+      } else {
+        console.log('📍 Filtering by area only (no active filters)');
+        const areaFiltered = properties.filter((property) => {
+          const propertyAreaKey = property.areaKey || '';
+          return propertyAreaKey === areaKey;
+        });
+        console.log(`✅ Area-filtered: ${areaFiltered.length} properties`);
+        setFilteredProperties(areaFiltered);
+      }
+    }
+  }, [properties, activeFilters, isFiltering, areaKey]);
+
+  // ✅ 9. SEARCH QUERY EFFECT
+  useEffect(() => {
+    if (activeFilters) {
+      applyFilters(properties, activeFilters);
+    } else {
+      const areaFiltered = properties.filter((property) => {
+        const propertyAreaKey = property.areaKey || '';
+        const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
+        const matchesArea = propertyAreaKey === areaKey;
+        const matchesSearch = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesArea && matchesSearch;
+      });
+      setFilteredProperties(areaFiltered);
+    }
+  }, [searchQuery, properties]);
+
+  // ✅ 10. INITIAL FETCH
+  useEffect(() => {
+    fetchProperties();
+  }, [areaKey]);
+
+  useEffect(() => {
+    if (areaKey) {
+      fetchProperties();
+    }
+  }, [i18n.language]);
+
+  // ✅ 11. HELPER FUNCTIONS
   const checkAllSavedStatuses = async (propertyList) => {
     const savedStatusPromises = propertyList.map(async (property) => {
       const response = await checkIfSaved(property._id, 'property');
@@ -161,7 +706,6 @@ export default function PropertyListScreen() {
       return;
     }
 
-    // Optimistic update
     setSavedStates(prev => ({ ...prev, [propertyId]: !currentState }));
 
     try {
@@ -197,17 +741,6 @@ export default function PropertyListScreen() {
     }
   };
 
-  // ✅ 6. EFFECTS (after all functions)
-  useEffect(() => {
-    fetchProperties();
-  }, [areaKey]);
-
-  useEffect(() => {
-    if (areaKey) {
-      fetchProperties();
-    }
-  }, [i18n.language]);
-
   useEffect(() => {
     if (properties.length > 0) {
       properties.forEach(property => {
@@ -216,7 +749,47 @@ export default function PropertyListScreen() {
     }
   }, [properties]);
 
-  // ✅ 7. RENDER
+  // ✅ 12. CLEAR FILTERS FUNCTION
+  const handleClearFilters = () => {
+    setActiveFilters(null);
+    setIsFiltering(false);
+    const areaFiltered = properties.filter((property) => {
+      const propertyAreaKey = property.areaKey || '';
+      return propertyAreaKey === areaKey;
+    });
+    setFilteredProperties(areaFiltered);
+  };
+
+  // ✅ 13. GET ACTIVE FILTER COUNT
+  const getActiveFilterCount = () => {
+    if (!activeFilters) return 0;
+    
+    let count = 0;
+    
+    // Basic filters
+    if (activeFilters.bedrooms && activeFilters.bedrooms !== 'any' && activeFilters.bedrooms !== '') count++;
+    if (activeFilters.bathrooms && activeFilters.bathrooms !== 'any' && activeFilters.bathrooms !== '') count++;
+    if (activeFilters.balconies && activeFilters.balconies !== 'any' && activeFilters.balconies !== '') count++;
+    if (activeFilters.floors && activeFilters.floors !== 'any' && activeFilters.floors !== '') count++;
+    if (activeFilters.furnishing && activeFilters.furnishing !== 'any' && activeFilters.furnishing !== '') count++;
+    if (activeFilters.ageOfProperty && activeFilters.ageOfProperty !== 'any' && activeFilters.ageOfProperty !== '') count++;
+    if (activeFilters.availabilityStatus && activeFilters.availabilityStatus !== 'any' && activeFilters.availabilityStatus !== '') count++;
+    
+    // Range filters
+    if (activeFilters.budgetRange && (activeFilters.budgetRange[0] !== 1 || activeFilters.budgetRange[1] !== 500)) count++;
+    if (activeFilters.areaRange && (activeFilters.areaRange[0] !== 0 || activeFilters.areaRange[1] !== 10000)) count++;
+    
+    // Multi-select filters
+    if (activeFilters.otherRooms && activeFilters.otherRooms.length > 0) count++;
+    if (activeFilters.locAdvantages && activeFilters.locAdvantages.length > 0) count++;
+    if (activeFilters.facingDirections && activeFilters.facingDirections.length > 0) count++;
+    if (activeFilters.quickFilters && activeFilters.quickFilters.length > 0) count++;
+    
+    console.log('🔢 Active filter count:', count);
+    return count;
+  };
+
+  // ✅ 14. RENDER
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
@@ -262,8 +835,142 @@ export default function PropertyListScreen() {
               }}
             />
             <Ionicons name="mic-outline" size={18} />
-            <Ionicons name="options-outline" size={18} style={{ marginLeft: 8 }} />
+            <TouchableOpacity 
+              onPress={() => router.push({
+                pathname: '/home/screens/Flats/Filter',
+                params: { 
+                  propertyType: 'House',
+                  currentFilters: activeFilters ? JSON.stringify(activeFilters) : ''
+                }
+              })}
+              style={{ marginLeft: 8, position: 'relative' }}
+            >
+              <Ionicons name="options-outline" size={18} />
+              {getActiveFilterCount() > 0 && (
+                <View className="absolute -top-1 -right-1 bg-green-500 rounded-full w-4 h-4 items-center justify-center">
+                  <Text className="text-white text-[10px] font-bold">
+                    {getActiveFilterCount()}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </View>
+
+          {/* ✅ ACTIVE FILTERS DISPLAY */}
+          {activeFilters && getActiveFilterCount() > 0 && (
+            <View className="w-full px-5 mt-3">
+              <View className="flex-row items-center justify-between mb-2">
+                <Text className="text-sm text-gray-600">Active Filters: {getActiveFilterCount()}</Text>
+                <TouchableOpacity onPress={handleClearFilters}>
+                  <Text className="text-sm text-green-500 font-semibold">Clear All</Text>
+                </TouchableOpacity>
+              </View>
+              <View className="flex-row flex-wrap gap-2">
+                {/* Bedrooms */}
+                {activeFilters.bedrooms && activeFilters.bedrooms !== '' && activeFilters.bedrooms !== 'any' && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">{activeFilters.bedrooms} BHK</Text>
+                  </View>
+                )}
+                
+                {/* Bathrooms */}
+                {activeFilters.bathrooms && activeFilters.bathrooms !== '' && activeFilters.bathrooms !== 'any' && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">{activeFilters.bathrooms} Bath</Text>
+                  </View>
+                )}
+                
+                {/* Balconies */}
+                {activeFilters.balconies && activeFilters.balconies !== '' && activeFilters.balconies !== 'any' && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">{activeFilters.balconies} Balcony</Text>
+                  </View>
+                )}
+                
+                {/* Floors */}
+                {activeFilters.floors && activeFilters.floors !== '' && activeFilters.floors !== 'any' && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">{activeFilters.floors} Floors</Text>
+                  </View>
+                )}
+                
+                {/* Budget */}
+                {activeFilters.budgetRange && (activeFilters.budgetRange[0] !== 1 || activeFilters.budgetRange[1] !== 500) && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">
+                      ₹{activeFilters.budgetRange[0]}-{activeFilters.budgetRange[1]}L
+                    </Text>
+                  </View>
+                )}
+                
+                {/* Area */}
+                {activeFilters.areaRange && (activeFilters.areaRange[0] !== 0 || activeFilters.areaRange[1] !== 10000) && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">
+                      {activeFilters.areaRange[0]}-{activeFilters.areaRange[1]} sqft
+                    </Text>
+                  </View>
+                )}
+                
+                {/* Furnishing */}
+                {activeFilters.furnishing && activeFilters.furnishing !== '' && activeFilters.furnishing !== 'any' && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">{activeFilters.furnishing}</Text>
+                  </View>
+                )}
+                
+                {/* Age of Property */}
+                {activeFilters.ageOfProperty && activeFilters.ageOfProperty !== '' && activeFilters.ageOfProperty !== 'any' && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">{activeFilters.ageOfProperty}</Text>
+                  </View>
+                )}
+                
+                {/* Availability Status */}
+                {activeFilters.availabilityStatus && activeFilters.availabilityStatus !== '' && activeFilters.availabilityStatus !== 'any' && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">{activeFilters.availabilityStatus}</Text>
+                  </View>
+                )}
+                
+                {/* Other Rooms */}
+                {activeFilters.otherRooms && activeFilters.otherRooms.length > 0 && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">
+                      {activeFilters.otherRooms.length} Other Room{activeFilters.otherRooms.length > 1 ? 's' : ''}
+                    </Text>
+                  </View>
+                )}
+                
+                {/* Location Advantages */}
+                {activeFilters.locAdvantages && activeFilters.locAdvantages.length > 0 && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">
+                      {activeFilters.locAdvantages.length} Location Advantage{activeFilters.locAdvantages.length > 1 ? 's' : ''}
+                    </Text>
+                  </View>
+                )}
+                
+                {/* Facing Directions */}
+                {activeFilters.facingDirections && activeFilters.facingDirections.length > 0 && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">
+                      Facing: {activeFilters.facingDirections.join(', ')}
+                    </Text>
+                  </View>
+                )}
+                
+                {/* Quick Filters Count */}
+                {activeFilters.quickFilters && activeFilters.quickFilters.length > 0 && (
+                  <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
+                    <Text className="text-xs text-green-700">
+                      {activeFilters.quickFilters.length} Quick Filter{activeFilters.quickFilters.length > 1 ? 's' : ''}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          )}
 
           {/* Property Count */}
           <Text
@@ -517,5 +1224,3 @@ export default function PropertyListScreen() {
     </SafeAreaView>
   );
 }
-
-
