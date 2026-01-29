@@ -10,8 +10,10 @@ export default function PropertyLayout() {
   const pathname = usePathname() ?? "";
    // ✅ Get propertyId from params
 const params = useLocalSearchParams();
-  const propertyId = params.propertyId;
-  const entityType = params.entityType || 'property'; // ✅ Add these two lines
+const propertyId = params.propertyId;
+const entityType = params.entityType || 'property';
+const areaKey = params.areaKey; // ✅ ADD THIS LINE
+// ✅ Add these two lines
 
   const tabs = [
     { label: "Overview", route: "/home/screens/Flats/(Property)", params: { propertyId } },
@@ -23,13 +25,12 @@ const params = useLocalSearchParams();
   const isReview = pathname.includes("/Review");
   const isWriteReview = pathname.includes("/WriteReview");
   const isOverview = !isReview && !isWriteReview ;
-  const handleBack = () => {
-    if (isReview || isWriteReview) {
-      router.replace("/home/screens/Commercial/(Property)");
-    } else {
-      router.back();
-    }
-  };
+ const handleBack = () => {
+  router.push({
+    pathname: "/home/screens/Flats/PropertyDetails",
+    params: { propertyId, entityType, areaKey } // ✅ ADD areaKey here
+  });
+};
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       {/* Header */}
@@ -83,7 +84,8 @@ const params = useLocalSearchParams();
       pathname: tab.route,
       params: { 
         propertyId,
-        entityType 
+        entityType,
+        areaKey 
       }
     });
   }

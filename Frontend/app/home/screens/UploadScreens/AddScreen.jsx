@@ -90,9 +90,9 @@ export default function AddScreen() {
   const [email, setEmail] = useState("");
   const [ownershipDocs, setOwnershipDocs] = useState([]);
   const [identityDocs, setIdentityDocs] = useState([]);
-
+  const [locAdvantages, setLocAdvantages] = useState([]);
   const options = [t("0_1_years"), t("1_5_years"), t("5_10_years"), t("10_years")];
-  const directions = [t("north_east"), t("south_west"), t("east"), t("west")];
+  const directions = [t("north_east"), t("south_west"), t("east"), t("west"), t("north_west"), t("south_east"), t("north"), t("south")];
   const ownershipOptions = [
     t("freehold"),
     t("leasehold"),
@@ -145,6 +145,16 @@ export default function AddScreen() {
     console.log("📝 Current app language:", currentLang);
     return currentLang;
   };
+  const locationAdvantages = [
+    t("close_to_metro_station"),
+    t("close_to_school"),
+    t("close_to_hospital"),
+    t("close_to_market"),
+    t("close_to_railway_station"),
+    t("close_to_airport"),
+    t("close_to_mall"),
+    t("close_to_highway"),
+  ];
 
   const handleUpload = async () => {
     try {
@@ -284,6 +294,8 @@ export default function AddScreen() {
         setIsSubmitting(false);
         return;
       }
+
+      // ✅ Phone validation with detailed error
       if (!phone?.trim()) {
         Toast.show({
           type: "error",
@@ -293,6 +305,21 @@ export default function AddScreen() {
         setIsSubmitting(false);
         return;
       }
+
+      // ✅ Validate phone format (Indian mobile: 10 digits, starts with 6-9)
+      const phoneRegex = /^[6-9]\d{9}$/;
+      const cleanedPhone = phone.replace(/[\s\-\(\)]/g, ''); // Remove spaces, hyphens, brackets
+      if (!phoneRegex.test(cleanedPhone)) {
+        Toast.show({
+          type: "error",
+          text1: "Invalid Phone Number",
+          text2: "Please enter a valid 10-digit mobile number starting with 6-9",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // ✅ Email validation
       if (!email?.trim()) {
         Toast.show({
           type: "error",
@@ -302,7 +329,20 @@ export default function AddScreen() {
         setIsSubmitting(false);
         return;
       }
+
+      // ✅ Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email.trim())) {
+        Toast.show({
+          type: "error",
+          text1: "Invalid Email",
+          text2: "Please enter a valid email address (e.g., user@example.com)",
+        });
+        setIsSubmitting(false);
+        return;
+      }
       console.log("✅ Validation passed");
+
 
       const propertyData = {
         propertyType: "House",
@@ -353,6 +393,7 @@ export default function AddScreen() {
                     ? "Power of Attorney"
                     : selectedOwnership,
           possessionBy: constructionStatus === "Under" ? possessionBy : undefined,
+          locationAdvantages: locAdvantages,
           otherRooms: otherRooms.map((room) => {
             if (room === t("pooja_room")) return "Pooja Room";
             if (room === t("study_room")) return "Study Room";
@@ -1028,23 +1069,61 @@ export default function AddScreen() {
                 </View>
 
                 {/* Location Section */}
+                {/* Location Section */}
                 <View
                   className="bg-white rounded-lg p-4 mb-4 ml-5 mr-4"
                   style={{ borderWidth: 1, borderColor: "#d1d5db" }}
                 >
-                  <LocationSection
-                    location={location}
-                    setLocation={setLocation}
-                    neighborhood={neighborhood}
-                    setNeighborhood={setNeighborhood}  // ✅ Make sure this prop is being used inside LocationSection
-                    focusedField={focusedField}
-                    setFocusedField={setFocusedField}
-                    onLocationDetails={(details) => {
-                      console.log("📍 Full location details:", details);
-                      setAreaKey(details.areaKey);
+                  <Text className="text-[15px] font-semibold text-gray-800 mb-3">
+                    Location <Text className="text-red-500">*</Text>
+                  </Text>
+
+                  {/* Location Input */}
+                  <View
+                    className="flex-row items-center rounded-lg px-3 py-3 mb-3"
+                    style={{
+                      borderWidth: 1,
+                      borderColor: focusedField === "location" ? "#22C55E" : "#E5E7EB",
+                      backgroundColor: "#F9FAFB",
+                    }}
+                  >
+                    <Image
+                      source={require("../../../../assets/location.png")}
+                      style={{ width: 18, height: 18, marginRight: 8 }}
+                    />
+                    <TextInput
+                      placeholder="Enter Property Location"
+                      placeholderTextColor="#9CA3AF"
+                      value={location}
+                      onChangeText={setLocation}
+                      onFocus={() => setFocusedField("location")}
+                      onBlur={() => setFocusedField(null)}
+                      className="flex-1 text-[14px] text-gray-800"
+                    />
+                  </View>
+
+                  {/* Locality/Area Input */}
+                  <TextInput
+                    placeholder="Locality/Area"
+                    placeholderTextColor="#9CA3AF"
+                    value={neighborhood}
+                    onChangeText={(text) => {
+                      setNeighborhood(text);
+                      // Generate areaKey automatically
+                      const generatedAreaKey = text.toLowerCase().trim().replace(/\s+/g, '-');
+                      setAreaKey(generatedAreaKey);
+                    }}
+                    onFocus={() => setFocusedField("neighborhood")}
+                    onBlur={() => setFocusedField(null)}
+                    className="rounded-lg px-3 py-3 text-[14px] text-gray-800"
+                    style={{
+                      borderWidth: 1,
+                      borderColor: focusedField === "neighborhood" ? "#22C55E" : "#E5E7EB",
+                      backgroundColor: "#F9FAFB",
                     }}
                   />
                 </View>
+
 
                 {/* Description */}
                 <View className="border border-gray-300 rounded-lg bg-white ml-5 mr-4 mt-5 p-5">
@@ -1194,6 +1273,38 @@ export default function AddScreen() {
                           </TouchableOpacity>
                         </View>
                       </View>
+                    ))}
+                  </View>
+                  <Text className="text-[15px] font-bold text-gray-600 mb-3">
+                    {t('location_advantages')}
+                  </Text>
+
+                  <View className="flex-row flex-wrap">
+                    {locationAdvantages.map((advantage) => (
+                      <TouchableOpacity
+                        key={advantage}
+                        onPress={() => {
+                          if (locAdvantages.includes(advantage)) {
+                            setLocAdvantages(locAdvantages.filter((a) => a !== advantage));
+                          } else {
+                            setLocAdvantages([...locAdvantages, advantage]);
+                          }
+                        }}
+                        className={`px-4 py-2 rounded-full mr-2 mb-2 border ${locAdvantages.includes(advantage)
+                            ? "border-green-500 bg-green-50"
+                            : "border-gray-300 bg-white"
+                          }`}
+                      >
+                        <Text
+                          className={`text-sm ${locAdvantages.includes(advantage)
+                              ? "text-green-600 font-semibold"
+                              : "text-gray-700"
+                            }`}
+                        >
+                          {locAdvantages.includes(advantage) ? "✓ " : ""}
+                          {advantage}
+                        </Text>
+                      </TouchableOpacity>
                     ))}
                   </View>
                 </View>

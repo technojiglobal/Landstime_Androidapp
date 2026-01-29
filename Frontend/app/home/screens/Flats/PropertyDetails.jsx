@@ -57,9 +57,9 @@ export default function PropertyListScreen() {
   const filteredProperties = properties.filter((property) => {
     const propertyAreaKey = property.areaKey || '';
     const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
-    //const matchesArea = propertyAreaKey === areaKey;
+    const matchesArea = propertyAreaKey === areaKey;
     const matchesSearch = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
+    return matchesArea && matchesSearch;
   });
 
   const scrollbarHeight = SCREEN_HEIGHT * (SCREEN_HEIGHT / contentHeight) * 0.3;
@@ -222,7 +222,7 @@ export default function PropertyListScreen() {
 
       {/* Header */}
       <View className="flex-row items-center px-5 py-3">
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.push("/home/screens/Flats/SelectSite")}>
           <Ionicons name="chevron-back" size={24} color="black" />
         </TouchableOpacity>
         <Text className="text-xl font-semibold ml-2">{areaName} Properties</Text>
