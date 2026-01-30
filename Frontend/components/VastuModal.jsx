@@ -1,3 +1,4 @@
+//File: Landstime_Androidapp/Frontend/components/VastuModal.jsx
 import React, { useRef, useEffect } from "react";
 import {
   View,
@@ -11,19 +12,226 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { useResponsive } from "../utils/responsive";
 
-export default function VastuModal({ visible, onClose }) {
+export default function VastuModal({ visible, onClose, propertyType, vastuDetails, commercialSubType }) {
   const { scaleWidth, scaleHeight } = useResponsive();
-  //if (!visible) return null;
 
-  const vastuData = [
-    { icon: require("../assets/house.png"), text: " House Facing", direction: "North East" },
-    { icon: require("../assets/bedroom.png"), text: "Master Bedroom", direction: "South-West" },
-    { icon: require("../assets/bedroom.png"), text: "Children BedRoom", direction: "South" },
-    { icon: require("../assets/living.png"), text: "Living Room", direction: "West" },
-    { icon: require("../assets/kitchen.png"), text: "Kitchen", direction: "North-East" },
-    { icon: require("../assets/pooja.png"), text: "Pooja Room", direction: "North-West" },
-    { icon: require("../assets/balcony.png"), text: "Balcony", direction: "South-East" },
-  ];
+  // ✅ Helper function to get icon based on field type
+  const getIconForField = (fieldName) => {
+    const iconMap = {
+      // House/Building facing
+      houseFacing: require("../assets/house.png"),
+      propertyFacing: require("../assets/house.png"),
+      buildingFacing: require("../assets/house.png"),
+      officeFacing: require("../assets/house.png"),
+      shopFacing: require("../assets/house.png"),
+      plotFacing: require("../assets/house.png"),
+      
+      // Bedrooms
+      masterBedroom: require("../assets/bedroom.png"),
+      childrenBedroom: require("../assets/bedroom.png"),
+      masterSuitroom: require("../assets/bedroom.png"),
+      guestRoom: require("../assets/bedroom.png"),
+      guestRooms: require("../assets/bedroom.png"),
+      
+      // Living/Reception areas
+      livingRoom: require("../assets/living.png"),
+      receptionAreaFacing: require("../assets/living.png"),
+      mainLobbyDirection: require("../assets/living.png"),
+      reception: require("../assets/living.png"),
+      
+      // Kitchen
+      kitchenRoom: require("../assets/kitchen.png"),
+      kitchen: require("../assets/kitchen.png"),
+      
+      // Pooja Room
+      poojaRoom: require("../assets/pooja.png"),
+      
+      // Balcony
+      balcony: require("../assets/balcony.png"),
+      
+      // Default icon for others
+      default: require("../assets/house.png"),
+    };
+    
+    return iconMap[fieldName] || iconMap.default;
+  };
+
+  // ✅ Get Vastu fields based on property type
+  const getVastuFields = () => {
+    if (!vastuDetails) return [];
+
+    let fields = [];
+
+    if (propertyType === 'House' || propertyType === 'House/Flat') {
+      fields = [
+        { key: 'houseFacing', label: 'House Facing' },
+        { key: 'masterBedroom', label: 'Master Bedroom' },
+        { key: 'childrenBedroom', label: 'Children Bedroom' },
+        { key: 'livingRoom', label: 'Living Room' },
+        { key: 'kitchenRoom', label: 'Kitchen Room' },
+        { key: 'poojaRoom', label: 'Pooja Room' },
+        { key: 'balcony', label: 'Balcony' },
+      ];
+    } else if (propertyType === 'Resort') {
+      fields = [
+        { key: 'propertyFacing', label: 'Property Facing' },
+        { key: 'entranceDirection', label: 'Entrance Direction' },
+        { key: 'receptionAreaFacing', label: 'Reception Area Facing' },
+        { key: 'mainLobbyDirection', label: 'Main Lobby Direction' },
+        { key: 'masterSuitroom', label: 'Master Suite Room' },
+        { key: 'guestRoom', label: 'Guest Room' },
+        { key: 'restaurantDirection', label: 'Restaurant Direction' },
+        { key: 'vipSuite', label: 'VIP Suite' },
+        { key: 'conferenceDirection', label: 'Conference Direction' },
+        { key: 'spaRoom', label: 'Spa Room' },
+        { key: 'swimmingPool', label: 'Swimming Pool' },
+        { key: 'yoga', label: 'Yoga' },
+        { key: 'kitchenRoom', label: 'Kitchen Room' },
+        { key: 'poojaRoom', label: 'Pooja Room' },
+        { key: 'office', label: 'Office' },
+        { key: 'recreation', label: 'Recreation' },
+        { key: 'balcony', label: 'Balcony' },
+        { key: 'garden', label: 'Garden' },
+      ];
+    } else if (propertyType === 'Site/Plot/Land') {
+      fields = [
+        { key: 'plotFacing', label: 'Plot Facing' },
+        { key: 'mainEntryDirection', label: 'Main Entry Direction' },
+        { key: 'plotSlope', label: 'Plot Slope' },
+        { key: 'openSpace', label: 'Open Space' },
+        { key: 'plotShape', label: 'Plot Shape' },
+        { key: 'roadPosition', label: 'Road Position' },
+        { key: 'waterSource', label: 'Water Source' },
+        { key: 'drainageDirection', label: 'Drainage Direction' },
+        { key: 'compoundWallHeight', label: 'Compound Wall Height' },
+        { key: 'existingStructures', label: 'Existing Structures' },
+      ];
+    } else if (propertyType === 'Commercial') {
+      if (commercialSubType === 'Office') {
+        fields = [
+          { key: 'officeFacing', label: 'Office Facing' },
+          { key: 'entrance', label: 'Entrance' },
+          { key: 'cabin', label: 'Cabin' },
+          { key: 'workstations', label: 'Workstations' },
+          { key: 'conference', label: 'Conference' },
+          { key: 'reception', label: 'Reception' },
+          { key: 'accounts', label: 'Accounts' },
+          { key: 'pantry', label: 'Pantry' },
+          { key: 'server', label: 'Server' },
+          { key: 'washrooms', label: 'Washrooms' },
+          { key: 'staircase', label: 'Staircase' },
+          { key: 'storage', label: 'Storage' },
+          { key: 'cashLocker', label: 'Cash Locker' },
+        ];
+      } else if (commercialSubType === 'Retail') {
+        fields = [
+          { key: 'shopFacing', label: 'Shop Facing' },
+          { key: 'entrance', label: 'Entrance' },
+          { key: 'cashCounter', label: 'Cash Counter' },
+          { key: 'cashLocker', label: 'Cash Locker' },
+          { key: 'ownerSeating', label: 'Owner Seating' },
+          { key: 'staffSeating', label: 'Staff Seating' },
+          { key: 'storage', label: 'Storage' },
+          { key: 'displayArea', label: 'Display Area' },
+          { key: 'electrical', label: 'Electrical' },
+          { key: 'pantryArea', label: 'Pantry Area' },
+          { key: 'staircase', label: 'Staircase' },
+          { key: 'staircaseInside', label: 'Staircase Inside' },
+        ];
+      } else if (commercialSubType === 'Plot/Land') {
+        fields = [
+          { key: 'plotFacing', label: 'Plot Facing' },
+          { key: 'mainEntry', label: 'Main Entry' },
+          { key: 'plotSlope', label: 'Plot Slope' },
+          { key: 'openSpace', label: 'Open Space' },
+          { key: 'shape', label: 'Shape' },
+          { key: 'roadPosition', label: 'Road Position' },
+          { key: 'waterSource', label: 'Water Source' },
+          { key: 'drainage', label: 'Drainage' },
+          { key: 'compoundWall', label: 'Compound Wall' },
+          { key: 'structures', label: 'Structures' },
+        ];
+      } else if (commercialSubType === 'Storage') {
+        fields = [
+          { key: 'buildingFacing', label: 'Building Facing' },
+          { key: 'entrance', label: 'Entrance' },
+          { key: 'storageArea', label: 'Storage Area' },
+          { key: 'lightGoods', label: 'Light Goods' },
+          { key: 'loading', label: 'Loading' },
+          { key: 'office', label: 'Office' },
+          { key: 'electrical', label: 'Electrical' },
+          { key: 'water', label: 'Water' },
+          { key: 'washroom', label: 'Washroom' },
+          { key: 'height', label: 'Height' },
+        ];
+      } else if (commercialSubType === 'Industry') {
+        fields = [
+          { key: 'buildingFacing', label: 'Building Facing' },
+          { key: 'entrance', label: 'Entrance' },
+          { key: 'machinery', label: 'Machinery' },
+          { key: 'production', label: 'Production' },
+          { key: 'rawMaterial', label: 'Raw Material' },
+          { key: 'finishedGoods', label: 'Finished Goods' },
+          { key: 'office', label: 'Office' },
+          { key: 'electrical', label: 'Electrical' },
+          { key: 'water', label: 'Water' },
+          { key: 'waste', label: 'Waste' },
+          { key: 'washroom', label: 'Washroom' },
+        ];
+      } else if (commercialSubType === 'Hospitality') {
+        fields = [
+          { key: 'buildingFacing', label: 'Building Facing' },
+          { key: 'entrance', label: 'Entrance' },
+          { key: 'reception', label: 'Reception' },
+          { key: 'adminOffice', label: 'Admin Office' },
+          { key: 'guestRooms', label: 'Guest Rooms' },
+          { key: 'banquet', label: 'Banquet' },
+          { key: 'kitchen', label: 'Kitchen' },
+          { key: 'dining', label: 'Dining' },
+          { key: 'cashCounter', label: 'Cash Counter' },
+          { key: 'electrical', label: 'Electrical' },
+          { key: 'waterStructure', label: 'Water Structure' },
+          { key: 'washroom', label: 'Washroom' },
+          { key: 'storage', label: 'Storage' },
+        ];
+      }
+    }
+
+    // ✅ Filter out empty/null values and map to display format
+    return fields
+      .filter(field => vastuDetails[field.key])
+      .map(field => ({
+        icon: getIconForField(field.key),
+        text: field.label,
+        direction: vastuDetails[field.key] || 'Not specified',
+      }));
+  };
+
+  const vastuData = getVastuFields();
+
+  // ✅ If no vaastu data, show message
+  if (!vastuDetails || vastuData.length === 0) {
+    return (
+      <Modal transparent visible={visible} animationType="fade">
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.4)" }}>
+          <View className="bg-white w-[330px] p-6 rounded-[20px]">
+            <Text className="text-center text-gray-600 mb-4">No Vaastu details available for this property</Text>
+            <TouchableOpacity
+              onPress={onClose}
+              style={{
+                backgroundColor: "#22C55E",
+                padding: 12,
+                borderRadius: 8,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: "white", fontSize: 14, fontWeight: "600" }}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
 
   // constants
   const scrollViewHeight = 433;
@@ -73,6 +281,18 @@ export default function VastuModal({ visible, onClose }) {
       onPanResponderRelease: () => pan.flattenOffset(),
     })
   ).current;
+
+  // ✅ Determine property type label for display
+  const getPropertyTypeLabel = () => {
+    if (propertyType === 'House' || propertyType === 'House/Flat') return 'House';
+    if (propertyType === 'Resort') return 'Resort';
+    if (propertyType === 'Site/Plot/Land') return 'Site';
+    if (propertyType === 'Commercial') {
+      if (commercialSubType) return commercialSubType;
+      return 'Commercial';
+    }
+    return 'Property';
+  };
 
   return (
     <Modal transparent visible={visible} animationType="fade">
@@ -125,7 +345,7 @@ export default function VastuModal({ visible, onClose }) {
             <Text
               style={{ fontSize: scaleWidth(10), color: "#FFA500", fontWeight: "500" }}
             >
-              House
+              {getPropertyTypeLabel()}
             </Text>
           </View>
 

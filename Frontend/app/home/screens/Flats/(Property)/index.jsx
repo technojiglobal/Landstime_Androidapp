@@ -483,7 +483,37 @@ const getStats = () => {
                    message="Brochure  have been downloaded successfully  "
                    onClose={() => setShowAlert(false)}
                  />
-      <VastuModal visible={showVastuModal} onClose={() => setShowVastuModal(false)} />
+      <VastuModal 
+  visible={showVastuModal}
+  onClose={() => setShowVastuModal(false)}
+  propertyType={property?.propertyType}
+  commercialSubType={property?.commercialDetails?.subType}
+  vastuDetails={
+    property?.propertyType === 'House' || property?.propertyType === 'House/Flat'
+      ? property?.houseDetails?.vaasthuDetails
+      : property?.propertyType === 'Resort'
+      ? property?.resortDetails?.vaasthuDetails
+      : property?.propertyType === 'Site/Plot/Land'
+      ? property?.siteDetails?.vaasthuDetails
+      : property?.propertyType === 'Commercial'
+      ? (
+          property?.commercialDetails?.subType === 'Office' 
+            ? property?.commercialDetails?.officeDetails?.vaasthuDetails
+          : property?.commercialDetails?.subType === 'Retail'
+            ? property?.commercialDetails?.retailDetails?.vaastuDetails
+          : property?.commercialDetails?.subType === 'Plot/Land'
+            ? property?.commercialDetails?.plotDetails?.vastuDetails
+          : property?.commercialDetails?.subType === 'Storage'
+            ? property?.commercialDetails?.storageDetails?.vastuDetails
+          : property?.commercialDetails?.subType === 'Industry'
+            ? property?.commercialDetails?.industryDetails?.vastuDetails
+          : property?.commercialDetails?.subType === 'Hospitality'
+            ? property?.commercialDetails?.hospitalityDetails?.vastuDetails
+          : null
+        )
+      : null
+  }
+/>
     </View>
   );
 }
