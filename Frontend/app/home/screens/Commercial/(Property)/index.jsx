@@ -461,7 +461,28 @@ export default function OverviewScreen() {
                    message="Brochure  have been downloaded successfully  "
                    onClose={() => setShowAlert(false)}
                  />
-      <VastuModal visible={showVastuModal} onClose={() => setShowVastuModal(false)} />
+     <VastuModal 
+  visible={showVastuModal}
+  onClose={() => setShowVastuModal(false)}
+  propertyType={property?.propertyType}
+  commercialSubType={property?.commercialDetails?.subType}
+  vastuDetails={
+    property?.commercialDetails?.subType === 'Office' 
+      ? property?.commercialDetails?.officeDetails?.vaasthuDetails
+    : property?.commercialDetails?.subType === 'Retail'
+      ? property?.commercialDetails?.retailDetails?.vaastuDetails  // ✅ Note: double 'a'
+    : property?.commercialDetails?.subType === 'Plot/Land'
+      ? property?.commercialDetails?.plotDetails?.vastuDetails
+    : property?.commercialDetails?.subType === 'Storage'
+      ? property?.commercialDetails?.storageDetails?.vastuDetails
+    : property?.commercialDetails?.subType === 'Industry'
+      ? property?.commercialDetails?.industryDetails?.vastuDetails
+    : property?.commercialDetails?.subType === 'Hospitality'
+      ? property?.commercialDetails?.hospitalityDetails?.vastuDetails
+    : null
+  }
+/>
+
     </SafeAreaView>
   );
 }

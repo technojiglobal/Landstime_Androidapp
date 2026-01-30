@@ -394,7 +394,12 @@ export default function OverviewScreen() {
 
       {/* Alerts / Modals */}
       <TopAlert visible={showAlert} onHide={() => setShowAlert(false)} />
-      <VastuModal visible={showVastuModal} onClose={() => setShowVastuModal(false)} />
+     <VastuModal 
+  visible={showVastuModal}
+  onClose={() => setShowVastuModal(false)}
+  propertyType={property?.propertyType}
+  vastuDetails={property?.resortDetails?.vaasthuDetails}
+/>
     </View>
   );
 }

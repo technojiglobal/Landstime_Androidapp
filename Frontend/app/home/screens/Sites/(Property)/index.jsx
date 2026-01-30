@@ -462,7 +462,12 @@ export default function OverviewScreen() {
               message="Brochure  have been downloaded successfully  "
               onClose={() => setShowAlert(false)}
             />
-      <VastuModal visible={showVastuModal} onClose={() => setShowVastuModal(false)} />
+      <VastuModal 
+  visible={showVastuModal}
+  onClose={() => setShowVastuModal(false)}
+  propertyType={property?.propertyType}
+  vastuDetails={property?.siteDetails?.vaasthuDetails}
+/>
     </View>
   );
 }
