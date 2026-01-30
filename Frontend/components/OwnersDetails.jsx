@@ -1,7 +1,8 @@
 // Landstime_Androidapp/Frontend/components/OwnersDetails.jsx
 
-import React from "react";
-import { View, Text, TextInput } from "react-native";
+import React from 'react';
+import { View, Text, TextInput } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from "@expo/vector-icons";
 
 export default function OwnerDetails({
@@ -15,6 +16,8 @@ export default function OwnerDetails({
   setFocusedField,
   phoneError // ✅ Add this prop
 }) {
+
+  const { t } = useTranslation();  // ✅ ADD THIS LINE
   return (
     <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200 w-full">
       {/* Title */}
@@ -42,7 +45,7 @@ export default function OwnerDetails({
         <TextInput
           value={ownerName}
           onChangeText={setOwnerName}
-          placeholder="Owner Name"
+          placeholder={t("owner_name")}
           placeholderTextColor="#9CA3AF"
           style={{ flex: 1, marginLeft: 10, color: "#111827" }}
           onFocus={() => setFocusedField("ownerName")}
@@ -70,7 +73,7 @@ export default function OwnerDetails({
           <TextInput
             value={phone}
             onChangeText={setPhone}
-            placeholder="Phone Number"
+            placeholder={t("phone_number")}
             placeholderTextColor="#9CA3AF"
             keyboardType="number-pad" // ✅ Changed from phone-pad
             maxLength={10} // ✅ Limit to 10 digits
@@ -106,7 +109,7 @@ export default function OwnerDetails({
         <TextInput
           value={email}
           onChangeText={setEmail}
-          placeholder="Email Address"
+          placeholder={t("email_address")}
           placeholderTextColor="#9CA3AF"
           keyboardType="email-address"
           autoCapitalize="none"
