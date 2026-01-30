@@ -626,8 +626,8 @@
   "water_source_east": "Water source in East",
   "water_source_north_east": "Water source in North-East",
   "no_water_source": "No water source",
-  "south_east": "South-East",
-  "north_west": "North-West",
+  "south_east": "South East",
+  "north_west": "North West",
   "equal_height_all_sides": "Equal height on all sides",
   "higher_south": "Higher in South",
   "higher_west": "Higher in West",
@@ -1421,5 +1421,10 @@
   "retail_located_inside_commercial": "Commercial Project",
   "retail_located_inside_residential": "Residential Project",
   "retail_located_inside_retail": "Retail Complex / Building",
-  "retail_located_inside_market": "Market / High Street"
+  "retail_located_inside_market": "Market / High Street",
+  "locality_area": "Locality/Area",
+  "phone_number": "Phone Number",
+  "email_address": "Email Address",
+  "north": "North",
+  "south": "South"
 }

@@ -626,8 +626,8 @@
   "water_source_east": "पूर्व में जल स्रोत",
   "water_source_north_east": "उत्तर-पूर्व में जल स्रोत",
   "no_water_source": "कोई जल स्रोत नहीं",
-  "south_east": "दक्षिण-पूर्व",
-  "north_west": "उत्तर-पश्चिम",
+  "south_east": "दक्षిణ पूर्व",
+  "north_west": "उत्तर पश्चिम",
   "equal_height_all_sides": "सभी तरफ समान ऊंचाई",
   "higher_south": "दक्षिण में अधिक ऊंचाई",
   "higher_west": "पश्चिम में अधिक ऊंचाई",
@@ -1421,5 +1421,10 @@
   "retail_located_inside_commercial": "व्यावसायिक परियोजना",
   "retail_located_inside_residential": "आवासीय परियोजना",
   "retail_located_inside_retail": "रिटेल कॉम्प्लेक्स / भवन",
-  "retail_located_inside_market": "मार्केट / हाई स्ट्रीट"
+  "retail_located_inside_market": "मार्केट / हाई स्ट्रीट",
+  "locality_area": "इलाका/क्षेत्र",
+  "phone_number": "फोन नंबर",
+  "email_address": "ईमेल पता",
+  "north": "उत्तर",
+  "south": "दक्षिण"
 }
