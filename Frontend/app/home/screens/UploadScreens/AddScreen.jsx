@@ -675,15 +675,8 @@ export default function AddScreen() {
                               setVisible(null);
                               if (type === "House") {
                                 // Already on the correct screen
-                              } else if (type === "Site/Plot") {
-                                router.push({
-                                  pathname: "/home/screens/UploadScreens/SiteUpload",
-                                  params: {
-                                    images: JSON.stringify(images),
-                                    propertyTitle: propertyTitle,
-                                  },
-                                });
-                              } else if (type === "Commercial") {
+                              } 
+                               else if (type === "Commercial") {
                                 router.push({
                                   pathname: "/home/screens/UploadScreens/CommercialUpload",
                                   params: {
