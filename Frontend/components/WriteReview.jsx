@@ -1,5 +1,5 @@
 // Frontend/components/WriteReview.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect} from "react";
 import {
   View,
   Text,
@@ -12,13 +12,29 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons"; // ✅ correct icon set
 import { submitReview } from "../utils/reviewApi";
 
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const { width } = Dimensions.get("window");
 
 export default function WriteReview({ entityId, entityType }) {
   const [rating, setRating] = useState(0);
   const [title, setTitle] = useState("");
   const [review, setReview] = useState("");
+  const [userName, setUserName] = useState("Anonymous");
+  useEffect(() => {
+  const getUserData = async () => {
+    try {
+      const userDataString = await AsyncStorage.getItem('userData');
+      if (userDataString) {
+        const userData = JSON.parse(userDataString);
+        setUserName(userData.name || userData.username || "Anonymous");
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
+  getUserData();
+}, []);
 const handleSubmit = async () => {
   if (!rating || !title || review.length < 5) {
     alert("Please fill all fields");
@@ -32,7 +48,7 @@ const handleSubmit = async () => {
       rating,
       title,
       comment: review,
-      userName: "Anonymous",
+      userName: userName, // ✅ Keep it as userName to match your DB schema
     });
 
     alert("Review submitted successfully");

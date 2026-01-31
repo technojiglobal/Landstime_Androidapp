@@ -308,7 +308,7 @@ export default function OverviewScreen() {
       >
 
         {/* ✅ FIXED: Header with Back Button */}
-        <View className="flex-row items-center px-5 py-3">
+        {/* <View className="flex-row items-center px-5 py-3">
           <TouchableOpacity onPress={() => {
             // ✅ Go back to the area's property list
             if (areaKey) {
@@ -323,7 +323,7 @@ export default function OverviewScreen() {
             <Ionicons name="chevron-back" size={24} color="black" />
           </TouchableOpacity>
           <Text className="text-lg font-semibold ml-3">Property Details</Text>
-        </View>
+        </View> */}
 
         {/* Property Image */}
         <View className="items-center relative">

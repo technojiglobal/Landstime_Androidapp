@@ -4,7 +4,8 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Slot, useRouter, usePathname, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import { useEffect, useState } from "react"; // ✅ Add useState and useEffect
+import { fetchReviews } from "utils/reviewApi"; // ✅ Add this import
 export default function PropertyLayout() {
   const router = useRouter();
   const pathname = usePathname() ?? "";
@@ -14,10 +15,17 @@ const propertyId = params.propertyId;
 const entityType = params.entityType || 'property';
 const areaKey = params.areaKey; // ✅ ADD THIS LINE
 // ✅ Add these two lines
-
+const [reviewCount, setReviewCount] = useState(0);
+useEffect(() => {
+  if (propertyId && entityType) {
+    fetchReviews(entityType, propertyId).then((res) => {
+      setReviewCount(res.count || 0);
+    });
+  }
+}, [propertyId, entityType]);
   const tabs = [
     { label: "Overview", route: "/home/screens/Flats/(Property)", params: { propertyId } },
-    { label: "Reviews(27)", route: "/home/screens/Flats/(Property)/Review", params: { propertyId } },
+    { label:`Reviews(${reviewCount})`, route: "/home/screens/Flats/(Property)/Review", params: { propertyId } },
     { label: "Write Review", route: "/home/screens/Flats/(Property)/WriteReview", params: { propertyId } },
   ];
 

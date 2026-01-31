@@ -54,6 +54,7 @@ export default function OwnerDetails({
       </View>
 
       {/* Phone - ✅ UPDATED SECTION */}
+      {/* Phone - with real-time validation */}
       <View style={{ marginBottom: 12, width: "100%" }}>
         <View
           style={{
@@ -61,9 +62,7 @@ export default function OwnerDetails({
             alignItems: "center",
             backgroundColor: "#F3F4F6",
             borderWidth: 2,
-            borderColor: phoneError 
-              ? "#EF4444" 
-              : (focusedField === "phone" ? "#22C55E" : "#D1D5DB"), // ✅ Red border on error
+            borderColor: focusedField === "phone" ? "#22C55E" : "#D1D5DB",
             borderRadius: 8,
             paddingHorizontal: 12,
             height: 52,
@@ -75,21 +74,16 @@ export default function OwnerDetails({
             onChangeText={setPhone}
             placeholder={t("phone_number")}
             placeholderTextColor="#9CA3AF"
-            keyboardType="number-pad" // ✅ Changed from phone-pad
-            maxLength={10} // ✅ Limit to 10 digits
+            keyboardType="number-pad"
+            maxLength={10}
             style={{ flex: 1, marginLeft: 10, color: "#111827" }}
             onFocus={() => setFocusedField("phone")}
             onBlur={() => setFocusedField(null)}
           />
         </View>
-        {/* ✅ Error message display */}
-        {phoneError ? (
-          <Text style={{ color: "#EF4444", fontSize: 12, marginTop: 4, marginLeft: 4 }}>
-            {phoneError}
-          </Text>
-        ) : null}
       </View>
 
+      {/* Email */}
       {/* Email */}
       <View
         style={{
@@ -97,8 +91,7 @@ export default function OwnerDetails({
           alignItems: "center",
           backgroundColor: "#F3F4F6",
           borderWidth: 2,
-          borderColor:
-            focusedField === "email" ? "#22C55E" : "#D1D5DB",
+          borderColor: focusedField === "email" ? "#22C55E" : "#D1D5DB",
           borderRadius: 8,
           paddingHorizontal: 12,
           height: 52,
@@ -113,6 +106,7 @@ export default function OwnerDetails({
           placeholderTextColor="#9CA3AF"
           keyboardType="email-address"
           autoCapitalize="none"
+          autoCorrect={false}
           style={{ flex: 1, marginLeft: 10, color: "#111827" }}
           onFocus={() => setFocusedField("email")}
           onBlur={() => setFocusedField(null)}

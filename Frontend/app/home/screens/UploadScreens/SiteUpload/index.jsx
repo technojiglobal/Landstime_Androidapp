@@ -43,7 +43,7 @@ export default function UploadPropertyScreen() {
   const [propertyType, setPropertyType] = useState(t("site_plot_land"));
   const [propertyTitle, setPropertyTitle] = useState(params.propertyTitle || "");
   const [images, setImages] = useState([]);
-  
+
   const [possessionBy, setPossessionBy] = useState("");
   const [ownership, setOwnership] = useState("");
   const [approvedBy, setApprovedBy] = useState([]);
@@ -61,7 +61,7 @@ export default function UploadPropertyScreen() {
   const [email, setEmail] = useState("");
   const [ownershipDocs, setOwnershipDocs] = useState([]);
   const [identityDocs, setIdentityDocs] = useState([]);
-
+  const [phoneError, setPhoneError] = useState("");
   // Vaasthu Details States
   const [plotFacing, setPlotFacing] = useState(t("north_east"));
   const [mainEntryDirection, setMainEntryDirection] = useState(t("south_west"));
@@ -73,7 +73,7 @@ export default function UploadPropertyScreen() {
   const [drainageDirection, setDrainageDirection] = useState(t("north_east"));
   const [compoundWallHeight, setCompoundWallHeight] = useState(t("equal_height_all_sides"));
   const [existingStructures, setExistingStructures] = useState(t("no_structures"));
-  
+
   const [isMorePricingModalVisible, setIsMorePricingModalVisible] = useState(false);
   const [isHowto360ModalVisible, setIsHowto360ModalVisible] = useState(false);
   const [isPhotoGuideModalVisible, setIsPhotoGuideModalVisible] = useState(false);
@@ -81,10 +81,10 @@ export default function UploadPropertyScreen() {
 
   const [visible, setVisible] = useState(null);
   const [alertVisible, setAlertVisible] = useState(false);
-  const [roadUnit, setRoadUnit] = useState("sqft"); 
+  const [roadUnit, setRoadUnit] = useState("sqft");
   const [selectedPrices, setSelectedPrices] = useState([]);
   const [selectedOverlooking, setSelectedOverlooking] = useState([]);
-  
+
   const [location, setLocation] = useState('');
   const [area, setArea] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
@@ -97,7 +97,7 @@ export default function UploadPropertyScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pickerAlertVisible, setPickerAlertVisible] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
-  
+
   const getUserLanguage = () => {
     const currentLang = i18n.language || 'en';
     console.log('📝 Current app language:', currentLang);
@@ -131,7 +131,7 @@ export default function UploadPropertyScreen() {
     >
       <Text
         className="text-[10px]"
-        style={{ color: selected ? "#22C55E" : "#00000099" }}
+        style={{ color: selected ? "#22C55E" : "#374151" }}
       >
         {label}
       </Text>
@@ -202,12 +202,20 @@ export default function UploadPropertyScreen() {
   const removeImage = (index) => {
     setImages(images.filter((_, i) => i !== index));
   };
+  const validatePhone = (phoneNumber) => {
+    const phoneRegex = /^[6-9]\d{9}$/; // Indian phone number format
+    return phoneRegex.test(phoneNumber);
+  };
 
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
   const handleUpload = async () => {
     try {
       const token = await AsyncStorage.getItem('userToken');
       console.log('🔐 Current token before upload:', token);
-      
+
       if (!token) {
         Alert.alert(
           t("login_required"),
@@ -222,7 +230,7 @@ export default function UploadPropertyScreen() {
         );
         return;
       }
-      
+
       console.log('🎬 Starting upload process...');
       setIsSubmitting(true);
 
@@ -243,7 +251,7 @@ export default function UploadPropertyScreen() {
         setIsSubmitting(false);
         return;
       }
-      
+
       if (!length?.trim()) {
         showToast(t('length_required'));
         setIsSubmitting(false);
@@ -291,10 +299,10 @@ export default function UploadPropertyScreen() {
       }
 
       if (!neighborhood?.trim()) {
-  showToast(t('area_required'));
-  setIsSubmitting(false);
-  return;
-}
+        showToast(t('area_required'));
+        setIsSubmitting(false);
+        return;
+      }
 
 
       if (!phone?.trim()) {
@@ -302,9 +310,21 @@ export default function UploadPropertyScreen() {
         setIsSubmitting(false);
         return;
       }
-      
+
+      if (!validatePhone(phone.trim())) {
+        showToast('Please enter a valid 10-digit phone number');
+        setIsSubmitting(false);
+        return;
+      }
+
       if (!email?.trim()) {
         showToast(t('email_required'));
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!validateEmail(email.trim())) {
+        showToast('Please enter a valid email address');
         setIsSubmitting(false);
         return;
       }
@@ -384,7 +404,7 @@ export default function UploadPropertyScreen() {
       console.log('📋 Final property data:', JSON.stringify(propertyData, null, 2));
       console.log('📸 Images to upload:', uploadImages.length, 'images');
       console.log('🔍 First image URI:', uploadImages[0]);
-      
+
       const result = await createProperty(
         propertyData,
         uploadImages,
@@ -394,29 +414,29 @@ export default function UploadPropertyScreen() {
 
       console.log('📥 API Result:', result);
       console.log('📥 API Result Data:', JSON.stringify(result.data, null, 2));
-      
-     if (result.success) {
-  Alert.alert(
-    t("success"),
-    t("property_uploaded_successfully"),
-    [
-      {
-        text: t("ok"),
-        onPress: () => {
-          router.replace("/(tabs)/home");
-        },
-      },
-    ]
-  );
-}
-       else {
+
+      if (result.success) {
+        Alert.alert(
+          t("success"),
+          t("property_uploaded_successfully"),
+          [
+            {
+              text: t("ok"),
+              onPress: () => {
+                router.replace("/(tabs)/home");
+              },
+            },
+          ]
+        );
+      }
+      else {
         console.error('❌ Upload failed:', result);
         Alert.alert(
-          t("error"), 
+          t("error"),
           result.data?.message || result.error || t("failed_to_upload_property")
         );
       }
-      
+
     } catch (error) {
       console.error("Upload error:", error);
       Alert.alert(t("error"), t("something_went_wrong"));
@@ -424,7 +444,7 @@ export default function UploadPropertyScreen() {
       setIsSubmitting(false);
     }
   };
-    
+
   return (
     <>
       <View className="flex-1 bg-gray-50">
@@ -449,8 +469,8 @@ export default function UploadPropertyScreen() {
           onCameraPress={takePhoto}
           onGalleryPress={pickFromGallery}
         />
-        
-        <View className="flex-row items-center mt-3 mb-4">
+
+        <View className="flex-row items-center mt-12 mb-4">
           <TouchableOpacity
             onPress={() => router.push("/home/screens/UploadScreens/AddScreen")}
             className="p-2"
@@ -497,11 +517,11 @@ export default function UploadPropertyScreen() {
             <TextInput
               placeholder={t('property_title_placeholder')}
               className="rounded-md p-3 mb-3"
-              style={{ 
-                borderWidth: 2, 
-                borderColor: focusedField === 'propertyTitle' ? '#22C55E' : '#0000001A', 
-                height:50, 
-                backgroundColor:"#D9D9D91C"
+              style={{
+                borderWidth: 2,
+                borderColor: focusedField === 'propertyTitle' ? '#22C55E' : '#0000001A',
+                height: 50,
+                backgroundColor: "#D9D9D91C"
               }}
               value={propertyTitle}
               onChangeText={(text) => setPropertyTitle(text.replace(/[^a-zA-Z0-9\s]/g, ''))}
@@ -537,13 +557,13 @@ export default function UploadPropertyScreen() {
                     onPress={() => {
                       setPropertyType(type.label);
                       setVisible(null);
-                      
+
                       if (type.key === "House") {
                         router.push({
                           pathname: "/home/screens/UploadScreens/AddScreen",
-                          params: { 
+                          params: {
                             images: JSON.stringify(images),
-                            propertyTitle: propertyTitle 
+                            propertyTitle: propertyTitle
                           },
                         });
                       } else if (type.key === "Site/Plot/Land") {
@@ -551,24 +571,23 @@ export default function UploadPropertyScreen() {
                       } else if (type.key === "Commercial") {
                         router.push({
                           pathname: "/home/screens/UploadScreens/CommercialUpload",
-                          params: { 
+                          params: {
                             images: JSON.stringify(images),
-                            propertyTitle: propertyTitle 
+                            propertyTitle: propertyTitle
                           },
                         });
                       } else {
                         router.push({
                           pathname: "/home/screens/UploadScreens/ResortUpload",
-                          params: { 
+                          params: {
                             images: JSON.stringify(images),
-                            propertyTitle: propertyTitle 
+                            propertyTitle: propertyTitle
                           },
                         });
                       }
                     }}
-                    className={`p-4 border-b border-gray-200 ${
-                      propertyType === type.label ? "bg-green-500" : "bg-white"
-                    }`}
+                    className={`p-4 border-b border-gray-200 ${propertyType === type.label ? "bg-green-500" : "bg-white"
+                      }`}
                   >
                     <Text className={`${propertyType === type.label ? "text-white" : "text-gray-800"}`}>
                       {type.label}
@@ -579,63 +598,63 @@ export default function UploadPropertyScreen() {
             )}
           </View>
 
-        
-         
 
-{/* Location */}
-<View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
-  <Text className="text-[15px] font-bold text-gray-600 mb-3">
-    {t('location')} <Text style={{ color: "red" }}>*</Text>
-  </Text>
 
-  <View className="flex-row items-center bg-[#D9D9D91C] border border-gray-200 rounded-md p-3 mb-4"
-    style={{
-      borderColor: focusedField === 'location' ? '#22C55E' : '#d1d5db',
-    }}>
-    <Image
-      source={require("../../../../../assets/location.png")}
-      style={{ width: 18, height: 18, marginRight: 8 }}
-    />
-    <TextInput
-      placeholder={t('enter_property_location')}
-      className="flex-1"
-      value={location}
-      onChangeText={setLocation}
-      onFocus={() => setFocusedField('location')}
-      onBlur={() => setFocusedField(null)}
-    />
-  </View>
-</View>
 
-{/* Area/Neighborhood */}
-<View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
-  <Text className="text-gray-500 font-semibold mb-2 text-left">
-    {t('area')} <Text className="text-red-500">*</Text>
-  </Text>
-  <View
-    style={{
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: "#f3f4f6",
-      borderRadius: 8,
-      padding: 12,
-      marginBottom: 16,
-      borderColor: focusedField === "neighborhood" ? "#22C55E" : "#d1d5db",
-      borderWidth: 2,
-    }}
-  >
-    <Ionicons name="location-outline" size={20} color="#22C55E" />
-    <TextInput
-      placeholder={t('enter_area')}
-      placeholderTextColor="#888"
-      value={neighborhood}
-      onChangeText={(text) => setNeighborhood(text)}
-      style={{ flex: 1, marginLeft: 8, color: "#1f2937" }}
-      onFocus={() => setFocusedField("neighborhood")}
-      onBlur={() => setFocusedField(null)}
-    />
-  </View>
-</View>
+          {/* Location */}
+          <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
+            <Text className="text-[15px] font-bold text-gray-600 mb-3">
+              {t('location')} <Text style={{ color: "red" }}>*</Text>
+            </Text>
+
+            <View className="flex-row items-center bg-[#D9D9D91C] border border-gray-200 rounded-md p-3 mb-4"
+              style={{
+                borderColor: focusedField === 'location' ? '#22C55E' : '#d1d5db',
+              }}>
+              <Image
+                source={require("../../../../../assets/location.png")}
+                style={{ width: 18, height: 18, marginRight: 8 }}
+              />
+              <TextInput
+                placeholder={t('enter_property_location')}
+                className="flex-1"
+                value={location}
+                onChangeText={setLocation}
+                onFocus={() => setFocusedField('location')}
+                onBlur={() => setFocusedField(null)}
+              />
+            </View>
+          </View>
+
+          {/* Area/Neighborhood */}
+          <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
+            <Text className="text-gray-500 font-semibold mb-2 text-left">
+              {t('area')} <Text className="text-red-500">*</Text>
+            </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                backgroundColor: "#f3f4f6",
+                borderRadius: 8,
+                padding: 12,
+                marginBottom: 16,
+                borderColor: focusedField === "neighborhood" ? "#22C55E" : "#d1d5db",
+                borderWidth: 2,
+              }}
+            >
+              <Ionicons name="location-outline" size={20} color="#22C55E" />
+              <TextInput
+                placeholder={t('enter_area')}
+                placeholderTextColor="#888"
+                value={neighborhood}
+                onChangeText={(text) => setNeighborhood(text)}
+                style={{ flex: 1, marginLeft: 8, color: "#1f2937" }}
+                onFocus={() => setFocusedField("neighborhood")}
+                onBlur={() => setFocusedField(null)}
+              />
+            </View>
+          </View>
 
           {/* Area + Length/Breadth */}
           <View
@@ -834,10 +853,10 @@ export default function UploadPropertyScreen() {
                 </Text>
                 <View className="flex-row flex-wrap mb-3">
                   {[
-                    { k: "Shed", l: t("shed") },
-                    { k: "Room", l: t("rooms") },
-                    { k: "Washroom", l: t("washroom") },
-                    { k: "Other", l: t("other") }
+                    { k: "Shed", l: t(" shed") },
+                    { k: "Room", l: t(" rooms") },
+                    { k: "Washroom", l: t(" washroom") },
+                    { k: "Other", l: t(" other") }
                   ].map((o) => (
                     <PillButton
                       key={o.k}
@@ -945,7 +964,7 @@ export default function UploadPropertyScreen() {
             </View>
             <View className="flex-col gap-2 mb-2">
               {[
-                { key: "All inclusive price", label: t("all_inclusive_price") },
+                { key: "All inclusive ", label: t("all_inclusive_price") },
                 { key: "Price Negotiable", label: t("price_negotiable") },
                 { key: "Tax and Govt.charges excluded", label: t("tax_govt_charges_excluded") }
               ].map((item) => {
@@ -963,9 +982,8 @@ export default function UploadPropertyScreen() {
                     className="flex-row items-center gap-2"
                   >
                     <View
-                      className={`w-5 h-5 border rounded-sm items-center justify-center ${
-                        isSelected ? "border-green-500 bg-green-500" : "border-gray-300 bg-white"
-                      }`}
+                      className={`w-5 h-5 border rounded-sm items-center justify-center ${isSelected ? "border-green-500 bg-green-500" : "border-gray-300 bg-white"
+                        }`}
                     >
                       {isSelected && <Ionicons name="checkmark" size={14} color="white" />}
                     </View>
@@ -975,7 +993,7 @@ export default function UploadPropertyScreen() {
               })}
               <TouchableOpacity onPress={() => setIsMorePricingModalVisible(true)}>
                 <Text className="text-[#22C55E] font-semibold text-left">
-                  {t('add_more_pricing_details')}
+                  {t('add more pricing details')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -992,7 +1010,7 @@ export default function UploadPropertyScreen() {
               className="rounded-md p-3"
               style={{
                 borderWidth: 2,
-                borderColor: focusedField === 'description' ? '#22C55E': '#0000001A',
+                borderColor: focusedField === 'description' ? '#22C55E' : '#0000001A',
                 width: "100%",
                 height: 108,
                 paddingTop: 10,
@@ -1003,106 +1021,6 @@ export default function UploadPropertyScreen() {
               onBlur={() => setFocusedField(null)}
             />
           </View>
-
-          {/* Vaasthu Details Section */}
-          <View
-            className="bg-white rounded-lg p-4 mb-4"
-            style={{ borderWidth: 1, borderColor: "#0000001A" }}
-          >
-            <View className="flex-row items-center mb-4 justify-between">
-              <Text className="text-lg font-semibold text-gray-800">
-                {t('vaasthu_details')}
-              </Text>
-              <Image
-                source={require("../../../../../assets/vastu.png")}
-                style={{ width: 30, height: 30 }}
-              />
-            </View>
-
-            {/* Vaasthu Fields with Translations */}
-            {[
-              { key: "plotFacing", label: t("plot_facing"), value: plotFacing, setValue: setPlotFacing,
-                options: [t("north_east"), t("south_west"), t("east"), t("west"), t("north"), t("south"), t("south_east"), t("north_west")] },
-              { key: "mainEntry", label: t("main_entry_gate_direction"), value: mainEntryDirection, setValue: setMainEntryDirection,
-                options: [t("north_east"), t("south_west"), t("east"), t("west"), t("north"), t("south"), t("south_east"), t("north_west")] },
-              { key: "plotSlope", label: t("plot_slope_direction"), value: plotSlope, setValue: setPlotSlope,
-                options: [t("towards_north"), t("towards_south"), t("towards_east"), t("towards_west"), t("level_ground")] },
-              { key: "openSpace", label: t("open_space_vastu"), value: openSpace, setValue: setOpenSpace,
-                options: [t("balanced_open_space"), t("more_space_north"), t("more_space_east"), t("more_space_south"), t("more_space_west")] },
-              { key: "plotShape", label: t("shape"), value: plotShape, setValue: setPlotShape,
-                options: [t("square"), t("rectangle"), t("irregular"), t("l_shaped"), t("t_shaped")] },
-              { key: "roadPosition", label: t("road_position"), value: roadPosition, setValue: setRoadPosition,
-                options: [t("north_east"), t("south_west"), t("east"), t("west"), t("north"), t("south")] },
-              { key: "waterSource", label: t("water_source_location"), value: waterSource, setValue: setWaterSource,
-                options: [t("water_source_north"), t("water_source_east"), t("water_source_north_east"), t("no_water_source")] },
-              { key: "drainage", label: t("drainage_direction"), value: drainageDirection, setValue: setDrainageDirection,
-                options: [t("north_east"), t("east"), t("north"), t("south_east")] },
-              { key: "wallHeight", label: t("compound_wall_height"), value: compoundWallHeight, setValue: setCompoundWallHeight,
-                options: [t("equal_height_all_sides"), t("higher_south"), t("higher_west"), t("no_compound_wall")] },
-              { key: "structures", label: t("existing_structures"), value: existingStructures, setValue: setExistingStructures,
-                options: [t("no_structures"), t("shed_garage"), t("small_room"), t("well_borewell"), t("temple")] }
-            ].map((field) => (
-              <View key={field.key}>
-                <Text className="text-sm text-gray-600 mb-2">{field.label}</Text>
-                <TouchableOpacity
-                  onPress={() => setVisible(visible === field.key ? null : field.key)}
-                  className="bg-[#F9FAFB] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 mb-4"
-                >
-                  <Text className="text-gray-800">{field.value}</Text>
-                  <Ionicons name="chevron-down" size={20} color="#555" />
-                </TouchableOpacity>
-                {visible === field.key && (
-                  <View className="bg-white rounded-lg shadow-lg -mt-3 mb-4 border border-gray-200">
-                    {field.options.map((option) => (
-                      <TouchableOpacity
-                        key={option}
-                        onPress={() => {
-                          field.setValue(option);
-                          setVisible(null);
-                        }}
-                        className="p-3 border-b border-gray-200"
-                      >
-                        <Text className="text-gray-800">{option}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              </View>
-            ))}
-          </View>
-
-          <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
-            <DocumentUpload
-              title={t('property_ownership')}
-              subtitle={t('ownership_verify')}
-              files={ownershipDocs}
-              setFiles={setOwnershipDocs}
-              required
-            />
-          </View>
-
-          <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
-            <DocumentUpload
-              title={t('owner_identity')}
-              subtitle={t('upload_identity')}
-              files={identityDocs}
-              setFiles={setIdentityDocs}
-              required
-            />
-          </View>
-
-          <OwnerDetails
-            ownerName={ownerName}
-            setOwnerName={setOwnerName}
-            phone={phone}
-            setPhone={setPhone}
-            email={email}
-            setEmail={setEmail}
-            focusedField={focusedField}
-            setFocusedField={setFocusedField}
-          />
-
-          {/* Amenities, Overlooking, Facing */}
           <View
             className="bg-white rounded-lg p-4 mb-4"
             style={{ borderWidth: 1, borderColor: "#0000001A" }}
@@ -1111,18 +1029,18 @@ export default function UploadPropertyScreen() {
             <Text className="text-[15px] text-[#00000099] mb-2">{t('amenities')}</Text>
             <View className="flex-row flex-wrap mb-3">
               {[
-  { key: "+Maintenance Staff", label: "+ " + t("maintenance_staff") },
-  { key: "+Water Storage", label: "+ " + t("water_storage") },
-  { key: "+RainWater Harvesting", label: "+ " + t("rainwater_harvesting") },
-  { key: "Feng Shui/Vastu Complaint", label: t("vastu_compliant") }
-].map((item) => (
-  <PillButton
-    key={item.key}
-    label={item.label}
-    selected={amenities.includes(item.key)}
-    onPress={() => toggleArray(amenities, setAmenities, item.key)}
-  />
-))}
+                { key: "Maintenance Staff", label: "+ " + t("maintenance staff") },
+                { key: "Water Storage", label: "+ " + t("water storage") },
+                { key: "RainWater Harvesting", label: "+ " + t("rainwater harvesting") },
+                { key: "Feng Shui/Vastu Complaint", label: t("vastu compliant") }
+              ].map((item) => (
+                <PillButton
+                  key={item.key}
+                  label={item.label}
+                  selected={amenities.includes(item.key)}
+                  onPress={() => toggleArray(amenities, setAmenities, item.key)}
+                />
+              ))}
             </View>
 
             {/* Overlooking */}
@@ -1146,7 +1064,7 @@ export default function UploadPropertyScreen() {
 
             {/* Overlooking Additional */}
             <Text className="text-[15px] text-[#00000099] mt-4 mb-2">
-              {t('overlooking')} 
+              {t('overlooking')}
             </Text>
             <View className="flex-col gap-2 mb-2">
               {[
@@ -1167,9 +1085,8 @@ export default function UploadPropertyScreen() {
                     className="flex-row items-center gap-2"
                   >
                     <View
-                      className={`w-5 h-5 border rounded-sm items-center justify-center ${
-                        isSelected ? "border-green-500 bg-green-500" : "border-gray-300 bg-white"
-                      }`}
+                      className={`w-5 h-5 border rounded-sm items-center justify-center ${isSelected ? "border-green-500 bg-green-500" : "border-gray-300 bg-white"
+                        }`}
                     >
                       {isSelected && <Ionicons name="checkmark" size={14} color="white" />}
                     </View>
@@ -1235,7 +1152,7 @@ export default function UploadPropertyScreen() {
                 </Picker>
               </View>
             </View>
-          
+
             {/* Location Advantages */}
             <Text className="text-[15px] text-[#00000099] mt-4 mb-3">
               {t('location_advantages')}
@@ -1262,11 +1179,133 @@ export default function UploadPropertyScreen() {
               ))}
             </View>
           </View>
+
+          {/* Vaasthu Details Section */}
+          <View
+            className="bg-white rounded-lg p-4 mb-4"
+            style={{ borderWidth: 1, borderColor: "#0000001A" }}
+          >
+            <View className="flex-row items-center mb-4 justify-between">
+              <Text className="text-lg font-semibold text-gray-800">
+                {t('vaasthu_details')}
+              </Text>
+              <Image
+                source={require("../../../../../assets/vastu.png")}
+                style={{ width: 30, height: 30 }}
+              />
+            </View>
+
+            {/* Vaasthu Fields with Translations */}
+            {[
+              {
+                key: "plotFacing", label: t("plot_facing"), value: plotFacing, setValue: setPlotFacing,
+                options: [t("north_east"), t("south_west"), t("east"), t("west"), t("north"), t("south"), t("south_east"), t("north_west")]
+              },
+              {
+                key: "mainEntry", label: t("main_entry_gate_direction"), value: mainEntryDirection, setValue: setMainEntryDirection,
+                options: [t("north_east"), t("south_west"), t("east"), t("west"), t("north"), t("south"), t("south_east"), t("north_west")]
+              },
+              {
+                key: "plotSlope", label: t("plot_slope_direction"), value: plotSlope, setValue: setPlotSlope,
+                options: [t("towards_north"), t("towards_south"), t("towards_east"), t("towards_west"), t("level_ground")]
+              },
+              {
+                key: "openSpace", label: t("open_space_vastu"), value: openSpace, setValue: setOpenSpace,
+                options: [t("balanced_open_space"), t("more_space_north"), t("more_space_east"), t("more_space_south"), t("more_space_west")]
+              },
+              {
+                key: "plotShape", label: t("shape"), value: plotShape, setValue: setPlotShape,
+                options: [t("square"), t("rectangle"), t("irregular"), t("l_shaped"), t("t_shaped")]
+              },
+              {
+                key: "roadPosition", label: t("road_position"), value: roadPosition, setValue: setRoadPosition,
+                options: [t("north_east"), t("south_west"), t("east"), t("west"), t("north"), t("south")]
+              },
+              {
+                key: "waterSource", label: t("water_source_location"), value: waterSource, setValue: setWaterSource,
+                options: [t("water_source_north"), t("water_source_east"), t("water_source_north_east"), t("no_water_source")]
+              },
+              {
+                key: "drainage", label: t("drainage_direction"), value: drainageDirection, setValue: setDrainageDirection,
+                options: [t("north_east"), t("east"), t("north"), t("south_east")]
+              },
+              {
+                key: "wallHeight", label: t("compound_wall_height"), value: compoundWallHeight, setValue: setCompoundWallHeight,
+                options: [t("equal_height_all_sides"), t("higher_south"), t("higher_west"), t("no_compound_wall")]
+              },
+              {
+                key: "structures", label: t("existing_structures"), value: existingStructures, setValue: setExistingStructures,
+                options: [t("no_structures"), t("shed_garage"), t("small_room"), t("well_borewell"), t("temple")]
+              }
+            ].map((field) => (
+              <View key={field.key}>
+                <Text className="text-sm text-gray-600 mb-2">{field.label}</Text>
+                <TouchableOpacity
+                  onPress={() => setVisible(visible === field.key ? null : field.key)}
+                  className="bg-[#F9FAFB] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 mb-4"
+                >
+                  <Text className="text-gray-800">{field.value}</Text>
+                  <Ionicons name="chevron-down" size={20} color="#555" />
+                </TouchableOpacity>
+                {visible === field.key && (
+                  <View className="bg-white rounded-lg shadow-lg -mt-3 mb-4 border border-gray-200">
+                    {field.options.map((option) => (
+                      <TouchableOpacity
+                        key={option}
+                        onPress={() => {
+                          field.setValue(option);
+                          setVisible(null);
+                        }}
+                        className="p-3 border-b border-gray-200"
+                      >
+                        <Text className="text-gray-800">{option}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+
+          <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
+            <DocumentUpload
+              title={t('property_ownership')}
+              subtitle={t('ownership_verify')}
+              files={ownershipDocs}
+              setFiles={setOwnershipDocs}
+              required
+            />
+          </View>
+
+          <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
+            <DocumentUpload
+              title={t('owner_identity')}
+              subtitle={t('upload_identity')}
+              files={identityDocs}
+              setFiles={setIdentityDocs}
+              required
+            />
+          </View>
+
+          <OwnerDetails
+            ownerName={ownerName}
+            setOwnerName={setOwnerName}
+            phone={phone}
+            setPhone={setPhone}
+            email={email}
+            setEmail={setEmail}
+            focusedField={focusedField}
+            setFocusedField={setFocusedField}
+            phoneError={phoneError}
+          />
+
+          {/* Amenities, Overlooking, Facing */}
+
         </ScrollView>
 
         <View
           style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 16, gap: 12 }}
-          className="space-x-3 mr-4 mb-3"
+          className="space-x-3 mr-4 mb-12"
         >
           {/* Cancel Button */}
           <TouchableOpacity

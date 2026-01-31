@@ -28,7 +28,7 @@ export const translateToAllLanguages = async (text, sourceLang = 'en') => {
       return { te: '', hi: '', en: '' };
     }
 
-    console.log(`🔄 Translating: "${text}" from ${sourceLang}`);
+    console.log(`🔄 : "${text}" from ${sourceLang}`);
     
     // ✅ CRITICAL FIX: Always translate from English
     const actualSourceLang = 'en';
@@ -42,12 +42,12 @@ export const translateToAllLanguages = async (text, sourceLang = 'en') => {
         console.log(`   ✅ Source (${targetLang}): "${text}"`);
       } else {
         try {
-          console.log(`   → Translating to ${targetLang}...`);
+          //console.log(`   → Translating to ${targetLang}...`);
           
           const [translation] = await translateClient.translate(text, targetLang);
           
           result[targetLang] = translation;
-          console.log(`   ✅ en→${targetLang}: "${translation}"`);
+         // console.log(`   ✅ en→${targetLang}: "${translation}"`);
           
         } catch (error) {
           console.error(`   ❌ Translation failed (en→${targetLang}):`, error.message);
@@ -56,7 +56,7 @@ export const translateToAllLanguages = async (text, sourceLang = 'en') => {
       }
     }
 
-    console.log('✅ Translation complete:', result);
+   // console.log('✅ Translation complete:', result);
     return result;
     
   } catch (error) {

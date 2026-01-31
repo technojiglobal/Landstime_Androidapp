@@ -140,16 +140,17 @@ const Review = ({ entityId, entityType }) => {
               className="border-b border-gray-200 pb-4 mb-4"
             >
               {/* Header */}
+              {/* Header */}
               <View className="flex-row items-start space-x-3">
                 <View className="w-10 h-10 rounded-full bg-gray-300 justify-center items-center">
                   <Text className="text-gray-700 text-base">
-                    {(item.name || "A")[0]}
+                    {(item.userName || "A")[0]}  {/* ✅ Changed from item.name to item.userName */}
                   </Text>
                 </View>
 
                 <View className="flex-1">
                   <Text className="text-gray-900 text-base">
-                    {item.name || "Anonymous"}
+                    {item.userName || "Anonymous"}  {/* ✅ Changed from item.name to item.userName */}
                   </Text>
                   <Text className="text-xs text-gray-500">
                     {new Date(item.createdAt).toDateString()}

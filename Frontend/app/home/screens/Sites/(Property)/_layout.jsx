@@ -3,33 +3,41 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Slot, useRouter, usePathname, useLocalSearchParams } from "expo-router"; // ✅ ADD useLocalSearchParams
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import { useEffect, useState } from "react"; // ✅ Add useState and useEffect
+import { fetchReviews } from "utils/reviewApi"; // ✅ Add this import
 export default function PropertyLayout() {
   const router = useRouter();
   const pathname = usePathname() ?? "";
   const params = useLocalSearchParams();
   const propertyId = params.propertyId;
   const entityType = params.entityType || 'property'; // ✅ Add these two lines // ✅ GET propertyId from params
-
+  const areaKey = params.areaKey;
+  const [reviewCount, setReviewCount] = useState(0);
   console.log('📋 Layout - propertyId:', propertyId); // ✅ DEBUG
 
-  const tabs = [
-    { label: "Overview", route: "/home/screens/Sites/(Property)", params: { propertyId } }, // ✅ ADD params
-    { label: "Reviews(27)", route: "/home/screens/Sites/(Property)/Review", params: { propertyId } }, // ✅ ADD params
-    { label: "Write Review", route: "/home/screens/Sites/(Property)/WriteReview", params: { propertyId } }, // ✅ ADD params
-  ];
-
+  
+  useEffect(() => {
+  if (propertyId && entityType) {
+    fetchReviews(entityType, propertyId).then((res) => {
+      setReviewCount(res.count || 0);
+    });
+  }
+}, [propertyId, entityType]);
+const tabs = [
+  { label: "Overview", route: "/home/screens/Sites/(Property)", params: { propertyId } },
+  { label: `Reviews(${reviewCount})`, route: "/home/screens/Sites/(Property)/Review", params: { propertyId } }, // ✅ Changed from Reviews(27)
+  { label: "Write Review", route: "/home/screens/Sites/(Property)/WriteReview", params: { propertyId } },
+];
   // ✅ Tab detection logic
   const isReview = pathname.includes("/Review");
   const isWriteReview = pathname.includes("/WriteReview");
   const isOverview = !isReview && !isWriteReview;
  const handleBack = () => {
-    if (isReview || isWriteReview) {
-      router.replace("/home/screens/Commercial/(Property)");
-    } else {
-      router.back();
-    }
-  };
+  router.push({
+    pathname: "/home/screens/Sites/PropertyDetails",
+    params: { propertyId, entityType, areaKey } // ✅ ADD areaKey here
+  });
+};
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       {/* Header */}
@@ -83,7 +91,8 @@ export default function PropertyLayout() {
       pathname: tab.route,
       params: { 
         propertyId,
-        entityType 
+        entityType,
+        areaKey
       }
     });
   }
