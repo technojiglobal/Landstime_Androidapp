@@ -419,7 +419,7 @@
   "price_negotiable": "ధర చర్చించవచ్చు",
   "tax_excluded": "పన్నులు & ప్రభుత్వ చార్జీలు కలిపి లేవు",
   "add_more_pricing": "మరిన్ని ధర వివరాలు జోడించండి",
-  "enter_property_location": "ఆస్తి స్థానం నమోదు చేయండి",
+  "enter_property_location": "ప్రాపర్టీ లొకేషన్ నమోదు చేయండి",
   "enter_area": "ప్రాంతం / పక్క ప్రాంతం నమోదు చేయండి (ఉదా: అక్కయ్యపాలెం)",
   "KEY": "Telugu",
   "describe_property": "మీ ఆస్తి గురించి వివరించండి",
@@ -1421,5 +1421,10 @@
   "retail_located_inside_commercial": "వాణిజ్య ప్రాజెక్ట్",
   "retail_located_inside_residential": "నివాస ప్రాజెక్ట్",
   "retail_located_inside_retail": "రిటైల్ కాంప్లెక్స్ / భవనం",
-  "retail_located_inside_market": "మార్కెట్ / హై స్ట్రీట్"
+  "retail_located_inside_market": "మార్కెట్ / హై స్ట్రీట్",
+  "locality_area": "ప్రాంతం/ఏరియా",
+  "phone_number": "ఫోన్ నంబర్",
+  "email_address": "ఇమెయిల్ చిరునామా",
+  "north": "ఉత్తరం",
+  "south": "దక్షిణం"
 }

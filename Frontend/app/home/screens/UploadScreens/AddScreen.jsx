@@ -416,42 +416,70 @@ export default function AddScreen() {
             open,
           },
           vaasthuDetails: {
-            houseFacing: houseFacing
-              .replace(t("north_east"), "North East")
-              .replace(t("south_west"), "South West")
-              .replace(t("east"), "East")
-              .replace(t("west"), "West"),
-            masterBedroom: masterBedroom
-              .replace(t("north_east"), "North East")
-              .replace(t("south_west"), "South West")
-              .replace(t("east"), "East")
-              .replace(t("west"), "West"),
-            childrenBedroom: childrenBedroom
-              .replace(t("north_east"), "North East")
-              .replace(t("south_west"), "South West")
-              .replace(t("east"), "East")
-              .replace(t("west"), "West"),
-            livingRoom: livingRoom
-              .replace(t("north_east"), "North East")
-              .replace(t("south_west"), "South West")
-              .replace(t("east"), "East")
-              .replace(t("west"), "West"),
-            kitchenRoom: kitchenRoom
-              .replace(t("north_east"), "North East")
-              .replace(t("south_west"), "South West")
-              .replace(t("east"), "East")
-              .replace(t("west"), "West"),
-            poojaRoom: poojaRoom
-              .replace(t("north_east"), "North East")
-              .replace(t("south_west"), "South West")
-              .replace(t("east"), "East")
-              .replace(t("west"), "West"),
-            balcony: balcony
-              .replace(t("north_east"), "North East")
-              .replace(t("south_west"), "South West")
-              .replace(t("east"), "East")
-              .replace(t("west"), "West"),
-          },
+  houseFacing: houseFacing
+    .replace(t("north_east"), "North East")
+    .replace(t("south_west"), "South West")
+    .replace(t("north_west"), "North West")
+    .replace(t("south_east"), "South East")
+    .replace(t("east"), "East")
+    .replace(t("west"), "West")
+    .replace(t("north"), "North")
+    .replace(t("south"), "South"),
+  masterBedroom: masterBedroom
+    .replace(t("north_east"), "North East")
+    .replace(t("south_west"), "South West")
+    .replace(t("north_west"), "North West")
+    .replace(t("south_east"), "South East")
+    .replace(t("east"), "East")
+    .replace(t("west"), "West")
+    .replace(t("north"), "North")
+    .replace(t("south"), "South"),
+  childrenBedroom: childrenBedroom
+    .replace(t("north_east"), "North East")
+    .replace(t("south_west"), "South West")
+    .replace(t("north_west"), "North West")
+    .replace(t("south_east"), "South East")
+    .replace(t("east"), "East")
+    .replace(t("west"), "West")
+    .replace(t("north"), "North")
+    .replace(t("south"), "South"),
+  livingRoom: livingRoom
+    .replace(t("north_east"), "North East")
+    .replace(t("south_west"), "South West")
+    .replace(t("north_west"), "North West")
+    .replace(t("south_east"), "South East")
+    .replace(t("east"), "East")
+    .replace(t("west"), "West")
+    .replace(t("north"), "North")
+    .replace(t("south"), "South"),
+  kitchenRoom: kitchenRoom
+    .replace(t("north_east"), "North East")
+    .replace(t("south_west"), "South West")
+    .replace(t("north_west"), "North West")
+    .replace(t("south_east"), "South East")
+    .replace(t("east"), "East")
+    .replace(t("west"), "West")
+    .replace(t("north"), "North")
+    .replace(t("south"), "South"),
+  poojaRoom: poojaRoom
+    .replace(t("north_east"), "North East")
+    .replace(t("south_west"), "South West")
+    .replace(t("north_west"), "North West")
+    .replace(t("south_east"), "South East")
+    .replace(t("east"), "East")
+    .replace(t("west"), "West")
+    .replace(t("north"), "North")
+    .replace(t("south"), "South"),
+  balcony: balcony
+    .replace(t("north_east"), "North East")
+    .replace(t("south_west"), "South West")
+    .replace(t("north_west"), "North West")
+    .replace(t("south_east"), "South East")
+    .replace(t("east"), "East")
+    .replace(t("west"), "West")
+    .replace(t("north"), "North")
+    .replace(t("south"), "South"),
+},
         },
       };
 
@@ -1085,10 +1113,10 @@ export default function AddScreen() {
                       style={{ width: 18, height: 18, marginRight: 8 }}
                     />
                     <TextInput
-                      placeholder="Enter Property Location"
-                      placeholderTextColor="#9CA3AF"
-                      value={location}
-                      onChangeText={setLocation}
+  placeholder={t("enter_property_location")}
+  placeholderTextColor="#9CA3AF"
+  value={location}
+  onChangeText={setLocation}
                       onFocus={() => setFocusedField("location")}
                       onBlur={() => setFocusedField(null)}
                       className="flex-1 text-[14px] text-gray-800"
@@ -1097,9 +1125,9 @@ export default function AddScreen() {
 
                   {/* Locality/Area Input */}
                   <TextInput
-                    placeholder="Locality/Area"
-                    placeholderTextColor="#9CA3AF"
-                    value={neighborhood}
+  placeholder={t("locality_area")}
+  placeholderTextColor="#9CA3AF"
+  value={neighborhood}
                     onChangeText={(text) => {
                       setNeighborhood(text);
                       // Generate areaKey automatically

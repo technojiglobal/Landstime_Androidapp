@@ -1,7 +1,8 @@
 // Landstime_Androidapp/Frontend/components/OwnersDetails.jsx
 
-import React from "react";
-import { View, Text, TextInput } from "react-native";
+import React from 'react';
+import { View, Text, TextInput } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from "@expo/vector-icons";
 
 export default function OwnerDetails({
@@ -15,6 +16,8 @@ export default function OwnerDetails({
   setFocusedField,
   phoneError // ✅ Add this prop
 }) {
+
+  const { t } = useTranslation();  // ✅ ADD THIS LINE
   return (
     <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200 w-full">
       {/* Title */}
@@ -42,7 +45,7 @@ export default function OwnerDetails({
         <TextInput
           value={ownerName}
           onChangeText={setOwnerName}
-          placeholder="Owner Name"
+          placeholder={t("owner_name")}
           placeholderTextColor="#9CA3AF"
           style={{ flex: 1, marginLeft: 10, color: "#111827" }}
           onFocus={() => setFocusedField("ownerName")}
@@ -68,12 +71,8 @@ export default function OwnerDetails({
           <Ionicons name="call-outline" size={20} color="#9CA3AF" />
           <TextInput
             value={phone}
-            onChangeText={(text) => {
-              // Only allow numbers
-              const numericText = text.replace(/[^0-9]/g, '');
-              setPhone(numericText);
-            }}
-            placeholder="Phone Number (10 digits)"
+            onChangeText={setPhone}
+            placeholder={t("phone_number")}
             placeholderTextColor="#9CA3AF"
             keyboardType="number-pad"
             maxLength={10}
@@ -102,8 +101,8 @@ export default function OwnerDetails({
         <Ionicons name="mail-outline" size={20} color="#9CA3AF" />
         <TextInput
           value={email}
-          onChangeText={(text) => setEmail(text.trim())}
-          placeholder="Email Address"
+          onChangeText={setEmail}
+          placeholder={t("email_address")}
           placeholderTextColor="#9CA3AF"
           keyboardType="email-address"
           autoCapitalize="none"
