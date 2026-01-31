@@ -324,6 +324,27 @@ export const getPropertyById = async (propertyId, language = 'en') => {
   return response;
 };
 
+// ✅ NEW: Get similar properties
+// ✅ NEW: Get similar properties
+export const getSimilarProperties = async (propertyId) => {
+  console.log('🔍 Fetching similar properties for:', propertyId);
+  const result = await apiRequest(`/similar/${propertyId}`);
+  
+  // Transform all properties with image URLs
+  if (result.success && result.data && Array.isArray(result.data)) {
+    result.data = result.data.map(transformPropertyData);
+  } else if (result.success && result.data?.data && Array.isArray(result.data.data)) {
+    // Handle nested data structure
+    result.data = result.data.data.map(transformPropertyData);
+  } else {
+    // If no data or wrong format, set empty array
+    result.data = [];
+  }
+  
+  console.log('📦 Similar properties result:', result);
+  return result;
+};
+
 // ✅ UPDATE: Modify getUserProperties
 export const getUserProperties = async () => {
   const result = await apiRequest('/user/my-properties');

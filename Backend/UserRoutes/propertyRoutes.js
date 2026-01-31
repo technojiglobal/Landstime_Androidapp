@@ -1,8 +1,8 @@
 // Backend/UserRoutes/propertyRoutes.js
 import express from 'express';
 const router = express.Router();
-//import propertyController from '../controllers/propertyController.js';
 import * as propertyController from '../UserControllers/PropertyController.js';
+import * as similarPropertiesController from '../UserControllers/similarPropertiesController.js';
 // ✅ NEW CODE
 import { verifyToken, checkAdmin } from '../UserMiddleware/UserMiddleware.js';
 import { verifyAdmin } from '../AdminMiddleware/AdminMiddleware.js';
@@ -41,6 +41,9 @@ router.post('/admin/:id/upload-documents', verifyAdmin, uploadImages, handleUplo
 router.delete('/admin/:id/delete-document', verifyAdmin, propertyController.deletePropertyDocument);
 
 // Generic ID route LAST
+
+router.get('/similar/:propertyId', similarPropertiesController.getSimilarProperties);
+
 router.get('/:id', verifyToken, propertyController.getPropertyById);
 router.put('/:id', verifyToken, propertyController.updateProperty);
 router.delete('/:id', verifyToken, propertyController.deleteProperty);

@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
+import SimilarProperties from '../../../components/SimilarProperties';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -35,11 +36,7 @@ export default function ViewContactScreen() {
   const [alreadyViewed, setAlreadyViewed] = useState(false);
   const [loading, setLoading] = useState(true);
   
-  // Similar properties (can be fetched from API later)
-  const similarProperties = [
-    { id: '1', title: 'Land', price: '₹25L', image: propertyImage },
-    { id: '2', title: 'Land', price: '₹25L', image: propertyImage2 },
-  ];
+
   
  useEffect(() => {
     try {
@@ -263,53 +260,11 @@ export default function ViewContactScreen() {
           )}
         </View>
 
-        {/* Similar Properties Section */}
-        <View className="px-4 mt-6">
-          <Text className="text-[15px] font-semibold text-gray-900">
-            Similar Properties
-          </Text>
-        </View>
-
-        {/* Scrollable Cards */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mt-3"
-          contentContainerStyle={{ paddingHorizontal: 16 }}
-          snapToInterval={SCREEN_WIDTH * 0.7 + 14}
-          decelerationRate="fast"
-        >
-          {similarProperties.map((item) => (
-            <View
-              key={item.id}
-              className="bg-white rounded-xl h-72 mr-4 shadow-md overflow-hidden"
-              style={{ width: SCREEN_WIDTH * 0.7 }}
-            >
-              {/* Property Image */}
-              <View className="w-full aspect-video relative">
-                <Image
-                  source={item.image}
-                  className="w-full h-full"
-                  resizeMode="cover"
-                />
-                <View className="absolute w-20 h-8 bottom-2 left-2 bg-white px-3 py-1.5 rounded-lg shadow-sm">
-                  <Text className="text-xs font-semibold text-gray-800 justify-center item-center">
-                    {item.price}
-                  </Text>
-                </View>
-              </View>
-
-              <View className="p-3">
-                <Text className="font-semibold text-sm text-gray-900">
-                  {item.title}
-                </Text>
-                <Text className="text-xs text-gray-500 mt-1">
-                  In Ghatkesar, Hyderabad · posted by Owner
-                </Text>
-              </View>
-            </View>
-          ))}
-        </ScrollView>
+        {/* Similar Properties Component */}
+<SimilarProperties 
+  propertyId={propertyId}
+  currentPropertyType={params.propertyType || 'House'}
+/>
         
         {/* Bottom spacing */}
         <View className="h-6" />
