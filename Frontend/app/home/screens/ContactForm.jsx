@@ -99,18 +99,19 @@ const checkAlreadyViewed = async () => {
         );
         
         if (accessCheck.success && accessCheck.data.alreadyViewed) {
-          // Navigate directly to ViewContact
-          router.replace({
-            pathname: '/home/screens/ViewContact',
-            params: {
-              ownerDetails: JSON.stringify(accessCheck.data.ownerDetails),
-              quota: JSON.stringify(accessCheck.data.quota),
-              alreadyViewed: 'true',
-              areaKey: areaKey,
-              propertyId: propertyId
-            }
-          });
-        }
+  // Navigate directly to ViewContact
+  router.replace({
+    pathname: '/home/screens/ViewContact',
+    params: {
+      ownerDetails: JSON.stringify(accessCheck.data.ownerDetails),
+      quota: JSON.stringify(accessCheck.data.quota),
+      alreadyViewed: 'true',
+      areaKey: areaKey,
+      propertyId: propertyId,
+      propertyType: property?.propertyType || 'House'  // ✅ ADD THIS
+    }
+  });
+}
       }
     }
   } catch (error) {
@@ -315,41 +316,43 @@ const verifyCredentials = () => {
       }
       
       // Step 2: Handle already viewed or new view
-      if (accessCheck.data?.alreadyViewed) {
-        // Already viewed - just navigate
-        console.log('✅ Property already viewed - navigating to ViewContact');
-        router.push({
-  pathname: '/home/screens/ViewContact',
-  params: {
-    ownerDetails: JSON.stringify(accessCheck.data.ownerDetails),
-    quota: JSON.stringify(accessCheck.data.quota),
-    alreadyViewed: 'true',
-    areaKey: areaKey,
-    propertyId: propertyId  // ✅ Add this
+     if (accessCheck.data?.alreadyViewed) {
+  // Already viewed - just navigate
+  console.log('✅ Property already viewed - navigating to ViewContact');
+  router.push({
+    pathname: '/home/screens/ViewContact',
+    params: {
+      ownerDetails: JSON.stringify(accessCheck.data.ownerDetails),
+      quota: JSON.stringify(accessCheck.data.quota),
+      alreadyViewed: 'true',
+      areaKey: areaKey,
+      propertyId: propertyId,
+      propertyType: property?.propertyType || 'House'  // ✅ ADD THIS
+    }
+  });
+} else {
+  // New view - record it
+  console.log('📝 Recording new property view');
+  const recordResult = await recordPropertyView(propertyId);
+  
+  if (!recordResult.success) {
+    Alert.alert('Error', 'Failed to record view');
+    return;
   }
-});
-      } else {
-        // New view - record it
-        console.log('📝 Recording new property view');
-        const recordResult = await recordPropertyView(propertyId);
-        
-        if (!recordResult.success) {
-          Alert.alert('Error', 'Failed to record view');
-          return;
-        }
-        
-        console.log('✅ View recorded - navigating to ViewContact');
-        router.push({
-  pathname: '/home/screens/ViewContact',
-  params: {
-    ownerDetails: JSON.stringify(recordResult.data.ownerDetails),
-    quota: JSON.stringify(recordResult.data.quota),
-    alreadyViewed: 'false',
-    areaKey: areaKey,
-    propertyId: propertyId  // ✅ Add this
-  }
-});
-      }
+  
+  console.log('✅ View recorded - navigating to ViewContact');
+  router.push({
+    pathname: '/home/screens/ViewContact',
+    params: {
+      ownerDetails: JSON.stringify(recordResult.data.ownerDetails),
+      quota: JSON.stringify(recordResult.data.quota),
+      alreadyViewed: 'false',
+      areaKey: areaKey,
+      propertyId: propertyId,
+      propertyType: property?.propertyType || 'House'  // ✅ ADD THIS
+    }
+  });
+}
       
     } catch (error) {
       console.error('❌ View contact error:', error);
