@@ -100,18 +100,19 @@ export const storageVaasthuFields = [
   { label: "Washroom/Toilet Direction(If any)", name: "washroomDirection" },
   { label: "Height & Level", name: "heightLevel" },
 ];
+
 export const hospitalityVaasthuFields = [
-  { key: 'buildingFacing', label: 'Building/Property Facing' },
-  { key: 'entrance', label: 'Main Entrance Direction' },
-  { key: 'reception', label: 'Lobby/Reception Direction' },
-  { key: 'adminOffice', label: 'Owner/Manager/Admin Office Direction' },
-  { key: 'guestRooms', label: 'Guest Rooms/Stay Area Direction' },
-  { key: 'banquet', label: 'Banquet/Function Hall Direction' },
-  { key: 'kitchen', label: 'Kitchen/Cooking Area Direction' },
-  { key: 'dining', label: 'Dining Area Direction' },
-  { key: 'cashCounter', label: 'Cash Counter/Billing Desk Direction' },
-  { key: 'electrical', label: 'Electrical/Generator/Equipment Area Direction' },
-  { key: 'waterStructure', label: 'Water Source/Swimming Pool Direction (If Any)' },
-  { key: 'washroom', label: 'Washrooms/Toilets Direction' },
-  { key: 'storage', label: 'Storage/Housekeeping Area Direction' }
+  { name: 'buildingFacing', label: 'Building/Property Facing' },
+  { name: 'entrance', label: 'Main Entrance Direction' },
+  { name: 'reception', label: 'Lobby/Reception Direction' },
+  { name: 'adminOffice', label: 'Owner/Manager/Admin Office Direction' },
+  { name: 'guestRooms', label: 'Guest Rooms/Stay Area Direction' },
+  { name: 'banquet', label: 'Banquet/Function Hall Direction' },
+  { name: 'kitchen', label: 'Kitchen/Cooking Area Direction' },
+  { name: 'dining', label: 'Dining Area Direction' },
+  { name: 'cashCounter', label: 'Cash Counter/Billing Desk Direction' },
+  { name: 'electrical', label: 'Electrical/Generator/Equipment Area Direction' },
+  { name: 'waterStructure', label: 'Water Source/Swimming Pool Direction (If Any)' },
+  { name: 'washroom', label: 'Washrooms/Toilets Direction' },
+  { name: 'storage', label: 'Storage/Housekeeping Area Direction' }
 ];
