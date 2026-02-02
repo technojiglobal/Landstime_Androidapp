@@ -486,6 +486,17 @@ email: {
         default: [],
       },
 
+      totalFloors: Number, // ✅ ADD THIS
+  
+  furnishingType: {  // ✅ ADD THIS
+    type: String,
+    enum: ['Unfurnished', 'Semi-furnished', 'Furnished']
+  },
+  
+  furnishingItems: [String], // ✅ ADD THIS
+  
+  ownershipType: String, // ✅ ADD THIS (alias for ownership)
+
       /* ---------- PRICING (FLATTENED STRUCTURE) ---------- */
 
       ownership: String, // ✅ MOVED from nested pricing
@@ -538,21 +549,21 @@ email: {
 
       /* ---------- VAASTU DETAILS (MATCHING RetailVaastu.jsx) ---------- */
 
-      vaastuDetails: { // ✅ FIXED - Double 'a' spelling
-        shopFacing: String, // Matches "officeFacing" field in code
-        entrance: String,
-        cashCounter: String, // Matches "cabin" field in code
-        cashLocker: String, // Matches "workstations" field in code
-        ownerSeating: String, // Matches "conference" field in code
-        staffSeating: String, // Matches "reception" field in code
-        storage: String, // Matches "accounts" field in code
-        displayArea: String, // Matches "pantry" field in code
-        electrical: String, // Matches "server" field in code
-        pantryArea: String, // Matches "washrooms" field in code (confusing naming)
-        staircase: String,
-        staircaseInside: String, // Matches "storage" field in code
-      },
-    },
+      vaasthuDetails: {  // ✅ Single 'a' spelling
+    shopFacing: String,
+    entrance: String,
+    cashCounter: String,
+    cashLocker: String,
+    ownerSeating: String,
+    staffSeating: String,
+    storage: String,
+    displayArea: String,
+    electrical: String,
+    pantryArea: String,
+    staircase: String,
+    staircaseInside: String,
+  },
+},
 
 
 

@@ -1,3 +1,4 @@
+// admin/src/components/properties/forms/commercial/RetailForm.jsx
 import React, { useState } from 'react';
 import NumberField from '../../fields/NumberField';
 import SelectField from '../../fields/SelectField';
@@ -7,6 +8,7 @@ import CheckboxGroup from '../../fields/CheckboxGroup';
 import ToggleButtons from '../../fields/ToggleButtons';
 import RadioButtons from '../../fields/RadioButtons';
 import VaasthuDetails from '../../sections/VaasthuDetails';
+import FurnishingModal from '../../sections/FurnishingModal';
 
 import {
   LOCATION_ADVANTAGES,
@@ -25,41 +27,38 @@ import PricingDetailsModal from '../../PricingDetailsModal';
 const RetailForm = ({ formData, updateField, images, setImages }) => {
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
   const [pricingDetails, setPricingDetails] = useState(null);
+  const [showFurnishingModal, setShowFurnishingModal] = useState(false);
   const retail = formData.commercialDetails?.retailDetails || {};
 
-  const setRetail = (key, value) => {
-    // Ensure retailDetails exists first
-    if (!formData.commercialDetails?.retailDetails) {
-      updateField('commercialDetails.retailDetails', {});
-    }
-
-    // Handle nested paths (e.g., "vaasthuDetails.mainFacing")
-    if (key.includes('.')) {
-      const parts = key.split('.');
-      const mainKey = parts[0];
-      const subKey = parts.slice(1).join('.');
-
-      // Ensure the parent object exists
-      const currentValue = formData.commercialDetails?.retailDetails?.[mainKey] || {};
-
-      // Create updated nested object
-      const updatedNested = { ...currentValue };
-      let current = updatedNested;
-      const pathParts = subKey.split('.');
-
-      for (let i = 0; i < pathParts.length - 1; i++) {
-        current[pathParts[i]] = current[pathParts[i]] || {};
-        current = current[pathParts[i]];
-      }
-      current[pathParts[pathParts.length - 1]] = value;
-
-      // Update the main key with the nested structure
-      updateField(`commercialDetails.retailDetails.${mainKey}`, updatedNested);
-    } else {
-      // Simple key update
-      updateField(`commercialDetails.retailDetails.${key}`, value);
-    }
-  };
+const setRetail = (key, value) => {
+  // ✅ Handle nested paths (e.g., "vaastuDetails.shopFacing")
+  if (key.includes('.')) {
+    const [mainKey, ...subKeys] = key.split('.');
+    const subKey = subKeys.join('.');
+    
+    // Get current nested object
+    const currentNested = formData.commercialDetails?.retailDetails?.[mainKey] || {};
+    
+    // Create updated nested object
+    const updatedNested = { ...currentNested, [subKey]: value };
+    
+    // ✅ DEBUG LOG
+    console.log(`🔧 [RETAIL] Updating nested field:`, {
+      mainKey,
+      subKey,
+      value,
+      before: currentNested,
+      after: updatedNested
+    });
+    
+    // Update the nested object
+    updateField(`commercialDetails.retailDetails.${mainKey}`, updatedNested);
+  } else {
+    // Simple key update
+    console.log(`🔧 [RETAIL] Updating simple field: ${key} =`, value);
+    updateField(`commercialDetails.retailDetails.${key}`, value);
+  }
+};
 
   const handlePricingSubmit = (data) => {
     setPricingDetails(data);
@@ -406,6 +405,35 @@ const RetailForm = ({ formData, updateField, images, setImages }) => {
         </div>
       </div>
 
+      {/* ==================== FURNISHING ==================== */}
+<div className="border-t pt-6">
+  <RadioButtons
+    label="Furnishing"
+    name="furnishingType"
+    value={retail.furnishingType}
+    onChange={(value) => {
+      setRetail('furnishingType', value);
+      if (value === 'Semi-furnished' || value === 'Furnished') {
+        setShowFurnishingModal(true);
+      } else {
+        setRetail('furnishingItems', []);
+      }
+    }}
+    options={['Unfurnished', 'Semi-furnished', 'Furnished']}
+  />
+
+  {/* Furnishing Modal */}
+  <FurnishingModal
+    isOpen={showFurnishingModal}
+    furnishingType={retail.furnishingType}
+    selectedItems={retail.furnishingItems || []}
+    onClose={() => setShowFurnishingModal(false)}
+    onItemToggle={(items) => setRetail('furnishingItems', items)}
+  />
+</div>
+
+
+
       {/* ==================== EXPECTED PRICE DETAILS ==================== */}
       <div className="border-t pt-6">
 
@@ -463,8 +491,11 @@ const RetailForm = ({ formData, updateField, images, setImages }) => {
             />
           )}
 
-
-          <DescriptionSection formData={formData} updateField={updateField} />
+<DescriptionSection 
+  formData={formData} 
+  updateField={updateField}
+  setIsDescriptionValid={() => {}} 
+/> <DescriptionSection formData={formData} updateField={updateField} />
         </div>
       </div>
 
@@ -515,14 +546,17 @@ const RetailForm = ({ formData, updateField, images, setImages }) => {
         />
       </div>
 
-      {/* ==================== VAASTHU DETAILS ==================== */}
-      <VaasthuDetails
-        formData={retail.vaasthuDetails || {}}
-        updateField={(key, value) =>
-          setRetail(`vaasthuDetails.${key}`, value)
-        }
-        fields={retailVaasthuFields}
-      />
+    
+<VaasthuDetails
+  formData={retail}
+  updateField={(key, value) => {
+    console.log('🔧 Retail Vaastu Update:', key, '=', value);
+    // ✅ FIX: Match schema spelling (vaasthuDetails with 'h')
+    setRetail(`vaasthuDetails.${key}`, value);
+  }}
+  fields={retailVaasthuFields}
+  isNested={true}
+/>
 
     </div>
   );

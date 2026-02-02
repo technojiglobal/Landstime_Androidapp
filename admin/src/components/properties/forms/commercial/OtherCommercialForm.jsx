@@ -1,3 +1,4 @@
+// admin/src/components/properties/forms/commercial/OtherCommercialForm.jsx
 import React from 'react';
 
 const OtherCommercialForm = ({ formData, updateField }) => (

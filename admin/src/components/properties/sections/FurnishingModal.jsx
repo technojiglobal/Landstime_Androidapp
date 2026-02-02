@@ -1,3 +1,4 @@
+// admin/src/components/properties/sections/FurnishingModal.jsx
 import React from 'react';
 
 const FurnishingModal = ({ isOpen, furnishingType, selectedItems, onClose, onItemToggle }) => {
