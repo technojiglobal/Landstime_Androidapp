@@ -19,7 +19,8 @@ import {
 
   FLOORING_TYPES,
   FURNISHING_OPTIONS,
-  HOSPITALITY_AMENITIES
+  HOSPITALITY_AMENITIES,
+  LOCATION_ADVANTAGES
 } from '../../../../constants/propertyConstants';
 import AvailabilityStatus from '../../sections/AvailabilityStatus';
 import FurnishingModal from '../../sections/FurnishingModal';
@@ -328,6 +329,17 @@ const HospitalityForm = ({ formData, updateField, images, setImages }) => {
           options={HOSPITALITY_AMENITIES}
         />
       </div>
+
+      {/* ==================== LOCATION ADVANTAGES ==================== */}
+<div className="border-t pt-6">
+  <h3 className="font-semibold mb-4">Location Advantages</h3>
+  <CheckboxGroup
+    name="locationAdvantages"
+    selected={hospitalityData.locationAdvantages || []}
+    onChange={(value) => updateField('commercialDetails.hospitalityDetails.locationAdvantages', value)}
+    options={LOCATION_ADVANTAGES}
+  />
+</div>
    <VaasthuDetails
   formData={hospitalityData}
   updateField={(key, value) => {

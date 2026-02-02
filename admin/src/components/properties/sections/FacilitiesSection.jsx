@@ -1,4 +1,5 @@
-  import React from 'react';
+ // admin/src/components/properties/sections/FacilitiesSection.jsx
+ import React from 'react';
 import CheckboxGroup from '../fields/CheckboxGroup';
 import { FACILITIES } from '../../../constants/propertyConstants';
 
