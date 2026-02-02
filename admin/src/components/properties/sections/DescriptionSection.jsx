@@ -1,3 +1,4 @@
+// admin/src/components/properties/sections/DescriptionSection.jsx
 import React from 'react';
 import TextAreaField from '../fields/TextAreaField';
 import CheckboxGroup from '../fields/CheckboxGroup';

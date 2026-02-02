@@ -186,8 +186,8 @@ email: {
 
    roadWidthUnit: {
   type: String,
-  enum: ["sqft", "sqm", "acre"],
-  default: "sqft",
+  enum: ["ft", "m", "sqft", "sqm", "acre"], // ✅ ADD "ft" and "m"
+  default: "ft",
 },
 
     /* ---------- CONSTRUCTION ---------- */
