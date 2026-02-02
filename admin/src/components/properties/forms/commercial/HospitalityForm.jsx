@@ -1,3 +1,4 @@
+// admin/src/components/properties/forms/commercial/HospitalityForm.jsx
 import React, { useState } from 'react';
 
 import LocationSection from '../../sections/LocationSection';

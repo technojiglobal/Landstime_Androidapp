@@ -1,3 +1,4 @@
+// admin/src/components/properties/sections/CommercialBasicDetails.jsx
 import React from 'react';
 import {
   COMMERCIAL_SUB_TYPES,
