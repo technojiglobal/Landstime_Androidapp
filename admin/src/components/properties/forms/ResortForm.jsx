@@ -1,100 +1,4 @@
-// import React from 'react';
-// import NumberField from '../fields/NumberField';
-// import TextAreaField from '../fields/TextAreaField';
-// import ToggleButtons from '../fields/ToggleButtons';
-// import CheckboxGroup from '../fields/CheckboxGroup';
-// import RadioButtons from '../fields/RadioButtons';
-// import ImageUpload from '../fields/ImageUpload';
-// import VaasthuDetails from '../sections/VaasthuDetails';
-// import FacilitiesSection from '../sections/FacilitiesSection';
-// import ParkingSection from '../sections/ParkingSection';
-// import SelectField from '../fields/SelectField';
-// import { RESORT_TYPES } from '../../../constants/propertyConstants';
-// import { resortVaasthuFields } from '../../../constants/vastuFields';
-// import LocationSection from '../sections/LocationSection';
-// import DescriptionSection from '../sections/DescriptionSection';
-
-// const ResortForm = ({
-//   propertyType,
-//   setPropertyType,
-//   formData,
-//   updateField,
-//   images,
-//   setImages
-// }) => (
-//   <>
-//     <SelectField
-//       label="Resort Type"
-//       name="resortType"
-//       value={propertyType}
-//       onChange={setPropertyType}
-//       options={RESORT_TYPES}
-//       placeholder="Beachfront"
-//       required
-//     />
-
-//     <div className="space-y-6 border-t pt-3">
-//       <h3 className="font-semibold">Basic Details</h3>
-
-//       {/* Property Images */}
-//       <ImageUpload
-//         label="Property Images"
-//         images={images}
-//         onChange={setImages}
-//         maxImages={20}
-//         required={true}
-//       />
-
-//       <div className="grid grid-cols-2 gap-4">
-//         <NumberField
-//           label="Rooms"
-//           name="rooms"
-//           value={formData.rooms}
-//           onChange={(value) => updateField('rooms', value)}
-//         />
-
-//         <NumberField
-//           label="Land Area (in sqft)"
-//           name="landArea"
-//           value={formData.landArea}
-//           onChange={(value) => updateField('landArea', value)}
-//         />
-
-//         <NumberField
-//           label="Floors"
-//           name="floors"
-//           value={formData.floors}
-//           onChange={(value) => updateField('floors', value)}
-//         />
-
-//         <NumberField
-//           label="Build Area (in sqft)"
-//           name="buildArea"
-//           value={formData.buildArea}
-//           onChange={(value) => updateField('buildArea', value)}
-//         />
-//       </div>
-
-//       <NumberField
-//         label="Price (₹)"
-//         name="price"
-//         value={formData.price}
-//         onChange={(value) => updateField('price', value)}
-//       />
-
-//       <LocationSection formData={formData} updateField={updateField} />
-//       <DescriptionSection formData={formData} updateField={updateField} />
-
-//       <VaasthuDetails
-//         formData={formData}
-//         updateField={updateField}
-//         fields={resortVaasthuFields}
-//       />
-//     </div>
-//   </>
-// );
-
-// export default ResortForm;
+// admin/src/components/properties/forms/ResortForm.jsx
 import React from 'react';
 import NumberField from '../fields/NumberField';
 import TextAreaField from '../fields/TextAreaField';
@@ -124,6 +28,7 @@ const ResortForm = ({
 }) => {
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
   const [pricingDetails, setPricingDetails] = useState(null);
+  const [isDescriptionValid, setIsDescriptionValid] = useState(false); // ✅ ADD THIS LINE
   // Helper function to update nested resortDetails fields
  // ResortForm.jsx
 const updateResortField = (field, value) => {
@@ -248,8 +153,12 @@ const updateVaasthuField = (field, value) => {
 </div>
 
 
-        <LocationSection formData={formData} updateField={updateField} />
-        <DescriptionSection formData={formData} updateField={updateField} />
+       <LocationSection formData={formData} updateField={updateField} />
+<DescriptionSection 
+  formData={formData} 
+  updateField={updateField}
+  setIsDescriptionValid={setIsDescriptionValid} // ✅ ADD THIS PROP
+/>
 
         {/* Vaastu Details - Pass nested data and update function */}
         <VaasthuDetails
