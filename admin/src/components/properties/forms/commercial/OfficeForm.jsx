@@ -1,5 +1,6 @@
 
-import React from 'react';
+// admin/src/components/properties/forms/commercial/OfficeForm.jsx
+import React,  {useState} from 'react';
 import NumberField from '../../fields/NumberField';
 import SelectField from '../../fields/SelectField';
 import LocationSection from '../../sections/LocationSection';
@@ -17,6 +18,8 @@ import {
 import { officeVaasthuFields } from '../../../../constants/vastuFields';
 
 const OfficeForm = ({ formData, updateField, images, setImages }) => {
+
+  const [isDescriptionValid, setIsDescriptionValid] = useState(false); // ✅ ADD THIS
   // Extract office details for easier access
   const office = formData.commercialDetails?.officeDetails || {};
   
@@ -160,7 +163,11 @@ const OfficeForm = ({ formData, updateField, images, setImages }) => {
       />
 
       {/* ==================== DESCRIPTION ==================== */}
-      <DescriptionSection formData={formData} updateField={updateField} />
+     <DescriptionSection 
+  formData={formData} 
+  updateField={updateField}
+  setIsDescriptionValid={setIsDescriptionValid} // ✅ ADD THIS
+/>
       
       {/* ==================== AMENITIES ==================== */}
       <div className="border-t pt-6">
@@ -174,6 +181,34 @@ const OfficeForm = ({ formData, updateField, images, setImages }) => {
           options={OFFICE_AMENITIES}
         />
       </div>
+
+      {/* ==================== LOCATION ADVANTAGES ==================== */}
+<div className="border-t pt-6">
+  <h3 className="text-lg font-semibold text-left mb-4">Location Advantages</h3>
+  <CheckboxGroup
+    name="locationAdvantages"
+    selected={office.locationAdvantages || []}
+    onChange={(value) => 
+      updateField('commercialDetails.officeDetails.locationAdvantages', value)
+    }
+    options={[
+      'Near Metro',
+      'Near Highway',
+      'Near School',
+      'Near Hospital',
+      'Near Market',
+      'Near Mall',
+      'Close to Airport',
+      'Close to Railway Station',
+      'Near Bank',
+      'Near Park',
+      'In Gated Complex',
+      'Corner Property'
+    ]}
+  />
+</div>
+
+
 
    
 

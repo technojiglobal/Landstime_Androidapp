@@ -1,3 +1,4 @@
+// admin/src/components/properties/forms/commercial/StorageForm.jsx
 import React from 'react';
 import NumberField from '../../fields/NumberField';
 import SelectField from '../../fields/SelectField';

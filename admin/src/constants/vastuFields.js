@@ -60,17 +60,21 @@ export const officeVaasthuFields = [
 ];
 
 export const retailVaasthuFields = [
-  { label: "Shop Facing(Mandatory)", name: "mainFacing" },
-  { label: "Main Entrance Direction", name: "mainEntranceDirection" },
-  { label: "Cash Counter/Billing Area Direction", name: "cashCounterDirection" },
-  { label: "Cash Locker/Safe Keeping Direction", name: "cashLockerDirection" },
-  { label: "Owner/Manager Seating Direction", name: "ownerSeatingDirection" },
-  { label: "Staff Seating Direction", name: "staffSeatingDirection" },
-  { label: "Storage/Stock Room Direction", name: "storageDirection" },
-  { label: "Electrical/Inverter/Generator Direction", name: "electricityDirection" }, 
-  { label: "Pantry/Wash Area Direction(if any)", name: "pantryDirection" },
-  { label: "Staircase/Lift Direction(If inside shop)", name: "Staircase/Lift Direction(If inside shop)" },
+  { label: "Shop Facing(Mandatory)", name: "shopFacing" },
+  { label: "Main Entrance Direction", name: "entrance" },
+  { label: "Cash Counter/Billing Area Direction", name: "cashCounter" },
+  { label: "Cash Locker/Safe Keeping Direction", name: "cashLocker" },
+  { label: "Owner/Manager Seating Direction", name: "ownerSeating" },
+  { label: "Staff Seating Direction", name: "staffSeating" },
+  { label: "Storage/Stock Room Direction", name: "storage" },
+  { label: "Display Area Direction", name: "displayArea" }, // ✅ ADD THIS if needed
+  { label: "Electrical/Inverter/Generator Direction", name: "electrical" }, 
+  { label: "Pantry/Wash Area Direction(if any)", name: "pantryArea" },
+  { label: "Staircase/Lift Direction(If inside shop)", name: "staircase" },
+  { label: "Staircase Inside Shop Direction", name: "staircaseInside" }, // ✅ ADD THIS if needed
 ];
+
+
  export const industrialVaasthuFields = [
   { label: "Industry Facing", name: "industryFacing" },
   { label: "Main Entrance Direction", name: "mainEntranceDirection" },

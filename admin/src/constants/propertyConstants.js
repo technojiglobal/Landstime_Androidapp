@@ -1,3 +1,4 @@
+// admin/src/constants/propertyConstants.js
 export const PROPERTY_TYPES = [
   { value: 'House/Flat', label: 'House/Flat' },
   { value: 'Site/Plot(Land)', label: 'Site/Plot(Land)' },
