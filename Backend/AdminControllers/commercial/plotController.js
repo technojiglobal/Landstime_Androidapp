@@ -134,29 +134,28 @@ export const handlePlotProperty = (propertyData, finalData) => {
   // ==================== DESCRIPTION ====================
   const description = plotDetails.description || propertyData.description || '';
 
-  // ==================== VASTU DETAILS ====================
-  const vastuDetails = {
-    plotFacing: plotDetails.vaasthuDetails?.plotFacing ||
-      plotDetails.vastuDetails?.plotFacing || '',
-    mainEntry: plotDetails.vaasthuDetails?.mainEntryDirection ||
-      plotDetails.vastuDetails?.mainEntry || '',
-    plotSlope: plotDetails.vaasthuDetails?.plotSlope ||
-      plotDetails.vastuDetails?.plotSlope || '',
-    openSpace: plotDetails.vaasthuDetails?.openSpace ||
-      plotDetails.vastuDetails?.openSpace || '',
-    shape: plotDetails.vaasthuDetails?.plotShape ||
-      plotDetails.vastuDetails?.shape || '',
-    roadPosition: plotDetails.vaasthuDetails?.roadPosition ||
-      plotDetails.vastuDetails?.roadPosition || '',
-    waterSource: plotDetails.vaasthuDetails?.waterSource ||
-      plotDetails.vastuDetails?.waterSource || '',
-    drainage: plotDetails.vaasthuDetails?.drainageDirection ||
-      plotDetails.vastuDetails?.drainage || '',
-    compoundWall: plotDetails.vaasthuDetails?.compoundWallHeight ||
-      plotDetails.vastuDetails?.compoundWall || '',
-    structures: plotDetails.vaasthuDetails?.existingStructures ||
-      plotDetails.vastuDetails?.structures || ''
-  };
+ // ==================== VASTU DETAILS ====================
+// ✅ DEBUG - Log what we're receiving
+console.log('🔍 [PLOT] Checking Vaastu data:', {
+  hasVastuDetails: !!plotDetails.vastuDetails,
+  rawVastu: plotDetails.vastuDetails,
+});
+
+// ✅ Safely extract vaastu details
+const vastuSource = plotDetails.vastuDetails || {};
+
+const vastuDetails = {
+  plotFacing: vastuSource.plotFacing || '',
+  mainEntry: vastuSource.mainEntry || '',
+  plotSlope: vastuSource.plotSlope || '',
+  openSpace: vastuSource.openSpace || '',
+  shape: vastuSource.shape || '',
+  roadPosition: vastuSource.roadPosition || '',
+  waterSource: vastuSource.waterSource || '',
+  drainage: vastuSource.drainage || '',
+  compoundWall: vastuSource.compoundWall || '',
+  structures: vastuSource.structures || ''
+};
 
   console.log('🧭 [PLOT] Vastu Details:', vastuDetails);
 

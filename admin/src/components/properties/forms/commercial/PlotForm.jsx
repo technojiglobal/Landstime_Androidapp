@@ -309,10 +309,15 @@ const PlotForm = ({ formData, updateField, images, setImages }) => {
       </div>
 
       {/* ==================== VAASTHU DETAILS ==================== */}
-    <VaasthuDetails
-  formData={plotDetails.vastuDetails || {}}
-  updateField={(key, value) => updatePlotField(`vastuDetails.${key}`, value)}
+ {/* ==================== VAASTHU DETAILS ==================== */}
+<VaasthuDetails
+  formData={plotDetails}
+  updateField={(key, value) => {
+    console.log('🔧 Plot Vaastu Update:', key, '=', value);
+    updatePlotField(`vastuDetails.${key}`, value);
+  }}
   fields={sitePlotVaasthuFields}
+  isNested={true}
 />
 
     </div>
