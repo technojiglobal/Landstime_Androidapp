@@ -35,6 +35,7 @@ const HospitalityForm = ({ formData, updateField, images, setImages }) => {
   const [pricingDetails, setPricingDetails] = useState(null);
   const [showFurnishingModal, setShowFurnishingModal] = useState(false);
   const [furnishingModalType, setFurnishingModalType] = useState('');
+  const [isDescriptionValid, setIsDescriptionValid] = useState(false); // ✅ Add at top with other useState
 
   const handleFurnishingChange = (value) => {
     updateField('commercialDetails.hospitalityDetails.furnishingType', value);
@@ -310,7 +311,14 @@ const HospitalityForm = ({ formData, updateField, images, setImages }) => {
       </div>
 
       {/* ==================== DESCRIPTION ==================== */}
-      <DescriptionSection formData={formData} updateField={updateField} />{/* ==================== AMENITIES ==================== */}
+      
+<DescriptionSection 
+  formData={formData} 
+  updateField={updateField}
+  setIsDescriptionValid={setIsDescriptionValid} // ✅ Add this prop
+/>
+      
+      {/* ==================== AMENITIES ==================== */}
       <div className="border-t pt-6">
         <h3 className="font-semibold mb-4">Amenities</h3>
         <CheckboxGroup
@@ -320,13 +328,15 @@ const HospitalityForm = ({ formData, updateField, images, setImages }) => {
           options={HOSPITALITY_AMENITIES}
         />
       </div>
-      <VaasthuDetails
-        formData={hospitalityData}
-        updateField={(key, value) =>
-          updateField(`commercialDetails.hospitalityDetails.vastuDetails.${key}`, value)
-        }
-        fields={hospitalityVaasthuFields}
-      />
+   <VaasthuDetails
+  formData={hospitalityData}
+  updateField={(key, value) => {
+    console.log('🔧 Updating Vaastu field:', key, '=', value); // ✅ DEBUG LOG
+    updateField(`commercialDetails.hospitalityDetails.vastuDetails.${key}`, value);
+  }}
+  fields={hospitalityVaasthuFields}
+  isNested={true} // ✅ ADD THIS FLAG
+/>
 
     </div>
   );
