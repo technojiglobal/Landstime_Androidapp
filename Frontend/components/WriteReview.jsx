@@ -9,10 +9,10 @@ import {
   Dimensions,
   StyleSheet,
 } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons"; // ✅ correct icon set
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { submitReview } from "../utils/reviewApi";
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const { width } = Dimensions.get("window");
 
 export default function WriteReview({ entityId, entityType }) {
@@ -20,47 +20,48 @@ export default function WriteReview({ entityId, entityType }) {
   const [title, setTitle] = useState("");
   const [review, setReview] = useState("");
   const [userName, setUserName] = useState("Anonymous");
+
   useEffect(() => {
-  const getUserData = async () => {
-    try {
-      const userDataString = await AsyncStorage.getItem('userData');
-      if (userDataString) {
-        const userData = JSON.parse(userDataString);
-        setUserName(userData.name || userData.username || "Anonymous");
+    const getUserData = async () => {
+      try {
+        const userDataString = await AsyncStorage.getItem('userData');
+        if (userDataString) {
+          const userData = JSON.parse(userDataString);
+          setUserName(userData.name || userData.username || "Anonymous");
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
       }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
+    };
+
+    getUserData();
+  }, []);
+
+  const handleSubmit = async () => {
+    // ✅ FIXED: Changed from review.length < 5 to review.length < 50
+    if (!rating || !title.trim() || review.trim().length < 50) {
+      alert("Please fill all fields. Review must be at least 50 characters.");
+      return;
+    }
+
+    try {
+      await submitReview({
+        entityId,
+        entityType,
+        rating,
+        title: title.trim(),
+        comment: review.trim(),
+        userName: userName,
+      });
+
+      alert("Review submitted successfully");
+      setRating(0);
+      setTitle("");
+      setReview("");
+    } catch (err) {
+      alert(err.message || "Failed to submit review");
     }
   };
-
-  getUserData();
-}, []);
-const handleSubmit = async () => {
-  if (!rating || !title || review.length < 5) {
-    alert("Please fill all fields");
-    return;
-  }
-
-  try {
-    await submitReview({
-      entityId,
-      entityType,
-      rating,
-      title,
-      comment: review,
-      userName: userName, // ✅ Keep it as userName to match your DB schema
-    });
-
-    alert("Review submitted successfully");
-    setRating(0);
-    setTitle("");
-    setReview("");
-  } catch (err) {
-    alert(err.message);
-  }
-};
-
-
 
   return (
     <View style={styles.container}>
@@ -85,7 +86,7 @@ const handleSubmit = async () => {
                 <MaterialCommunityIcons
                   name={i <= rating ? "star" : "star-outline"}
                   size={38}
-                  color={i <= rating ? "#FFD700" : "#D1D5DB"} // gold or light gray
+                  color={i <= rating ? "#FFD700" : "#D1D5DB"}
                 />
               </TouchableOpacity>
             ))}
@@ -112,7 +113,9 @@ const handleSubmit = async () => {
             textAlignVertical="top"
             style={[styles.input, { height: 120 }]}
           />
-          <Text style={styles.helperText}>Minimum 50 characters required</Text>
+          <Text style={styles.helperText}>
+            Minimum 50 characters required ({review.length}/50)
+          </Text>
 
           {/* Buttons */}
           <View style={styles.buttonRow}>
@@ -120,8 +123,14 @@ const handleSubmit = async () => {
               <Text style={styles.draftText}>Save as Draft</Text>
             </TouchableOpacity>
 
-           <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
-
+            <TouchableOpacity 
+              style={[
+                styles.submitBtn,
+                // ✅ Optional: Add visual feedback when form is invalid
+                (!rating || !title.trim() || review.trim().length < 50) && styles.submitBtnDisabled
+              ]} 
+              onPress={handleSubmit}
+            >
               <Text style={styles.submitText}>Submit Review</Text>
             </TouchableOpacity>
           </View>
@@ -142,7 +151,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#E5E7EB", // ✅ clean light-gray border
+    borderColor: "#E5E7EB",
     padding: 20,
     marginTop: 40,
   },
@@ -165,7 +174,7 @@ const styles = StyleSheet.create({
   },
   starRow: {
     flexDirection: "row",
-    justifyContent: "space-around", // ✅ evenly spaced stars
+    justifyContent: "space-around",
     alignItems: "center",
     marginBottom: 25,
     width: "100%",
@@ -205,10 +214,13 @@ const styles = StyleSheet.create({
   },
   submitBtn: {
     flex: 1,
-    backgroundColor: "gray",
+    backgroundColor: "#22C55E", // ✅ Changed from gray to green
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: "center",
+  },
+  submitBtnDisabled: {
+    backgroundColor: "#9CA3AF", // ✅ Gray when disabled
   },
   submitText: {
     color: "#fff",

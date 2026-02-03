@@ -16,7 +16,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import LocationSection from "components/LocationSection";
 import { useTranslation } from 'react-i18next';
-import { toEnglish , convertToEnglish } from '../../../../../../utils/reverseTranslation';
+import { toEnglish, convertToEnglish } from '../../../../../../utils/reverseTranslation';
 
 /* ---------- UI HELPERS ---------- */
 const PillButton = ({ label, selected, onPress }) => (
@@ -63,7 +63,7 @@ export default function Retail() {
   const { t } = useTranslation();
 
   const images = params.images ? JSON.parse(params.images) : [];
-  
+
   const safeParse = (raw) => {
     if (!raw) return null;
     if (typeof raw === 'string') {
@@ -90,38 +90,49 @@ export default function Retail() {
   const [location, setLocation] = useState("");
   const [locality, setLocality] = useState("");
   const [neighborhoodArea, setNeighborhoodArea] = useState("");
-  
+
   // Retail Specific
   const [locatedInside, setLocatedInside] = useState("");
   const [zoneType, setZoneType] = useState("");
-  
+
   // Area Measurements
   const [carpetArea, setCarpetArea] = useState("");
   const [unit, setUnit] = useState("sqft");
-  
+
   // Shop Details
   const [entranceWidth, setEntranceWidth] = useState("");
   const [ceilingHeight, setCeilingHeight] = useState("");
-  
+
   // Facilities
   const [washroom, setWashroom] = useState("");
   const [floorDetails, setFloorDetails] = useState("");
   const [locatedNear, setLocatedNear] = useState([]);
   const [parkingType, setParkingType] = useState("");
-  
+
   // Availability
   const [availability, setAvailability] = useState("");
   const [propertyAge, setPropertyAge] = useState("");
-  
+  const [possessionBy, setPossessionBy] = useState("");
+  // Keep existing possessionMonth state
+  // Remove possessionYear state
   // Possession (for Under Construction)
-  const [possessionYear, setPossessionYear] = useState("");
+
   const [possessionMonth, setPossessionMonth] = useState("");
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
-  
+
   // Business Types
   const [businessTypes, setBusinessTypes] = useState([]);
   const [showBusinessTypes, setShowBusinessTypes] = useState(false);
-
+  const possessionOptions = [
+    t('industry_possession_immediate'),
+    t('industry_possession_3months'),
+    t('industry_possession_6months'),
+    t('industry_possession_2026'),
+    t('industry_possession_2027'),
+    t('industry_possession_2028'),
+    t('industry_possession_2029'),
+    t('industry_possession_2030'),
+  ];
   /* ---------- LOAD DRAFT ---------- */
   useEffect(() => {
     const loadDraft = async () => {
@@ -130,16 +141,16 @@ export default function Retail() {
         if (draft) {
           const parsed = JSON.parse(draft);
           console.log('📦 Loading Retail draft from AsyncStorage:', parsed);
-          
+
           setLocation(parsed.location || '');
           setLocality(parsed.locality || '');
           setNeighborhoodArea(parsed.neighborhoodArea || params.area || '');
           setCarpetArea(parsed.carpetArea?.toString() || '');
           setUnit(parsed.carpetAreaUnit || 'sqft');
-          
+
           setLocatedInside(toEnglish(prevData.locatedInside) || '');
           setZoneType(parsed.zoneType || '');
-          
+
           setEntranceWidth(parsed.entranceWidth?.toString() || '');
           setCeilingHeight(parsed.ceilingHeight?.toString() || '');
           setWashroom(toEnglish(parsed.washroom) || '');
@@ -148,15 +159,13 @@ export default function Retail() {
           setParkingType(toEnglish(parsed.parkingType) || '');
           setAvailability(toEnglish(parsed.availability) || '');
           setPropertyAge(toEnglish(parsed.propertyAge) || '');
-          
-          if (parsed.possession) {
-  setPossessionYear(parsed.possession.year || '');
-  setPossessionMonth(toEnglish(parsed.possession.month) || '');
-  if (parsed.possession.year) setShowMonthDropdown(true);
-}
-          
-         if (parsed.suitableFor) setBusinessTypes(convertToEnglish(parsed.suitableFor));
-          
+
+          setPossessionBy(toEnglish(parsed.possessionBy) || '');
+          setPossessionMonth(toEnglish(parsed.possessionMonth) || '');
+          if (parsed.possessionBy?.includes("By")) setShowMonthDropdown(true);
+
+          if (parsed.suitableFor) setBusinessTypes(convertToEnglish(parsed.suitableFor));
+
           console.log('✅ Retail draft loaded successfully');
           return;
         }
@@ -169,37 +178,37 @@ export default function Retail() {
         try {
           const prevData = JSON.parse(params.retailDetails);
           console.log('🔄 Restoring Retail data from params');
-          
+
           setLocation(prevData.location || '');
           setLocality(prevData.locality || '');
           setNeighborhoodArea(prevData.neighborhoodArea || params.area || '');
           setCarpetArea(prevData.carpetArea?.toString() || '');
           setUnit(prevData.carpetAreaUnit || 'sqft');
-          
+
           setLocatedInside(toEnglish(prevData.locatedInside) || '');
           setZoneType(prevData.zoneType || '');
-          
+
           setEntranceWidth(prevData.entranceWidth?.toString() || '');
           setCeilingHeight(prevData.ceilingHeight?.toString() || '');
           setWashroom(toEnglish(prevData.washroom) || '');
-setFloorDetails(toEnglish(prevData.floorDetails) || '');
-setLocatedNear(convertToEnglish(prevData.locatedNear) || []);
-setParkingType(toEnglish(prevData.parkingType) || '');
-setAvailability(toEnglish(prevData.availability) || '');
-setPropertyAge(toEnglish(prevData.propertyAge) || '');
-          
-         if (prevData.possession) {
-  setPossessionYear(prevData.possession.year || '');
-  setPossessionMonth(toEnglish(prevData.possession.month) || '');
-  if (prevData.possession.year) setShowMonthDropdown(true);
-}
-          
+          setFloorDetails(toEnglish(prevData.floorDetails) || '');
+          setLocatedNear(convertToEnglish(prevData.locatedNear) || []);
+          setParkingType(toEnglish(prevData.parkingType) || '');
+          setAvailability(toEnglish(prevData.availability) || '');
+          setPropertyAge(toEnglish(prevData.propertyAge) || '');
+
+          if (prevData.possession) {
+            setPossessionYear(prevData.possession.year || '');
+            setPossessionMonth(toEnglish(prevData.possession.month) || '');
+            if (prevData.possession.year) setShowMonthDropdown(true);
+          }
+
           if (prevData.suitableFor) setBusinessTypes(convertToEnglish(prevData.suitableFor));
         } catch (e) {
           console.log('❌ Could not restore retail data:', e);
         }
       }
-      
+
       // Always restore area from params if available
       if (params.area) {
         setNeighborhoodArea(params.area);
@@ -219,11 +228,11 @@ setPropertyAge(toEnglish(prevData.propertyAge) || '');
         neighborhoodArea,
         carpetArea,
         carpetAreaUnit: unit,
-        
+
         locatedInside,
         zoneType,
         retailKind: baseDetails?.retailType,
-        
+
         entranceWidth,
         ceilingHeight,
         washroom,
@@ -232,10 +241,9 @@ setPropertyAge(toEnglish(prevData.propertyAge) || '');
         parkingType,
         availability,
         propertyAge,
-        possession: {
-          year: possessionYear,
-          month: possessionMonth,
-        },
+        possessionBy,        // ✅ ADD
+        possessionMonth,
+
         suitableFor: businessTypes,
         timestamp: new Date().toISOString(),
       };
@@ -251,10 +259,10 @@ setPropertyAge(toEnglish(prevData.propertyAge) || '');
     const timer = setTimeout(saveDraft, 1000);
     return () => clearTimeout(timer);
   }, [location, locality, neighborhoodArea, carpetArea, unit,
-      locatedInside, zoneType,
-      entranceWidth, ceilingHeight, washroom, floorDetails, locatedNear, 
-      parkingType, availability, propertyAge, possessionYear, possessionMonth, 
-      businessTypes, baseDetails?.retailType]);
+    locatedInside, zoneType,
+    entranceWidth, ceilingHeight, washroom, floorDetails, locatedNear,
+    parkingType, availability, propertyAge, possessionYear, possessionMonth,
+    businessTypes, baseDetails?.retailType]);
 
   /* ---------- OPTIONS ---------- */
   const locatedInsideOptions = [
@@ -415,40 +423,35 @@ setPropertyAge(toEnglish(prevData.propertyAge) || '');
       return;
     }
 
-   // ✅ CONVERT ALL Telugu/Hindi to English BEFORE creating commercialDetails
- // ✅ CONVERT ALL Telugu/Hindi to English BEFORE creating commercialDetails
-const commercialDetails = {
-  subType: "Retail",
-  propertyTitle: baseDetails?.propertyTitle,
-  retailDetails: {
-    location,
-    locality,
-    
-    locatedInside: toEnglish(locatedInside),  // ✅ ADD
-    zoneType: toEnglish(zoneType),  // ✅ ADD
-    
-    neighborhoodArea: neighborhoodArea.trim(),
-    carpetArea: carpetArea ? Number(carpetArea) : undefined,
-    carpetAreaUnit: unit,
-    
-    entranceWidth: entranceWidth ? Number(entranceWidth) : undefined,
-    ceilingHeight: ceilingHeight ? Number(ceilingHeight) : undefined,
-    washroom: toEnglish(washroom),  // ✅ ADD
-    floorDetails,
-    locatedNear: convertToEnglish(locatedNear),  // ✅ ADD
-    parkingType: toEnglish(parkingType),  // ✅ ADD
-    availability: toEnglish(availability),  // ✅ ADD
-    propertyAge: toEnglish(propertyAge),  // ✅ ADD
-    possession:
-      toEnglish(availability) === 'Under Construction'  // ✅ CHANGE condition
-        ? { 
-            year: possessionYear, 
-            month: toEnglish(possessionMonth)  // ✅ ADD
-          }
-        : undefined,
-    suitableFor: convertToEnglish(businessTypes),  // ✅ ADD
-  },
-};
+    // ✅ CONVERT ALL Telugu/Hindi to English BEFORE creating commercialDetails
+    // ✅ CONVERT ALL Telugu/Hindi to English BEFORE creating commercialDetails
+    const commercialDetails = {
+      subType: "Retail",
+      propertyTitle: baseDetails?.propertyTitle,
+      retailDetails: {
+        location,
+        locality,
+
+        locatedInside: toEnglish(locatedInside),  // ✅ ADD
+        zoneType: toEnglish(zoneType),  // ✅ ADD
+
+        neighborhoodArea: neighborhoodArea.trim(),
+        carpetArea: carpetArea ? Number(carpetArea) : undefined,
+        carpetAreaUnit: unit,
+
+        entranceWidth: entranceWidth ? Number(entranceWidth) : undefined,
+        ceilingHeight: ceilingHeight ? Number(ceilingHeight) : undefined,
+        washroom: toEnglish(washroom),  // ✅ ADD
+        floorDetails,
+        locatedNear: convertToEnglish(locatedNear),  // ✅ ADD
+        parkingType: toEnglish(parkingType),  // ✅ ADD
+        availability: toEnglish(availability),  // ✅ ADD
+        propertyAge: toEnglish(propertyAge),  // ✅ ADD
+        possessionBy: toEnglish(possessionBy),
+        possessionMonth: toEnglish(possessionMonth),
+        suitableFor: convertToEnglish(businessTypes),  // ✅ ADD
+      },
+    };
 
     router.push({
       pathname: "/home/screens/UploadScreens/CommercialUpload/Components/RetailNext",
@@ -806,58 +809,88 @@ const commercialDetails = {
           )}
 
           {/* POSSESSION (Under Construction) */}
+          {/* POSSESSION (Under Construction) */}
           {availability === t('retail_under_construction') && (
             <>
               <Text style={sectionLabel}>{t('retail_possession_by')}</Text>
 
-              {/* YEAR INPUT */}
-              <TextInput
-                placeholder={t('retail_possession_year')}
-                value={possessionYear}
-                onChangeText={(text) => {
-                  const numeric = text.replace(/[^0-9]/g, "").slice(0, 4);
-                  setPossessionYear(numeric);
+              <TouchableOpacity
+                onPress={() => setVisible(visible === "possessionBy" ? null : "possessionBy")}
+                className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 mb-3"
+              >
+                <Text className="text-gray-800 text-left">
+                  {possessionBy || t('industry_expected_by')}
+                </Text>
+                <Image
+                  source={require("../../../../../../assets/arrow.png")}
+                  style={{ width: 20, height: 20 }}
+                />
+              </TouchableOpacity>
 
-                  if (numeric.length === 4) {
-                    setShowMonthDropdown(true);
-                  } else {
-                    setShowMonthDropdown(false);
-                    setPossessionMonth("");
-                  }
-                }}
-                keyboardType="numeric"
-                style={plainInput}
-              />
+              {visible === "possessionBy" && (
+                <View
+                  className="bg-white rounded-lg shadow-lg -mt-4 mb-4"
+                  style={{ borderWidth: 1, borderColor: "#0000001A" }}
+                >
+                  {possessionOptions.map((item) => (
+                    <TouchableOpacity
+                      key={item}
+                      onPress={() => {
+                        setPossessionBy(item);
+                        setVisible(null);
+                        if (item.includes("By")) {
+                          setShowMonthDropdown(true);
+                        } else {
+                          setShowMonthDropdown(false);
+                          setPossessionMonth("");
+                        }
+                      }}
+                      className={`p-4 border-b border-gray-200 ${possessionBy === item ? "bg-green-500" : "bg-white"
+                        }`}
+                    >
+                      <Text className={`${possessionBy === item ? "text-white" : "text-gray-800"
+                        }`}>
+                        {item}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
 
-              {/* MONTH DROPDOWN */}
               {showMonthDropdown && (
                 <>
+                  <Text style={sectionLabel}>{t('hospitality_expected_month')}</Text>
                   <TouchableOpacity
-                    style={dropdownBox}
-                    onPress={() => setVisible(visible === "month" ? null : "month")}
+                    onPress={() => setVisible(visible === "expectedMonth" ? null : "expectedMonth")}
+                    className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 mb-3"
                   >
-                    <Text>{possessionMonth || t('retail_possession_month')}</Text>
-                    <Ionicons name="chevron-down" size={18} />
+                    <Text className="text-gray-800 text-left">
+                      {possessionMonth || t('hospitality_select_month')}
+                    </Text>
+                    <Image
+                      source={require("../../../../../../assets/arrow.png")}
+                      style={{ width: 20, height: 20 }}
+                    />
                   </TouchableOpacity>
 
-                  {visible === "month" && (
-                    <View style={{ marginTop: 6 }}>
-                      {monthOptions.map((month) => (
+                  {visible === "expectedMonth" && (
+                    <View
+                      className="bg-white rounded-lg shadow-lg -mt-4 mb-4"
+                      style={{ borderWidth: 1, borderColor: "#0000001A" }}
+                    >
+                      {monthOptions.map((item) => (
                         <TouchableOpacity
-                          key={month}
+                          key={item}
                           onPress={() => {
-                            setPossessionMonth(month);
+                            setPossessionMonth(item);
                             setVisible(null);
                           }}
-                          style={{
-                            paddingVertical: 10,
-                            borderBottomWidth: 1,
-                            borderColor: "#E5E7EB",
-                            backgroundColor: possessionMonth === month ? "#22C55E" : "#fff",
-                          }}
+                          className={`p-4 border-b border-gray-200 ${possessionMonth === item ? "bg-green-500" : "bg-white"
+                            }`}
                         >
-                          <Text style={{ color: possessionMonth === month ? "#fff" : "#374151" }}>
-                            {month}
+                          <Text className={`${possessionMonth === item ? "text-white" : "text-gray-800"
+                            }`}>
+                            {item}
                           </Text>
                         </TouchableOpacity>
                       ))}
@@ -870,36 +903,36 @@ const commercialDetails = {
 
           {/* BUSINESS TYPES */}
           {/* BUSINESS TYPES */}
-<Text style={sectionLabel}>{t('retail_business_types')}</Text>
-<TouchableOpacity
-  onPress={() => setShowBusinessTypes(!showBusinessTypes)}
-  style={dropdownBox}
->
-  <Text>
-    {businessTypes.length > 0
-      ? `${businessTypes.length} ${t('retail_business_selected')}`
-      : t('retail_select_business_type')}
-  </Text>
-  <Ionicons name="chevron-down" size={18} />
-</TouchableOpacity>
+          <Text style={sectionLabel}>{t('retail_business_types')}</Text>
+          <TouchableOpacity
+            onPress={() => setShowBusinessTypes(!showBusinessTypes)}
+            style={dropdownBox}
+          >
+            <Text>
+              {businessTypes.length > 0
+                ? `${businessTypes.length} ${t('retail_business_selected')}`
+                : t('retail_select_business_type')}
+            </Text>
+            <Ionicons name="chevron-down" size={18} />
+          </TouchableOpacity>
 
-{showBusinessTypes &&
-  businessTypeOptions.map((item) => (
-    <TouchableOpacity
-      key={item}
-      onPress={() => toggleArray(item, businessTypes, setBusinessTypes)}
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        padding: 10,
-      }}
-    >
-      <Checkbox selected={businessTypes.includes(item)} />
-      <Text>{item}</Text>
-    </TouchableOpacity>
-  ))}
+          {showBusinessTypes &&
+            businessTypeOptions.map((item) => (
+              <TouchableOpacity
+                key={item}
+                onPress={() => toggleArray(item, businessTypes, setBusinessTypes)}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  padding: 10,
+                }}
+              >
+                <Checkbox selected={businessTypes.includes(item)} />
+                <Text>{item}</Text>
+              </TouchableOpacity>
+            ))}
 
-         
+
 
         </View>
 

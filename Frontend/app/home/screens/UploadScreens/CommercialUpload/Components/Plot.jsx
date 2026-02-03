@@ -14,11 +14,10 @@ import { convertToEnglish } from '../../../../../../utils/reverseTranslation';
 const PillButton = ({ label, selected, onPress }) => (
   <TouchableOpacity
     onPress={onPress}
-    className={`px-[14px] py-[6px] rounded-full border mr-2 mb-2 ${
-      selected
-        ? "border-[#22C55E] bg-[#22C55E17]"
-        : "border-[#E5E7EB] bg-white"
-    }`}
+    className={`px-[14px] py-[6px] rounded-full border mr-2 mb-2 ${selected
+      ? "border-[#22C55E] bg-[#22C55E17]"
+      : "border-[#E5E7EB] bg-white"
+      }`}
   >
     <Text className={`text-[12px] ${selected ? "text-[#22C55E]" : "text-[#6B7280]"}`}>
       {label}
@@ -51,12 +50,12 @@ export default function Plot() {
   const images = params.images ? safeParse(params.images) || [] : [];
   const baseDetails = safeParse(params.commercialBaseDetails);
   const propertyTitle = baseDetails?.propertyTitle || params.propertyTitle || "";
-  
-  const plotKindFromParams = baseDetails?.plotKind || 
-                             params.plotKind || 
-                             safeParse(params.plotDetails)?.plotKind || 
-                             '';
-  
+
+  const plotKindFromParams = baseDetails?.plotKind ||
+    params.plotKind ||
+    safeParse(params.plotDetails)?.plotKind ||
+    '';
+
   console.log('🔍 Plot.jsx mounted - plotKindFromParams:', plotKindFromParams);
 
   /* ---------- STATE ---------- */
@@ -64,30 +63,27 @@ export default function Plot() {
   const [locality, setLocality] = useState("");
   const [neighborhoodArea, setNeighborhoodArea] = useState("");
   const [plotArea, setPlotArea] = useState("");
-const [plotKind, setPlotKind] = useState(plotKindFromParams || "");
+  const [plotKind, setPlotKind] = useState(plotKindFromParams || "");
   const [length, setLength] = useState("");
   const [breadth, setBreadth] = useState("");
   const [roadWidth, setRoadWidth] = useState("");
   const [openSides, setOpenSides] = useState("");
   const [constructionDone, setConstructionDone] = useState("");
-  const [possessionYear, setPossessionYear] = useState("");
-  const [possessionMonth, setPossessionMonth] = useState("");
+  const [possessionBy, setPossessionBy] = useState("");
+  const [expectedMonth, setExpectedMonth] = useState("");
+  const [showMonthDropdown, setShowMonthDropdown] = useState(false);
   const [constructionTypes, setConstructionTypes] = useState([]);
   const [focusedField, setFocusedField] = useState(null);
 
-  const monthOptions = [
-    t('hospitality_month_january'),
-    t('hospitality_month_february'),
-    t('hospitality_month_march'),
-    t('hospitality_month_april'),
-    t('hospitality_month_may'),
-    t('hospitality_month_june'),
-    t('hospitality_month_july'),
-    t('hospitality_month_august'),
-    t('hospitality_month_september'),
-    t('hospitality_month_october'),
-    t('hospitality_month_november'),
-    t('hospitality_month_december'),
+  const possessionOptions = [
+    t('industry_possession_immediate'),
+    t('industry_possession_3months'),
+    t('industry_possession_6months'),
+    t('industry_possession_2026'),
+    t('industry_possession_2027'),
+    t('industry_possession_2028'),
+    t('industry_possession_2029'),
+    t('industry_possession_2030'),
   ];
 
   const toggleConstruction = (value) => {
@@ -107,7 +103,7 @@ const [plotKind, setPlotKind] = useState(plotKindFromParams || "");
         if (draft) {
           const parsed = JSON.parse(draft);
           console.log('✅ Plot draft loaded:', parsed);
-          
+
           setLocation(parsed.location || '');
           setLocality(parsed.locality || '');
           setNeighborhoodArea(parsed.neighborhoodArea || params.area || '');
@@ -117,14 +113,15 @@ const [plotKind, setPlotKind] = useState(plotKindFromParams || "");
           setRoadWidth(parsed.roadWidth?.toString() || '');
           setOpenSides(parsed.openSides || '');
           setConstructionDone(parsed.constructionDone || '');
-          setPossessionYear(parsed.possessionYear || '');
-          setPossessionMonth(parsed.possessionMonth || '');
+          setPossessionBy(parsed.possessionBy || '');
+          setExpectedMonth(parsed.expectedMonth || '');
+          if (parsed.possessionBy?.includes("By")) setShowMonthDropdown(true);
           setConstructionTypes(parsed.constructionTypes || []);
-          
-         const restoredPlotKind = parsed.plotKind || plotKindFromParams || '';
-setPlotKind(restoredPlotKind);
-console.log('✅ plotKind restored:', restoredPlotKind);
-return;
+
+          const restoredPlotKind = parsed.plotKind || plotKindFromParams || '';
+          setPlotKind(restoredPlotKind);
+          console.log('✅ plotKind restored:', restoredPlotKind);
+          return;
         }
       } catch (e) {
         console.log('⚠️ Failed to load Plot draft:', e);
@@ -135,7 +132,7 @@ return;
         try {
           const prevData = safeParse(params.plotDetails);
           console.log('🔄 Restoring from params.plotDetails');
-          
+
           setLocation(prevData.location || '');
           setLocality(prevData.locality || '');
           setNeighborhoodArea(prevData.neighborhoodArea || params.area || '');
@@ -153,7 +150,7 @@ return;
           console.log('❌ Could not restore plot data:', e);
         }
       }
-      
+
       if (params.area) {
         setNeighborhoodArea(params.area);
         console.log('✅ Area restored from params:', params.area);
@@ -167,7 +164,7 @@ return;
   useEffect(() => {
     const saveDraft = async () => {
       let existingPlotKind = plotKindFromParams;
-      
+
       try {
         const existingDraft = await AsyncStorage.getItem('draft_plot_details');
         if (existingDraft) {
@@ -179,7 +176,7 @@ return;
       } catch (e) {
         console.log('⚠️ Could not load existing draft:', e);
       }
-      
+
       const draftData = {
         location,
         locality,
@@ -190,9 +187,10 @@ return;
         roadWidth,
         openSides,
         constructionDone,
-        possessionYear,
-        possessionMonth,
+
         constructionTypes,
+        possessionBy,        // ✅ ADD
+        expectedMonth,
         plotKind: existingPlotKind || plotKindFromParams,
         timestamp: new Date().toISOString(),
       };
@@ -207,75 +205,74 @@ return;
 
     const timer = setTimeout(saveDraft, 1000);
     return () => clearTimeout(timer);
-  }, [location, locality, neighborhoodArea, plotArea, length, breadth, roadWidth, 
-      openSides, constructionDone, possessionYear, possessionMonth, constructionTypes, plotKindFromParams]);
+  }, [location, locality, neighborhoodArea, plotArea, length, breadth, roadWidth,
+    openSides, constructionDone, possessionYear, possessionMonth, constructionTypes, plotKindFromParams]);
 
-const handleNext = () => {
-  const finalPlotKind = plotKind || plotKindFromParams;
-  
-  console.log('🔍 handleNext - plotKind (state):', plotKind);
-  console.log('🔍 handleNext - plotKindFromParams:', plotKindFromParams);
-  console.log('🔍 handleNext - finalPlotKind:', finalPlotKind);
-  
-  if (!finalPlotKind) {
-    console.log('❌ Plot kind is missing!');
-    Toast.show({
-      type: "error",
-      text1: t('plot_kind_missing'),
-      text2: t('plot_select_plot_type'),
-    });
-    return;
-  }
+  const handleNext = () => {
+    const finalPlotKind = plotKind || plotKindFromParams;
 
-  if (!location.trim() || !neighborhoodArea.trim() || !plotArea.trim() || !length || !breadth || !roadWidth) {
-    Toast.show({
-      type: "error",
-      text1: t('plot_all_fields_required'),
-    });
-    return;
-  }
+    console.log('🔍 handleNext - plotKind (state):', plotKind);
+    console.log('🔍 handleNext - plotKindFromParams:', plotKindFromParams);
+    console.log('🔍 handleNext - finalPlotKind:', finalPlotKind);
 
-  // ✅ CREATE RAW DETAILS FIRST (with Telugu/Hindi values)
-// ✅ CREATE RAW DETAILS FIRST (with Telugu/Hindi values)
-const rawPlotDetails = {
-  location,
-  locality,
-  neighborhoodArea,
-  area: Number(plotArea),
-  dimensions: {
-    length: Number(length),
-    breadth: Number(breadth),
-  },
-  roadWidth: Number(roadWidth),
-  openSides,
-  constructionDone,
-  constructionTypes: constructionTypes.map(type => convertToEnglish(type)),
-  possession: possessionYear.length === 4
-    ? { year: possessionYear, month: possessionMonth }
-    : null,
-  plotKind: convertToEnglish(finalPlotKind),
-};
+    if (!finalPlotKind) {
+      console.log('❌ Plot kind is missing!');
+      Toast.show({
+        type: "error",
+        text1: t('plot_kind_missing'),
+        text2: t('plot_select_plot_type'),
+      });
+      return;
+    }
 
-// ✅ CONVERT TO ENGLISH
-const convertedPlotDetails = convertToEnglish(rawPlotDetails);
+    if (!location.trim() || !neighborhoodArea.trim() || !plotArea.trim() || !length || !breadth || !roadWidth) {
+      Toast.show({
+        type: "error",
+        text1: t('plot_all_fields_required'),
+      });
+      return;
+    }
 
-  const commercialDetails = {
-    subType: "Plot/Land",
-    propertyTitle,
-    plotDetails: convertedPlotDetails,
-  };
+    // ✅ CREATE RAW DETAILS FIRST (with Telugu/Hindi values)
+    // ✅ CREATE RAW DETAILS FIRST (with Telugu/Hindi values)
+    const rawPlotDetails = {
+      location,
+      locality,
+      neighborhoodArea,
+      area: Number(plotArea),
+      dimensions: {
+        length: Number(length),
+        breadth: Number(breadth),
+      },
+      roadWidth: Number(roadWidth),
+      openSides,
+      constructionDone,
+      constructionTypes: constructionTypes.map(type => convertToEnglish(type)),
+      possessionBy: convertToEnglish(possessionBy),
+      expectedMonth: convertToEnglish(expectedMonth),
+      plotKind: convertToEnglish(finalPlotKind),
+    };
 
-  router.push({
-    pathname: "/home/screens/UploadScreens/CommercialUpload/Components/PlotNext",
-    params: {
-      commercialDetails: JSON.stringify(commercialDetails),
+    // ✅ CONVERT TO ENGLISH
+    const convertedPlotDetails = convertToEnglish(rawPlotDetails);
+
+    const commercialDetails = {
+      subType: "Plot/Land",
       propertyTitle,
-      images: JSON.stringify(images),
-      area: neighborhoodArea,
-      plotKind: plotKindFromParams,
-    },
-  });
-};
+      plotDetails: convertedPlotDetails,
+    };
+
+    router.push({
+      pathname: "/home/screens/UploadScreens/CommercialUpload/Components/PlotNext",
+      params: {
+        commercialDetails: JSON.stringify(commercialDetails),
+        propertyTitle,
+        images: JSON.stringify(images),
+        area: neighborhoodArea,
+        plotKind: plotKindFromParams,
+      },
+    });
+  };
 
   const handleBack = () => {
     const currentData = {
@@ -316,10 +313,10 @@ const convertedPlotDetails = convertToEnglish(rawPlotDetails);
   return (
     <View className="flex-1 bg-[#F9FAFB]">
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 120 }}>
-        
+
         {/* HEADER */}
         <View className="flex-row items-center mt-6 mb-4">
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={handleBack}
             className="p-2"
           >
@@ -331,7 +328,7 @@ const convertedPlotDetails = convertToEnglish(rawPlotDetails);
           <View className="ml-2">
             <Text className="text-[16px] font-semibold">{t('upload_property_title')}</Text>
             <Text className="text-[12px] text-[#00000066]">{t('upload_property_subtitle')}</Text>
-          </View> 
+          </View>
         </View>
 
         {/* LOCATION */}
@@ -378,10 +375,10 @@ const convertedPlotDetails = convertToEnglish(rawPlotDetails);
             {t('plot_add_area_details')}<Text className="text-red-500">*</Text>
           </Text>
           <View className="flex-row items-center h-[52px] px-3 mb-3 border rounded-[12px]"
-                style={{
-                  borderWidth: 2,
-                  borderColor: focusedField === "plotArea" ? "#22C55E" : "#E5E7EB",
-                }}>
+            style={{
+              borderWidth: 2,
+              borderColor: focusedField === "plotArea" ? "#22C55E" : "#E5E7EB",
+            }}>
             <TextInput
               placeholder={t('plot_area_placeholder')}
               value={plotArea}
@@ -430,10 +427,10 @@ const convertedPlotDetails = convertToEnglish(rawPlotDetails);
             {t('plot_road_width')}<Text className="text-red-500">*</Text>
           </Text>
           <View className="flex-row items-center h-[52px] px-3 mb-3 border rounded-[12px]"
-                style={{
-                  borderWidth: 2,
-                  borderColor: focusedField === "roadWidth" ? "#22C55E" : "#E5E7EB",
-                }}>
+            style={{
+              borderWidth: 2,
+              borderColor: focusedField === "roadWidth" ? "#22C55E" : "#E5E7EB",
+            }}>
             <TextInput
               placeholder={t('plot_road_width_placeholder')}
               value={roadWidth}
@@ -479,9 +476,97 @@ const convertedPlotDetails = convertToEnglish(rawPlotDetails);
           </View>
 
           {/* POSSESSION */}
+          {/* POSSESSION */}
           <Text className="text-[13px] font-semibold text-[#374151] mb-1">
             {t('plot_possession_by')}
           </Text>
+
+          <TouchableOpacity
+            onPress={() => setVisible(visible === "possessionBy" ? null : "possessionBy")}
+            className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 mb-3"
+          >
+            <Text className="text-gray-800 text-left">
+              {possessionBy || t('industry_expected_by')}
+            </Text>
+            <Image
+              source={require("../../../../../../assets/arrow.png")}
+              style={{ width: 20, height: 20 }}
+            />
+          </TouchableOpacity>
+
+          {visible === "possessionBy" && (
+            <View
+              className="bg-white rounded-lg shadow-lg -mt-4 mb-4"
+              style={{ borderWidth: 1, borderColor: "#0000001A" }}
+            >
+              {possessionOptions.map((item) => (
+                <TouchableOpacity
+                  key={item}
+                  onPress={() => {
+                    setPossessionBy(item);
+                    setVisible(null);
+                    if (item.includes("By")) {
+                      setShowMonthDropdown(true);
+                    } else {
+                      setShowMonthDropdown(false);
+                      setExpectedMonth("");
+                    }
+                  }}
+                  className={`p-4 border-b border-gray-200 ${possessionBy === item ? "bg-green-500" : "bg-white"
+                    }`}
+                >
+                  <Text className={`${possessionBy === item ? "text-white" : "text-gray-800"
+                    }`}>
+                    {item}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          {showMonthDropdown && (
+            <>
+              <Text className="text-[15px] text-[#00000099] font-bold mb-2">
+                {t('hospitality_expected_month')}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setVisible(visible === "expectedMonth" ? null : "expectedMonth")}
+                className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 mb-3"
+              >
+                <Text className="text-gray-800 text-left">
+                  {expectedMonth || t('hospitality_select_month')}
+                </Text>
+                <Image
+                  source={require("../../../../../../assets/arrow.png")}
+                  style={{ width: 20, height: 20 }}
+                />
+              </TouchableOpacity>
+
+              {visible === "expectedMonth" && (
+                <View
+                  className="bg-white rounded-lg shadow-lg -mt-4 mb-4"
+                  style={{ borderWidth: 1, borderColor: "#0000001A" }}
+                >
+                  {monthOptions.map((item) => (
+                    <TouchableOpacity
+                      key={item}
+                      onPress={() => {
+                        setExpectedMonth(item);
+                        setVisible(null);
+                      }}
+                      className={`p-4 border-b border-gray-200 ${expectedMonth === item ? "bg-green-500" : "bg-white"
+                        }`}
+                    >
+                      <Text className={`${expectedMonth === item ? "text-white" : "text-gray-800"
+                        }`}>
+                        {item}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </>
+          )}
           <TextInput
             placeholder={t('plot_possession_year_placeholder')}
             value={possessionYear}
@@ -510,30 +595,30 @@ const convertedPlotDetails = convertToEnglish(rawPlotDetails);
             </View>
           )}
 
-{constructionDone === "Yes" && (
-  <>
-    <Text className="text-sm font-semibold mb-2 mt-3">
-      {t('plot_construction_type')}
-    </Text>
+          {constructionDone === "Yes" && (
+            <>
+              <Text className="text-sm font-semibold mb-2 mt-3">
+                {t('plot_construction_type')}
+              </Text>
 
-    <View className="flex-row flex-wrap">
-      {[
-        t('plot_construction_shed'), 
-        t('plot_construction_room'), 
-        t('plot_construction_washroom'), 
-        t('plot_construction_other')
-      ].map(item => (
-        <PillButton
-          key={item}
-          label={item}
-          selected={constructionTypes.includes(item)}
-          onPress={() => toggleConstruction(item)}
-        />
-      ))}
-    </View>
-  </>
-)}
-          
+              <View className="flex-row flex-wrap">
+                {[
+                  t('plot_construction_shed'),
+                  t('plot_construction_room'),
+                  t('plot_construction_washroom'),
+                  t('plot_construction_other')
+                ].map(item => (
+                  <PillButton
+                    key={item}
+                    label={item}
+                    selected={constructionTypes.includes(item)}
+                    onPress={() => toggleConstruction(item)}
+                  />
+                ))}
+              </View>
+            </>
+          )}
+
         </View>
       </ScrollView>
 
