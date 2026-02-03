@@ -1,42 +1,46 @@
-
 //Frontend/app/home/screens/Commercial/(Property)/_layout.jsx
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Slot, useRouter, usePathname, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useEffect, useState } from "react"; // ✅ Add useState and useEffect
+import { useEffect, useState } from "react";
 import { fetchReviews } from "utils/reviewApi";
+
 export default function PropertyLayout() {
   const router = useRouter();
   const pathname = usePathname() ?? "";
   const params = useLocalSearchParams();
   const propertyId = params.propertyId;
   const entityType = params.entityType || 'property';
-  const areaKey = params.areaKey; // ✅ Add these two lines
+  const areaKey = params.areaKey;
+  const propertyData = params.propertyData; // ✅ ADD THIS
   const [reviewCount, setReviewCount] = useState(0);
-useEffect(() => {
-  if (propertyId && entityType) {
-    fetchReviews(entityType, propertyId).then((res) => {
-      setReviewCount(res.count || 0);
-    });
-  }
-}, [propertyId, entityType]);
+
+  useEffect(() => {
+    if (propertyId && entityType) {
+      fetchReviews(entityType, propertyId).then((res) => {
+        setReviewCount(res.count || 0);
+      });
+    }
+  }, [propertyId, entityType]);
+
   const tabs = [
     { label: "Overview", route: "/home/screens/Commercial/(Property)" },
     { label: `Reviews(${reviewCount})`, route: "/home/screens/Commercial/(Property)/Review" },
     { label: "Write Review", route: "/home/screens/Commercial/(Property)/WriteReview" },
   ];
 
-  // ✅ Tab detection logic
   const isReview = pathname.includes("/Review");
   const isWriteReview = pathname.includes("/WriteReview");
   const isOverview = !isReview && !isWriteReview;
- const handleBack = () => {
-  router.push({
-    pathname: "/home/screens/Flats/PropertyDetails",
-    params: { propertyId, entityType, areaKey } // ✅ ADD areaKey here
-  });
-};
+
+  const handleBack = () => {
+    router.push({
+      pathname: "/home/screens/Commercial/PropertyDetails",
+      params: { propertyId, entityType, areaKey }
+    });
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       {/* Header */}
@@ -49,10 +53,9 @@ useEffect(() => {
           marginBottom: 8,
         }}
       >
-      <TouchableOpacity onPress={handleBack}>
-  <Ionicons name="chevron-back-outline" size={22} color="black" />
-</TouchableOpacity>
-
+        <TouchableOpacity onPress={handleBack}>
+          <Ionicons name="chevron-back-outline" size={22} color="black" />
+        </TouchableOpacity>
 
         <Text
           style={{
@@ -85,7 +88,19 @@ useEffect(() => {
           return (
             <TouchableOpacity
               key={idx}
-              onPress={() => !isActive && router.replace(tab.route)}
+              onPress={() => {
+                if (!isActive) {
+                  router.replace({
+                    pathname: tab.route,
+                    params: {
+                      propertyId,
+                      entityType,
+                      areaKey,
+                      propertyData // ✅ ADD THIS - preserve propertyData across tabs
+                    }
+                  });
+                }
+              }}
               activeOpacity={0.7}
               style={{
                 alignItems: "center",
@@ -121,7 +136,6 @@ useEffect(() => {
       </View>
 
       {/* Page content */}
-
       <Slot />
     </SafeAreaView>
   );
