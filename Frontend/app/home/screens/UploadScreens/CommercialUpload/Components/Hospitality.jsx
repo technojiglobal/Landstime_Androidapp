@@ -61,50 +61,66 @@ export default function Hospitality() {
     const images = params.images ? JSON.parse(params.images) : [];
 
     /* ---------- VALIDATION ---------- */
-    const handleNext = () => {
-        if (!location.trim()) {
-            Toast.show({ type: "error", text1: t('hospitality_location_required') });
-            return;
-        }
-        if (!neighborhoodArea.trim()) {
-            Toast.show({ type: "error", text1: t('hospitality_area_required') });
-            return;
-        }
-        if (!plotArea.trim()) {
-            Toast.show({ type: "error", text1: t('hospitality_plot_area_required') });
-            return;
-        }
+    /* ---------- VALIDATION ---------- */
+const handleNext = () => {
+    if (!location.trim()) {
+        Toast.show({ type: "error", text1: t('hospitality_location_required') });
+        return;
+    }
+    if (!neighborhoodArea.trim()) {
+        Toast.show({ type: "error", text1: t('hospitality_area_required') });
+        return;
+    }
+    if (!plotArea.trim()) {
+        Toast.show({ type: "error", text1: t('hospitality_plot_area_required') });
+        return;
+    }
 
-        const commercialDetails = {
-            subType: "Hospitality",
-            hospitalityDetails: {
-                location,
-                neighborhoodArea: neighborhoodArea.trim(),
-                rooms,
-                washroomType,
-                balconies,
-                otherRooms,
-                furnishingType,
-                furnishingDetails,
-                area: { value: Number(plotArea), unit },
-                areaUnit: unit,
-                availability,
-                ageOfProperty,
-                possessionBy,
-                expectedMonth,
-            },
-        };
+    // ✅ CRITICAL FIX - Extract hospitalityType from params
+    let hospitalityType = params.hospitalityType;
+    
+    if (params.commercialBaseDetails) {
+        try {
+            const baseDetails = JSON.parse(params.commercialBaseDetails);
+            hospitalityType = baseDetails.hospitalityType || hospitalityType;
+        } catch (e) {
+            console.log('⚠️ Could not parse commercialBaseDetails:', e);
+        }
+    }
 
-        router.push({
-            pathname: "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityNext",
-            params: {
-                commercialDetails: JSON.stringify(commercialDetails),
-                images: JSON.stringify(images),
-                area: neighborhoodArea.trim(),
-            },
-        });
+    console.log('🔄 Hospitality handleNext - hospitalityType:', hospitalityType); // ✅ Debug log
+
+    const commercialDetails = {
+        subType: "Hospitality",
+        hospitalityDetails: {
+            hospitalityType: hospitalityType, // ✅ CRITICAL - Add this line
+            location,
+            neighborhoodArea: neighborhoodArea.trim(),
+            rooms,
+            washroomType,
+            balconies,
+            otherRooms,
+            furnishingType,
+            furnishingDetails,
+            area: { value: Number(plotArea), unit },
+            areaUnit: unit,
+            availability,
+            ageOfProperty,
+            possessionBy,
+            expectedMonth,
+        },
     };
 
+    router.push({
+        pathname: "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityNext",
+        params: {
+            commercialDetails: JSON.stringify(commercialDetails),
+            images: JSON.stringify(images),
+            area: neighborhoodArea.trim(),
+            hospitalityType: hospitalityType, // ✅ Pass it forward
+        },
+    });
+};
     const [focusedField, setFocusedField] = useState(null);
     const [visible, setVisible] = useState(null);
 
@@ -119,7 +135,7 @@ export default function Hospitality() {
     const [balconies, setBalconies] = useState(null);
     const [otherRooms, setOtherRooms] = useState([]);
     const [modalOpen, setModalOpen] = useState(false);
-    const [furnishingType, setFurnishingType] = useState("Unfurnished");
+    const [furnishingType, setFurnishingType] = useState("");
     const [furnishingDetails, setFurnishingDetails] = useState([]);
     const [modalSubtitle, setModalSubtitle] = useState("");
     const [availability, setAvailability] = useState(null);
@@ -127,7 +143,7 @@ export default function Hospitality() {
     const [possessionBy, setPossessionBy] = useState("");
     const [expectedMonth, setExpectedMonth] = useState("");
     const [showMonthDropdown, setShowMonthDropdown] = useState(false);
-
+    const [hospitalityType, setHospitalityType] = useState("");
     // ✅ Load draft from AsyncStorage on mount
     useEffect(() => {
         const loadDraft = async () => {
@@ -152,7 +168,7 @@ export default function Hospitality() {
                     setAgeOfProperty(savedData.ageOfProperty || null);
                     setPossessionBy(savedData.possessionBy || '');
                     setExpectedMonth(savedData.expectedMonth || '');
-
+                    setHospitalityType(savedData.hospitalityType || params.hospitalityType || '');
                     console.log('✅ Hospitality draft loaded from AsyncStorage');
                     return;
                 }
@@ -295,7 +311,7 @@ export default function Hospitality() {
     }
 
     // ✅ IMPORTANT - Log to verify hospitalityType is being passed
-    console.log('🔙 Going back with hospitalityType:', hospitalityType);
+   // console.log('🔙 Going back with hospitalityType:', hospitalityType);
 
     router.push({
       pathname: "/home/screens/UploadScreens/CommercialUpload",
@@ -597,7 +613,8 @@ export default function Hospitality() {
             {/* FOOTER */}
             <View className="bg-white border-t border-gray-200">
                 <View className="flex-row justify-end mt-4 mx-3 mb-12">
-                    <TouchableOpacity className="px-8 py-3 rounded-lg bg-gray-200 mx-3">
+                    <TouchableOpacity className="px-8 py-3 rounded-lg bg-gray-200 mx-3"
+                        onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload")}>
                         <Text className="font-semibold">{t('button_cancel')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
