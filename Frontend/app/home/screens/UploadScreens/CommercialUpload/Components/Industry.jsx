@@ -18,7 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import Toast from 'react-native-toast-message';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useTranslation } from 'react-i18next'; // ✅ ADD THIS
+import { useTranslation } from 'react-i18next';
 
 const PillButton = ({ label, selected, onPress }) => (
   <TouchableOpacity
@@ -74,7 +74,7 @@ const RoundOption = ({ label, selected, onPress }) => (
 export default function PropertyFormScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { t } = useTranslation(); // ✅ ADD THIS
+  const { t } = useTranslation();
 
   const safeParse = (raw) => {
     if (!raw) return null;
@@ -113,6 +113,8 @@ export default function PropertyFormScreen() {
   const [availability, setAvailability] = useState(null);
   const [ageOfProperty, setAgeOfProperty] = useState(null);
   const [possessionBy, setPossessionBy] = useState("");
+  const [expectedMonth, setExpectedMonth] = useState("");
+  const [showMonthDropdown, setShowMonthDropdown] = useState(false);
 
   // ✅ Load draft from AsyncStorage on mount
   useEffect(() => {
@@ -134,7 +136,7 @@ export default function PropertyFormScreen() {
           setAvailability(parsed.availability || null);
           setAgeOfProperty(parsed.ageOfProperty || null);
           setPossessionBy(parsed.possessionBy || '');
-
+          setExpectedMonth(parsed.expectedMonth || '');
           console.log('✅ Industry draft loaded successfully');
           return;
         }
@@ -158,6 +160,7 @@ export default function PropertyFormScreen() {
           setAvailability(prevData.availability || null);
           setAgeOfProperty(prevData.ageOfProperty || null);
           setPossessionBy(prevData.possessionBy || '');
+          setExpectedMonth(prevData.expectedMonth || '');
         } catch (e) {
           console.log('❌ Could not restore industry data:', e);
         }
@@ -187,6 +190,7 @@ export default function PropertyFormScreen() {
         availability,
         ageOfProperty,
         possessionBy,
+        expectedMonth,
         industryKind: baseDetails?.industryKind || params.industryKind,
         timestamp: new Date().toISOString(),
       };
@@ -202,7 +206,7 @@ export default function PropertyFormScreen() {
     const timer = setTimeout(saveDraft, 1000);
     return () => clearTimeout(timer);
   }, [location, neighborhoodArea, plotArea, unit, length, breadth, washroomType, 
-      availability, ageOfProperty, possessionBy, baseDetails?.industryKind, params.industryKind]);
+      availability, ageOfProperty, possessionBy, expectedMonth, baseDetails?.industryKind, params.industryKind]);
 
   const handleNext = () => {
     if (!location.trim()) {
@@ -248,6 +252,7 @@ export default function PropertyFormScreen() {
         availability,
         ageOfProperty,
         possessionBy,
+        expectedMonth,
       },
     };
 
@@ -273,6 +278,7 @@ export default function PropertyFormScreen() {
       availability,
       ageOfProperty,
       possessionBy,
+      expectedMonth,
     };
 
     router.push({
@@ -299,6 +305,21 @@ export default function PropertyFormScreen() {
     t('industry_possession_2028'),
     t('industry_possession_2029'),
     t('industry_possession_2030'),
+  ];
+
+  const monthOptions = [
+    t('hospitality_month_january'),
+    t('hospitality_month_february'),
+    t('hospitality_month_march'),
+    t('hospitality_month_april'),
+    t('hospitality_month_may'),
+    t('hospitality_month_june'),
+    t('hospitality_month_july'),
+    t('hospitality_month_august'),
+    t('hospitality_month_september'),
+    t('hospitality_month_october'),
+    t('hospitality_month_november'),
+    t('hospitality_month_december'),
   ];
 
   return (
@@ -505,54 +526,99 @@ export default function PropertyFormScreen() {
 
           {availability === "UnderConstruction" && (
             <>
-              <View>
-                <Text className="font-semibold text-gray-500 mb-2">
-                  {t('industry_possession_by')}
+              <TouchableOpacity
+                onPress={() => setVisible(visible === "possessionBy" ? null : "possessionBy")}
+                className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 mb-3"
+              >
+                <Text className="text-gray-800 text-left">
+                  {possessionBy || t('industry_expected_by')}
                 </Text>
-                <TouchableOpacity
-                  className="flex-row justify-between items-center border border-gray-300 rounded-lg p-3 bg-[#F9FAFB]"
-                  onPress={() => setVisible("possession")}
+                <Image 
+                  source={require("../../../../../../assets/arrow.png")} 
+                  style={{ width: 20, height: 20 }} 
+                />
+              </TouchableOpacity>
+
+              {visible === "possessionBy" && (
+                <View 
+                  className="bg-white rounded-lg shadow-lg -mt-4 mb-4" 
+                  style={{ borderWidth: 1, borderColor: "#0000001A" }}
                 >
-                  <Text className="text-base text-gray-700">
-                    {possessionBy || t('industry_expected_by')}
+                  {possessionOptions.map((item) => (
+                    <TouchableOpacity
+                      key={item}
+                      onPress={() => {
+                        setPossessionBy(item);
+                        setVisible(null);
+                        if (item.includes("By")) {
+                          setShowMonthDropdown(true);
+                        } else {
+                          setShowMonthDropdown(false);
+                          setExpectedMonth("");
+                        }
+                      }}
+                      className={`p-4 border-b border-gray-200 ${
+                        possessionBy === item ? "bg-green-500" : "bg-white"
+                      }`}
+                    >
+                      <Text className={`${
+                        possessionBy === item ? "text-white" : "text-gray-800"
+                      }`}>
+                        {item}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+
+              {showMonthDropdown && (
+                <>
+                  <Text className="text-[15px] text-[#00000099] font-bold mb-2">
+                    {t('hospitality_expected_month')}
                   </Text>
-                  <Ionicons name="chevron-down" size={20} color="#666" />
-                </TouchableOpacity>
-                
-                <Modal visible={visible === "possession"} transparent animationType="slide">
                   <TouchableOpacity
-                    activeOpacity={1}
-                    onPressOut={() => setVisible(null)}
-                    className="flex-1 justify-center items-center bg-black/40"
+                    onPress={() => setVisible(visible === "expectedMonth" ? null : "expectedMonth")}
+                    className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 mb-3"
                   >
-                    <View className="w-[90%] max-h-[50%] bg-white rounded-xl p-2 shadow-md">
-                      <FlatList
-                        data={possessionOptions}
-                        keyExtractor={(item) => item}
-                        renderItem={({ item }) => (
-                          <TouchableOpacity
-                            className={`p-3 border-b border-gray-200 ${
-                              possessionBy === item ? "bg-[#22C55E]" : ""
-                            }`}
-                            onPress={() => {
-                              setPossessionBy(item);
-                              setVisible(null);
-                            }}
-                          >
-                            <Text className={`text-base ${
-                              possessionBy === item ? "text-white font-medium" : "text-gray-700"
-                            }`}>
-                              {item}
-                            </Text>
-                          </TouchableOpacity>
-                        )}
-                      />
-                    </View>
+                    <Text className="text-gray-800 text-left">
+                      {expectedMonth || t('hospitality_select_month')}
+                    </Text>
+                    <Image 
+                      source={require("../../../../../../assets/arrow.png")} 
+                      style={{ width: 20, height: 20 }} 
+                    />
                   </TouchableOpacity>
-                </Modal>
-              </View>
+
+                  {visible === "expectedMonth" && (
+                    <View 
+                      className="bg-white rounded-lg shadow-lg -mt-4 mb-4" 
+                      style={{ borderWidth: 1, borderColor: "#0000001A" }}
+                    >
+                      {monthOptions.map((item) => (
+                        <TouchableOpacity
+                          key={item}
+                          onPress={() => {
+                            setExpectedMonth(item);
+                            setVisible(null);
+                          }}
+                          className={`p-4 border-b border-gray-200 ${
+                            expectedMonth === item ? "bg-green-500" : "bg-white"
+                          }`}
+                        >
+                          <Text className={`${
+                            expectedMonth === item ? "text-white" : "text-gray-800"
+                          }`}>
+                            {item}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                </>
+              )}
             </>
           )}
+          
         </View>
       </ScrollView>
 

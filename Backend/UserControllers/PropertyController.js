@@ -1,3 +1,4 @@
+// Backend/UserControllers/PropertyController.js
 import Property from '../UserModels/Property.js';
 import User from '../UserModels/User.js';
 import { translatePropertyFields, normalizeAreaKey } from '../services/translationService.js';
@@ -209,7 +210,7 @@ console.log('📄 Files received:', {
   ownershipDocs: req.files?.ownershipDocs?.length || 0,
   identityDocs: req.files?.identityDocs?.length || 0
 });
-    // Convert uploaded files to base64
+    
      const images = req.files?.images?.map(file => 
       `/uploads/properties/images/${file.filename}`
     ) || [];

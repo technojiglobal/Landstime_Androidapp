@@ -4,16 +4,26 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Slot, useRouter, usePathname, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import { useEffect, useState } from "react"; // ✅ Add useState and useEffect
+import { fetchReviews } from "utils/reviewApi";
 export default function PropertyLayout() {
   const router = useRouter();
   const pathname = usePathname() ?? "";
   const params = useLocalSearchParams();
   const propertyId = params.propertyId;
-  const entityType = params.entityType || 'property'; // ✅ Add these two lines
+  const entityType = params.entityType || 'property';
+  const areaKey = params.areaKey; // ✅ Add these two lines
+  const [reviewCount, setReviewCount] = useState(0);
+useEffect(() => {
+  if (propertyId && entityType) {
+    fetchReviews(entityType, propertyId).then((res) => {
+      setReviewCount(res.count || 0);
+    });
+  }
+}, [propertyId, entityType]);
   const tabs = [
     { label: "Overview", route: "/home/screens/Commercial/(Property)" },
-    { label: "Reviews(27)", route: "/home/screens/Commercial/(Property)/Review" },
+    { label: `Reviews(${reviewCount})`, route: "/home/screens/Commercial/(Property)/Review" },
     { label: "Write Review", route: "/home/screens/Commercial/(Property)/WriteReview" },
   ];
 
@@ -21,13 +31,12 @@ export default function PropertyLayout() {
   const isReview = pathname.includes("/Review");
   const isWriteReview = pathname.includes("/WriteReview");
   const isOverview = !isReview && !isWriteReview;
-  const handleBack = () => {
-    if (isReview || isWriteReview) {
-      router.replace("/home/screens/Commercial/(Property)");
-    } else {
-      router.back();
-    }
-  };
+ const handleBack = () => {
+  router.push({
+    pathname: "/home/screens/Flats/PropertyDetails",
+    params: { propertyId, entityType, areaKey } // ✅ ADD areaKey here
+  });
+};
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       {/* Header */}

@@ -1,5 +1,3 @@
-
-
 // Landstime_Androidapp/Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen.jsx
 
 import React, { useState, useMemo, useEffect } from "react";
@@ -11,6 +9,7 @@ import DocumentUpload from "components/Documentupload";
 import ImageUpload from "components/ImageUpload";
 import OwnerDetails from "components/OwnersDetails";
 import { createProperty } from "utils/propertyApi";
+import Toast from 'react-native-toast-message';
 
 export default function OwnerScreen() {
   const router = useRouter();
@@ -24,38 +23,44 @@ export default function OwnerScreen() {
     return currentLang;
   };
 
-const handleBack = () => {
-  if (!commercialDetails) {
-    router.back();
-    return;
-  }
+  const handleBack = () => {
+    if (!commercialDetails) {
+      router.back();
+      return;
+    }
 
-  const subType = commercialDetails.subType;
-  let pathname = "/home/screens/UploadScreens/CommercialUpload/Components/OfficeVaastu";
-  let propertyTitle = commercialDetails.officeDetails?.propertyTitle || params.propertyTitle;
+    const subType = commercialDetails.subType;
+    let pathname = "/home/screens/UploadScreens/CommercialUpload/Components/OfficeVaastu";
+    let propertyTitle = commercialDetails.officeDetails?.propertyTitle || params.propertyTitle;
 
-  if (subType === "Retail") {
-    pathname = "/home/screens/UploadScreens/CommercialUpload/Components/RetailVaastu";
-    propertyTitle = commercialDetails.retailDetails?.propertyTitle || params.propertyTitle;
-  } else if (subType === "Plot/Land") {
-    pathname = "/home/screens/UploadScreens/CommercialUpload/Components/PlotVaastu";
-    propertyTitle = commercialDetails.plotDetails?.propertyTitle || params.propertyTitle;
-  } else if (subType === "Industry") { // ✅ ADD THIS
-    pathname = "/home/screens/UploadScreens/CommercialUpload/Components/IndustryVaastu";
-    propertyTitle = commercialDetails.industryDetails?.propertyTitle || params.propertyTitle;
-  }
+    if (subType === "Retail") {
+      pathname = "/home/screens/UploadScreens/CommercialUpload/Components/RetailVaastu";
+      propertyTitle = commercialDetails.retailDetails?.propertyTitle || params.propertyTitle;
+    } else if (subType === "Plot/Land") {
+      pathname = "/home/screens/UploadScreens/CommercialUpload/Components/PlotVaastu";
+      propertyTitle = commercialDetails.plotDetails?.propertyTitle || params.propertyTitle;
+    } else if (subType === "Industry") {
+      pathname = "/home/screens/UploadScreens/CommercialUpload/Components/IndustryVaastu";
+      propertyTitle = commercialDetails.industryDetails?.propertyTitle || params.propertyTitle;
+    } else if (subType === "Hospitality") {
+      pathname = "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityVaastu";
+      propertyTitle = commercialDetails.hospitalityDetails?.propertyTitle || params.propertyTitle;
+    } else if (subType === "Storage") {
+      pathname = "/home/screens/UploadScreens/CommercialUpload/Components/StorageVaastu";
+      propertyTitle = commercialDetails.storageDetails?.propertyTitle || params.propertyTitle;
+    }
 
-  router.push({
-    pathname,
-    params: {
-      commercialDetails: JSON.stringify(commercialDetails),
-      images: JSON.stringify(propertyImages),
-      area: params.area,
-      propertyTitle,
-      commercialBaseDetails: params.commercialBaseDetails,
-    },
-  });
-};
+    router.push({
+      pathname,
+      params: {
+        commercialDetails: JSON.stringify(commercialDetails),
+        images: JSON.stringify(propertyImages),
+        area: params.area,
+        propertyTitle,
+        commercialBaseDetails: params.commercialBaseDetails,
+      },
+    });
+  };
 
   const commercialDetails = useMemo(() => {
     if (!rawCommercialDetails) return null;
@@ -74,9 +79,7 @@ const handleBack = () => {
     return null;
   }, [rawCommercialDetails]);
 
-
-
-    const [propertyImages, setPropertyImages] = useState([]);
+  const [propertyImages, setPropertyImages] = useState([]);
   const [ownershipDocs, setOwnershipDocs] = useState([]);
   const [identityDocs, setIdentityDocs] = useState([]);
   const [ownerName, setOwnerName] = useState("");
@@ -85,33 +88,94 @@ const handleBack = () => {
   const [email, setEmail] = useState("");
   const [focusedField, setFocusedField] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // ✅ Load images from params
-// ✅ Load draft and images on mount
+
+  // ✅ Clear draft when subtype changes
+  // ✅ FIXED - Clear draft when subtype changes (with prevention flag)
+useEffect(() => {
+  let isClearing = false; // Prevent multiple clears
+
+  const clearDraftIfSubtypeChanged = async () => {
+    if (isClearing) return;
+    
+    try {
+      const draft = await AsyncStorage.getItem('draft_owner_screen');
+      if (draft) {
+        const parsed = JSON.parse(draft);
+        const currentSubType = commercialDetails?.subType;
+        
+        // If subtype changed, clear the draft
+        if (parsed.subType && parsed.subType !== currentSubType) {
+          isClearing = true;
+          
+          await AsyncStorage.removeItem('draft_owner_screen');
+          console.log('🧹 Cleared OwnerScreen draft due to subtype change:', {
+            oldSubType: parsed.subType,
+            newSubType: currentSubType
+          });
+          
+          // Reset all fields ONLY if they match the old draft
+          // This prevents clearing user's new inputs
+          if (ownerName === parsed.ownerName) setOwnerName("");
+          if (phone === parsed.phone) setPhone("");
+          if (email === parsed.email) setEmail("");
+          
+          // Don't clear files if user already uploaded new ones
+          if (propertyImages.length === parsed.propertyImages?.length) {
+            setPropertyImages([]);
+          }
+          if (ownershipDocs.length === parsed.ownershipDocs?.length) {
+            setOwnershipDocs([]);
+          }
+          if (identityDocs.length === parsed.identityDocs?.length) {
+            setIdentityDocs([]);
+          }
+        }
+      }
+    } catch (e) {
+      console.log('⚠️ Failed to check draft subtype:', e);
+    }
+  };
+
+  if (commercialDetails?.subType) {
+    clearDraftIfSubtypeChanged();
+  }
+}, [commercialDetails?.subType]); // ✅ ONLY depend on subType
+
+// ✅ FIXED - Load draft on mount ONCE
 useEffect(() => {
   const loadDraft = async () => {
     try {
-      // PRIORITY 1: Load from AsyncStorage draft
       const draft = await AsyncStorage.getItem('draft_owner_screen');
       if (draft) {
         const parsed = JSON.parse(draft);
         console.log('📦 Loading OwnerScreen draft from AsyncStorage');
         
-        if (parsed.propertyImages) setPropertyImages(parsed.propertyImages);
-        if (parsed.ownershipDocs) setOwnershipDocs(parsed.ownershipDocs);
-        if (parsed.identityDocs) setIdentityDocs(parsed.identityDocs);
-        if (parsed.ownerName) setOwnerName(parsed.ownerName);
-        if (parsed.phone) setPhone(parsed.phone);
-        if (parsed.email) setEmail(parsed.email);
-        
-        console.log('✅ OwnerScreen draft loaded successfully');
-        return; // Exit early if draft found
+        // Only load if subtype matches AND fields are empty
+        if (parsed.subType === commercialDetails?.subType) {
+          if (!ownerName && parsed.ownerName) setOwnerName(parsed.ownerName);
+          if (!phone && parsed.phone) setPhone(parsed.phone);
+          if (!email && parsed.email) setEmail(parsed.email);
+          
+          if (propertyImages.length === 0 && parsed.propertyImages?.length > 0) {
+            setPropertyImages(parsed.propertyImages);
+          }
+          if (ownershipDocs.length === 0 && parsed.ownershipDocs?.length > 0) {
+            setOwnershipDocs(parsed.ownershipDocs);
+          }
+          if (identityDocs.length === 0 && parsed.identityDocs?.length > 0) {
+            setIdentityDocs(parsed.identityDocs);
+          }
+          
+          console.log('✅ OwnerScreen draft loaded successfully');
+          return;
+        }
       }
     } catch (e) {
       console.log('⚠️ Failed to load OwnerScreen draft:', e);
     }
 
     // FALLBACK: Load images from params if no draft
-    if (params.images) {
+    if (params.images && propertyImages.length === 0) {
       try {
         const parsedImages = typeof params.images === 'string' 
           ? JSON.parse(params.images) 
@@ -128,14 +192,19 @@ useEffect(() => {
   };
 
   loadDraft();
-}, [params.images]);
+}, []); // ✅ EMPTY DEPS - Load only once on mount
 
-// ✅ NEW - Auto-save OwnerScreen draft
+// ✅ FIXED - Auto-save with debounce (prevents rapid saves)
 useEffect(() => {
-  const saveDraft = async () => {
-    // Only save if we have meaningful data
-    if (!ownerName && !phone && !email && propertyImages.length === 0) return;
+  // Don't save empty state
+  if (!ownerName && !phone && !email && 
+      propertyImages.length === 0 && 
+      ownershipDocs.length === 0 && 
+      identityDocs.length === 0) {
+    return;
+  }
 
+  const saveDraft = async () => {
     const ownerDraft = {
       propertyImages,
       ownershipDocs,
@@ -143,22 +212,50 @@ useEffect(() => {
       ownerName,
       phone,
       email,
+      subType: commercialDetails?.subType,
       timestamp: new Date().toISOString(),
     };
 
     try {
       await AsyncStorage.setItem('draft_owner_screen', JSON.stringify(ownerDraft));
-      console.log('💾 OwnerScreen draft auto-saved');
+      console.log('💾 OwnerScreen draft auto-saved for subType:', commercialDetails?.subType);
     } catch (e) {
       console.log('⚠️ Failed to save OwnerScreen draft:', e);
     }
   };
 
-  const timer = setTimeout(saveDraft, 1000);
+  // ✅ Debounce - only save after 2 seconds of inactivity
+  const timer = setTimeout(saveDraft, 2000);
   return () => clearTimeout(timer);
-}, [propertyImages, ownershipDocs, identityDocs, ownerName, phone, email]);
+}, [propertyImages, ownershipDocs, identityDocs, ownerName, phone, email, commercialDetails?.subType]);
+  // ✅ Auto-save OwnerScreen draft
+  useEffect(() => {
+    const saveDraft = async () => {
+      // Only save if we have meaningful data
+      if (!ownerName && !phone && !email && propertyImages.length === 0) return;
 
+      const ownerDraft = {
+        propertyImages,
+        ownershipDocs,
+        identityDocs,
+        ownerName,
+        phone,
+        email,
+        subType: commercialDetails?.subType, // ✅ Store subType for validation
+        timestamp: new Date().toISOString(),
+      };
 
+      try {
+        await AsyncStorage.setItem('draft_owner_screen', JSON.stringify(ownerDraft));
+        console.log('💾 OwnerScreen draft auto-saved for subType:', commercialDetails?.subType);
+      } catch (e) {
+        console.log('⚠️ Failed to save OwnerScreen draft:', e);
+      }
+    };
+
+    const timer = setTimeout(saveDraft, 1000);
+    return () => clearTimeout(timer);
+  }, [propertyImages, ownershipDocs, identityDocs, ownerName, phone, email, commercialDetails?.subType]);
 
   const validatePhone = (text) => {
     const cleaned = text.replace(/\D/g, '');
@@ -176,24 +273,25 @@ useEffect(() => {
   };
 
   const handleSubmit = async () => {
+    // ✅ Enhanced validation with detailed messages
     if (propertyImages.length === 0) {
-      Alert.alert("Error", "Please upload at least one property image.");
+      Alert.alert("Missing Images", "Please upload at least one property image to continue.");
       return;
     }
     if (ownershipDocs.length === 0) {
-      Alert.alert("Error", "Please upload property ownership documents.");
+      Alert.alert("Missing Documents", "Please upload property ownership documents (Sale deed, Conveyance, etc.).");
       return;
     }
     if (identityDocs.length === 0) {
-      Alert.alert("Error", "Please upload owner identity documents.");
+      Alert.alert("Missing Documents", "Please upload owner identity documents (PAN, Aadhaar, Passport, or Driver's License).");
       return;
     }
     if (!ownerName.trim()) {
-      Alert.alert("Error", "Please enter owner name.");
+      Alert.alert("Missing Information", "Please enter the property owner's name.");
       return;
     }
     if (!phone.trim()) {
-      Alert.alert("Error", "Please enter phone number.");
+      Alert.alert("Missing Information", "Please enter the owner's phone number.");
       return;
     }
     const phoneDigits = phone.replace(/\D/g, '');
@@ -206,32 +304,45 @@ useEffect(() => {
       return;
     }
     if (!email.trim()) {
-      Alert.alert("Error", "Please enter email address.");
+      Alert.alert("Missing Information", "Please enter the owner's email address.");
       return;
     }
+    
+    // ✅ Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      Alert.alert("Invalid Email", "Please enter a valid email address.");
+      return;
+    }
+    
     if (!commercialDetails) {
-      Alert.alert("Error", "Property details missing. Please restart.");
+      Alert.alert("Error", "Property details missing. Please go back and fill all required information.");
       return;
     }
 
     const restOfCommercialDetails = commercialDetails || {};
 
-   const getExpectedPrice = () => {
-  if (restOfCommercialDetails.officeDetails?.expectedPrice) {
-    return restOfCommercialDetails.officeDetails.expectedPrice;
-  }
-  // ✅ FIXED - Retail expectedPrice is at top level, not in pricing object
-  if (restOfCommercialDetails.retailDetails?.expectedPrice) {
-    return restOfCommercialDetails.retailDetails.expectedPrice;
-  }
-  if (restOfCommercialDetails.industryDetails?.pricing?.expectedPrice) {
-    return restOfCommercialDetails.industryDetails.pricing.expectedPrice;
-  }
-  if (restOfCommercialDetails.hospitalityDetails?.pricing?.expectedPrice) {
-    return restOfCommercialDetails.hospitalityDetails.pricing.expectedPrice;
-  }
-  return commercialDetails.expectedPrice || 0;
-};
+    const getExpectedPrice = () => {
+      if (restOfCommercialDetails.officeDetails?.expectedPrice) {
+        return restOfCommercialDetails.officeDetails.expectedPrice;
+      }
+      if (restOfCommercialDetails.retailDetails?.expectedPrice) {
+        return restOfCommercialDetails.retailDetails.expectedPrice;
+      }
+      if (restOfCommercialDetails.industryDetails?.pricing?.expectedPrice) {
+        return restOfCommercialDetails.industryDetails.pricing.expectedPrice;
+      }
+      if (restOfCommercialDetails.hospitalityDetails?.pricing?.expectedPrice) {
+        return restOfCommercialDetails.hospitalityDetails.pricing.expectedPrice;
+      }
+      if (restOfCommercialDetails.storageDetails?.pricing?.expectedPrice) {
+        return restOfCommercialDetails.storageDetails.pricing.expectedPrice;
+      }
+      if (restOfCommercialDetails.plotDetails?.pricing?.expectedPrice) {
+        return restOfCommercialDetails.plotDetails.pricing.expectedPrice;
+      }
+      return commercialDetails.expectedPrice || 0;
+    };
 
     const getLocation = () => {
       return restOfCommercialDetails.officeDetails?.location ||
@@ -243,14 +354,17 @@ useEffect(() => {
         '';
     };
 
-   const getNeighborhoodArea = () => {
-  return params.area ||
-    restOfCommercialDetails.officeDetails?.neighborhoodArea ||
-    restOfCommercialDetails.retailDetails?.neighborhoodArea || // ✅ ADD THIS
-    restOfCommercialDetails.hospitalityDetails?.neighborhoodArea ||
-    restOfCommercialDetails.area ||
-    '';
-};
+    const getNeighborhoodArea = () => {
+      return params.area ||
+        restOfCommercialDetails.officeDetails?.neighborhoodArea ||
+        restOfCommercialDetails.retailDetails?.neighborhoodArea ||
+        restOfCommercialDetails.hospitalityDetails?.neighborhoodArea ||
+        restOfCommercialDetails.industryDetails?.neighborhoodArea ||
+        restOfCommercialDetails.storageDetails?.neighborhoodArea ||
+        restOfCommercialDetails.plotDetails?.neighborhoodArea ||
+        restOfCommercialDetails.area ||
+        '';
+    };
 
     const getDescription = () => {
       return restOfCommercialDetails.officeDetails?.description ||
@@ -278,60 +392,69 @@ useEffect(() => {
       },
     };
 
+    console.log('📤 Submitting property data:', {
+      propertyType: propertyData.propertyType,
+      subType: propertyData.commercialDetails?.subType,
+      hasLocation: !!propertyData.location,
+      hasArea: !!propertyData.area,
+      expectedPrice: propertyData.expectedPrice,
+    });
+
     setIsSubmitting(true);
 
     try {
       const imageUris = propertyImages.map(img => img.uri);
       const result = await createProperty(propertyData, imageUris, ownershipDocs, identityDocs);
+      
       if (!result.success) {
         throw new Error(result.error || result.data?.message || "Upload failed");
       }
 
- try {
-  await AsyncStorage.multiRemove([
-    // Office drafts
-    'draft_commercial_office',
-    'draft_office_details',
-    'draft_office_pricing',
-    'draft_office_vaastu',
-    
-    // Retail drafts
-    'draft_commercial_retail',
-    'draft_retail_details',
-    'draft_retail_pricing',
-    'draft_retail_vaastu',
-    
-    // Hospitality drafts
-    'draft_commercial_hospitality',
-    'draft_hospitality_details',
-    'draft_hospitality_pricing',
-    'draft_hospitality_vaastu',
+      // ✅ Clear all drafts on successful upload
+      try {
+        await AsyncStorage.multiRemove([
+          // Office drafts
+          'draft_commercial_office',
+          'draft_office_details',
+          'draft_office_pricing',
+          'draft_office_vaastu',
+          
+          // Retail drafts
+          'draft_commercial_retail',
+          'draft_retail_details',
+          'draft_retail_pricing',
+          'draft_retail_vaastu',
+          
+          // Hospitality drafts
+          'draft_commercial_hospitality',
+          'draft_hospitality_details',
+          'draft_hospitality_pricing',
+          'draft_hospitality_vaastu',
 
-    // Plot drafts
-    'draft_commercial_plot',
-    'draft_plot_pricing',
-    'draft_plot_vaastu',
+          // Plot drafts
+          'draft_commercial_plot',
+          'draft_plot_pricing',
+          'draft_plot_vaastu',
 
-    // Storage drafts
-    'draft_commercial_storage',
-    'draft_storage_details',
-    'draft_storage_pricing',
-    'draft_storage_vaastu',
+          // Storage drafts
+          'draft_commercial_storage',
+          'draft_storage_details',
+          'draft_storage_pricing',
+          'draft_storage_vaastu',
 
-    // Industry drafts
-    'draft_commercial_industry',
-    'draft_industry_details',
-    'draft_industry_pricing',
-    'draft_industry_vaastu',
+          // Industry drafts
+          'draft_commercial_industry',
+          'draft_industry_details',
+          'draft_industry_pricing',
+          'draft_industry_vaastu',
 
-    // ✅ NEW - Owner screen draft
-    'draft_owner_screen',
-  ]);
-  console.log('🧹 All drafts cleared including OwnerScreen');
-} catch (e) {
-  console.log('⚠️ Failed to clear drafts:', e);
-}
-
+          // Owner screen draft
+          'draft_owner_screen',
+        ]);
+        console.log('🧹 All drafts cleared including OwnerScreen');
+      } catch (e) {
+        console.log('⚠️ Failed to clear drafts:', e);
+      }
 
       Alert.alert("Success", "Property uploaded successfully!", [
         {
@@ -340,8 +463,54 @@ useEffect(() => {
         },
       ]);
     } catch (error) {
-      console.error(error);
-      Alert.alert("Error", error.message || "Failed to upload property");
+      console.error('❌ Upload error:', error);
+      
+      // ✅ Extract detailed validation errors
+      let errorTitle = "Upload Failed";
+      let errorMessage = 'Failed to upload property. Please check all fields and try again.';
+      
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        console.log('📋 Error response:', errorData);
+        
+        // Check for validation errors array
+        if (errorData.errors && Array.isArray(errorData.errors)) {
+          errorTitle = errorData.message || "Validation Error";
+          errorMessage = errorData.errors.join('\n\n');
+        } 
+        // Check for validation object (Mongoose errors)
+        else if (errorData.error?.validation && Array.isArray(errorData.error.validation)) {
+          errorTitle = "Validation Error";
+          errorMessage = errorData.error.validation.join('\n\n');
+        }
+        // Check for single error message
+        else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+        // Check for nested error message
+        else if (errorData.error?.message) {
+          errorMessage = errorData.error.message;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      // Show detailed error
+      Alert.alert(errorTitle, errorMessage, [
+        {
+          text: "OK",
+          style: "cancel"
+        }
+      ]);
+      
+      // Also show toast for quick feedback
+      Toast.show({
+        type: 'error',
+        text1: errorTitle,
+        text2: errorMessage.split('\n')[0], // Show first error in toast
+        visibilityTime: 5000,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -359,36 +528,66 @@ useEffect(() => {
         </View>
       </View>
 
-      {/* ✅ TEMPORARY - CLEAR BAD TOKEN BUTTON */}
-      <TouchableOpacity 
-        onPress={async () => {
-          await AsyncStorage.removeItem('userToken');
-          Alert.alert('Success', 'Token cleared. Please login again.');
-          router.replace('/auth/LoginScreen');
-        }}
-        style={{ padding: 15, backgroundColor: '#FF6B6B', margin: 10, borderRadius: 8 }}
-      >
-        <Text style={{ color: 'white', textAlign: 'center', fontWeight: 'bold' }}>
-          🔧 Clear Token & Re-login
-        </Text>
-      </TouchableOpacity>
-
-
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 36 }} showsVerticalScrollIndicator={false}>
         <View className="px-4 mt-4 border border-gray-200 rounded-lg bg-white space-y-4">
-          <ImageUpload title="Property Images" subtitle="Upload at least one image of your property." files={propertyImages} setFiles={setPropertyImages} required />
-          <DocumentUpload title="Property Ownership" subtitle="Verify ownership to publish your property listing securely." files={ownershipDocs} setFiles={setOwnershipDocs} required />
-          <DocumentUpload title="Owner Identity" subtitle="Upload PAN, Aadhaar, Passport or Driver's License" files={identityDocs} setFiles={setIdentityDocs} required />
-          <OwnerDetails ownerName={ownerName} setOwnerName={setOwnerName} phone={phone} setPhone={validatePhone} phoneError={phoneError} email={email} setEmail={setEmail} focusedField={focusedField} setFocusedField={setFocusedField} />
+          <ImageUpload 
+            title="Property Images" 
+            subtitle="Upload at least one image of your property." 
+            files={propertyImages} 
+            setFiles={setPropertyImages} 
+            required 
+          />
+          <DocumentUpload 
+            title="Property Ownership" 
+            subtitle="Verify ownership to publish your property listing securely." 
+            files={ownershipDocs} 
+            setFiles={setOwnershipDocs} 
+            required 
+          />
+          <DocumentUpload 
+            title="Owner Identity" 
+            subtitle="Upload PAN, Aadhaar, Passport or Driver's License" 
+            files={identityDocs} 
+            setFiles={setIdentityDocs} 
+            required 
+          />
+          <OwnerDetails 
+            ownerName={ownerName} 
+            setOwnerName={setOwnerName} 
+            phone={phone} 
+            setPhone={validatePhone} 
+            phoneError={phoneError} 
+            email={email} 
+            setEmail={setEmail} 
+            focusedField={focusedField} 
+            setFocusedField={setFocusedField} 
+          />
         </View>
       </ScrollView>
+
       <View style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 16, gap: 12 }} className="mr-4 mb-3 bg-white border-t border-gray-200 py-4">
         <View className="flex-row justify-end space-x-3 mx-3 mb-4">
-          <TouchableOpacity style={{ backgroundColor: "#E5E7EB", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10 }} onPress={handleBack} className="mx-4">
+          <TouchableOpacity 
+            style={{ backgroundColor: "#E5E7EB", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10 }} 
+            onPress={handleBack} 
+            className="mx-4"
+            disabled={isSubmitting}
+          >
             <Text style={{ color: "black", fontWeight: "600", fontSize: 15 }}>Cancel</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={{ backgroundColor: "#22C55E", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10 }} onPress={handleSubmit} disabled={isSubmitting}>
-            <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>{isSubmitting ? "Uploading..." : "Upload Property"}</Text>
+          <TouchableOpacity 
+            style={{ 
+              backgroundColor: isSubmitting ? "#9CA3AF" : "#22C55E", 
+              paddingVertical: 12, 
+              paddingHorizontal: 20, 
+              borderRadius: 10 
+            }} 
+            onPress={handleSubmit} 
+            disabled={isSubmitting}
+          >
+            <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
+              {isSubmitting ? "Uploading..." : "Upload Property"}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

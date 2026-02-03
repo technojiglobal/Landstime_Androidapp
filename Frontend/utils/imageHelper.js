@@ -28,7 +28,7 @@ export const getImageUrl = (path) => {
   
   const fullUrl = `${baseUrl}${imagePath}`;
   
-  console.log('🖼️ Image URL generated:', fullUrl);
+  //console.log('🖼️ Image URL generated:', fullUrl);
   return fullUrl;
 };
 
