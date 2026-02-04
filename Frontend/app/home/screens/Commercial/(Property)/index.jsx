@@ -37,6 +37,7 @@ export default function OverviewScreen() {
   const [loading, setLoading] = useState(true);
   const currentLanguage = i18n.language || 'en';
   const [reviewSummary, setReviewSummary] = useState({ avgRating: 0, count: 0 });
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   useEffect(() => {
     console.log('🔄 Effect triggered - propertyId:', propertyId, 'language:', i18n.language);
 
@@ -96,6 +97,17 @@ export default function OverviewScreen() {
       });
     }
   }, [propertyId]);
+  useEffect(() => {
+  if (!property?.images || property.images.length <= 1) return;
+
+  const interval = setInterval(() => {
+    setCurrentImageIndex((prev) =>
+      prev === property.images.length - 1 ? 0 : prev + 1
+    );
+  }, 4000);
+
+  return () => clearInterval(interval);
+}, [property?.images]);
 
   // ✅ NEW: Handle Contact Agent button press
   const handleContactAgent = async () => {
@@ -336,7 +348,7 @@ export default function OverviewScreen() {
             <Image
               source={
                 property.images && property.images.length > 0
-                  ? { uri: getImageUrl(property.images[0]) }
+                  ? { uri: getImageUrl(property.images[currentImageIndex])  }
                   : require("../../../../../assets/CommercialHub.jpg")
               }
               className="rounded-[17px]"
