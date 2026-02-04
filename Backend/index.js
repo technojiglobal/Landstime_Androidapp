@@ -59,8 +59,11 @@ console.log('🔍 Attempting MongoDB connection...');
 console.log('MongoDB URI:', process.env.MONGODB_URI ? 'URI exists ✅' : 'URI missing ❌');
 
 mongoose.connect(process.env.MONGODB_URI, {
-  serverSelectionTimeoutMS: 10000,
-  socketTimeoutMS: 45000,
+  serverSelectionTimeoutMS: 30000,  // ✅ Increased from 10s to 30s
+  socketTimeoutMS: 75000,            // ✅ Increased from 45s to 75s
+  connectTimeoutMS: 30000,           // ✅ Added
+  maxPoolSize: 10,                   // ✅ Added connection pooling
+  minPoolSize: 2,                    // ✅ Added
 })
   .then(() => {
     console.log('✅ MongoDB Connected Successfully');
