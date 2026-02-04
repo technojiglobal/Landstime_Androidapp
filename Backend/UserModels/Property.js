@@ -1,4 +1,4 @@
-// Backend/models/Property.js
+// Backend/Usermodels/Property.js
 import mongoose from 'mongoose';
 
 const propertySchema = new mongoose.Schema({

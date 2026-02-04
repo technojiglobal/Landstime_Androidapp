@@ -1,161 +1,103 @@
-// Backend/middleware/uploadMiddleware.js
+// Backend/UserMiddleware/uploadMiddleware.js
 import multer from 'multer';
 import path from 'path';
-import fs from 'fs';
 
-// ✅ Create upload directories on server start
-const createUploadDirs = () => {
-  const dirs = [
-    'uploads/properties/images',
-    'uploads/properties/ownership',
-    'uploads/properties/identity',
-    'uploads/interior-designs'
-  ];
-  
-  dirs.forEach(dir => {
-    const dirPath = path.join(process.cwd(), dir);
-    if (!fs.existsSync(dirPath)) {
-      fs.mkdirSync(dirPath, { recursive: true });
-      console.log(`✅ Created directory: ${dir}`);
-    }
-  });
-};
+// ✅ Use memory storage for Cloudinary
+// Files will be stored in memory as Buffer objects and uploaded directly to Cloudinary
+const storage = multer.memoryStorage();
 
-createUploadDirs();
-
-// ✅ DISK STORAGE instead of memory storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    let folder = 'images';
-    
-    if (file.fieldname === 'ownershipDocs') {
-      folder = 'ownership';
-    } else if (file.fieldname === 'identityDocs') {
-      folder = 'identity';
-    }
-    
-    cb(null, `uploads/properties/${folder}`);
-  },
-  filename: (req, file, cb) => {
-    // Generate unique filename: timestamp-randomnumber-originalname
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    const name = path.basename(file.originalname, ext);
-    cb(null, `${name}-${uniqueSuffix}${ext}`);
-  }
-});
-
-const allowedTypes = [
-  'image/jpeg',
-  'image/png',
-  'image/jpg',
-  'image/webp',
-  'application/pdf'
-];
-
+// File filter to allow only images and PDFs
 const fileFilter = (req, file, cb) => {
-  if (allowedTypes.includes(file.mimetype)) {
+  const allowedImageTypes = /jpeg|jpg|png|gif|webp/;
+  const allowedDocTypes = /pdf/;
+  
+  const extname = path.extname(file.originalname).toLowerCase();
+  const mimetype = file.mimetype;
+
+  // Check if it's an image
+  const isImage = allowedImageTypes.test(extname.slice(1)) && 
+                  mimetype.startsWith('image/');
+  
+  // Check if it's a PDF
+  const isPDF = allowedDocTypes.test(extname.slice(1)) && 
+                mimetype === 'application/pdf';
+
+  if (isImage || isPDF) {
     cb(null, true);
   } else {
-    cb(new Error('Only JPG, PNG, WEBP, or PDF files are allowed'), false);
+    cb(
+      new Error(
+        `Invalid file type. Only images (JPEG, JPG, PNG, GIF, WebP) and PDFs are allowed. Received: ${mimetype}`
+      ),
+      false
+    );
   }
 };
 
-// Middleware to upload multiple images (max 10)
-export const uploadImages = multer({
-  storage,
-  fileFilter,
-  limits: { 
-    fileSize: 5 * 1024 * 1024, // 5MB limit per file
-    files: 20 // Total files limit
-  }
-}).fields([
+// Configure multer
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB max file size
+    files: 20, // Max 20 files per request
+  },
+});
+
+// ✅ Middleware for handling multiple file uploads
+export const uploadImages = upload.fields([
   { name: 'images', maxCount: 10 },
   { name: 'ownershipDocs', maxCount: 5 },
-  { name: 'identityDocs', maxCount: 5 }
+  { name: 'identityDocs', maxCount: 5 },
 ]);
 
-// ✅ Separate middleware for interior designs
-export const uploadInteriorImages = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, 'uploads/interior-designs');
-    },
-    filename: (req, file, cb) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      const ext = path.extname(file.originalname);
-      const name = path.basename(file.originalname, ext);
-      cb(null, `${name}-${uniqueSuffix}${ext}`);
-    }
-  }),
-  fileFilter,
-  limits: { 
-    fileSize: 5 * 1024 * 1024,
-    files: 10
-  }
-}).array('images', 10);
-
-// Error handling middleware for multer
+// ✅ Error handling middleware
 export const handleUploadError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
+    // Multer-specific errors
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({
         success: false,
-        message: 'File size too large. Max 5MB per file.'
+        message: 'File size too large. Maximum size is 10MB per file.',
+        error: err.message,
       });
     }
     if (err.code === 'LIMIT_FILE_COUNT') {
       return res.status(400).json({
         success: false,
-        message: 'Too many files. Max 10 images, 5 ownership docs, and 5 identity docs allowed.'
+        message: 'Too many files uploaded.',
+        error: err.message,
       });
     }
     if (err.code === 'LIMIT_UNEXPECTED_FILE') {
       return res.status(400).json({
         success: false,
-        message: 'Unexpected file field'
-      });
-    }
-  }
-
-  if (err) {
-    return res.status(400).json({
-      success: false,
-      message: err.message
-    });
-  }
-
-  next();
-};
-
-// ✅ Helper to delete uploaded files on error
-export const cleanupUploadedFiles = (req, res, next) => {
-  const originalSend = res.send;
-  
-  res.send = function(data) {
-    // If response has error and files were uploaded, delete them
-    if (res.statusCode >= 400 && req.files) {
-      const filesToDelete = [];
-      
-      if (req.files.images) {
-        filesToDelete.push(...req.files.images.map(f => f.path));
-      }
-      if (req.files.ownershipDocs) {
-        filesToDelete.push(...req.files.ownershipDocs.map(f => f.path));
-      }
-      if (req.files.identityDocs) {
-        filesToDelete.push(...req.files.identityDocs.map(f => f.path));
-      }
-      
-      filesToDelete.forEach(filePath => {
-        fs.unlink(filePath, (err) => {
-          if (err) console.error('Failed to delete file:', filePath);
-        });
+        message: 'Unexpected file field.',
+        error: err.message,
       });
     }
     
-    originalSend.call(this, data);
-  };
+    return res.status(400).json({
+      success: false,
+      message: 'File upload error.',
+      error: err.message,
+    });
+  } else if (err) {
+    // Custom errors (e.g., from fileFilter)
+    return res.status(400).json({
+      success: false,
+      message: err.message || 'File upload failed.',
+      error: err.message,
+    });
+  }
   
   next();
 };
+
+// ✅ Single file upload middleware (for future use)
+export const uploadSingle = upload.single('file');
+
+// ✅ Multiple files with same field name
+export const uploadMultiple = upload.array('files', 10);
+
+export default upload;
