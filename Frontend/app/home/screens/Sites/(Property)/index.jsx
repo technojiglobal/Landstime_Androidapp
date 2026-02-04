@@ -40,6 +40,7 @@ export default function OverviewScreen() {
 
   const currentLanguage = i18n.language || 'en';
   const [reviewSummary, setReviewSummary] = useState({ avgRating: 0, count: 0 });
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   useEffect(() => {
     console.log('🔄 Effect triggered - propertyId:', propertyId, 'language:', i18n.language);
 
@@ -99,6 +100,17 @@ export default function OverviewScreen() {
       });
     }
   }, [propertyId]);
+  useEffect(() => {
+    if (!property?.images || property.images.length <= 1) return;
+  
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) =>
+        prev === property.images.length - 1 ? 0 : prev + 1
+      );
+    }, 4000);
+  
+    return () => clearInterval(interval);
+  }, [property?.images]);
 
 
   // ✅ NEW: Handle Contact Agent button press
@@ -331,7 +343,7 @@ export default function OverviewScreen() {
             <Image
               source={
                 property.images && property.images.length > 0
-                  ? { uri: getImageUrl(property.images[0]) }  // ✅ CHANGED: Removed IP address prefix for base64
+                  ? {uri: getImageUrl(property.images[currentImageIndex])}  // ✅ CHANGED: Removed IP address prefix for base64
                   : require("../../../../../assets/Green-Valley-Site.jpg")
               }
               className="rounded-[17px]"

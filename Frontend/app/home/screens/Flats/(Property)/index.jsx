@@ -37,6 +37,7 @@ export default function OverviewScreen() {
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reviewSummary, setReviewSummary] = useState({ avgRating: 0, count: 0 });
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   // ✅ Get current language
   const currentLanguage = i18n.language || 'en';
   // const [language, setLanguage] = useState('en');
@@ -121,6 +122,17 @@ export default function OverviewScreen() {
       });
     }
   }, [propertyId]);
+  useEffect(() => {
+    if (!property?.images || property.images.length <= 1) return;
+  
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) =>
+        prev === property.images.length - 1 ? 0 : prev + 1
+      );
+    }, 4000);
+  
+    return () => clearInterval(interval);
+  }, [property?.images]);
 
   // ✅ NEW: Handle Contact Agent button press
   const handleContactAgent = async () => {
@@ -351,7 +363,7 @@ const getStats = () => {
             <Image
               source={
                 property.images && property.images.length > 0
-                  ? { uri: getImageUrl(property.images[0]) }  // ✅ CHANGED: Removed IP address prefix for base64
+                  ? { uri: getImageUrl(property.images[currentImageIndex]) }  // ✅ CHANGED: Removed IP address prefix for base64
                   : require("../../../../../assets/flatimg.jpg")
               }
               className="rounded-[17px]"

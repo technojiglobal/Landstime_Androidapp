@@ -38,6 +38,7 @@ export default function OverviewScreen() {
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reviewSummary, setReviewSummary] = useState({ avgRating: 0, count: 0 });
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   // ✅ Get current language
   const currentLanguage = i18n.language || 'en';
 
@@ -63,6 +64,17 @@ export default function OverviewScreen() {
       });
     }
   }, [propertyId]);
+  useEffect(() => {
+    if (!property?.images || property.images.length <= 1) return;
+  
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) =>
+        prev === property.images.length - 1 ? 0 : prev + 1
+      );
+    }, 4000);
+  
+    return () => clearInterval(interval);
+  }, [property?.images]);
 
   const fetchPropertyDetails = async () => {
     try {
@@ -264,7 +276,7 @@ export default function OverviewScreen() {
             <Image
               source={
                 property.images && property.images.length > 0
-                  ? { uri: getImageUrl(property.images[0]) }  // ✅ CHANGED: Removed IP address prefix for base64
+                  ? {uri: getImageUrl(property.images[currentImageIndex]) }  // ✅ CHANGED: Removed IP address prefix for base64
                   : require("../../../../../assets/resort.jpg")
               }
               className="rounded-[17px]"
