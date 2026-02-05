@@ -3,11 +3,15 @@ import Otp from '../UserModels/Otp.js';
 import User from '../UserModels/User.js';
 import { generateOTP, sendOTPviaSMS, isValidPhone, isValidOTP } from '../utils/otpService.js';
 import { generateToken } from '../utils/jwtUtils.js';
-// 🔽 ADD
 import jwt from "jsonwebtoken";
-//import { translatePropertyFields } from '../utils/translationService.js';
 import { translatePropertyFields } from '../services/translationService.js';
 
+// ✅ NEW: Cloudinary imports
+import {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+  extractPublicId,
+} from '../utils/cloudinaryHelper.js';
 
 // Add at the top after imports
 console.log('🔧 Environment Check:');
@@ -71,7 +75,6 @@ export const sendOTP = async (req, res) => {
     console.log('📱 Attempting to send OTP to:', phone, 'Country:', countryCode);
     console.log('🔧 DEVELOPMENT_MODE:', DEVELOPMENT_MODE);
 
-
     if (DEVELOPMENT_MODE) {
       // Development mode - just log OTP, don't send SMS
       console.log('🔐 DEV MODE - OTP:', otp, 'for phone:', phone);
@@ -115,7 +118,6 @@ export const sendOTP = async (req, res) => {
     });
   }
 };
-
 
 // ==================== VERIFY OTP ====================
 export const verifyOTP = async (req, res) => {
@@ -181,7 +183,6 @@ export const verifyOTP = async (req, res) => {
       });
     }
 
-
     // OTP is correct - mark as verified and keep for 30 minutes
     otpDoc.isVerified = true;
     await otpDoc.save();
@@ -200,9 +201,6 @@ export const verifyOTP = async (req, res) => {
         verified: true
       }
     });
-
-
-
 
   } catch (error) {
     console.error('Error in verifyOTP:', error);
@@ -257,9 +255,6 @@ export const resendOTP = async (req, res) => {
 
     await otpDoc.save();
 
-
-
-    // NEW
     // Send OTP via SMS (or skip in development)
     let smsResult;
 
@@ -279,7 +274,7 @@ export const resendOTP = async (req, res) => {
         data: {
           phone: phone,
           expiresIn: '10 minutes',
-          ...(DEVELOPMENT_MODE && { devOtp: otp }) // Show OTP in response during dev
+          ...(DEVELOPMENT_MODE && { devOtp: otp })
         }
       });
     } else {
@@ -301,7 +296,6 @@ export const resendOTP = async (req, res) => {
     });
   }
 };
-
 
 // ==================== REGISTER USER ====================
 export const registerUser = async (req, res) => {
@@ -378,7 +372,6 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    // Create new user
     // Translate name to all 3 languages
     const originalLanguage = req.body.originalLanguage || 'en';
     let translatedName;
@@ -393,7 +386,7 @@ export const registerUser = async (req, res) => {
 
     // Create new user
     const newUser = new User({
-      name: translatedName.name, // Now contains {te, hi, en}
+      name: translatedName.name,
       originalLanguage: originalLanguage,
       phone: phone,
       countryCode: countryCode,
@@ -482,43 +475,42 @@ export const loginUser = async (req, res) => {
     await user.save();
 
     // Generate JWT token
-  // Generate JWT token
-const token = generateToken(user._id);
+    const token = generateToken(user._id);
 
-console.log('🔐 Generated token:', token.substring(0, 20) + '...');
-console.log('📦 Login response structure:', {
-  success: true,
-  data: {
-    token: token.substring(0, 20) + '...',
-    user: { id: user._id }
-  }
-});
+    console.log('🔐 Generated token:', token.substring(0, 20) + '...');
+    console.log('📦 Login response structure:', {
+      success: true,
+      data: {
+        token: token.substring(0, 20) + '...',
+        user: { id: user._id }
+      }
+    });
 
-// ✅ Extract English name as string
-let userName = '';
-if (typeof user.name === 'string') {
-  userName = user.name;
-} else if (user.name && typeof user.name === 'object') {
-  userName = user.name.en || user.name.te || user.name.hi || '';
-}
-
-return res.status(200).json({
-  success: true,
-  message: 'Login successful',
-  data: {
-    token: token,
-    user: {
-      id: user._id,
-      name: userName,  // ✅ Always a string
-      phone: user.phone,
-      email: user.email,
-      role: user.role,
-      isPhoneVerified: user.isPhoneVerified,
-      isEmailVerified: user.isEmailVerified,
-      lastLogin: user.lastLogin
+    // ✅ Extract English name as string
+    let userName = '';
+    if (typeof user.name === 'string') {
+      userName = user.name;
+    } else if (user.name && typeof user.name === 'object') {
+      userName = user.name.en || user.name.te || user.name.hi || '';
     }
-  }
-});
+
+    return res.status(200).json({
+      success: true,
+      message: 'Login successful',
+      data: {
+        token: token,
+        user: {
+          id: user._id,
+          name: userName,
+          phone: user.phone,
+          email: user.email,
+          role: user.role,
+          isPhoneVerified: user.isPhoneVerified,
+          isEmailVerified: user.isEmailVerified,
+          lastLogin: user.lastLogin
+        }
+      }
+    });
 
   } catch (error) {
     console.error('Error in loginUser:', error);
@@ -529,8 +521,8 @@ return res.status(200).json({
     });
   }
 };
-// ==================== GET USER PROFILE ====================
 
+// ==================== GET USER PROFILE ====================
 export const getUserProfile = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -553,7 +545,7 @@ export const getUserProfile = async (req, res) => {
 
     const userData = {
       ...user.toObject(),
-      name: userName  // ✅ Always a string
+      name: userName
     };
 
     console.log('✅ Sending user profile with name as string:', userName);
@@ -570,7 +562,6 @@ export const getUserProfile = async (req, res) => {
     });
   }
 };
-
 
 // ==================== UPDATE USER PROFILE ====================
 export const updateUserProfile = async (req, res) => {
@@ -599,9 +590,32 @@ export const updateUserProfile = async (req, res) => {
     if (address) user.address = address;
     if (about) user.about = about;
 
-    // 🔽 Profile image
+    // ✅ MODIFIED: Profile image upload to Cloudinary
     if (req.file) {
-      user.profileImage = `/uploads/profile/${req.file.filename}`;
+      console.log('📸 Uploading profile image to Cloudinary...');
+      
+      // Delete old profile image from Cloudinary if it exists
+      if (user.profileImage) {
+        const oldPublicId = extractPublicId(user.profileImage);
+        if (oldPublicId) {
+          console.log('🗑️ Deleting old profile image from Cloudinary');
+          await deleteFromCloudinary(oldPublicId, 'image');
+        }
+      }
+
+      // Upload new profile image
+      const uploadResult = await uploadToCloudinary(req.file.buffer, {
+        folder: 'user-profiles',
+        public_id: `profile_${user._id}_${Date.now()}`,
+        resource_type: 'image',
+        transformation: [
+          { width: 500, height: 500, crop: 'fill' }, // Square crop
+          { quality: 'auto:good' },
+        ],
+      });
+
+      user.profileImage = uploadResult.url;
+      console.log('✅ Profile image uploaded to Cloudinary:', uploadResult.url);
     }
 
     await user.save();
@@ -612,6 +626,7 @@ export const updateUserProfile = async (req, res) => {
       data: user,
     });
   } catch (error) {
+    console.error('Update profile error:', error);
     return res.status(500).json({
       success: false,
       message: "Profile update failed",
@@ -620,6 +635,44 @@ export const updateUserProfile = async (req, res) => {
   }
 };
 
+// ✅ NEW: Delete profile image
+export const deleteProfileImage = async (req, res) => {
+  try {
+    const user = req.user;
+
+    if (!user.profileImage) {
+      return res.status(400).json({
+        success: false,
+        message: 'No profile image to delete'
+      });
+    }
+
+    // Delete from Cloudinary
+    const publicId = extractPublicId(user.profileImage);
+    if (publicId) {
+      console.log('🗑️ Deleting profile image from Cloudinary');
+      await deleteFromCloudinary(publicId, 'image');
+    }
+
+    // Remove from user document
+    user.profileImage = null;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile image deleted successfully',
+      data: user
+    });
+
+  } catch (error) {
+    console.error('Delete profile image error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to delete profile image',
+      error: error.message
+    });
+  }
+};
 
 // ==================== CHECK PHONE EXISTS ====================
 export const checkPhoneExists = async (req, res) => {
@@ -660,8 +713,6 @@ export const checkPhoneExists = async (req, res) => {
     });
   }
 };
-
-
 
 // Temporary test endpoint - remove after testing
 export const testFast2SMS = async (req, res) => {

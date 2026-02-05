@@ -1,6 +1,14 @@
-// Landstime_Androidapp/Backend/AdminControllers/InteriorDesignController.js
+// Backend/AdminControllers/InteriorDesignController.js
 import InteriorDesign from '../AdminModels/InteriorDesign.js';
 import Review from "../UserModels/Review.js";
+
+// ✅ NEW: Cloudinary imports
+import {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+  deleteMultipleFromCloudinary,
+  extractPublicId,
+} from '../utils/cloudinaryHelper.js';
 
 // Get all interior designs (with pagination, search, and filters)
 export const getAllDesigns = async (req, res) => {
@@ -252,10 +260,23 @@ export const createDesign = async (req, res) => {
       }
     }
 
-    // Handle uploaded images
+    // ✅ MODIFIED: Upload images to Cloudinary
     let imageUrls = [];
     if (req.files && req.files.length > 0) {
-      imageUrls = req.files.map(file => `/uploads/interior-designs/${file.filename}`);
+      console.log(`📸 Uploading ${req.files.length} interior design images to Cloudinary...`);
+      
+      const uploadPromises = req.files.map((file, index) => {
+        return uploadToCloudinary(file.buffer, {
+          folder: 'interior-designs',
+          public_id: `design_${Date.now()}_${index}`,
+          resource_type: 'image',
+        });
+      });
+
+      const uploadResults = await Promise.all(uploadPromises);
+      imageUrls = uploadResults.map(result => result.url);
+      
+      console.log('✅ Interior design images uploaded to Cloudinary:', imageUrls);
     }
 
     // ✅ FIXED: Use req.adminId which is now properly set
@@ -281,7 +302,7 @@ export const createDesign = async (req, res) => {
       description: description ? description.trim() : '',
       images: imageUrls,
       features: [],
-      uploadedBy: req.adminId // ✅ Now this will work!
+      uploadedBy: req.adminId
     });
 
     console.log('💾 Saving design:', newDesign);
@@ -379,7 +400,7 @@ export const permanentDeleteDesign = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const design = await InteriorDesign.findByIdAndDelete(id);
+    const design = await InteriorDesign.findById(id);
 
     if (!design) {
       return res.status(404).json({
@@ -387,6 +408,23 @@ export const permanentDeleteDesign = async (req, res) => {
         message: 'Interior design not found'
       });
     }
+
+    // ✅ MODIFIED: Delete images from Cloudinary before deleting design
+    if (design.images && design.images.length > 0) {
+      console.log('🗑️ Deleting interior design images from Cloudinary...');
+      
+      const publicIds = design.images
+        .map(url => extractPublicId(url))
+        .filter(id => id !== null);
+
+      if (publicIds.length > 0) {
+        await deleteMultipleFromCloudinary(publicIds, 'image');
+        console.log(`✅ Deleted ${publicIds.length} images from Cloudinary`);
+      }
+    }
+
+    // Delete the design document
+    await InteriorDesign.findByIdAndDelete(id);
 
     res.status(200).json({
       success: true,
@@ -397,6 +435,110 @@ export const permanentDeleteDesign = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to permanently delete interior design',
+      error: error.message
+    });
+  }
+};
+
+// ✅ NEW: Upload additional images to existing design
+export const uploadAdditionalImages = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No images provided'
+      });
+    }
+
+    const design = await InteriorDesign.findById(id);
+
+    if (!design) {
+      return res.status(404).json({
+        success: false,
+        message: 'Interior design not found'
+      });
+    }
+
+    console.log(`📸 Uploading ${req.files.length} additional images to Cloudinary...`);
+
+    const uploadPromises = req.files.map((file, index) => {
+      return uploadToCloudinary(file.buffer, {
+        folder: 'interior-designs',
+        public_id: `design_${id}_${Date.now()}_${index}`,
+        resource_type: 'image',
+      });
+    });
+
+    const uploadResults = await Promise.all(uploadPromises);
+    const newImageUrls = uploadResults.map(result => result.url);
+
+    design.images.push(...newImageUrls);
+    await design.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Images uploaded successfully',
+      data: design
+    });
+
+  } catch (error) {
+    console.error('Upload additional images error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upload images',
+      error: error.message
+    });
+  }
+};
+
+// ✅ NEW: Delete specific image from design
+export const deleteDesignImage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { imageIndex } = req.body;
+
+    const design = await InteriorDesign.findById(id);
+
+    if (!design) {
+      return res.status(404).json({
+        success: false,
+        message: 'Interior design not found'
+      });
+    }
+
+    if (imageIndex < 0 || imageIndex >= design.images.length) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid image index'
+      });
+    }
+
+    // Delete from Cloudinary
+    const imageUrl = design.images[imageIndex];
+    console.log('🗑️ Deleting image from Cloudinary:', imageUrl);
+    
+    const publicId = extractPublicId(imageUrl);
+    if (publicId) {
+      await deleteFromCloudinary(publicId, 'image');
+    }
+
+    // Remove from array
+    design.images.splice(imageIndex, 1);
+    await design.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Image deleted successfully',
+      data: design
+    });
+
+  } catch (error) {
+    console.error('Delete image error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete image',
       error: error.message
     });
   }

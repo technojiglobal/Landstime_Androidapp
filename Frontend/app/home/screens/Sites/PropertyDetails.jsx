@@ -744,7 +744,7 @@ export default function PropertyListScreen() {
 
       {/* Header */}
       <View className="flex-row items-center px-5 py-3">
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.push('/home/screens/Sites/SelectSite')}>
           <Ionicons name="chevron-back" size={24} color="black" />
         </TouchableOpacity>
         <Text className="text-xl font-semibold ml-2">{areaName} Properties</Text>

@@ -15,8 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { getUserProfile, updateUserProfile } from "../../../../utils/api";
 import { API_URL } from "../../../../utils/apiConfig";
-
-const IMAGE_BASE_URL = API_URL;
+import { getImageUrl } from "../../../../utils/imageHelper";
 
 export default function Profile() {
   const router = useRouter();
@@ -113,17 +112,17 @@ export default function Profile() {
         <View className="flex-row items-center mb-4">
           <TouchableOpacity disabled={!isEditing} onPress={pickImage}>
             <Image
-              source={
-                profile.profileImage
-                  ? {
-                      uri: profile.profileImage.startsWith("file://")
-                        ? profile.profileImage
-                        : `${IMAGE_BASE_URL}${profile.profileImage}`,
-                    }
-                  : require("../../../../assets/profile.png")
-              }
-              className="w-24 h-24 rounded-full"
-            />
+  source={
+    profile.profileImage
+      ? {
+          uri: profile.profileImage.startsWith("file://")
+            ? profile.profileImage
+            : getImageUrl(profile.profileImage),
+        }
+      : require("../../../../assets/profile.png")
+  }
+  className="w-24 h-24 rounded-full"
+/>
           </TouchableOpacity>
 
           <View className="ml-4 flex-1">

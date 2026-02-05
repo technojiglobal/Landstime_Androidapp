@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-
+import { getImageUrl } from "../../../../utils/imageHelper";
 import starImg from "../../../../assets/star-3d.png";
 import saveIcon from "../../../../assets/save-icon.png";
 import saveBlue from "../../../../assets/save-blue.png";
@@ -153,7 +153,7 @@ export default function RoomOverviewScreen() {
             <Image
               source={{
                 uri: data.images?.[0]
-                  ? `${BASE_URL}${data.images[0]}`
+                  ? getImageUrl(data.images[0])
                   : "https://via.placeholder.com/600x400",
               }}
               className="w-full h-64"

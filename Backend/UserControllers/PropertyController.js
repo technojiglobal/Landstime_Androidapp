@@ -5,6 +5,7 @@ import { translatePropertyFields, normalizeAreaKey } from '../services/translati
 
 // ✅ NEW: Cloudinary imports
 import {
+  uploadToCloudinary,
   uploadPropertyImages,
   uploadPropertyDocuments,
   deletePropertyImages,
@@ -213,40 +214,63 @@ export const createProperty = async (req, res) => {
     });
     
     // ✅ MODIFIED: Upload to Cloudinary instead of local storage
-    let images = [];
-    if (req.files?.images) {
-      console.log(`📸 Uploading ${req.files.images.length} images to Cloudinary...`);
-      const uploadResults = await uploadPropertyImages(
-        req.files.images,
-        'temp' // Temporary ID, will be organized by property ID later
-      );
-      images = uploadResults.map(result => result.url);
-      console.log('✅ Images uploaded to Cloudinary:', images);
-    }
+    // ✅ MODIFIED: Upload to Cloudinary with unique IDs
+    const uploadTimestamp = Date.now();
+let images = [];
+if (req.files?.images) {
+  console.log(`📸 Uploading ${req.files.images.length} images to Cloudinary...`);
+  
+  // Generate unique timestamp for this upload batch
+  
+  
+  const uploadPromises = req.files.images.map((file, index) => {
+    return uploadToCloudinary(file.buffer, {
+      folder: 'property-listings/properties/images',
+      public_id: `property_${uploadTimestamp}_image_${index}`,
+      resource_type: 'image',
+    });
+  });
 
-    let ownershipDocs = [];
-    if (req.files?.ownershipDocs) {
-      console.log(`📄 Uploading ${req.files.ownershipDocs.length} ownership docs to Cloudinary...`);
-      const uploadResults = await uploadPropertyDocuments(
-        req.files.ownershipDocs,
-        'temp',
-        'ownership'
-      );
-      ownershipDocs = uploadResults.map(result => result.url);
-      console.log('✅ Ownership docs uploaded to Cloudinary:', ownershipDocs);
-    }
+  const uploadResults = await Promise.all(uploadPromises);
+  images = uploadResults.map(result => result.url);
+  console.log('✅ Images uploaded to Cloudinary:', images);
+}
+
+   let ownershipDocs = [];
+if (req.files?.ownershipDocs) {
+  console.log(`📄 Uploading ${req.files.ownershipDocs.length} ownership docs to Cloudinary...`);
+  
+  const uploadPromises = req.files.ownershipDocs.map((file, index) => {
+    const isPDF = file.mimetype === 'application/pdf';
+    return uploadToCloudinary(file.buffer, {
+      folder: 'property-listings/properties/documents/ownership',
+      public_id: `ownership_${uploadTimestamp}_${index}`,
+      resource_type: isPDF ? 'raw' : 'image',
+    });
+  });
+
+  const uploadResults = await Promise.all(uploadPromises);
+  ownershipDocs = uploadResults.map(result => result.url);
+  console.log('✅ Ownership docs uploaded to Cloudinary:', ownershipDocs);
+} 
 
     let identityDocs = [];
-    if (req.files?.identityDocs) {
-      console.log(`📄 Uploading ${req.files.identityDocs.length} identity docs to Cloudinary...`);
-      const uploadResults = await uploadPropertyDocuments(
-        req.files.identityDocs,
-        'temp',
-        'identity'
-      );
-      identityDocs = uploadResults.map(result => result.url);
-      console.log('✅ Identity docs uploaded to Cloudinary:', identityDocs);
-    }
+if (req.files?.identityDocs) {
+  console.log(`📄 Uploading ${req.files.identityDocs.length} identity docs to Cloudinary...`);
+  
+  const uploadPromises = req.files.identityDocs.map((file, index) => {
+    const isPDF = file.mimetype === 'application/pdf';
+    return uploadToCloudinary(file.buffer, {
+      folder: 'property-listings/properties/documents/identity',
+      public_id: `identity_${uploadTimestamp}_${index}`,
+      resource_type: isPDF ? 'raw' : 'image',
+    });
+  });
+
+  const uploadResults = await Promise.all(uploadPromises);
+  identityDocs = uploadResults.map(result => result.url);
+  console.log('✅ Identity docs uploaded to Cloudinary:', identityDocs);
+}
 
     // Backend validation
     if (!propertyData.propertyTitle) {
