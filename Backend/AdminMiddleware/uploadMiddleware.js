@@ -71,28 +71,23 @@ export const handlePropertyUploadError = (err, req, res, next) => {
 };
 
 // ========== INTERIOR DESIGN UPLOADS (Keep existing) ==========
-const interiorStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, interiorUploadDir);
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname));
-  }
-});
+
+// ========== INTERIOR DESIGN UPLOADS - CLOUDINARY ==========
+// ✅ MODIFIED: Use memory storage for Cloudinary
+const interiorStorage = multer.memoryStorage();
 
 const interiorFileFilter = (req, file, cb) => {
   const allowedTypes = [
     'image/jpeg',
     'image/png',
     'image/jpg',
-    'image/webp',
-    'application/pdf'
+    'image/webp'
   ];
   
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Only JPG, PNG, WEBP images and PDF files are allowed'), false);
+    cb(new Error('Only JPG, PNG, WEBP images are allowed'), false);
   }
 };
 
@@ -100,10 +95,10 @@ export const uploadInteriorImages = multer({
   storage: interiorStorage,
   fileFilter: interiorFileFilter,
   limits: {
-    fileSize: Infinity,
-    files: Infinity
+    fileSize: 10 * 1024 * 1024, // 10MB per file
+    files: 10 // Max 10 images
   }
-}).array('images');
+}).array('images', 10);
 
 export const handleInteriorUploadError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {

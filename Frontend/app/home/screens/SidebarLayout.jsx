@@ -15,7 +15,8 @@ import { useRouter } from "expo-router";
 import { useTranslation } from 'react-i18next';
 import LogoutModal from 'components/LogoutModal';
 import { clearUserData, getUserData, getUserProfileWithLanguage } from "utils/api";
-
+import { getImageUrl } from "../../../utils/imageHelper";
+import { API_URL } from "../../../utils/apiConfig";
 
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -190,32 +191,36 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
       >
         {/* User Info */}
         <TouchableOpacity
-  activeOpacity={0.8}
-  onPress={() => router.push("/home/screens/Settings/Profile")}
->
-        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 20 }}>
-          <Image
-            source={require("../../../assets/profile.png")}
-            style={{ width: 50, height: 50, borderRadius: 25, marginRight: 12 }}
-          />
-          <View>
+          activeOpacity={0.8}
+          onPress={() => router.push("/home/screens/Settings/Profile")}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 20 }}>
+            <Image
+              source={
+                userData?.profileImage
+                  ? { uri: getImageUrl(userData.profileImage) }
+                  : require("../../../assets/profile.png")
+              }
+              style={{ width: 50, height: 50, borderRadius: 25, marginRight: 12 }}
+            />
+            <View>
 
 
-            <Text
-              className="text-white font-semibold"
-              style={{ fontSize: getFontSize(16), lineHeight: getLineHeight() }}
-            >
-              {getLocalizedName(userData?.name)}
-            </Text>
+              <Text
+                className="text-white font-semibold"
+                style={{ fontSize: getFontSize(16), lineHeight: getLineHeight() }}
+              >
+                {getLocalizedName(userData?.name)}
+              </Text>
 
-            <Text
-              className="text-white opacity-90"
-              style={{ fontSize: getFontSize(12), lineHeight: getLineHeight() - 2 }}
-            >
-              {userData?.phone || "No phone"}
-            </Text>
+              <Text
+                className="text-white opacity-90"
+                style={{ fontSize: getFontSize(12), lineHeight: getLineHeight() - 2 }}
+              >
+                {userData?.phone || "No phone"}
+              </Text>
+            </View>
           </View>
-        </View>
         </TouchableOpacity>
 
         {/* Back Button - Half Circle */}

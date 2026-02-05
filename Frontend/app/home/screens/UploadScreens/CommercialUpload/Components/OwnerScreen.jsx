@@ -6,7 +6,6 @@ import { View, Text, ScrollView, TouchableOpacity, Image, Alert } from "react-na
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import DocumentUpload from "components/Documentupload";
-import ImageUpload from "components/ImageUpload";
 import OwnerDetails from "components/OwnersDetails";
 import { createProperty } from "utils/propertyApi";
 import Toast from 'react-native-toast-message';
@@ -54,7 +53,7 @@ export default function OwnerScreen() {
       pathname,
       params: {
         commercialDetails: JSON.stringify(commercialDetails),
-        images: JSON.stringify(propertyImages),
+        images: JSON.stringify(images),
         area: params.area,
         propertyTitle,
         commercialBaseDetails: params.commercialBaseDetails,
@@ -79,7 +78,23 @@ export default function OwnerScreen() {
     return null;
   }, [rawCommercialDetails]);
 
-  const [propertyImages, setPropertyImages] = useState([]);
+  // ✅ Parse images from params
+  const images = useMemo(() => {
+    if (!params.images) return [];
+    try {
+      if (typeof params.images === 'string') {
+        return JSON.parse(params.images);
+      }
+      if (Array.isArray(params.images)) {
+        return params.images;
+      }
+      return [];
+    } catch (e) {
+      console.warn('Failed to parse images from params', e);
+      return [];
+    }
+  }, [params.images]);
+
   const [ownershipDocs, setOwnershipDocs] = useState([]);
   const [identityDocs, setIdentityDocs] = useState([]);
   const [ownerName, setOwnerName] = useState("");
@@ -90,158 +105,97 @@ export default function OwnerScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // ✅ Clear draft when subtype changes
-  // ✅ FIXED - Clear draft when subtype changes (with prevention flag)
-useEffect(() => {
-  let isClearing = false; // Prevent multiple clears
+  useEffect(() => {
+    let isClearing = false;
 
-  const clearDraftIfSubtypeChanged = async () => {
-    if (isClearing) return;
-    
-    try {
-      const draft = await AsyncStorage.getItem('draft_owner_screen');
-      if (draft) {
-        const parsed = JSON.parse(draft);
-        const currentSubType = commercialDetails?.subType;
-        
-        // If subtype changed, clear the draft
-        if (parsed.subType && parsed.subType !== currentSubType) {
-          isClearing = true;
-          
-          await AsyncStorage.removeItem('draft_owner_screen');
-          console.log('🧹 Cleared OwnerScreen draft due to subtype change:', {
-            oldSubType: parsed.subType,
-            newSubType: currentSubType
-          });
-          
-          // Reset all fields ONLY if they match the old draft
-          // This prevents clearing user's new inputs
-          if (ownerName === parsed.ownerName) setOwnerName("");
-          if (phone === parsed.phone) setPhone("");
-          if (email === parsed.email) setEmail("");
-          
-          // Don't clear files if user already uploaded new ones
-          if (propertyImages.length === parsed.propertyImages?.length) {
-            setPropertyImages([]);
-          }
-          if (ownershipDocs.length === parsed.ownershipDocs?.length) {
-            setOwnershipDocs([]);
-          }
-          if (identityDocs.length === parsed.identityDocs?.length) {
-            setIdentityDocs([]);
-          }
-        }
-      }
-    } catch (e) {
-      console.log('⚠️ Failed to check draft subtype:', e);
-    }
-  };
-
-  if (commercialDetails?.subType) {
-    clearDraftIfSubtypeChanged();
-  }
-}, [commercialDetails?.subType]); // ✅ ONLY depend on subType
-
-// ✅ FIXED - Load draft on mount ONCE
-useEffect(() => {
-  const loadDraft = async () => {
-    try {
-      const draft = await AsyncStorage.getItem('draft_owner_screen');
-      if (draft) {
-        const parsed = JSON.parse(draft);
-        console.log('📦 Loading OwnerScreen draft from AsyncStorage');
-        
-        // Only load if subtype matches AND fields are empty
-        if (parsed.subType === commercialDetails?.subType) {
-          if (!ownerName && parsed.ownerName) setOwnerName(parsed.ownerName);
-          if (!phone && parsed.phone) setPhone(parsed.phone);
-          if (!email && parsed.email) setEmail(parsed.email);
-          
-          if (propertyImages.length === 0 && parsed.propertyImages?.length > 0) {
-            setPropertyImages(parsed.propertyImages);
-          }
-          if (ownershipDocs.length === 0 && parsed.ownershipDocs?.length > 0) {
-            setOwnershipDocs(parsed.ownershipDocs);
-          }
-          if (identityDocs.length === 0 && parsed.identityDocs?.length > 0) {
-            setIdentityDocs(parsed.identityDocs);
-          }
-          
-          console.log('✅ OwnerScreen draft loaded successfully');
-          return;
-        }
-      }
-    } catch (e) {
-      console.log('⚠️ Failed to load OwnerScreen draft:', e);
-    }
-
-    // FALLBACK: Load images from params if no draft
-    if (params.images && propertyImages.length === 0) {
+    const clearDraftIfSubtypeChanged = async () => {
+      if (isClearing) return;
+      
       try {
-        const parsedImages = typeof params.images === 'string' 
-          ? JSON.parse(params.images) 
-          : params.images;
-        
-        if (Array.isArray(parsedImages) && parsedImages.length > 0) {
-          setPropertyImages(parsedImages);
-          console.log('✅ Images loaded from params:', parsedImages.length);
+        const draft = await AsyncStorage.getItem('draft_owner_screen');
+        if (draft) {
+          const parsed = JSON.parse(draft);
+          const currentSubType = commercialDetails?.subType;
+          
+          if (parsed.subType && parsed.subType !== currentSubType) {
+            isClearing = true;
+            
+            await AsyncStorage.removeItem('draft_owner_screen');
+            console.log('🧹 Cleared OwnerScreen draft due to subtype change:', {
+              oldSubType: parsed.subType,
+              newSubType: currentSubType
+            });
+            
+            if (ownerName === parsed.ownerName) setOwnerName("");
+            if (phone === parsed.phone) setPhone("");
+            if (email === parsed.email) setEmail("");
+            
+            if (ownershipDocs.length === parsed.ownershipDocs?.length) {
+              setOwnershipDocs([]);
+            }
+            if (identityDocs.length === parsed.identityDocs?.length) {
+              setIdentityDocs([]);
+            }
+          }
         }
       } catch (e) {
-        console.log('⚠️ Failed to parse images:', e);
+        console.log('⚠️ Failed to check draft subtype:', e);
       }
-    }
-  };
-
-  loadDraft();
-}, []); // ✅ EMPTY DEPS - Load only once on mount
-
-// ✅ FIXED - Auto-save with debounce (prevents rapid saves)
-useEffect(() => {
-  // Don't save empty state
-  if (!ownerName && !phone && !email && 
-      propertyImages.length === 0 && 
-      ownershipDocs.length === 0 && 
-      identityDocs.length === 0) {
-    return;
-  }
-
-  const saveDraft = async () => {
-    const ownerDraft = {
-      propertyImages,
-      ownershipDocs,
-      identityDocs,
-      ownerName,
-      phone,
-      email,
-      subType: commercialDetails?.subType,
-      timestamp: new Date().toISOString(),
     };
 
-    try {
-      await AsyncStorage.setItem('draft_owner_screen', JSON.stringify(ownerDraft));
-      console.log('💾 OwnerScreen draft auto-saved for subType:', commercialDetails?.subType);
-    } catch (e) {
-      console.log('⚠️ Failed to save OwnerScreen draft:', e);
+    if (commercialDetails?.subType) {
+      clearDraftIfSubtypeChanged();
     }
-  };
+  }, [commercialDetails?.subType]);
 
-  // ✅ Debounce - only save after 2 seconds of inactivity
-  const timer = setTimeout(saveDraft, 2000);
-  return () => clearTimeout(timer);
-}, [propertyImages, ownershipDocs, identityDocs, ownerName, phone, email, commercialDetails?.subType]);
-  // ✅ Auto-save OwnerScreen draft
+  // ✅ Load draft on mount ONCE
   useEffect(() => {
-    const saveDraft = async () => {
-      // Only save if we have meaningful data
-      if (!ownerName && !phone && !email && propertyImages.length === 0) return;
+    const loadDraft = async () => {
+      try {
+        const draft = await AsyncStorage.getItem('draft_owner_screen');
+        if (draft) {
+          const parsed = JSON.parse(draft);
+          console.log('📦 Loading OwnerScreen draft from AsyncStorage');
+          
+          if (parsed.subType === commercialDetails?.subType) {
+            if (!ownerName && parsed.ownerName) setOwnerName(parsed.ownerName);
+            if (!phone && parsed.phone) setPhone(parsed.phone);
+            if (!email && parsed.email) setEmail(parsed.email);
+            
+            if (ownershipDocs.length === 0 && parsed.ownershipDocs?.length > 0) {
+              setOwnershipDocs(parsed.ownershipDocs);
+            }
+            if (identityDocs.length === 0 && parsed.identityDocs?.length > 0) {
+              setIdentityDocs(parsed.identityDocs);
+            }
+            
+            console.log('✅ OwnerScreen draft loaded successfully');
+          }
+        }
+      } catch (e) {
+        console.log('⚠️ Failed to load OwnerScreen draft:', e);
+      }
+    };
 
+    loadDraft();
+  }, []);
+
+  // ✅ Auto-save with debounce
+  useEffect(() => {
+    if (!ownerName && !phone && !email && 
+        ownershipDocs.length === 0 && 
+        identityDocs.length === 0) {
+      return;
+    }
+
+    const saveDraft = async () => {
       const ownerDraft = {
-        propertyImages,
         ownershipDocs,
         identityDocs,
         ownerName,
         phone,
         email,
-        subType: commercialDetails?.subType, // ✅ Store subType for validation
+        subType: commercialDetails?.subType,
         timestamp: new Date().toISOString(),
       };
 
@@ -253,9 +207,9 @@ useEffect(() => {
       }
     };
 
-    const timer = setTimeout(saveDraft, 1000);
+    const timer = setTimeout(saveDraft, 2000);
     return () => clearTimeout(timer);
-  }, [propertyImages, ownershipDocs, identityDocs, ownerName, phone, email, commercialDetails?.subType]);
+  }, [ownershipDocs, identityDocs, ownerName, phone, email, commercialDetails?.subType]);
 
   const validatePhone = (text) => {
     const cleaned = text.replace(/\D/g, '');
@@ -273,11 +227,21 @@ useEffect(() => {
   };
 
   const handleSubmit = async () => {
-    // ✅ Enhanced validation with detailed messages
-    if (propertyImages.length === 0) {
-      Alert.alert("Missing Images", "Please upload at least one property image to continue.");
+    // ✅ Validate images from params
+    if (!images || images.length === 0) {
+      Alert.alert(
+        "Missing Images", 
+        "Please go back and upload at least one property image.",
+        [
+          {
+            text: "Go Back",
+            onPress: () => handleBack()
+          }
+        ]
+      );
       return;
     }
+
     if (ownershipDocs.length === 0) {
       Alert.alert("Missing Documents", "Please upload property ownership documents (Sale deed, Conveyance, etc.).");
       return;
@@ -308,7 +272,6 @@ useEffect(() => {
       return;
     }
     
-    // ✅ Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
       Alert.alert("Invalid Email", "Please enter a valid email address.");
@@ -398,12 +361,17 @@ useEffect(() => {
       hasLocation: !!propertyData.location,
       hasArea: !!propertyData.area,
       expectedPrice: propertyData.expectedPrice,
+      imageCount: images.length,
     });
 
     setIsSubmitting(true);
 
     try {
-      const imageUris = propertyImages.map(img => img.uri);
+      // ✅ Get images from params
+      const imageUris = images && images.length > 0 
+        ? images.map(img => typeof img === 'string' ? img : img.uri)
+        : [];
+      
       const result = await createProperty(propertyData, imageUris, ownershipDocs, identityDocs);
       
       if (!result.success) {
@@ -413,42 +381,36 @@ useEffect(() => {
       // ✅ Clear all drafts on successful upload
       try {
         await AsyncStorage.multiRemove([
-          // Office drafts
           'draft_commercial_office',
           'draft_office_details',
           'draft_office_pricing',
           'draft_office_vaastu',
           
-          // Retail drafts
           'draft_commercial_retail',
           'draft_retail_details',
           'draft_retail_pricing',
           'draft_retail_vaastu',
           
-          // Hospitality drafts
           'draft_commercial_hospitality',
           'draft_hospitality_details',
           'draft_hospitality_pricing',
           'draft_hospitality_vaastu',
 
-          // Plot drafts
           'draft_commercial_plot',
+          'draft_plot_details',
           'draft_plot_pricing',
           'draft_plot_vaastu',
 
-          // Storage drafts
           'draft_commercial_storage',
           'draft_storage_details',
           'draft_storage_pricing',
           'draft_storage_vaastu',
 
-          // Industry drafts
           'draft_commercial_industry',
           'draft_industry_details',
           'draft_industry_pricing',
           'draft_industry_vaastu',
 
-          // Owner screen draft
           'draft_owner_screen',
         ]);
         console.log('🧹 All drafts cleared including OwnerScreen');
@@ -465,7 +427,6 @@ useEffect(() => {
     } catch (error) {
       console.error('❌ Upload error:', error);
       
-      // ✅ Extract detailed validation errors
       let errorTitle = "Upload Failed";
       let errorMessage = 'Failed to upload property. Please check all fields and try again.';
       
@@ -474,21 +435,17 @@ useEffect(() => {
         
         console.log('📋 Error response:', errorData);
         
-        // Check for validation errors array
         if (errorData.errors && Array.isArray(errorData.errors)) {
           errorTitle = errorData.message || "Validation Error";
           errorMessage = errorData.errors.join('\n\n');
         } 
-        // Check for validation object (Mongoose errors)
         else if (errorData.error?.validation && Array.isArray(errorData.error.validation)) {
           errorTitle = "Validation Error";
           errorMessage = errorData.error.validation.join('\n\n');
         }
-        // Check for single error message
         else if (errorData.message) {
           errorMessage = errorData.message;
         }
-        // Check for nested error message
         else if (errorData.error?.message) {
           errorMessage = errorData.error.message;
         }
@@ -496,7 +453,6 @@ useEffect(() => {
         errorMessage = error.message;
       }
       
-      // Show detailed error
       Alert.alert(errorTitle, errorMessage, [
         {
           text: "OK",
@@ -504,11 +460,10 @@ useEffect(() => {
         }
       ]);
       
-      // Also show toast for quick feedback
       Toast.show({
         type: 'error',
         text1: errorTitle,
-        text2: errorMessage.split('\n')[0], // Show first error in toast
+        text2: errorMessage.split('\n')[0],
         visibilityTime: 5000,
       });
     } finally {
@@ -530,13 +485,6 @@ useEffect(() => {
 
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 36 }} showsVerticalScrollIndicator={false}>
         <View className="px-4 mt-4 border border-gray-200 rounded-lg bg-white space-y-4">
-          <ImageUpload 
-            title="Property Images" 
-            subtitle="Upload at least one image of your property." 
-            files={propertyImages} 
-            setFiles={setPropertyImages} 
-            required 
-          />
           <DocumentUpload 
             title="Property Ownership" 
             subtitle="Verify ownership to publish your property listing securely." 

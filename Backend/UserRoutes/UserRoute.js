@@ -17,6 +17,7 @@ import {
   getUserProfile,
   updateUserProfile,
 } from "../UserControllers/Usercontroller.js";
+import { deleteProfileImage } from "../UserControllers/Usercontroller.js";
 import fs from "fs";
 
 if (!fs.existsSync("uploads/profile")) {
@@ -24,20 +25,14 @@ if (!fs.existsSync("uploads/profile")) {
 }
 
 // 🔽 ADD (inline multer config)
-const storage = multer.diskStorage({
-  destination(req, file, cb) {
-    cb(null, "uploads/profile");
-  },
-  filename(req, file, cb) {
-    cb(
-      null,
-      `${req.user._id}-${Date.now()}${path.extname(file.originalname)}`
-    );
-  },
-});
+// ✅ MODIFIED: Use memory storage for Cloudinary
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB max
+  },
   fileFilter(req, file, cb) {
     if (file.mimetype.startsWith("image")) cb(null, true);
     else cb(new Error("Only images allowed"));
@@ -83,6 +78,9 @@ router.get('/debug-profile', verifyToken, async (req, res) => {
     nameValue: req.user.name
   });
 });
+// ✅ NEW: Delete profile image route
 
+
+router.delete("/profile/image", verifyToken, deleteProfileImage);
 
 export default router;
