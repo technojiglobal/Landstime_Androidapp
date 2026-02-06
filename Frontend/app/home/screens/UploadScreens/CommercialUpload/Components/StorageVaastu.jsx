@@ -218,70 +218,6 @@ const handleNext = () => {
 };
 
 //Define Vaastu options with translations
-const vastuOptions = {
-  buildingFacing: [
-    t('vaastu_option_north'),
-    t('vaastu_option_east'),
-    t('vaastu_option_north_east'),
-    t('vaastu_option_west'),
-    t('vaastu_option_south')
-  ],
-  entrance: [
-    t('vaastu_option_north'),
-    t('vaastu_option_east'),
-    t('vaastu_option_north_east'),
-    t('vaastu_option_west'),
-    t('vaastu_option_south_west')
-  ],
-  storageArea: [
-    t('vaastu_option_towards_north'),
-    t('vaastu_option_towards_south'), 
-    t('vaastu_option_towards_west')
-  ],
-  lightGoods: [
-    t('vaastu_option_balanced_open_space'),
-    t('vaastu_option_north'),
-    t('vaastu_option_east')
-  ],
-  loading: [
-    t('vaastu_option_square'),
-    t('vaastu_option_north'),
-    t('vaastu_option_east'),
-    t('vaastu_option_west')
-  ],
-  office: [
-    t('vaastu_option_water_source_north'),
-    t('vaastu_option_south_east'),
-    t('vaastu_option_north_west'),
-  ],
-  water: [
-    t('vaastu_option_north'),
-    t('vaastu_option_north_east'),
-    t('vaastu_option_east')
-  ],
-  washroom: [
-    t('vaastu_option_equal_height'),
-    t('vaastu_option_north_west'),
-    t('vaastu_option_west')
-  ],
-  height: [
-    t('vaastu_option_no_structures'),
-    t('vaastu_option_higher_south_west')
-  ],
-};
-//English values to store in backend(same order as translated options)
-// const vastuEnglishValues = {
-//   buildingFacing: ["North", "East", "North-East", "West", "South"],
-// entrance: ["North", "East", "North-East", "West", "South-West"],
-// storageArea: ["Towards North", "Towards South", "Towards West"],
-// lightGoods: ["Balanced open space", "North", "East"],
-// loading: ["Square", "North", "East", "West"],
-// office: ["North", "East", "North-East"],
-// electrical: ["Water source in North", "South-East", "North-West"],
-// water: ["North", "North-East", "East"],
-// washroom: ["Equal height on all sides", "North-West", "West"],
-// height: ["No structures", "Higher in South & West"],
-// };
 
 return (
   <View className="flex-1 bg-white">
@@ -315,70 +251,70 @@ className="w-5 h-5"
      <VastuDropdown
   label={t('storage_building_facing')}
   value={form.buildingFacing}
-  options={vastuOptions.buildingFacing}
+  
   onSelect={(v) => update("buildingFacing", v)}
 />
 
 <VastuDropdown
   label={t('storage_entrance_direction')}
   value={form.entrance}
-  options={vastuOptions.entrance}
+ 
   onSelect={(v) => update("entrance", v)}
 />
 
 <VastuDropdown
   label={t('storage_area_direction')}
   value={form.storageArea}
-  options={vastuOptions.storageArea}
+  
   onSelect={(v) => update("storageArea", v)}
 />
 
 <VastuDropdown
   label={t('storage_light_goods_direction')}
   value={form.lightGoods}
-  options={vastuOptions.lightGoods}
+ 
   onSelect={(v) => update("lightGoods", v)}
 />
 
 <VastuDropdown
   label={t('storage_loading_direction')}
   value={form.loading}
-  options={vastuOptions.loading}
+ 
   onSelect={(v) => update("loading", v)}
 />
 
 <VastuDropdown
   label={t('storage_office_direction')}
   value={form.office}
-  options={vastuOptions.office}
+  
   onSelect={(v) => update("office", v)}
 />
 
 <VastuDropdown
   label={t('storage_electrical_direction')}
   value={form.electrical}
-  options={vastuOptions.electrical}
+  
   onSelect={(v) => update("electrical", v)}
 />
 
 <VastuDropdown
   label={t('storage_water_direction')}
   value={form.water}
-  options={vastuOptions.water}
+ 
   onSelect={(v) => update("water", v)}
 />
 
 <VastuDropdown
   label={t('storage_washroom_direction')}
   value={form.washroom}
-  options={vastuOptions.washroom}
+  
   onSelect={(v) => update("washroom", v)}
 />
 
 <VastuDropdown
   label={t('storage_height_level')}
   value={form.height}
-  options={vastuOptions.height}
+  
   onSelect={(v) => update("height", v)}
 />
 

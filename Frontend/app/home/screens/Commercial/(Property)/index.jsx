@@ -12,6 +12,7 @@ import i18n from "../../../../../i18n/index";
 import { Alert } from "react-native";
 import CustomAlert from "../../../../../components/CustomAlert";
 import { fetchReviews } from "../../../../../utils/reviewApi";
+import { FlatList, Dimensions } from "react-native";
 // ADD THIS IMPORT
 import { getImageUrl } from "../../../../../utils/imageHelper";
 // ✅ Helper: Strip phone number
@@ -97,17 +98,7 @@ export default function OverviewScreen() {
       });
     }
   }, [propertyId]);
-  useEffect(() => {
-  if (!property?.images || property.images.length <= 1) return;
-
-  const interval = setInterval(() => {
-    setCurrentImageIndex((prev) =>
-      prev === property.images.length - 1 ? 0 : prev + 1
-    );
-  }, 4000);
-
-  return () => clearInterval(interval);
-}, [property?.images]);
+  
 
   // ✅ NEW: Handle Contact Agent button press
   const handleContactAgent = async () => {
@@ -343,14 +334,55 @@ export default function OverviewScreen() {
           paddingBottom: 90,
         }}
       >
-        <View className="items-center relative">
+              <View className="items-center relative">
+        {property.images && property.images.length > 0 ? (
+          <FlatList
+        data={property.images}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={350} // Changed from 330 to 350 (330 + 20 margin)
+        decelerationRate="fast"
+        snapToAlignment="start" // Changed from "center" to "start"
+        contentContainerStyle={{ paddingHorizontal: 10 }} // Add padding to container
+        onMomentumScrollEnd={(event) => {
+          const index = Math.round(
+            event.nativeEvent.contentOffset.x / 350 // Changed from 330 to 350
+          );
+          setCurrentImageIndex(index);
+        }}
+        keyExtractor={(item, index) => `image-${index}`}
+        renderItem={({ item }) => (
+        <View className="relative" style={{ width: 330, marginHorizontal: 24 }}>
+          <Image
+            source={{ uri: getImageUrl(item) }}
+            className="rounded-[17px]"
+            style={{ height: 223, width: 330, resizeMode: "cover" }}
+          />
+          <View
+            className="absolute bg-white rounded-full p-1"
+            style={{
+              bottom: 10,
+              right: 10,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.2,
+              shadowRadius: 1.5,
+              elevation: 2,
+            }}
+          >
+            <Image
+              source={require("../../../../../assets/tick-icon.png")}
+              style={{ width: 13, height: 13, resizeMode: "contain" }}
+            />
+          </View>
+        </View>
+      )}
+      />
+        ) : (
           <View className="relative">
             <Image
-              source={
-                property.images && property.images.length > 0
-                  ? { uri: getImageUrl(property.images[currentImageIndex])  }
-                  : require("../../../../../assets/CommercialHub.jpg")
-              }
+              source={require("../../../../../assets/CommercialHub.jpg")}
               className="rounded-[17px]"
               style={{ height: 223, width: 330, resizeMode: "cover" }}
             />
@@ -372,7 +404,25 @@ export default function OverviewScreen() {
               />
             </View>
           </View>
-        </View>
+        )}
+
+        {/* Image Indicators */}
+        {property.images && property.images.length > 1 && (
+          <View className="flex-row justify-center mt-2">
+            {property.images.map((_, index) => (
+              <View
+                key={index}
+                className="rounded-full mx-1"
+                style={{
+                  width: 6,
+                  height: 6,
+                  backgroundColor: currentImageIndex === index ? '#22C55E' : '#D1D5DB'
+                }}
+              />
+            ))}
+          </View>
+        )}
+      </View>
 
         <View className="px-5 mt-5">
           <View className="flex-row items-start justify-between">

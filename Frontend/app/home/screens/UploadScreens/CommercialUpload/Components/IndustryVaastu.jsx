@@ -144,79 +144,7 @@ export default function VastuDetailsScreen() {
   };
 
   // ✅ Define Vaastu options with translations
-  const vastuOptions = {
-    buildingFacing: [
-      t('vaastu_option_north'),
-      t('vaastu_option_south'),
-      t('vaastu_option_east'),
-      t('vaastu_option_west'),
-      t('vaastu_option_north_east'),
-      t('vaastu_option_north_west'),
-      t('vaastu_option_south_east'),
-      t('vaastu_option_south_west'),
-    ],
-    entrance: [
-      t('vaastu_option_north'),
-      t('vaastu_option_south'),
-      t('vaastu_option_east'),
-      t('vaastu_option_west'),
-      t('vaastu_option_north_east'),
-      t('vaastu_option_north_west'),
-      t('vaastu_option_south_east'),
-      t('vaastu_option_south_west'),
-    ],
-    machinery: [
-      t('vaastu_option_towards_south'),
-      t('vaastu_option_towards_west'),
-      t('vaastu_option_south_west'),
-      t('vaastu_option_north_west'),
-    ],
-    production: [
-      t('vaastu_option_balanced_open_space'),
-      t('vaastu_option_north'),
-      t('vaastu_option_east'),
-      t('vaastu_option_north_east'),
-    ],
-    rawMaterial: [
-      t('vaastu_option_square'),
-      t('vaastu_option_south'),
-      t('vaastu_option_west'),
-      t('vaastu_option_south_west'),
-    ],
-    finishedGoods: [
-      t('vaastu_option_north'),
-      t('vaastu_option_east'),
-      t('vaastu_option_north_east'),
-    ],
-    office: [
-      t('vaastu_option_water_source_north'),
-      t('vaastu_option_north'),
-      t('vaastu_option_east'),
-      t('vaastu_option_north_east'),
-    ],
-    electrical: [
-      t('vaastu_option_south_east'),
-      t('vaastu_option_north_west'),
-      t('vaastu_option_west'),
-    ],
-    water: [
-      t('vaastu_option_north'),
-      t('vaastu_option_north_east'),
-      t('vaastu_option_east'),
-      t('vaastu_option_equal_height'),
-    ],
-    waste: [
-      t('vaastu_option_south'),
-      t('vaastu_option_west'),
-      t('vaastu_option_south_west'),
-      t('vaastu_option_no_structures'),
-    ],
-    washroom: [
-      t('vaastu_option_north_west'),
-      t('vaastu_option_west'),
-      t('vaastu_option_no_structures'),
-    ],
-  };
+  
 
   return (
     <View className="flex-1 bg-white">
@@ -246,77 +174,77 @@ export default function VastuDetailsScreen() {
           <VastuDropdown
             label={t('industry_plot_building_facing')}
             value={form.buildingFacing}
-            options={vastuOptions.buildingFacing}
+            
             onSelect={(v) => update("buildingFacing", v)}
           />
 
           <VastuDropdown
             label={t('industry_entrance_direction')}
             value={form.entrance}
-            options={vastuOptions.entrance}
+           
             onSelect={(v) => update("entrance", v)}
           />
 
           <VastuDropdown
             label={t('industry_machinery_direction')}
             value={form.machinery}
-            options={vastuOptions.machinery}
+            
             onSelect={(v) => update("machinery", v)}
           />
 
           <VastuDropdown
             label={t('industry_production_direction')}
             value={form.production}
-            options={vastuOptions.production}
+            
             onSelect={(v) => update("production", v)}
           />
 
           <VastuDropdown
             label={t('industry_raw_material_direction')}
             value={form.rawMaterial}
-            options={vastuOptions.rawMaterial}
+            
             onSelect={(v) => update("rawMaterial", v)}
           />
 
           <VastuDropdown
             label={t('industry_finished_goods_direction')}
             value={form.finishedGoods}
-            options={vastuOptions.finishedGoods}
+           
             onSelect={(v) => update("finishedGoods", v)}
           />
 
           <VastuDropdown
             label={t('industry_office_direction')}
             value={form.office}
-            options={vastuOptions.office}
+            
             onSelect={(v) => update("office", v)}
           />
 
           <VastuDropdown
             label={t('industry_electrical_direction')}
             value={form.electrical}
-            options={vastuOptions.electrical}
+            
             onSelect={(v) => update("electrical", v)}
           />
 
           <VastuDropdown
             label={t('industry_water_direction')}
             value={form.water}
-            options={vastuOptions.water}
+            
             onSelect={(v) => update("water", v)}
           />
 
           <VastuDropdown
             label={t('industry_waste_direction')}
             value={form.waste}
-            options={vastuOptions.waste}
+            
             onSelect={(v) => update("waste", v)}
           />
 
           <VastuDropdown
             label={t('industry_washroom_direction')}
             value={form.washroom}
-            options={vastuOptions.washroom}
+           
             onSelect={(v) => update("washroom", v)}
           />
         </View>

@@ -471,12 +471,8 @@ export default function OwnerScreen() {
     }
   };
 
-  return (
-  <KeyboardAvoidingView 
-    className="flex-1 bg-[#F5F6F8]"
-    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-  >
+ return (
+  <View className="flex-1 bg-[#F5F6F8]">
     {/* Header */}
     <View className="flex-row items-center mt-12 mb-4">
       <TouchableOpacity onPress={handleBack} className="p-2" accessibilityRole="button">
@@ -488,14 +484,13 @@ export default function OwnerScreen() {
       </View>
     </View>
 
-    {/* Scrollable Content */}
+    {/* Scrollable Content - Extended padding */}
     <ScrollView 
-      contentContainerStyle={{ padding: 16, paddingBottom: 120 }} 
+      contentContainerStyle={{ padding: 16, paddingBottom: 250 }} 
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
-      nestedScrollEnabled={true}
     >
-      <View className="px-4 mt-4 border border-gray-200 rounded-lg bg-white space-y-4">
+      <View className="px-4 mt-4 border border-gray-200 rounded-lg bg-white space-y-4 mb-4">
         <DocumentUpload 
           title="Property Ownership" 
           subtitle="Verify ownership to publish your property listing securely." 
@@ -522,11 +517,26 @@ export default function OwnerScreen() {
           setFocusedField={setFocusedField} 
         />
       </View>
+      
+      {/* Extra spacing to ensure content is visible above keyboard */}
+      <View style={{ height: 100 }} />
     </ScrollView>
 
-    {/* Footer Buttons - Fixed at bottom */}
-    <View className="bg-white border-t border-gray-200 py-4">
-      <View className="flex-row justify-end space-x-3 mx-3">
+    {/* Footer Buttons - Absolute positioning */}
+    <View 
+      style={{ 
+        position: 'absolute', 
+        bottom: 0, 
+        left: 0, 
+        right: 0,
+        backgroundColor: 'white',
+        borderTopWidth: 1,
+        borderTopColor: '#E5E7EB',
+        paddingVertical: 16,
+        paddingBottom: Platform.OS === 'ios' ? 24 : 16
+      }}
+    >
+      <View className="flex-row justify-end space-x-3 mx-3 mb-8">
         <TouchableOpacity 
           style={{ backgroundColor: "#E5E7EB", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10 }} 
           onPress={handleBack} 
@@ -551,6 +561,6 @@ export default function OwnerScreen() {
         </TouchableOpacity>
       </View>
     </View>
-  </KeyboardAvoidingView>
+  </View>
 );
 }

@@ -15,7 +15,7 @@ import CustomAlert from "../../../../../components/CustomAlert";
 // ADD THIS IMPORT
 import { getImageUrl } from "../../../../../utils/imageHelper";
 import { fetchReviews } from "../../../../../utils/reviewApi";
-
+import { FlatList, Dimensions } from "react-native";
 // ✅ Helper: Strip phone number
 const stripPhone = (phoneNum) => {
   if (!phoneNum) return '';
@@ -122,18 +122,7 @@ export default function OverviewScreen() {
       });
     }
   }, [propertyId]);
-  useEffect(() => {
-    if (!property?.images || property.images.length <= 1) return;
-  
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prev) =>
-        prev === property.images.length - 1 ? 0 : prev + 1
-      );
-    }, 4000);
-  
-    return () => clearInterval(interval);
-  }, [property?.images]);
-
+ 
   // ✅ NEW: Handle Contact Agent button press
   const handleContactAgent = async () => {
     try {
@@ -358,37 +347,95 @@ const getStats = () => {
         }}
       >
         {/* Resort Image */}
-        <View className="items-center relative">
-          <View className="relative">
+       {/* Property Images */}
+<View className="items-center relative">
+  {property.images && property.images.length > 0 ? (
+    <FlatList
+      data={property.images}
+      horizontal
+      pagingEnabled
+      showsHorizontalScrollIndicator={false}
+      snapToInterval={350}
+      decelerationRate="fast"
+      snapToAlignment="start"
+      contentContainerStyle={{ paddingHorizontal: 10 }}
+      onMomentumScrollEnd={(event) => {
+        const index = Math.round(
+          event.nativeEvent.contentOffset.x / 350
+        );
+        setCurrentImageIndex(index);
+      }}
+      keyExtractor={(item, index) => `image-${index}`}
+      renderItem={({ item }) => (
+        <View className="relative" style={{ width: 330, marginHorizontal: 10 }}>
+          <Image
+            source={{ uri: getImageUrl(item) }}
+            className="rounded-[17px]"
+            style={{ height: 223, width: 330, resizeMode: "cover" }}
+          />
+          <View
+            className="absolute bg-white rounded-full p-1"
+            style={{
+              bottom: 10,
+              right: 10,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.2,
+              shadowRadius: 1.5,
+              elevation: 2,
+            }}
+          >
             <Image
-              source={
-                property.images && property.images.length > 0
-                  ? { uri: getImageUrl(property.images[currentImageIndex]) }  // ✅ CHANGED: Removed IP address prefix for base64
-                  : require("../../../../../assets/flatimg.jpg")
-              }
-              className="rounded-[17px]"
-              style={{ height: 223, width: 330, resizeMode: "cover" }}
+              source={require("../../../../../assets/tick-icon.png")}
+              style={{ width: 13, height: 13, resizeMode: "contain" }}
             />
-            <View
-              className="absolute bg-white rounded-full p-1"
-              style={{
-                bottom: 10,
-                right: 10,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.2,
-                shadowRadius: 1.5,
-                elevation: 2,
-              }}
-            >
-              <Image
-                source={require("../../../../../assets/tick-icon.png")}
-                style={{ width: 13, height: 13, resizeMode: "contain" }}
-              />
-            </View>
           </View>
         </View>
-
+      )}
+    />
+  ) : (
+    <View className="relative">
+      <Image
+        source={require("../../../../../assets/CommercialHub.jpg")}
+        className="rounded-[17px]"
+        style={{ height: 223, width: 330, resizeMode: "cover" }}
+      />
+      <View
+        className="absolute bg-white rounded-full p-1"
+        style={{
+          bottom: 10,
+          right: 10,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.2,
+          shadowRadius: 1.5,
+          elevation: 2,
+        }}
+      >
+        <Image
+          source={require("../../../../../assets/tick-icon.png")}
+          style={{ width: 13, height: 13, resizeMode: "contain" }}
+        />
+      </View>
+    </View>
+  )}
+  {/* Image Indicators */}
+  {property.images && property.images.length > 1 && (
+    <View className="flex-row justify-center mt-2">
+      {property.images.map((_, index) => (
+        <View
+          key={index}
+          className="rounded-full mx-1"
+          style={{
+            width: 6,
+            height: 6,
+            backgroundColor: currentImageIndex === index ? '#22C55E' : '#D1D5DB'
+          }}
+        />
+      ))}
+    </View>
+  )}
+</View>
         {/* Property Info */}
         <View className="px-5 mt-5">
           {/* Name + Location + Rating */}

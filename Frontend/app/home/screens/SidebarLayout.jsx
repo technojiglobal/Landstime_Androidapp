@@ -137,11 +137,7 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
       icon: "bookmark-outline",
       route: "/home/screens/Sidebar/SavedPropertiesScreen"
     },
-    {
-      name: t('sidebar_menu_chat'),
-      icon: "chatbubble-outline",
-      route: "/home/screens/Sidebar/MessagesScreen"
-    },
+    
     {
       name: t('sidebar_menu_my_properties'),
       icon: "briefcase-outline",
