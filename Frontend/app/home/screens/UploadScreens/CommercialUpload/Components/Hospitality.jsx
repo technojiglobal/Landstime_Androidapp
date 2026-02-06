@@ -394,7 +394,7 @@ const handleNext = () => {
                             onChangeText={setNeighborhoodArea}
                             onFocus={() => setFocusedField("neighborhoodArea")}
                             onBlur={() => setFocusedField(null)}
-                            className="flex-1"
+                            className="flex-1 py-1"
                         />
                     </View>
                 </View>

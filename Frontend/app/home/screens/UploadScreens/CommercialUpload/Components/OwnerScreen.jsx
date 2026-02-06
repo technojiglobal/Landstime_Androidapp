@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { View, Text, ScrollView, TouchableOpacity, Image, Alert } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Image, Alert, KeyboardAvoidingView, Platform, Keyboard } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import DocumentUpload from "components/Documentupload";
@@ -110,26 +110,26 @@ export default function OwnerScreen() {
 
     const clearDraftIfSubtypeChanged = async () => {
       if (isClearing) return;
-      
+
       try {
         const draft = await AsyncStorage.getItem('draft_owner_screen');
         if (draft) {
           const parsed = JSON.parse(draft);
           const currentSubType = commercialDetails?.subType;
-          
+
           if (parsed.subType && parsed.subType !== currentSubType) {
             isClearing = true;
-            
+
             await AsyncStorage.removeItem('draft_owner_screen');
             console.log('🧹 Cleared OwnerScreen draft due to subtype change:', {
               oldSubType: parsed.subType,
               newSubType: currentSubType
             });
-            
+
             if (ownerName === parsed.ownerName) setOwnerName("");
             if (phone === parsed.phone) setPhone("");
             if (email === parsed.email) setEmail("");
-            
+
             if (ownershipDocs.length === parsed.ownershipDocs?.length) {
               setOwnershipDocs([]);
             }
@@ -156,19 +156,19 @@ export default function OwnerScreen() {
         if (draft) {
           const parsed = JSON.parse(draft);
           console.log('📦 Loading OwnerScreen draft from AsyncStorage');
-          
+
           if (parsed.subType === commercialDetails?.subType) {
             if (!ownerName && parsed.ownerName) setOwnerName(parsed.ownerName);
             if (!phone && parsed.phone) setPhone(parsed.phone);
             if (!email && parsed.email) setEmail(parsed.email);
-            
+
             if (ownershipDocs.length === 0 && parsed.ownershipDocs?.length > 0) {
               setOwnershipDocs(parsed.ownershipDocs);
             }
             if (identityDocs.length === 0 && parsed.identityDocs?.length > 0) {
               setIdentityDocs(parsed.identityDocs);
             }
-            
+
             console.log('✅ OwnerScreen draft loaded successfully');
           }
         }
@@ -182,9 +182,9 @@ export default function OwnerScreen() {
 
   // ✅ Auto-save with debounce
   useEffect(() => {
-    if (!ownerName && !phone && !email && 
-        ownershipDocs.length === 0 && 
-        identityDocs.length === 0) {
+    if (!ownerName && !phone && !email &&
+      ownershipDocs.length === 0 &&
+      identityDocs.length === 0) {
       return;
     }
 
@@ -230,7 +230,7 @@ export default function OwnerScreen() {
     // ✅ Validate images from params
     if (!images || images.length === 0) {
       Alert.alert(
-        "Missing Images", 
+        "Missing Images",
         "Please go back and upload at least one property image.",
         [
           {
@@ -271,13 +271,13 @@ export default function OwnerScreen() {
       Alert.alert("Missing Information", "Please enter the owner's email address.");
       return;
     }
-    
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
       Alert.alert("Invalid Email", "Please enter a valid email address.");
       return;
     }
-    
+
     if (!commercialDetails) {
       Alert.alert("Error", "Property details missing. Please go back and fill all required information.");
       return;
@@ -368,12 +368,12 @@ export default function OwnerScreen() {
 
     try {
       // ✅ Get images from params
-      const imageUris = images && images.length > 0 
+      const imageUris = images && images.length > 0
         ? images.map(img => typeof img === 'string' ? img : img.uri)
         : [];
-      
+
       const result = await createProperty(propertyData, imageUris, ownershipDocs, identityDocs);
-      
+
       if (!result.success) {
         throw new Error(result.error || result.data?.message || "Upload failed");
       }
@@ -385,12 +385,12 @@ export default function OwnerScreen() {
           'draft_office_details',
           'draft_office_pricing',
           'draft_office_vaastu',
-          
+
           'draft_commercial_retail',
           'draft_retail_details',
           'draft_retail_pricing',
           'draft_retail_vaastu',
-          
+
           'draft_commercial_hospitality',
           'draft_hospitality_details',
           'draft_hospitality_pricing',
@@ -426,19 +426,19 @@ export default function OwnerScreen() {
       ]);
     } catch (error) {
       console.error('❌ Upload error:', error);
-      
+
       let errorTitle = "Upload Failed";
       let errorMessage = 'Failed to upload property. Please check all fields and try again.';
-      
+
       if (error.response?.data) {
         const errorData = error.response.data;
-        
+
         console.log('📋 Error response:', errorData);
-        
+
         if (errorData.errors && Array.isArray(errorData.errors)) {
           errorTitle = errorData.message || "Validation Error";
           errorMessage = errorData.errors.join('\n\n');
-        } 
+        }
         else if (errorData.error?.validation && Array.isArray(errorData.error.validation)) {
           errorTitle = "Validation Error";
           errorMessage = errorData.error.validation.join('\n\n');
@@ -452,14 +452,14 @@ export default function OwnerScreen() {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       Alert.alert(errorTitle, errorMessage, [
         {
           text: "OK",
           style: "cancel"
         }
       ]);
-      
+
       Toast.show({
         type: 'error',
         text1: errorTitle,
@@ -472,73 +472,85 @@ export default function OwnerScreen() {
   };
 
   return (
-    <View className="flex-1 bg-[#F5F6F8]">
-      <View className="flex-row items-center mt-12">
-        <TouchableOpacity onPress={handleBack} className="p-2" accessibilityRole="button">
-          <Image source={require("../../../../../../assets/arrow.png")} style={{ width: 20, height: 20, resizeMode: "contain" }} />
-        </TouchableOpacity>
-        <View className="ml-2">
-          <Text className="text-[16px] font-semibold">Upload Your Property</Text>
-          <Text className="text-[12px] text-[#00000066]">Add your property details</Text>
-        </View>
-      </View>
-
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 36 }} showsVerticalScrollIndicator={false}>
-        <View className="px-4 mt-4 border border-gray-200 rounded-lg bg-white space-y-4">
-          <DocumentUpload 
-            title="Property Ownership" 
-            subtitle="Verify ownership to publish your property listing securely." 
-            files={ownershipDocs} 
-            setFiles={setOwnershipDocs} 
-            required 
-          />
-          <DocumentUpload 
-            title="Owner Identity" 
-            subtitle="Upload PAN, Aadhaar, Passport or Driver's License" 
-            files={identityDocs} 
-            setFiles={setIdentityDocs} 
-            required 
-          />
-          <OwnerDetails 
-            ownerName={ownerName} 
-            setOwnerName={setOwnerName} 
-            phone={phone} 
-            setPhone={validatePhone} 
-            phoneError={phoneError} 
-            email={email} 
-            setEmail={setEmail} 
-            focusedField={focusedField} 
-            setFocusedField={setFocusedField} 
-          />
-        </View>
-      </ScrollView>
-
-      <View style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 16, gap: 12 }} className="mr-4 mb-3 bg-white border-t border-gray-200 py-4">
-        <View className="flex-row justify-end space-x-3 mx-3 mb-4">
-          <TouchableOpacity 
-            style={{ backgroundColor: "#E5E7EB", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10 }} 
-            onPress={handleBack} 
-            className="mx-4"
-            disabled={isSubmitting}
-          >
-            <Text style={{ color: "black", fontWeight: "600", fontSize: 15 }}>Cancel</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={{ 
-              backgroundColor: isSubmitting ? "#9CA3AF" : "#22C55E", 
-              paddingVertical: 12, 
-              paddingHorizontal: 20, 
-              borderRadius: 10 
-            }} 
-            onPress={handleSubmit} 
-            disabled={isSubmitting}
-          >
-            <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
-              {isSubmitting ? "Uploading..." : "Upload Property"}
-            </Text>
-          </TouchableOpacity>
-        </View>
+  <KeyboardAvoidingView 
+    className="flex-1 bg-[#F5F6F8]"
+    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+  >
+    {/* Header */}
+    <View className="flex-row items-center mt-12 mb-4">
+      <TouchableOpacity onPress={handleBack} className="p-2" accessibilityRole="button">
+        <Image source={require("../../../../../../assets/arrow.png")} style={{ width: 20, height: 20, resizeMode: "contain" }} />
+      </TouchableOpacity>
+      <View className="ml-2">
+        <Text className="text-[16px] font-semibold">Upload Your Property</Text>
+        <Text className="text-[12px] text-[#00000066]">Add your property details</Text>
       </View>
     </View>
-  );
+
+    {/* Scrollable Content */}
+    <ScrollView 
+      contentContainerStyle={{ padding: 16, paddingBottom: 120 }} 
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      nestedScrollEnabled={true}
+    >
+      <View className="px-4 mt-4 border border-gray-200 rounded-lg bg-white space-y-4">
+        <DocumentUpload 
+          title="Property Ownership" 
+          subtitle="Verify ownership to publish your property listing securely." 
+          files={ownershipDocs} 
+          setFiles={setOwnershipDocs} 
+          required 
+        />
+        <DocumentUpload 
+          title="Owner Identity" 
+          subtitle="Upload PAN, Aadhaar, Passport or Driver's License" 
+          files={identityDocs} 
+          setFiles={setIdentityDocs} 
+          required 
+        />
+        <OwnerDetails 
+          ownerName={ownerName} 
+          setOwnerName={setOwnerName} 
+          phone={phone} 
+          setPhone={validatePhone} 
+          phoneError={phoneError} 
+          email={email} 
+          setEmail={setEmail} 
+          focusedField={focusedField} 
+          setFocusedField={setFocusedField} 
+        />
+      </View>
+    </ScrollView>
+
+    {/* Footer Buttons - Fixed at bottom */}
+    <View className="bg-white border-t border-gray-200 py-4">
+      <View className="flex-row justify-end space-x-3 mx-3">
+        <TouchableOpacity 
+          style={{ backgroundColor: "#E5E7EB", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10 }} 
+          onPress={handleBack} 
+          className="mx-4"
+          disabled={isSubmitting}
+        >
+          <Text style={{ color: "black", fontWeight: "600", fontSize: 15 }}>Cancel</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={{ 
+            backgroundColor: isSubmitting ? "#9CA3AF" : "#22C55E", 
+            paddingVertical: 12, 
+            paddingHorizontal: 20, 
+            borderRadius: 10 
+          }} 
+          onPress={handleSubmit} 
+          disabled={isSubmitting}
+        >
+          <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
+            {isSubmitting ? "Uploading..." : "Upload Property"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </KeyboardAvoidingView>
+);
 }

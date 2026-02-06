@@ -53,19 +53,7 @@ export default function SelectDistrictScreen() {
   const dragStartY = useRef(0);
 
   // ✅ NEW: Handle voice text when returned from Voice screen
-  useEffect(() => {
-    if (voiceText) {
-      console.log('Received voice text:', voiceText);
-      
-      // ✅ Clean voice input (remove common words)
-      const cleanedVoice = voiceText
-        .toLowerCase()
-        .replace(/district|properties|commercial|in|show me|find/gi, '')
-        .trim();
-      
-      setSearchQuery(cleanedVoice);
-    }
-  }, [voiceText]);
+ 
 
   // ✅ Filter districts based on search query
   const filteredData = districtsData.filter((district) => {
@@ -154,21 +142,7 @@ export default function SelectDistrictScreen() {
             onChangeText={setSearchQuery}
           />
           {/* ✅ NEW: CLICKABLE MIC ICON */}
-          <TouchableOpacity
-            onPress={() => router.push({
-              pathname: '/home/screens/Flats/Voice',
-              params: { 
-                returnScreen: '/home/screens/Commercial',
-                searchType: 'district'
-              }
-            })}
-          >
-            <Mic color="#888" size={20} />
-          </TouchableOpacity>
-          <View style={styles.divider} />
-          <TouchableOpacity>
-            <SlidersHorizontal color="#888" size={20} />
-          </TouchableOpacity>
+          
         </View>
       </View>
 

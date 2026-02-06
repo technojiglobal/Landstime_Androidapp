@@ -51,12 +51,7 @@ const SelectSiteScreen = () => {
   const scrollPositionOnDragStart = useRef(0);
 
   // ✅ NEW: Handle voice text when returned from Voice screen
-  useEffect(() => {
-    if (voiceText) {
-      console.log('Received voice text:', voiceText);
-      setSearchQuery(voiceText);
-    }
-  }, [voiceText]);
+  
 
   // ✅ Filter sites based on search
   const filteredData = sitesData.filter((site) => {
@@ -122,7 +117,7 @@ const SelectSiteScreen = () => {
           </TouchableOpacity>
 
           <Text className="text-2xl font-bold ml-3">
-            {t('selectSite.title')} {districtName}
+            {t('select Site from ')} {districtName}
           </Text>
         </View>
 
@@ -138,23 +133,9 @@ const SelectSiteScreen = () => {
               onChangeText={setSearchQuery}
             />
             {/* ✅ UPDATED: MIC - Pass returnScreen and districtKey */}
-            <TouchableOpacity 
-              className="p-2"
-              onPress={() => router.push({
-                pathname: '/home/screens/Flats/Voice',
-                params: { 
-                  returnScreen: '/home/screens/Sites/SelectSite',
-                  districtKey: districtKey,
-                  searchType: 'area'
-                }
-              })}
-            >
-              <Mic color="#888" size={20} />
-            </TouchableOpacity>
+            
             <View className="w-px h-6 bg-gray-300 mx-2" />
-            <TouchableOpacity className="p-2">
-              <SlidersHorizontal color="#888" size={20} />
-            </TouchableOpacity>
+            
           </View>
         </View>
       </View>
