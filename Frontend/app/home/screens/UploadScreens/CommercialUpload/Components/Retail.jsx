@@ -198,7 +198,7 @@ export default function Retail() {
           setPropertyAge(toEnglish(prevData.propertyAge) || '');
 
           if (prevData.possession) {
-            setPossessionYear(prevData.possession.year || '');
+
             setPossessionMonth(toEnglish(prevData.possession.month) || '');
             if (prevData.possession.year) setShowMonthDropdown(true);
           }
@@ -261,7 +261,7 @@ export default function Retail() {
   }, [location, locality, neighborhoodArea, carpetArea, unit,
     locatedInside, zoneType,
     entranceWidth, ceilingHeight, washroom, floorDetails, locatedNear,
-    parkingType, availability, propertyAge, possessionYear, possessionMonth,
+    parkingType, availability, propertyAge, possessionBy, possessionMonth,
     businessTypes, baseDetails?.retailType]);
 
   /* ---------- OPTIONS ---------- */
@@ -374,10 +374,7 @@ export default function Retail() {
       parkingType,
       availability,
       propertyAge,
-      possession: {
-        year: possessionYear,
-        month: possessionMonth,
-      },
+     
       suitableFor: businessTypes,
     };
 
@@ -681,7 +678,7 @@ export default function Retail() {
               onChangeText={setNeighborhoodArea}
               onFocus={() => setFocusedField("neighborhoodArea")}
               onBlur={() => setFocusedField(null)}
-              className="flex-1"
+              className="flex-1 py-1"
             />
           </View>
 

@@ -53,20 +53,7 @@ const SelectDistrictScreen = () => {
   const scrollPositionOnDragStart = useRef(0);
 
   // ✅ Handle voice text when returned from Voice screen
-  useEffect(() => {
-    if (voiceText) {
-      console.log('Received voice text:', voiceText);
-      
-      // ✅ Clean voice input (remove common words)
-      const cleanedVoice = voiceText
-        .toLowerCase()
-        .replace(/district|properties|in|show me|find/gi, '')
-        .trim();
-      
-      setSearchQuery(cleanedVoice);
-    }
-  }, [voiceText]);
-
+ 
   // ✅ Filter districts based on search query
   const filteredData = districtsData.filter((district) => {
     const translatedName = t(`districts.${district.key}`);
@@ -152,22 +139,9 @@ const SelectDistrictScreen = () => {
               onChangeText={setSearchQuery}
             />
             {/* ✅ CLICKABLE MIC ICON */}
-            <TouchableOpacity 
-              className="p-2"
-              onPress={() => router.push({
-                pathname: '/home/screens/Flats/Voice',
-                params: { 
-                  returnScreen: '/home/screens/Flats',
-                  searchType: 'district'
-                }
-              })}
-            >
-              <Mic color="#888" size={20} />
-            </TouchableOpacity>
+            
             <View className="w-px h-6 bg-gray-300 mx-2" />
-            <TouchableOpacity className="p-2">
-              <SlidersHorizontal color="#888" size={20} />
-            </TouchableOpacity>
+            
           </View>
         </View>
       </View>
