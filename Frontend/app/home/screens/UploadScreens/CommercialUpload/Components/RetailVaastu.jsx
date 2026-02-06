@@ -243,13 +243,7 @@ const updatedCommercialDetails = {
           <VastuDropdown
             label={t('retail_shop_facing')}
             value={form.shopFacing}
-            options={[
-              t('retail_direction_north'),
-              t('retail_direction_east'),
-              t('retail_direction_north_east'),
-              t('retail_direction_west'),
-              t('retail_direction_south')
-            ]}
+            
             onSelect={(v) => update("shopFacing", v)}
           />
 
@@ -268,105 +262,70 @@ const updatedCommercialDetails = {
           <VastuDropdown
             label={t('retail_cash_counter')}
             value={form.cashCounter}
-            options={[
-              t('retail_direction_south_west'),
-              t('retail_direction_west'),
-              t('retail_direction_south')
-            ]}
+           
             onSelect={(v) => update("cashCounter", v)}
           />
 
           <VastuDropdown
             label={t('retail_cash_locker')}
             value={form.cashLocker}
-            options={[
-              t('retail_direction_north'),
-              t('retail_direction_east'),
-              t('retail_direction_north_east')
-            ]}
+            
             onSelect={(v) => update("cashLocker", v)}
           />
 
           <VastuDropdown
             label={t('retail_owner_seating')}
             value={form.ownerSeating}
-            options={[
-              t('retail_direction_north_west'),
-              t('retail_direction_west')
-            ]}
+            
             onSelect={(v) => update("ownerSeating", v)}
           />
 
           <VastuDropdown
             label={t('retail_staff_seating')}
             value={form.staffSeating}
-            options={[
-              t('retail_direction_north'),
-              t('retail_direction_east'),
-              t('retail_direction_north_east')
-            ]}
+            
             onSelect={(v) => update("staffSeating", v)}
           />
 
           <VastuDropdown
             label={t('retail_storage_room')}
             value={form.storage}
-            options={[
-              t('retail_direction_north'),
-              t('retail_direction_north_east')
-            ]}
+            
             onSelect={(v) => update("storage", v)}
           />
 
           <VastuDropdown
             label={t('retail_display_area')}
             value={form.displayArea}
-            options={[
-              t('retail_direction_south_east'),
-              t('retail_direction_north_west')
-            ]}
+            
             onSelect={(v) => update("displayArea", v)}
           />
 
           <VastuDropdown
             label="Electrical/Inverter/Generator Direction"
             value={form.electrical}
-            options={[
-              t('retail_direction_south_east'),
-              t('retail_direction_north_west')
-            ]}
+            
             onSelect={(v) => update("electrical", v)}
           />
 
           <VastuDropdown
             label="Pantry/Wash Area Direction(If any)"
             value={form.pantryArea}
-            options={[
-              t('retail_direction_north_west'),
-              t('retail_direction_west'),
-              t('retail_direction_south_east')
-            ]}
+            
             onSelect={(v) => update("pantryArea", v)}
           />
 
           <VastuDropdown
             label="Staircase / Lift Direction"
             value={form.staircase}
-            options={[
-              t('retail_direction_south'),
-              t('retail_direction_south_west'),
-              t('retail_direction_west')
-            ]}
+           
             onSelect={(v) => update("staircase", v)}
           />
 
           <VastuDropdown
             label="Staircase/Lift Direction(If inside shop)"
             value={form.staircaseInside}
-            options={[
-              t('retail_direction_south_west'),
-              t('retail_direction_west')
-            ]}
+            
             onSelect={(v) => update("staircaseInside", v)}
           />
         </View>

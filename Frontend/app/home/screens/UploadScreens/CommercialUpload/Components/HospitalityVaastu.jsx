@@ -197,79 +197,7 @@ router.push({
     };
 
     // ✅ Define Vaastu options with translations
-    const vastuOptions = {
-        buildingFacing: [
-            t('vaastu_option_north_east'),
-            t('vaastu_option_north'),
-            t('vaastu_option_east'),
-            t('vaastu_option_west'),
-            t('vaastu_option_south')
-        ],
-        entrance: [
-            t('vaastu_option_south_west'),
-            t('vaastu_option_north'),
-            t('vaastu_option_east'),
-            t('vaastu_option_west'),
-            t('vaastu_option_south')
-        ],
-        reception: [
-            t('vaastu_option_towards_north'),
-            t('vaastu_option_east'),
-            t('vaastu_option_north_east')
-        ],
-        adminOffice: [
-            t('vaastu_option_balanced_open_space'),
-            t('vaastu_option_south_west'),
-            t('vaastu_option_west')
-        ],
-        guestRooms: [
-            t('vaastu_option_square'),
-            t('vaastu_option_south'),
-            t('vaastu_option_west')
-        ],
-        banquet: [
-            t('vaastu_option_north_east'),
-            t('vaastu_option_east'),
-            t('vaastu_option_north')
-        ],
-        kitchen: [
-            t('vaastu_option_water_source_north'),
-            t('vaastu_option_south_east'),
-            t('vaastu_option_north_west')
-        ],
-        dining: [
-            t('vaastu_option_north_east'),
-            t('vaastu_option_east'),
-            t('vaastu_option_north')
-        ],
-        cashCounter: [
-            t('vaastu_option_equal_height'),
-            t('vaastu_option_north'),
-            t('vaastu_option_east')
-        ],
-        electrical: [
-            t('vaastu_option_no_structures'),
-            t('vaastu_option_south_east'),
-            t('vaastu_option_north_west')
-        ],
-        waterStructure: [
-            t('vaastu_option_no_structures'),
-            t('vaastu_option_north'),
-            t('vaastu_option_north_east'),
-            t('vaastu_option_east')
-        ],
-        washroom: [
-            t('vaastu_option_no_structures'),
-            t('vaastu_option_north_west'),
-            t('vaastu_option_west')
-        ],
-        storage: [
-            t('vaastu_option_no_structures'),
-            t('vaastu_option_south'),
-            t('vaastu_option_west'),
-            t('vaastu_option_south_west')
-        ],
-    };
+    
 
     return (
         <View className="flex-1 bg-white">
@@ -297,91 +225,91 @@ router.push({
                     <VastuDropdown
                         label={t('building_property_facing')}
                         value={form.buildingFacing}
-                        options={vastuOptions.buildingFacing}
+                        
                         onSelect={(v) => update("buildingFacing", v)}
                     />
 
                     <VastuDropdown
                         label={t('main_entrance_direction')}
                         value={form.entrance}
-                        options={vastuOptions.entrance}
+                       
                         onSelect={(v) => update("entrance", v)}
                     />
 
                     <VastuDropdown
                         label={t('reception_lobby_direction')}
                         value={form.reception}
-                        options={vastuOptions.reception}
+                        
                         onSelect={(v) => update("reception", v)}
                     />
 
                     <VastuDropdown
                         label={t('admin_office_direction')}
                         value={form.adminOffice}
-                        options={vastuOptions.adminOffice}
+                        
                         onSelect={(v) => update("adminOffice", v)}
                     />
 
                     <VastuDropdown
                         label={t('guest_rooms_direction')}
                         value={form.guestRooms}
-                        options={vastuOptions.guestRooms}
+                      
                         onSelect={(v) => update("guestRooms", v)}
                     />
 
                     <VastuDropdown
                         label={t('banquet_direction')}
                         value={form.banquet}
-                        options={vastuOptions.banquet}
+                       
                         onSelect={(v) => update("banquet", v)}
                     />
 
                     <VastuDropdown
                         label="Kitchen/Cooking Area Direction"
                         value={form.kitchen}
-                        options={vastuOptions.kitchen}
+                       
                         onSelect={(v) => update("kitchen", v)}
                     />
 
                     <VastuDropdown
                         label={t('dining_direction')}
                         value={form.dining}
-                        options={vastuOptions.dining}
+                       
                         onSelect={(v) => update("dining", v)}
                     />
 
                     <VastuDropdown
                         label={t('cash_counter_direction')}
                         value={form.cashCounter}
-                        options={vastuOptions.cashCounter}
+                       
                         onSelect={(v) => update("cashCounter", v)}
                     />
 
                     <VastuDropdown
                         label={t('electrical_area_direction')}
                         value={form.electrical}
-                        options={vastuOptions.electrical}
+                        
                         onSelect={(v) => update("electrical", v)}
                     />
 
                     <VastuDropdown
                         label={t('water_structure_direction')}
                         value={form.waterStructure}
-                        options={vastuOptions.waterStructure}
+                       
                         onSelect={(v) => update("waterStructure", v)}
                     />
 
                     <VastuDropdown
                         label={t('washroom_direction')}
                         value={form.washroom}
-                        options={vastuOptions.washroom}
+                       
                         onSelect={(v) => update("washroom", v)}
                     />
 
                     <VastuDropdown
                         label={t('storage_direction')}
                         value={form.storage}
-                        options={vastuOptions.storage}
+                       
                         onSelect={(v) => update("storage", v)}
                     />
                 </View>

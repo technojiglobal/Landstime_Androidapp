@@ -171,57 +171,7 @@ export default function VastuDetailsScreen() {
   };
 
   // ✅ Vastu options with translations
-  const vastuOptions = {
-    plotFacing: [
-      t('vaastu_option_north'),
-      t('vaastu_option_east'),
-      t('vaastu_option_north_east'),
-      t('vaastu_option_west'),
-      t('vaastu_option_south')
-    ],
-    mainEntry: [
-      t('vaastu_option_north'),
-      t('vaastu_option_east'),
-      t('vaastu_option_north_east'),
-      t('vaastu_option_west'),
-      t('vaastu_option_south_west')
-    ],
-    plotSlope: [
-      t('vaastu_option_towards_north'),
-      t('vaastu_option_towards_east'),
-      t('vaastu_option_north_east')
-    ],
-    openSpace: [
-      t('vaastu_option_balanced_open_space'),
-      t('vaastu_option_more_north_east')
-    ],
-    shape: [
-      t('vaastu_option_square'),
-      t('vaastu_option_rectangle')
-    ],
-    roadPosition: [
-      t('vaastu_option_north'),
-      t('vaastu_option_east'),
-      t('vaastu_option_north_east')
-    ],
-    waterSource: [
-      t('vaastu_option_north'),
-      t('vaastu_option_north_east')
-    ],
-    drainage: [
-      t('vaastu_option_north'),
-      t('vaastu_option_north_east'),
-      t('vaastu_option_east')
-    ],
-    compoundWall: [
-      t('vaastu_option_equal_height'),
-      t('vaastu_option_higher_south_west')
-    ],
-    structures: [
-      t('vaastu_option_no_structures'),
-      t('vaastu_option_temporary_structures')
-    ],
-  };
+  
 
   return (
     <View className="flex-1 bg-white">
@@ -249,70 +199,70 @@ export default function VastuDetailsScreen() {
           <VastuDropdown 
             label={t('plot_vaastu_plot_facing')} 
             value={form.plotFacing}
-            options={vastuOptions.plotFacing}
+            
             onSelect={(v) => update("plotFacing", v)}
           />
 
           <VastuDropdown 
             label={t('plot_vaastu_main_entry')} 
             value={form.mainEntry}
-            options={vastuOptions.mainEntry}
+            
             onSelect={(v) => update("mainEntry", v)}
           />
 
           <VastuDropdown 
             label={t('plot_vaastu_slope')} 
             value={form.plotSlope}
-            options={vastuOptions.plotSlope}
+            
             onSelect={(v) => update("plotSlope", v)}
           />
 
           <VastuDropdown 
             label={t('plot_vaastu_open_space')} 
             value={form.openSpace}
-            options={vastuOptions.openSpace}
+            
             onSelect={(v) => update("openSpace", v)}
           />
 
           <VastuDropdown 
             label={t('plot_vaastu_shape')} 
             value={form.shape}
-            options={vastuOptions.shape}
+            
             onSelect={(v) => update("shape", v)}
           />
 
           <VastuDropdown 
             label={t('plot_vaastu_road_position')} 
             value={form.roadPosition}
-            options={vastuOptions.roadPosition}
+           
             onSelect={(v) => update("roadPosition", v)}
           />
 
           <VastuDropdown 
             label={t('plot_vaastu_water_source')} 
             value={form.waterSource}
-            options={vastuOptions.waterSource}
+            
             onSelect={(v) => update("waterSource", v)}
           />
 
           <VastuDropdown 
             label={t('plot_vaastu_drainage')} 
             value={form.drainage}
-            options={vastuOptions.drainage}
+            
             onSelect={(v) => update("drainage", v)}
           />
 
           <VastuDropdown 
             label={t('plot_vaastu_compound_wall')} 
             value={form.compoundWall}
-            options={vastuOptions.compoundWall}
+            
             onSelect={(v) => update("compoundWall", v)}
           />
 
           <VastuDropdown 
             label={t('plot_vaastu_structures')} 
             value={form.structures}
-            options={vastuOptions.structures}
+           
             onSelect={(v) => update("structures", v)}
           />
         </View>
