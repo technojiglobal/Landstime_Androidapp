@@ -144,6 +144,12 @@ const reverseTranslationMap = {
   // Open Space
   'ఉత్తరం & తూర్పులో ఎక్కువ': 'More in North & East',
   'उत्तर और पूर्व में अधिक': 'More in North & East',
+
+  // ✅ ADD Hospitality Types
+  'హోటల్/రిసార్ట్స్': 'Hotel/Resorts',
+  'होटल/रिसॉर्ट्स': 'Hotel/Resorts',
+  'గెస్ట్ హౌస్': 'Guest House',
+  'गेस्ट हाउस': 'Guest House',
 };
 
 const toEnglish = (text) => {
