@@ -1,10 +1,10 @@
-// //admin/src/pages/Dashboard.jsx
+// admin/src/pages/Dashboard.jsx
 
-
-import React from "react";
+import React, { useEffect, useState } from "react";
 import StatsCard from "../components/UserManagement/StatsCard";
 import PropertyItem from "../components/Dashboard/PropertyItem";
 import NotificationItem from "../components/Dashboard/NotificationItem";
+import { getDashboardData } from "../services/dashboardApi";
 
 import {
   Users,
@@ -17,85 +17,55 @@ import {
 } from "lucide-react";
 
 const Dashboard = () => {
-  const stats = [
-    {
-      title: "Total Subscribers",
-      value: "1,248",
-      icon: Users,
-      color: "blue",
-      trend: "+12% from last month",
-    },
-    {
-      title: "Total Revenue",
-      value: "$89,500",
-      icon: DollarSign,
-      color: "green",
-      trend: "+8% from last month",
-    },
-    {
-      title: "Premium Users",
-      value: "456",
-      icon: Crown,
-      color: "purple",
-      trend: "+5% from last month",
-    },
-    {
-      title: "Total Properties",
-      value: "892",
-      icon: Building2,
-      color: "indigo",
-      trend: "+15% from last month",
-    },
-    {
-      title: "Approved Properties",
-      value: "654",
-      icon: CheckCircle,
-      color: "green",
-    },
-    {
-      title: "Pending Approval",
-      value: "149",
-      icon: Clock,
-      color: "yellow",
-    },
-    {
-      title: "Rejected Properties",
-      value: "89",
-      icon: XCircle,
-      color: "red",
-    },
-  ];
+  const [stats, setStats] = useState([]);
+  const [properties, setProperties] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const properties = [
-    { name: "Sunset Villa Estate", location: "Miami Beach, FL", status: "verified" },
-    { name: "Manhattan Penthouse", location: "New York, NY", status: "pending" },
-    { name: "Silicon Valley Tech Campus", location: "Palo Alto, CA", status: "verified" },
-    { name: "Rocky Mountain Retreat Plot", location: "Aspen, CO", status: "rejected" },
-    { name: "Lakefront Paradise", location: "Lake Tahoe, CA", status: "pending" },
-  ];
+  // ✅ Icon mapping - convert string names to actual components
+  const iconMap = {
+    Users,
+    DollarSign,
+    Crown,
+    Building2,
+    CheckCircle,
+    Clock,
+    XCircle,
+  };
 
-  const notifications = [
-    {
-      title: "New Property Alert!",
-      desc: "A stunning beachfront villa matching your preferences is now available",
-      status: "delivered",
-    },
-    {
-      title: "Price Drop Alert",
-      desc: "The Manhattan Penthouse you viewed has reduced its price by $200,000",
-      status: "completed",
-    },
-    {
-      title: "Exclusive Subscriber Offer",
-      desc: "Early access to 10 new luxury listings",
-      status: "completed",
-    },
-    {
-      title: "Weekend Open Houses",
-      desc: "Join this weekend for exclusive open house events",
-      status: "pending",
-    },
-  ];
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const response = await getDashboardData();
+      if (response.success) {
+        // ✅ Map icon strings to actual components
+        const statsWithIcons = response.data.stats.map(stat => ({
+          ...stat,
+          icon: iconMap[stat.icon] || Users, // fallback to Users icon
+        }));
+        
+        setStats(statsWithIcons);
+        setProperties(response.data.properties);
+        setNotifications(response.data.notifications);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-lg text-gray-600">Loading dashboard...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
