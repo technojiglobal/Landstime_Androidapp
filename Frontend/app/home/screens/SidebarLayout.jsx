@@ -187,37 +187,55 @@ export default function SidebarLayout({ children, sidebarOpen, toggleSidebar }) 
       >
         {/* User Info */}
         <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => router.push("/home/screens/Settings/Profile")}
+  activeOpacity={0.8}
+  onPress={() => router.push("/home/screens/Settings/Profile")}
+>
+  <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 20 }}>
+    {userData?.profileImage ? (
+      <Image
+        source={{ uri: getImageUrl(userData.profileImage) }}
+        style={{ width: 50, height: 50, borderRadius: 25, marginRight: 12 }}
+      />
+    ) : (
+      <View 
+        style={{ 
+          width: 50, 
+          height: 50, 
+          borderRadius: 25, 
+          marginRight: 12,
+          backgroundColor: '#16A34A',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}
+      >
+        <Text 
+          style={{ 
+            color: 'white', 
+            fontSize: 20, 
+            fontWeight: 'bold'
+          }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 20 }}>
-            <Image
-              source={
-                userData?.profileImage
-                  ? { uri: getImageUrl(userData.profileImage) }
-                  : require("../../../assets/profile.png")
-              }
-              style={{ width: 50, height: 50, borderRadius: 25, marginRight: 12 }}
-            />
-            <View>
+          {getLocalizedName(userData?.name)?.charAt(0)?.toUpperCase() || 'U'}
+        </Text>
+      </View>
+    )}
+    <View>
+      <Text
+        className="text-white font-semibold"
+        style={{ fontSize: getFontSize(16), lineHeight: getLineHeight() }}
+      >
+        {getLocalizedName(userData?.name)}
+      </Text>
 
-
-              <Text
-                className="text-white font-semibold"
-                style={{ fontSize: getFontSize(16), lineHeight: getLineHeight() }}
-              >
-                {getLocalizedName(userData?.name)}
-              </Text>
-
-              <Text
-                className="text-white opacity-90"
-                style={{ fontSize: getFontSize(12), lineHeight: getLineHeight() - 2 }}
-              >
-                {userData?.phone || "No phone"}
-              </Text>
-            </View>
-          </View>
-        </TouchableOpacity>
+      <Text
+        className="text-white opacity-90"
+        style={{ fontSize: getFontSize(12), lineHeight: getLineHeight() - 2 }}
+      >
+        {userData?.phone || "No phone"}
+      </Text>
+    </View>
+  </View>
+</TouchableOpacity>
 
         {/* Back Button - Half Circle */}
         <TouchableOpacity
