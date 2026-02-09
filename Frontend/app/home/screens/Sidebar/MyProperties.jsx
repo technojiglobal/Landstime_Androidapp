@@ -15,7 +15,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { getUserProperties } from "utils/propertyApi";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { API_URL } from "../../../../utils/apiConfig";
 export default function MyProperties() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("All");
@@ -43,10 +43,10 @@ export default function MyProperties() {
     try {
       setLoading(true);
       const propertyList = await getUserProperties();
-      
+
       // console.log("🏠 Fetched properties:", propertyList);
       console.log("📊 Properties count:", propertyList.length);
-      
+
       setProperties(Array.isArray(propertyList) ? propertyList : []);
     } catch (error) {
       console.error("❌ Failed to load properties:", error);
@@ -59,15 +59,15 @@ export default function MyProperties() {
   // ✅ NEW: Helper function to extract text based on language
   const getLocalizedText = (field) => {
     if (!field) return '';
-    
+
     // If it's already a plain string, return it
     if (typeof field === 'string') return field;
-    
+
     // If it's an object with language keys, extract the right one
     if (typeof field === 'object') {
       return field[language] || field.en || field.te || field.hi || '';
     }
-    
+
     return '';
   };
 
@@ -91,17 +91,17 @@ export default function MyProperties() {
     if (!imageData) {
       return { uri: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6" };
     }
-    
+
     // If it's already a base64 data URI (starts with data:image), use it directly
     if (typeof imageData === 'string' && imageData.startsWith('data:image')) {
       return { uri: imageData };
     }
-    
+
     // If it's a URL, use it
     if (typeof imageData === 'string' && (imageData.startsWith('http://') || imageData.startsWith('https://'))) {
       return { uri: imageData };
     }
-    
+
     // Fallback to placeholder
     return { uri: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6" };
   };
@@ -222,8 +222,8 @@ export default function MyProperties() {
               property.status === "approved"
                 ? "Active"
                 : property.status === "pending"
-                ? "Pending Review"
-                : "Rejected";
+                  ? "Pending Review"
+                  : "Rejected";
 
             // ✅ Extract localized values
             const propertyTitle = getLocalizedText(property.propertyTitle);
@@ -262,22 +262,20 @@ export default function MyProperties() {
 
                   {/* Status Badge */}
                   <View
-                    className={`absolute top-3 left-3 px-3 py-1.5 rounded-full ${
-                      statusLabel === "Active"
+                    className={`absolute top-3 left-3 px-3 py-1.5 rounded-full ${statusLabel === "Active"
                         ? "bg-[#DBFCE7]"
                         : statusLabel === "Pending Review"
-                        ? "bg-[#FEF9C2]"
-                        : "bg-red-100"
-                    }`}
+                          ? "bg-[#FEF9C2]"
+                          : "bg-red-100"
+                      }`}
                   >
                     <Text
-                      className={`text-xs font-bold ${
-                        statusLabel === "Active"
+                      className={`text-xs font-bold ${statusLabel === "Active"
                           ? "text-[#008236]"
                           : statusLabel === "Pending Review"
-                          ? "text-yellow-700"
-                          : "text-red-700"
-                      }`}
+                            ? "text-yellow-700"
+                            : "text-red-700"
+                        }`}
                     >
                       {statusLabel}
                     </Text>
@@ -288,9 +286,7 @@ export default function MyProperties() {
                     <TouchableOpacity className="bg-white/95 p-2.5 rounded-full mr-2">
                       <Ionicons name="create-outline" size={20} color="black" />
                     </TouchableOpacity>
-                    <TouchableOpacity className="bg-white/95 p-2.5 rounded-full">
-                      <Ionicons name="bookmark-outline" size={20} color="black" />
-                    </TouchableOpacity>
+                    
                   </View>
                 </View>
 
@@ -343,17 +339,34 @@ export default function MyProperties() {
                       ₹ {property.expectedPrice?.toLocaleString('en-IN') || 'N/A'}
                     </Text>
                     <View className="flex-row">
-                      <TouchableOpacity className="border border-green-600 px-4 py-2 rounded-full mr-2 flex-row items-center">
+                     
+                      <TouchableOpacity
+                        className="border border-green-600 px-4 py-2 rounded-full mr-2 flex-row items-center"
+                        onPress={() => {
+                          // Navigate based on property type
+                          const propertyType = property.propertyType;
+                          let path = '';
+                          if (propertyType === 'House' || propertyType === 'House/Flat') {
+                            path = '/home/screens/Flats/(Property)';
+                          } else if (propertyType === 'Site/Plot/Land') {
+                            path = '/home/screens/Sites/(Property)';
+                          } else if (propertyType === 'Resort') {
+                            path = '/home/screens/Resorts/(Property)';
+                          } else if (propertyType === 'Commercial') {
+                            path = '/home/screens/Commercial/(Property)';
+                          }
+
+                          if (path) {
+                            router.push(`${path}?propertyId=${property._id}`);
+                          }
+                        }}
+                      >
                         <Ionicons name="eye-outline" size={16} color="#16A34A" />
                         <Text className="text-green-600 font-semibold ml-1 text-sm">
                           View
                         </Text>
                       </TouchableOpacity>
-                      <TouchableOpacity className="bg-green-600 px-4 py-2 rounded-full">
-                        <Text className="text-white font-semibold text-sm">
-                          Contact
-                        </Text>
-                      </TouchableOpacity>
+
                     </View>
                   </View>
                 </View>
