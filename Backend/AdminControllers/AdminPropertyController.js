@@ -7,10 +7,12 @@ import { handlePlotProperty } from './commercial/plotController.js';
 import { handleStorageProperty } from './commercial/storageController.js';
 import { handleIndustryProperty } from './commercial/industryController.js';
 import { handleHospitalityProperty } from './commercial/hospitalityController.js';
+import {
+  uploadToCloudinary,
+} from '../utils/cloudinaryHelper.js';
+
 // Utility: Convert buffer to base64
-const bufferToBase64 = (buffer, mimetype) => {
-  return `data:${mimetype};base64,${buffer.toString('base64')}`;
-};
+
 const parseNestedArrays = (data) => {
   // Helper to parse stringified arrays/objects
   const parseStringified = (items) => {
@@ -162,24 +164,73 @@ const normalizedPropertyType = normalizePropertyType(propertyData.propertyType);
       email: 'admin@landstime.com'
     };
 
-    console.log('📄 [ADMIN] Files received:', {
-      images: req.files?.images?.length || 0,
-      ownershipDocs: req.files?.ownershipDocs?.length || 0,
-      identityDocs: req.files?.identityDocs?.length || 0
+   console.log('📄 [ADMIN] Files received:', {
+  images: req.files?.images?.length || 0,
+  ownershipDocs: req.files?.ownershipDocs?.length || 0,
+  identityDocs: req.files?.identityDocs?.length || 0
+});
+
+// ✅ Generate unique timestamp for this upload
+const uploadTimestamp = Date.now();
+
+// ✅ Upload images to Cloudinary
+let images = [];
+if (req.files?.images && req.files.images.length > 0) {
+  console.log(`📸 Uploading ${req.files.images.length} images to Cloudinary...`);
+  
+  const uploadPromises = req.files.images.map((file, index) => {
+    return uploadToCloudinary(file.buffer, {
+      folder: 'property-listings/admin-properties/images',
+      public_id: `admin_property_${uploadTimestamp}_image_${index}`,
+      resource_type: 'image',
     });
+  });
 
-    // Convert uploaded files to base64
-    const images = req.files?.images?.map(file =>
-      bufferToBase64(file.buffer, file.mimetype)
-    ) || [];
+  const uploadResults = await Promise.all(uploadPromises);
+  images = uploadResults.map(result => result.url);
+  
+  console.log('✅ Images uploaded to Cloudinary:', images);
+}
 
-    const ownershipDocs = req.files?.ownershipDocs?.map(file => 
-      bufferToBase64(file.buffer, file.mimetype)
-    ) || [];
+// ✅ Upload ownership documents to Cloudinary
+let ownershipDocs = [];
+if (req.files?.ownershipDocs && req.files.ownershipDocs.length > 0) {
+  console.log(`📄 Uploading ${req.files.ownershipDocs.length} ownership docs to Cloudinary...`);
+  
+  const uploadPromises = req.files.ownershipDocs.map((file, index) => {
+    const isPDF = file.mimetype === 'application/pdf';
+    return uploadToCloudinary(file.buffer, {
+      folder: 'property-listings/admin-properties/documents/ownership',
+      public_id: `admin_ownership_${uploadTimestamp}_${index}`,
+      resource_type: isPDF ? 'raw' : 'image',
+    });
+  });
 
-    const identityDocs = req.files?.identityDocs?.map(file =>
-      bufferToBase64(file.buffer, file.mimetype)
-    ) || [];
+  const uploadResults = await Promise.all(uploadPromises);
+  ownershipDocs = uploadResults.map(result => result.url);
+  
+  console.log('✅ Ownership docs uploaded to Cloudinary:', ownershipDocs);
+}
+
+// ✅ Upload identity documents to Cloudinary
+let identityDocs = [];
+if (req.files?.identityDocs && req.files.identityDocs.length > 0) {
+  console.log(`📄 Uploading ${req.files.identityDocs.length} identity docs to Cloudinary...`);
+  
+  const uploadPromises = req.files.identityDocs.map((file, index) => {
+    const isPDF = file.mimetype === 'application/pdf';
+    return uploadToCloudinary(file.buffer, {
+      folder: 'property-listings/admin-properties/documents/identity',
+      public_id: `admin_identity_${uploadTimestamp}_${index}`,
+      resource_type: isPDF ? 'raw' : 'image',
+    });
+  });
+
+  const uploadResults = await Promise.all(uploadPromises);
+  identityDocs = uploadResults.map(result => result.url);
+  
+  console.log('✅ Identity docs uploaded to Cloudinary:', identityDocs);
+}
 
     // Backend validation
     if (!propertyData.propertyTitle) {

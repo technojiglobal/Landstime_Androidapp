@@ -27,6 +27,9 @@ import interiorDesignViewUserRoute from './UserRoutes/InteriorDesignViewRoute.js
 import interiorDesignViewAdminRoute from './AdminRoutes/InteriorDesignViewRoute.js';
 
 import savedPropertiesRoutes from './UserRoutes/savedPropertiesRoutes.js';
+// Add with other route imports
+import dashboardRoutes from './AdminRoutes/DashboardRoute.js';
+
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -119,6 +122,8 @@ app.use('/api/admin/interior-design-views', interiorDesignViewAdminRoute);
 app.use('/api/property-views', userPropertyViewRoutes);
 app.use('/api/admin/property-views', adminPropertyViewRoutes);
 app.use("/api/config", Config);
+// Add with other route registrations
+app.use('/api/admin/dashboard', dashboardRoutes);
 // 🔽 ADD
 
 // 🔽 ADD
