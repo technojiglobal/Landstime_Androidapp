@@ -13,6 +13,8 @@ import { uploadImages,handleUploadError } from '../UserMiddleware/uploadMiddlewa
 // Public routes
 router.get('/approved', propertyController.getApprovedProperties);
 
+router.get('/search', propertyController.searchProperties);
+
 // Protected routes (Authenticated users)
 router.post(
   '/',

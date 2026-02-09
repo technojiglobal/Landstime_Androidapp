@@ -1,7 +1,11 @@
 // Frontend/app/home/screens/HomeScreen.jsx
 import React, { useState, useEffect } from "react";
+
 import { useTranslation } from "react-i18next";
 import { changeLanguage } from "../../../i18n/index";
+import { parseSearchQuery, saveSearchHistory, getSearchHistory } from "../../../utils/searchHelper";
+import { searchProperties } from "../../../utils/propertyApi";
+import SearchResults from "../../../components/SearchResults";
 import {
   View,
   Text,
@@ -83,6 +87,13 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState(i18n.language.toUpperCase());
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState("");
+const [searchResults, setSearchResults] = useState({});
+const [searchLoading, setSearchLoading] = useState(false);
+const [searchVisible, setSearchVisible] = useState(false);
+const [recentSearches, setRecentSearches] = useState([]);
+const [searchDebounceTimer, setSearchDebounceTimer] = useState(null);
 
   // Helper functions for font sizing
   const getFontSize = (baseSize) => {
@@ -190,6 +201,117 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
     router.push("/home/screens/Notifications");
   };
 
+ //  Load recent searches on component mount
+useEffect(() => {
+  loadRecentSearches();
+}, []);
+
+const loadRecentSearches = async () => {
+  const history = await getSearchHistory();
+  setRecentSearches(history);
+};
+
+const handleSearchChange = (text) => {
+  setSearchQuery(text);
+  setSearchVisible(true); // Always show dropdown when typing
+  
+  // Clear previous timer
+  if (searchDebounceTimer) {
+    clearTimeout(searchDebounceTimer);
+  }
+  
+  if (text.length === 0) {
+    setSearchResults({});
+    return;
+  }
+  
+  // Debounce: wait 300ms after user stops typing
+  const timer = setTimeout(() => {
+    performSearch(text);
+  }, 300);
+  
+  setSearchDebounceTimer(timer);
+};
+
+const performSearch = async (query) => {
+  if (query.trim().length < 2) return;
+  
+  setSearchLoading(true);
+  
+  try {
+    const response = await searchProperties(query, i18n.language);
+    
+    if (response.success) {
+      setSearchResults(response.data || {});
+      await saveSearchHistory(query);
+      await loadRecentSearches();
+    } else {
+      setSearchResults({});
+    }
+  } catch (error) {
+    console.error('Search error:', error);
+    setSearchResults({});
+  } finally {
+    setSearchLoading(false);
+  }
+};
+
+const handleResultPress = (propertyType, areaKey) => {
+  setSearchVisible(false);
+  setSearchQuery("");
+  
+  // Route mapping based on property type
+  const routeMap = {
+    'House': '/home/screens/Flats/PropertyDetails',
+    'House/Flat': '/home/screens/Flats/PropertyDetails',
+    'Site/Plot/Land': '/home/screens/Sites/PropertyDetails',
+    'Commercial': '/home/screens/Commercial/PropertyDetails',
+    'Resort': '/home/screens/Resorts/PropertyDetails'
+  };
+  
+  const route = routeMap[propertyType] || '/home/screens/Flats/PropertyDetails';
+  
+  router.push({
+    pathname: route,
+    params: {
+      areaKey: areaKey,
+      districtKey: 'visakhapatnam'
+    }
+  });
+};
+
+const handleSeeAllPress = (propertyType, areaKey) => {
+  setSearchVisible(false);
+  
+  const routeMap = {
+    'House': '/home/screens/Flats/PropertyDetails',
+    'House/Flat': '/home/screens/Flats/PropertyDetails',
+    'Site/Plot/Land': '/home/screens/Sites/PropertyDetails',
+    'Commercial': '/home/screens/Commercial/PropertyDetails',
+    'Resort': '/home/screens/Resorts/PropertyDetails'
+  };
+  
+  const route = routeMap[propertyType];
+  if (route) {
+    router.push({
+      pathname: route,
+      params: {
+        areaKey: areaKey,
+        districtKey: 'visakhapatnam'
+      }
+    });
+  }
+};
+
+const handleRecentSearchPress = (query) => {
+  setSearchQuery(query);
+  performSearch(query);
+};
+
+  
+
+
+
   const onRefresh = async () => {
     setIsRefreshing(true);
     // Banner refresh is handled internally by BannerCarousel component
@@ -223,16 +345,43 @@ export default function HomeScreen({ toggleSidebar, sidebarOpen }) {
         />
 
         {/* Search Bar */}
-        <View className="flex-row items-center bg-white mx-10 mt-[-40] p-2 rounded-xl shadow-md z-10">
-          <Ionicons name="search" size={20} color="gray" />
-          <TextInput 
-            placeholder={t('home_search_placeholder')} 
-            className="ml-2 flex-1"
-            style={{
-              fontSize: getFontSize(14),
-            }}
-          />
-        </View>
+        <View style={{ position: 'relative', zIndex: 1000 }}>
+  <View className="flex-row items-center bg-white mx-10 mt-[-40] p-2 rounded-xl shadow-md z-10">
+    <Ionicons name="search" size={20} color="gray" />
+    <TextInput 
+      placeholder={t('home_search_placeholder')} 
+      className="ml-2 flex-1"
+      style={{
+        fontSize: getFontSize(14),
+      }}
+      value={searchQuery}
+      onChangeText={handleSearchChange}
+      onFocus={() => setSearchVisible(true)}
+    />
+    {searchQuery.length > 0 && (
+      <TouchableOpacity onPress={() => {
+        setSearchQuery("");
+        setSearchResults({});
+        setSearchVisible(false);
+      }}>
+        <Ionicons name="close-circle" size={20} color="gray" />
+      </TouchableOpacity>
+    )}
+  </View>
+  
+  {/* Search Results Dropdown */}
+  <SearchResults
+    visible={searchVisible}
+    searchQuery={searchQuery}
+    results={searchResults}
+    loading={searchLoading}
+    recentSearches={recentSearches}
+    onResultPress={handleResultPress}
+    onSeeAllPress={handleSeeAllPress}
+    onRecentSearchPress={handleRecentSearchPress}
+    onClose={() => setSearchVisible(false)}
+  />
+</View>
 
         {/* Language Selector */}
         <View className="flex-row justify-end mr-5 mb-4 mt-2">

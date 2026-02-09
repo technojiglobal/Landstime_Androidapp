@@ -1426,8 +1426,15 @@
   "phone_number": "Phone Number",
   "email_address": "Email Address",
   "north": "North",
-  "south": "South"
-  
- 
-
+  "south": "South",
+  "search_recent": "Recent Searches",
+  "search_no_results": "No properties found",
+  "search_try_different": "Try different keywords",
+  "search_loading": "Searching...",
+  "search_see_all": "See All",
+  "search_clear_history": "Clear History",
+  "search_results_houses": "Houses",
+  "search_results_sites": "Sites",
+  "search_results_commercial": "Commercial",
+  "search_results_resorts": "Resorts"
 }
