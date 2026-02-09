@@ -1884,3 +1884,96 @@ export const adminUpdateProperty = async (req, res) => {
     });
   }
 };
+
+export const searchProperties = async (req, res) => {
+  try {
+    const { q: query, language = 'en' } = req.query;
+    
+    if (!query || query.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Search query must be at least 2 characters'
+      });
+    }
+    
+    console.log('🔍 Search request:', { query, language });
+    
+    // Build base search query
+    const searchRegex = new RegExp(query.trim(), 'i');
+    
+    const baseQuery = {
+      status: 'approved',
+      $or: [
+        { [`propertyTitle.${language}`]: searchRegex },
+        { [`propertyTitle.en`]: searchRegex },
+        { [`description.${language}`]: searchRegex },
+        { [`description.en`]: searchRegex },
+        { [`location.${language}`]: searchRegex },
+        { [`location.en`]: searchRegex },
+        { [`area.${language}`]: searchRegex },
+        { [`area.en`]: searchRegex }
+      ]
+    };
+    
+    // Smart keyword detection
+    const lowerQuery = query.toLowerCase();
+    
+    // Property type detection
+    if (lowerQuery.match(/house|home|flat|bhk|apartment|villa|ఇల్లు|घर/)) {
+      baseQuery.propertyType = { $in: ['House', 'House/Flat'] };
+    } else if (lowerQuery.match(/site|plot|land|స్థలం|भूमि/)) {
+      baseQuery.propertyType = 'Site/Plot/Land';
+    } else if (lowerQuery.match(/commercial|office|shop|retail|store|వాణిజ్య|व्यावसायिक/)) {
+      baseQuery.propertyType = 'Commercial';
+    } else if (lowerQuery.match(/resort|hotel|రిసార్ట్|रिसॉर्ट/)) {
+      baseQuery.propertyType = 'Resort';
+    }
+    
+    // Bedroom detection for houses
+    const bedroomMatch = lowerQuery.match(/(\d+)\s*(bhk|bedroom|bed)/);
+    if (bedroomMatch && (!baseQuery.propertyType || baseQuery.propertyType.$in?.includes('House'))) {
+      const bedrooms = parseInt(bedroomMatch[1]);
+      baseQuery['houseDetails.bedrooms'] = bedrooms;
+    }
+    
+    // Execute search
+    const properties = await Property.find(baseQuery)
+      .populate('userId', 'name phone email')
+      .limit(50)
+      .sort({ createdAt: -1 });
+    
+    console.log(`✅ Found ${properties.length} properties`);
+    
+    // Group by property type
+    const grouped = {
+      'House': [],
+      'Site/Plot/Land': [],
+      'Commercial': [],
+      'Resort': []
+    };
+    
+    properties.forEach(prop => {
+      const type = prop.propertyType;
+      if (type === 'House/Flat') {
+        grouped['House'].push(prop);
+      } else if (grouped[type]) {
+        grouped[type].push(prop);
+      }
+    });
+    
+    res.status(200).json({
+      success: true,
+      data: grouped,
+      total: properties.length,
+      query: query
+    });
+    
+  } catch (error) {
+    console.error('❌ Search error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Search failed',
+      error: error.message
+    });
+  }
+};

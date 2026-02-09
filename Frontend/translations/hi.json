@@ -1426,5 +1426,15 @@
   "phone_number": "फोन नंबर",
   "email_address": "ईमेल पता",
   "north": "उत्तर",
-  "south": "दक्षिण"
+  "south": "दक्षिण",
+  "search_recent": "ఇటీవలి శోధనలు",
+  "search_no_results": "ఆస్తులు కనుగొనబడలేదు",
+  "search_try_different": "వేరే కీవర్డ్‌లను ప్రయత్నించండి",
+  "search_loading": "శోధిస్తోంది...",
+  "search_see_all": "అన్నీ చూడండి",
+  "search_clear_history": "చరిత్రను క్లియర్ చేయండి",
+  "search_results_houses": "ఇళ్ళు",
+  "search_results_sites": "స్థలాలు",
+  "search_results_commercial": "వాణిజ్యం",
+  "search_results_resorts": "రిసార్ట్‌లు"
 }
