@@ -25,12 +25,11 @@ export default function PropertyLayout() {
   const isWriteReview = pathname.includes("/WriteReview");
   const isOverview = !isReview && !isWriteReview;
   const handleBack = () => {
-    if (isReview || isWriteReview) {
-      router.replace("/home/screens/Commercial/(Property)");
-    } else {
-      router.back();
-    }
-  };
+  router.push({
+    pathname: "/home/screens/Resorts/PropertyDetails",
+    params: { propertyId, entityType, areaKey } // ✅ ADD areaKey here
+  });
+};
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       {/* Header */}

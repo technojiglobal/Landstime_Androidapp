@@ -1,5 +1,6 @@
 // Backend/UserControllers/savedPropertiesController.js
 import SavedProperty from '../UserModels/SavedProperty.js';
+import Review from '../UserModels/Review.js';
 
 // Save a property or interior
 export const saveProperty = async (req, res) => {
@@ -120,10 +121,41 @@ export const getSavedProperties = async (req, res) => {
     // Filter out any null populated entities (in case property/interior was deleted)
     const validSaved = saved.filter(item => item.entityId !== null);
 
+    // Fetch reviews for each saved property
+    const savedWithReviews = await Promise.all(
+      validSaved.map(async (item) => {
+        const savedItem = item.toObject();
+        
+        // Fetch reviews for this entity
+        const reviews = await Review.find({
+          entityId: item.entityId._id,
+          entityType: item.entityType === 'InteriorDesign' ? 'interior' : 'property'
+        });
+
+        // Calculate review summary
+        if (reviews.length > 0) {
+          const avgRating = (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1);
+          savedItem.reviewSummary = {
+            avgRating: parseFloat(avgRating),
+            count: reviews.length,
+            reviews: reviews
+          };
+        } else {
+          savedItem.reviewSummary = {
+            avgRating: 0,
+            count: 0,
+            reviews: []
+          };
+        }
+
+        return savedItem;
+      })
+    );
+
     res.status(200).json({
       success: true,
-      count: validSaved.length,
-      data: validSaved
+      count: savedWithReviews.length,
+      data: savedWithReviews
     });
   } catch (error) {
     console.error('Error fetching saved properties:', error);
