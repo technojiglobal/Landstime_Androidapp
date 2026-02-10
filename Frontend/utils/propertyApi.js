@@ -485,3 +485,32 @@ export const testBackendConnection = async () => {
     return false;
   }
 };
+
+// ✅ NEW: Search properties globally
+export const searchProperties = async (query, language = 'en') => {
+  try {
+    const token = await AsyncStorage.getItem('userToken');
+    const response = await fetch(
+      `${API_URL}/api/properties/search?q=${encodeURIComponent(query)}&language=${language}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` })
+        }
+      }
+    );
+    const data = await response.json();
+    
+    console.log('🔍 Search API response:', {
+      success: data.success,
+      total: data.total,
+      query: data.query
+    });
+    
+    return data;
+  } catch (error) {
+    console.error('❌ Search error:', error);
+    return { success: false, error: error.message };
+  }
+};

@@ -1426,5 +1426,15 @@
   "phone_number": "ఫోన్ నంబర్",
   "email_address": "ఇమెయిల్ చిరునామా",
   "north": "ఉత్తరం",
-  "south": "దక్షిణం"
+  "south": "దక్షిణం",
+  "search_recent": "हाल की खोजें",
+  "search_no_results": "कोई संपत्ति नहीं मिली",
+  "search_try_different": "अलग कीवर्ड आज़माएं",
+  "search_loading": "खोज रहे हैं...",
+  "search_see_all": "सभी देखें",
+  "search_clear_history": "इतिहास साफ़ करें",
+  "search_results_houses": "घर",
+  "search_results_sites": "भूमि",
+  "search_results_commercial": "व्यावसायिक",
+  "search_results_resorts": "रिसॉर्ट"
 }
