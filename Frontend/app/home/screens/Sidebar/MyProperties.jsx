@@ -10,18 +10,25 @@ import {
   StatusBar,
   TextInput,
   ActivityIndicator,
+  Alert,
+  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { getUserProperties } from "utils/propertyApi";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from "../../../../utils/apiConfig";
+import { fetchReviews } from "../../../../utils/reviewApi";
+
 export default function MyProperties() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("All");
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [language, setLanguage] = useState('en'); // Default language
+  const [language, setLanguage] = useState('en');
+  const [reviewSummary, setReviewSummary] = useState({});
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isListening, setIsListening] = useState(false);
 
   useEffect(() => {
     loadLanguagePreference();
@@ -44,7 +51,6 @@ export default function MyProperties() {
       setLoading(true);
       const propertyList = await getUserProperties();
 
-      // console.log("🏠 Fetched properties:", propertyList);
       console.log("📊 Properties count:", propertyList.length);
 
       setProperties(Array.isArray(propertyList) ? propertyList : []);
@@ -56,19 +62,41 @@ export default function MyProperties() {
     }
   };
 
-  // ✅ NEW: Helper function to extract text based on language
+  // Helper function to extract text based on language
   const getLocalizedText = (field) => {
     if (!field) return '';
 
-    // If it's already a plain string, return it
     if (typeof field === 'string') return field;
 
-    // If it's an object with language keys, extract the right one
     if (typeof field === 'object') {
       return field[language] || field.en || field.te || field.hi || '';
     }
 
     return '';
+  };
+
+  // Fetch reviews for each property
+  useEffect(() => {
+    if (filteredProperties.length > 0) {
+      filteredProperties.forEach(property => {
+        fetchReviewForProperty(property._id);
+      });
+    }
+  }, [properties, activeTab, searchQuery]);
+
+  const fetchReviewForProperty = async (propertyId) => {
+    try {
+      const res = await fetchReviews('property', propertyId);
+      setReviewSummary(prev => ({
+        ...prev,
+        [propertyId]: {
+          avgRating: res.avgRating || 0,
+          count: res.count || 0
+        }
+      }));
+    } catch (err) {
+      console.error('Failed to fetch reviews:', err);
+    }
   };
 
   const tabs = [
@@ -78,31 +106,88 @@ export default function MyProperties() {
     { label: "Sold", count: properties.filter(p => p.propertyStatus === "Sold").length },
   ];
 
+  // Filter properties by tab and search query
   const filteredProperties = properties.filter((prop) => {
-    if (activeTab === "All") return true;
-    if (activeTab === "Active") return prop.status === "approved";
-    if (activeTab === "Pending") return prop.status === "pending";
-    if (activeTab === "Sold") return prop.propertyStatus === "Sold";
-    return true;
+    // Tab filter
+    let passesTab = true;
+    if (activeTab === "Active") passesTab = prop.status === "approved";
+    else if (activeTab === "Pending") passesTab = prop.status === "pending";
+    else if (activeTab === "Sold") passesTab = prop.propertyStatus === "Sold";
+    else if (activeTab === "All") passesTab = true;
+    
+    // Search filter
+    let passesSearch = true;
+    if (searchQuery.trim()) {
+      const title = getLocalizedText(prop.propertyTitle).toLowerCase();
+      const location = getLocalizedText(prop.location).toLowerCase();
+      const propertyType = (prop.propertyType || '').toLowerCase();
+      const query = searchQuery.toLowerCase();
+      passesSearch = title.includes(query) || location.includes(query) || propertyType.includes(query);
+    }
+    
+    return passesTab && passesSearch;
   });
 
-  // ✅ Helper function to handle base64 images from backend
+  // Voice search function
+  const handleVoiceSearch = async () => {
+    try {
+      setIsListening(true);
+      
+      if (Platform.OS === 'web') {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          Alert.alert('Not Supported', 'Voice search is not supported in this browser');
+          setIsListening(false);
+          return;
+        }
+        
+        const recognition = new SpeechRecognition();
+        recognition.lang = language === 'te' ? 'te-IN' : language === 'hi' ? 'hi-IN' : 'en-US';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          setSearchQuery(transcript);
+          setIsListening(false);
+        };
+        
+        recognition.onerror = (event) => {
+          console.error('Speech recognition error:', event.error);
+          Alert.alert('Error', 'Failed to recognize speech');
+          setIsListening(false);
+        };
+        
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+        
+        recognition.start();
+      } else {
+        Alert.alert('Voice Search', 'Voice search is currently only available on web platform');
+        setIsListening(false);
+      }
+    } catch (error) {
+      console.error('Voice search error:', error);
+      Alert.alert('Error', 'Failed to start voice search');
+      setIsListening(false);
+    }
+  };
+
+  // Helper function to handle base64 images from backend
   const getImageSource = (imageData) => {
     if (!imageData) {
       return { uri: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6" };
     }
 
-    // If it's already a base64 data URI (starts with data:image), use it directly
     if (typeof imageData === 'string' && imageData.startsWith('data:image')) {
       return { uri: imageData };
     }
 
-    // If it's a URL, use it
     if (typeof imageData === 'string' && (imageData.startsWith('http://') || imageData.startsWith('https://'))) {
       return { uri: imageData };
     }
 
-    // Fallback to placeholder
     return { uri: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6" };
   };
 
@@ -112,7 +197,7 @@ export default function MyProperties() {
 
       {/* Header */}
       <View className="mt-9 px-4 py-2 flex-row items-center bg-white">
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.push("/(tabs)/home")}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         <Text className="text-lg font-semibold text-black ml-4">
@@ -125,15 +210,23 @@ export default function MyProperties() {
         <View className="flex-row bg-gray-50 px-4 py-3 rounded-xl items-center">
           <Ionicons name="search" size={20} color="#9CA3AF" />
           <TextInput
-            placeholder="Search properties in Vizag..."
+            placeholder="Search properties..."
             placeholderTextColor="#9CA3AF"
             className="ml-3 text-gray-700 flex-1 text-base"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
           />
-          <TouchableOpacity className="mr-3">
-            <Ionicons name="mic-outline" size={22} color="#6B7280" />
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Ionicons name="options-outline" size={22} color="#6B7280" />
+          {searchQuery ? (
+            <TouchableOpacity onPress={() => setSearchQuery("")} className="mr-3">
+              <Ionicons name="close-circle" size={22} color="#6B7280" />
+            </TouchableOpacity>
+          ) : null}
+          <TouchableOpacity onPress={handleVoiceSearch}>
+            <Ionicons 
+              name={isListening ? "mic" : "mic-outline"} 
+              size={22} 
+              color={isListening ? "#16A34A" : "#6B7280"} 
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -206,7 +299,9 @@ export default function MyProperties() {
             No properties found
           </Text>
           <Text className="text-gray-500 text-sm mt-2 text-center">
-            {activeTab === "All"
+            {searchQuery 
+              ? `No properties match "${searchQuery}"`
+              : activeTab === "All"
               ? "You haven't added any properties yet"
               : `No ${activeTab.toLowerCase()} properties`}
           </Text>
@@ -225,13 +320,8 @@ export default function MyProperties() {
                   ? "Pending Review"
                   : "Rejected";
 
-            // ✅ Extract localized values
             const propertyTitle = getLocalizedText(property.propertyTitle);
             const location = getLocalizedText(property.location);
-            const description = getLocalizedText(property.description);
-
-            console.log('🖼️ Property:', propertyTitle);
-            console.log('📍 Location:', location);
 
             return (
               <View
@@ -251,13 +341,6 @@ export default function MyProperties() {
                     source={getImageSource(property.images?.[0])}
                     className="w-full h-52"
                     resizeMode="cover"
-                    onError={(error) => {
-                      console.error('❌ Image load error for:', propertyTitle);
-                      console.error('❌ Error details:', error.nativeEvent.error);
-                    }}
-                    onLoad={() => {
-                      console.log('✅ Image loaded successfully for:', propertyTitle);
-                    }}
                   />
 
                   {/* Status Badge */}
@@ -286,13 +369,12 @@ export default function MyProperties() {
                     <TouchableOpacity className="bg-white/95 p-2.5 rounded-full mr-2">
                       <Ionicons name="create-outline" size={20} color="black" />
                     </TouchableOpacity>
-                    
                   </View>
                 </View>
 
                 {/* Property Details */}
                 <View className="p-4">
-                  {/* Title - ✅ NOW USING LOCALIZED TEXT */}
+                  {/* Title */}
                   <Text className="text-green-600 font-bold text-base">
                     {propertyTitle || 'Untitled Property'}
                   </Text>
@@ -304,16 +386,35 @@ export default function MyProperties() {
 
                   {/* Rating */}
                   <View className="flex-row items-center mt-3">
-                    <View className="flex-row">
-                      {[1, 2, 3, 4].map((_, i) => (
-                        <Ionicons key={i} name="star" size={16} color="#FCD34D" />
-                      ))}
-                      <Ionicons name="star-outline" size={16} color="#FCD34D" />
-                    </View>
-                    <Text className="ml-2 text-gray-800 font-semibold text-sm">
-                      4.5
-                      <Text className="text-gray-500 font-normal"> (120 reviews)</Text>
-                    </Text>
+                    {reviewSummary[property._id]?.count > 0 ? (
+                      <>
+                        <View className="flex-row">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Ionicons 
+                              key={star} 
+                              name={star <= Math.round(reviewSummary[property._id].avgRating) ? "star" : "star-outline"} 
+                              size={16} 
+                              color="#FCD34D" 
+                            />
+                          ))}
+                        </View>
+                        <Text className="ml-2 text-gray-800 font-semibold text-sm">
+                          {reviewSummary[property._id].avgRating.toFixed(1)}
+                          <Text className="text-gray-500 font-normal">
+                            {' '}({reviewSummary[property._id].count} {reviewSummary[property._id].count === 1 ? 'review' : 'reviews'})
+                          </Text>
+                        </Text>
+                      </>
+                    ) : (
+                      <>
+                        <View className="flex-row">
+                          {[1, 2, 3, 4, 5].map((_, i) => (
+                            <Ionicons key={i} name="star-outline" size={16} color="#D1D5DB" />
+                          ))}
+                        </View>
+                        <Text className="ml-2 text-gray-500 text-sm">No reviews yet</Text>
+                      </>
+                    )}
 
                     {property.status === "approved" && (
                       <View className="ml-auto bg-green-600 px-2.5 py-1 rounded-full flex-row items-center">
@@ -325,7 +426,7 @@ export default function MyProperties() {
                     )}
                   </View>
 
-                  {/* Location - ✅ NOW USING LOCALIZED TEXT */}
+                  {/* Location */}
                   <View className="flex-row items-center mt-3">
                     <Ionicons name="location-outline" size={16} color="#6B7280" />
                     <Text className="text-gray-600 text-sm ml-1">
@@ -339,25 +440,39 @@ export default function MyProperties() {
                       ₹ {property.expectedPrice?.toLocaleString('en-IN') || 'N/A'}
                     </Text>
                     <View className="flex-row">
-                     
                       <TouchableOpacity
                         className="border border-green-600 px-4 py-2 rounded-full mr-2 flex-row items-center"
                         onPress={() => {
-                          // Navigate based on property type
                           const propertyType = property.propertyType;
                           let path = '';
+                          let detailsPath = '';
+                          
                           if (propertyType === 'House' || propertyType === 'House/Flat') {
                             path = '/home/screens/Flats/(Property)';
+                            detailsPath = '/home/screens/Flats/PropertyDetails';
                           } else if (propertyType === 'Site/Plot/Land') {
                             path = '/home/screens/Sites/(Property)';
+                            detailsPath = '/home/screens/Sites/PropertyDetails';
                           } else if (propertyType === 'Resort') {
                             path = '/home/screens/Resorts/(Property)';
+                            detailsPath = '/home/screens/Resorts/PropertyDetails';
                           } else if (propertyType === 'Commercial') {
                             path = '/home/screens/Commercial/(Property)';
+                            detailsPath = '/home/screens/Commercial/PropertyDetails';
                           }
 
                           if (path) {
-                            router.push(`${path}?propertyId=${property._id}`);
+                            router.push({
+                              pathname: path,
+                              params: {
+                                propertyId: property._id,
+                                propertyData: JSON.stringify(property),
+                                areaKey: property.areaKey,
+                                entityType: 'property',
+                                backRoute: detailsPath,
+                                fromMyProperties: 'true'
+                              }
+                            });
                           }
                         }}
                       >
@@ -366,7 +481,6 @@ export default function MyProperties() {
                           View
                         </Text>
                       </TouchableOpacity>
-
                     </View>
                   </View>
                 </View>

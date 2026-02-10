@@ -1,15 +1,15 @@
 // Frontend/app/home/screens/Sidebar/SavedPropertiesScreen.jsx
 import React, { useState, useEffect } from "react";
-import { 
-  View, 
-  Text, 
-  Image, 
-  TextInput, 
-  TouchableOpacity, 
-  FlatList, 
-  StatusBar, 
+import {
+  View,
+  Text,
+  Image,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  StatusBar,
   ActivityIndicator,
-  Alert 
+  Alert
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -37,7 +37,7 @@ export default function SavedPropertiesScreen() {
     try {
       setLoading(true);
       const response = await getSavedProperties();
-      
+
       if (response.success) {
         setSavedItems(response.data);
       } else {
@@ -52,51 +52,51 @@ export default function SavedPropertiesScreen() {
   };
 
   const applyFilters = () => {
-  let filtered = [...savedItems];
+    let filtered = [...savedItems];
 
-  // Filter by type
-  if (activeFilter !== "All") {
-    filtered = filtered.filter(item => {
-      if (activeFilter === "Interiors") {
-        return item.entityType === 'InteriorDesign';
-      } else {
-        // For properties, check propertyType
-        if (item.entityType === 'Property' && item.entityId) {
-          const propertyType = item.entityId.propertyType;
-          if (activeFilter === "Sites") return propertyType === 'Site/Plot/Land';
-          if (activeFilter === "Resorts") return propertyType === 'Resort';
-          if (activeFilter === "Flats") return propertyType === 'House' || propertyType === 'House/Flat';
-          if (activeFilter === "Commercial") return propertyType === 'Commercial';
+    // Filter by type
+    if (activeFilter !== "All") {
+      filtered = filtered.filter(item => {
+        if (activeFilter === "Interiors") {
+          return item.entityType === 'InteriorDesign';
+        } else {
+          // For properties, check propertyType
+          if (item.entityType === 'Property' && item.entityId) {
+            const propertyType = item.entityId.propertyType;
+            if (activeFilter === "Sites") return propertyType === 'Site/Plot/Land';
+            if (activeFilter === "Resorts") return propertyType === 'Resort';
+            if (activeFilter === "Flats") return propertyType === 'House' || propertyType === 'House/Flat';
+            if (activeFilter === "Commercial") return propertyType === 'Commercial';
+          }
+          return false;
+        }
+      });
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(item => {
+        if (item.entityType === 'InteriorDesign' && item.entityId) {
+          return item.entityId.name?.toLowerCase().includes(searchQuery.toLowerCase());
+        } else if (item.entityType === 'Property' && item.entityId) {
+          const title = typeof item.entityId.propertyTitle === 'string'
+            ? item.entityId.propertyTitle
+            : item.entityId.propertyTitle?.en || '';
+          return title.toLowerCase().includes(searchQuery.toLowerCase());
         }
         return false;
-      }
-    });
-  }
+      });
+    }
 
-  // Filter by search query
-  if (searchQuery.trim()) {
-    filtered = filtered.filter(item => {
-      if (item.entityType === 'InteriorDesign' && item.entityId) {
-        return item.entityId.name?.toLowerCase().includes(searchQuery.toLowerCase());
-      } else if (item.entityType === 'Property' && item.entityId) {
-        const title = typeof item.entityId.propertyTitle === 'string' 
-          ? item.entityId.propertyTitle 
-          : item.entityId.propertyTitle?.en || '';
-        return title.toLowerCase().includes(searchQuery.toLowerCase());
-      }
-      return false;
-    });
-  }
-
-  setFilteredItems(filtered);
-};
+    setFilteredItems(filtered);
+  };
   const handleUnsave = async (itemId, entityType) => {
     try {
       const response = await unsaveProperty(itemId, entityType);
-      
+
       if (response.success) {
         // Remove from local state
-        setSavedItems(prev => prev.filter(item => 
+        setSavedItems(prev => prev.filter(item =>
           !(item.entityId._id === itemId && item.entityType === entityType)
         ));
       } else {
@@ -110,15 +110,15 @@ export default function SavedPropertiesScreen() {
 
   const renderSavedCard = ({ item }) => {
     if (!item.entityId) return null;
-const isInterior = item.entityType === 'InteriorDesign';
+    const isInterior = item.entityType === 'InteriorDesign';
     const entity = item.entityId;
 
     // Get title
-    const title = isInterior 
-      ? entity.name 
-      : (typeof entity.propertyTitle === 'string' 
-          ? entity.propertyTitle 
-          : entity.propertyTitle?.en || 'Property');
+    const title = isInterior
+      ? entity.name
+      : (typeof entity.propertyTitle === 'string'
+        ? entity.propertyTitle
+        : entity.propertyTitle?.en || 'Property');
 
     // Get image
     const imageUri = entity.images && entity.images.length > 0
@@ -126,44 +126,71 @@ const isInterior = item.entityType === 'InteriorDesign';
       : null;
 
     // Get price
-    const price = isInterior 
-      ? `₹${entity.price || 'N/A'}` 
-      : `₹${entity.expectedPrice ? (entity.expectedPrice / 100000).toFixed(0) + 'L' : 'N/A'}`;
+    const price = isInterior
+      ? `₹${entity.price || 'N/A'}`
+      : `₹${entity.expectedPrice}`;
+    //: `₹${entity.expectedPrice ? (entity.expectedPrice / 100000).toFixed(0) + 'L' : 'N/A'}`;
 
     // Get location
-    const location = isInterior 
-      ? entity.location 
-      : (typeof entity.location === 'string' 
-          ? entity.location 
-          : entity.location?.en || entity.area?.en || 'Location');
+    const location = isInterior
+      ? entity.location
+      : (typeof entity.location === 'string'
+        ? entity.location
+        : entity.location?.en || entity.area?.en || 'Location');
+
+    // Get review summary
+    const reviewSummary = item.reviewSummary || { avgRating: 0, count: 0 };
 
     return (
       <TouchableOpacity
         className="bg-white rounded-2xl mb-4 shadow-sm border border-gray-100"
         activeOpacity={0.7}
+        // In renderSavedCard function, modify the onPress navigation:
+
         onPress={() => {
-          if (isInterior) {
-            router.push(`/home/screens/Sidebar/RoomOverview?id=${entity._id}`);
-          } else {
-            // Navigate based on property type
-            const propertyType = entity.propertyType;
-            let path = '';
-            if (propertyType === 'House') path = '/home/screens/Flats/(Property)';
-            else if (propertyType === 'Site/Plot/Land') path = '/home/screens/Sites/(Property)';
-            else if (propertyType === 'Resort') path = '/home/screens/Resorts/(Property)';
-            else if (propertyType === 'Commercial') path = '/home/screens/Commercial/(Property)';
-            
-            if (path) {
-              router.push(`${path}?propertyId=${entity._id}`);
-            }
-          }
-        }}
+  if (isInterior) {
+    router.push(`/home/screens/Sidebar/RoomOverview?id=${entity._id}`);
+  } else {
+    // Navigate based on property type
+    const propertyType = entity.propertyType;
+    let path = '';
+    let detailsPath = '';
+    
+    if (propertyType === 'House' || propertyType === 'House/Flat') {
+      path = '/home/screens/Flats/(Property)';
+      detailsPath = '/home/screens/Flats/PropertyDetails';
+    } else if (propertyType === 'Site/Plot/Land') {
+      path = '/home/screens/Sites/(Property)';
+      detailsPath = '/home/screens/Sites/PropertyDetails';
+    } else if (propertyType === 'Resort') {
+      path = '/home/screens/Resorts/(Property)';
+      detailsPath = '/home/screens/Resorts/PropertyDetails';
+    } else if (propertyType === 'Commercial') {
+      path = '/home/screens/Commercial/(Property)';
+      detailsPath = '/home/screens/Commercial/PropertyDetails';
+    }
+    
+    if (path) {
+      router.push({
+        pathname: path,
+        params: {
+          propertyId: entity._id,
+          propertyData: JSON.stringify(entity),
+          areaKey: entity.areaKey,
+          entityType: 'property',
+          backRoute: detailsPath,
+          fromSaved: 'true'
+        }
+      });
+    }
+  }
+}}
       >
         <View className="flex-row p-3">
           {/* Image */}
           <Image
             source={
-              imageUri 
+              imageUri
                 ? { uri: imageUri }
                 : require("../../../../assets/Flat1.jpg")
             }
@@ -172,17 +199,36 @@ const isInterior = item.entityType === 'InteriorDesign';
           />
 
           {/* Details */}
+          
+
+          {/* Details */}
           <View className="flex-1 ml-3 justify-between">
             <View>
               <Text className="text-[15px] font-semibold text-gray-900" numberOfLines={1}>
                 {title}
               </Text>
-              
-              <View className="flex-row items-center mt-1">
-                <Ionicons name="location-outline" size={14} color="#6B7280" />
-                <Text className="text-[12px] text-gray-500 ml-1" numberOfLines={1}>
-                  {location}
-                </Text>
+
+              {/* Location and Reviews in same row */}
+              <View className="flex-row items-center justify-between mt-1">
+                <View className="flex-row items-center flex-1">
+                  <Ionicons name="location-outline" size={14} color="#6B7280" />
+                  <Text className="text-[12px] text-gray-500 ml-1 flex-1" numberOfLines={1}>
+                    {location}
+                  </Text>
+                </View>
+
+                {/* Review Summary */}
+                {(reviewSummary.count > 0) && (
+                  <View className="flex-row items-center ml-2">
+                    <Ionicons name="star" size={12} color="#FFA500" />
+                    <Text className="text-[11px] text-gray-700 ml-1 font-semibold">
+                      {reviewSummary.avgRating}
+                    </Text>
+                    <Text className="text-[10px] text-gray-500 ml-1">
+                      ({reviewSummary.count})
+                    </Text>
+                  </View>
+                )}
               </View>
 
               {isInterior && (
@@ -215,10 +261,10 @@ const isInterior = item.entityType === 'InteriorDesign';
   return (
     <View className="flex-1 bg-white mt-2 px-4 pt-12">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      
+
       {/* Header */}
       <View className="flex-row items-center mb-4">
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.push("/(tabs)/home")}>
           <Image source={arrow} className="w-6 h-6" />
         </TouchableOpacity>
         <Text className="text-[18px] font-semibold ml-2">Saved Properties</Text>
@@ -246,9 +292,8 @@ const isInterior = item.entityType === 'InteriorDesign';
           renderItem={({ item }) => (
             <TouchableOpacity
               onPress={() => setActiveFilter(item)}
-              className={`px-4 py-2 mx-1 rounded-full border ${
-                activeFilter === item ? "bg-green-100 border-green-400" : "border-gray-300"
-              }`}
+              className={`px-4 py-2 mx-1 rounded-full border ${activeFilter === item ? "bg-green-100 border-green-400" : "border-gray-300"
+                }`}
             >
               <Text className={`${activeFilter === item ? "text-green-600" : "text-gray-600"}`}>
                 {item}
@@ -281,8 +326,8 @@ const isInterior = item.entityType === 'InteriorDesign';
         <View className="flex-1 justify-center items-center">
           <Ionicons name="bookmark-outline" size={64} color="#D1D5DB" />
           <Text className="text-gray-500 mt-4 text-center">
-            {searchQuery || activeFilter !== "All" 
-              ? "No items match your filters" 
+            {searchQuery || activeFilter !== "All"
+              ? "No items match your filters"
               : "No saved properties yet"}
           </Text>
         </View>

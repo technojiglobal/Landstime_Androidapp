@@ -49,7 +49,7 @@ export default function PropertyListScreen() {
   const areaName = areaKey ? t(`areas.${areaKey}`) : '';
   const [savedStates, setSavedStates] = useState({});
   const [reviewSummary, setReviewSummary] = useState({});
-  
+
   // ✅ Filter state
   const [activeFilters, setActiveFilters] = useState(null);
   const [isFiltering, setIsFiltering] = useState(false);
@@ -80,9 +80,9 @@ export default function PropertyListScreen() {
           locAdvantages: filters.locAdvantages?.length || 0,
           quickFilters: filters.quickFilters?.length || 0,
         });
-        
+
         const hasFilters = Object.keys(filters).length > 0;
-        
+
         if (hasFilters) {
           setActiveFilters(filters);
           setIsFiltering(true);
@@ -147,7 +147,7 @@ export default function PropertyListScreen() {
         console.log('✅ All commercial properties fetched:', response.data.data?.length);
         const commercialProps = response.data.data || [];
         setProperties(commercialProps);
-        
+
         if (activeFilters) {
           applyFilters(commercialProps, activeFilters);
         } else {
@@ -157,7 +157,7 @@ export default function PropertyListScreen() {
           });
           setFilteredProperties(areaFiltered);
         }
-        
+
         await checkAllSavedStatuses(commercialProps);
       } else {
         console.error('❌ Failed to fetch properties:', response.error);
@@ -174,7 +174,7 @@ export default function PropertyListScreen() {
     console.log('🔍 ========== STARTING COMMERCIAL FILTER APPLICATION ==========');
     console.log('📊 Initial properties count:', propertyList.length);
     console.log('🎯 Filters received:', JSON.stringify(filters, null, 2));
-    
+
     let filtered = [...propertyList];
     let filterSteps = [];
 
@@ -188,38 +188,38 @@ export default function PropertyListScreen() {
       }
       return matches;
     });
-    
+
     filterSteps.push({
       step: 'Area Filter',
       before: initialCount,
       after: filtered.length,
       removed: initialCount - filtered.length
     });
-    
+
     console.log(`📍 Area filter (${areaKey}): ${initialCount} → ${filtered.length} properties`);
 
     // ✅ STEP 2: SUB-TYPE FILTER
     if (filters.subTypes && filters.subTypes.length > 0) {
       const beforeSubType = filtered.length;
-      
+
       filtered = filtered.filter(property => {
         const subType = property.commercialDetails?.subType || '';
         const matches = filters.subTypes.includes(subType);
-        
+
         if (!matches) {
           console.log(`🏢 Filtered out (sub-type): ${property.propertyTitle?.en || property.propertyTitle} - Type: ${subType}`);
         }
-        
+
         return matches;
       });
-      
+
       filterSteps.push({
         step: `Sub-Type (${filters.subTypes.join(', ')})`,
         before: beforeSubType,
         after: filtered.length,
         removed: beforeSubType - filtered.length
       });
-      
+
       console.log(`🏢 Sub-type filter: ${beforeSubType} → ${filtered.length} properties`);
     }
 
@@ -227,26 +227,26 @@ export default function PropertyListScreen() {
     if (filters.budgetRange && Array.isArray(filters.budgetRange)) {
       const beforeBudget = filtered.length;
       const [minBudget, maxBudget] = filters.budgetRange;
-      
+
       if (minBudget !== 1 || maxBudget !== 500) {
         filtered = filtered.filter(property => {
           const price = property.expectedPrice / 100000;
           const inRange = price >= minBudget && price <= maxBudget;
-          
+
           if (!inRange) {
             console.log(`💰 Filtered out (budget): ${property.propertyTitle?.en || property.propertyTitle} - Price: ₹${price.toFixed(2)}L`);
           }
-          
+
           return inRange;
         });
-        
+
         filterSteps.push({
           step: `Budget (₹${minBudget}-${maxBudget}L)`,
           before: beforeBudget,
           after: filtered.length,
           removed: beforeBudget - filtered.length
         });
-        
+
         console.log(`💰 Budget filter: ${beforeBudget} → ${filtered.length} properties`);
       }
     }
@@ -255,12 +255,12 @@ export default function PropertyListScreen() {
     if (filters.areaRange && Array.isArray(filters.areaRange)) {
       const beforeArea = filtered.length;
       const [minArea, maxArea] = filters.areaRange;
-      
+
       if (minArea !== 0 || maxArea !== 10000) {
         filtered = filtered.filter(property => {
           const subType = property.commercialDetails?.subType;
           let area = 0;
-          
+
           // Get area based on sub-type
           switch (subType) {
             case 'Office':
@@ -282,23 +282,23 @@ export default function PropertyListScreen() {
               area = property.commercialDetails?.plotDetails?.area || 0;
               break;
           }
-          
+
           const inRange = area >= minArea && area <= maxArea;
-          
+
           if (!inRange) {
             console.log(`📏 Filtered out (area): ${property.propertyTitle?.en || property.propertyTitle} - Area: ${area} sqft`);
           }
-          
+
           return inRange;
         });
-        
+
         filterSteps.push({
           step: `Area (${minArea}-${maxArea} sqft)`,
           before: beforeArea,
           after: filtered.length,
           removed: beforeArea - filtered.length
         });
-        
+
         console.log(`📏 Area filter: ${beforeArea} → ${filtered.length} properties`);
       }
     }
@@ -307,13 +307,13 @@ export default function PropertyListScreen() {
     if (filters.officeFilters && Object.keys(filters.officeFilters).length > 0) {
       const beforeOffice = filtered.length;
       const officeFilters = filters.officeFilters;
-      
+
       filtered = filtered.filter(property => {
         if (property.commercialDetails?.subType !== 'Office') return true;
-        
+
         const officeDetails = property.commercialDetails?.officeDetails || {};
         let passes = true;
-        
+
         // Cabins
         if (officeFilters.cabins && officeFilters.cabins !== 'any') {
           const cabins = officeDetails.cabins || 0;
@@ -323,7 +323,7 @@ export default function PropertyListScreen() {
             passes = passes && cabins === Number(officeFilters.cabins);
           }
         }
-        
+
         // Meeting Rooms
         if (officeFilters.meetingRooms && officeFilters.meetingRooms !== 'any') {
           const rooms = officeDetails.meetingRooms || 0;
@@ -333,33 +333,33 @@ export default function PropertyListScreen() {
             passes = passes && rooms === Number(officeFilters.meetingRooms);
           }
         }
-        
+
         // Parking Type
         if (officeFilters.parkingType && officeFilters.parkingType !== '') {
           const hasParking = officeDetails.parking?.type === 'Available';
-          passes = passes && ((officeFilters.parkingType === 'Available' && hasParking) || 
-                             (officeFilters.parkingType === 'Not-Available' && !hasParking));
+          passes = passes && ((officeFilters.parkingType === 'Available' && hasParking) ||
+            (officeFilters.parkingType === 'Not-Available' && !hasParking));
         }
-        
+
         // Furnishing
         if (officeFilters.furnishing !== undefined) {
           passes = passes && officeDetails.furnishing === officeFilters.furnishing;
         }
-        
+
         if (!passes) {
           console.log(`🏢 Filtered out (office filters): ${property.propertyTitle?.en || property.propertyTitle}`);
         }
-        
+
         return passes;
       });
-      
+
       filterSteps.push({
         step: 'Office Filters',
         before: beforeOffice,
         after: filtered.length,
         removed: beforeOffice - filtered.length
       });
-      
+
       console.log(`🏢 Office filters: ${beforeOffice} → ${filtered.length} properties`);
     }
 
@@ -367,37 +367,37 @@ export default function PropertyListScreen() {
     if (filters.retailFilters && Object.keys(filters.retailFilters).length > 0) {
       const beforeRetail = filtered.length;
       const retailFilters = filters.retailFilters;
-      
+
       filtered = filtered.filter(property => {
         if (property.commercialDetails?.subType !== 'Retail') return true;
-        
+
         const retailDetails = property.commercialDetails?.retailDetails || {};
         let passes = true;
-        
+
         // Located Inside
         if (retailFilters.locatedInside && retailFilters.locatedInside !== '') {
           passes = passes && retailDetails.locatedInside === retailFilters.locatedInside;
         }
-        
+
         // Washroom Type
         if (retailFilters.washroomType && retailFilters.washroomType !== '') {
           passes = passes && retailDetails.washroom === retailFilters.washroomType;
         }
-        
+
         if (!passes) {
           console.log(`🏪 Filtered out (retail filters): ${property.propertyTitle?.en || property.propertyTitle}`);
         }
-        
+
         return passes;
       });
-      
+
       filterSteps.push({
         step: 'Retail Filters',
         before: beforeRetail,
         after: filtered.length,
         removed: beforeRetail - filtered.length
       });
-      
+
       console.log(`🏪 Retail filters: ${beforeRetail} → ${filtered.length} properties`);
     }
 
@@ -405,37 +405,37 @@ export default function PropertyListScreen() {
     if (filters.storageFilters && Object.keys(filters.storageFilters).length > 0) {
       const beforeStorage = filtered.length;
       const storageFilters = filters.storageFilters;
-      
+
       filtered = filtered.filter(property => {
         if (property.commercialDetails?.subType !== 'Storage') return true;
-        
+
         const storageDetails = property.commercialDetails?.storageDetails || {};
         let passes = true;
-        
+
         // Storage Type
         if (storageFilters.storageType && storageFilters.storageType !== '') {
           passes = passes && storageDetails.storageType === storageFilters.storageType;
         }
-        
+
         // Temperature Control
         if (storageFilters.temperatureControl !== undefined) {
           passes = passes && storageDetails.temperatureControl === storageFilters.temperatureControl;
         }
-        
+
         if (!passes) {
           console.log(`📦 Filtered out (storage filters): ${property.propertyTitle?.en || property.propertyTitle}`);
         }
-        
+
         return passes;
       });
-      
+
       filterSteps.push({
         step: 'Storage Filters',
         before: beforeStorage,
         after: filtered.length,
         removed: beforeStorage - filtered.length
       });
-      
+
       console.log(`📦 Storage filters: ${beforeStorage} → ${filtered.length} properties`);
     }
 
@@ -443,32 +443,32 @@ export default function PropertyListScreen() {
     if (filters.industryFilters && Object.keys(filters.industryFilters).length > 0) {
       const beforeIndustry = filtered.length;
       const industryFilters = filters.industryFilters;
-      
+
       filtered = filtered.filter(property => {
         if (property.commercialDetails?.subType !== 'Industry') return true;
-        
+
         const industryDetails = property.commercialDetails?.industryDetails || {};
         let passes = true;
-        
+
         // Washroom Type
         if (industryFilters.washroomType && industryFilters.washroomType !== '') {
           passes = passes && industryDetails.washroomType === industryFilters.washroomType;
         }
-        
+
         if (!passes) {
           console.log(`🏭 Filtered out (industry filters): ${property.propertyTitle?.en || property.propertyTitle}`);
         }
-        
+
         return passes;
       });
-      
+
       filterSteps.push({
         step: 'Industry Filters',
         before: beforeIndustry,
         after: filtered.length,
         removed: beforeIndustry - filtered.length
       });
-      
+
       console.log(`🏭 Industry filters: ${beforeIndustry} → ${filtered.length} properties`);
     }
 
@@ -476,13 +476,13 @@ export default function PropertyListScreen() {
     if (filters.hospitalityFilters && Object.keys(filters.hospitalityFilters).length > 0) {
       const beforeHospitality = filtered.length;
       const hospitalityFilters = filters.hospitalityFilters;
-      
+
       filtered = filtered.filter(property => {
         if (property.commercialDetails?.subType !== 'Hospitality') return true;
-        
+
         const hospitalityDetails = property.commercialDetails?.hospitalityDetails || {};
         let passes = true;
-        
+
         // Rooms
         if (hospitalityFilters.rooms && hospitalityFilters.rooms !== 'any') {
           const rooms = hospitalityDetails.rooms || 0;
@@ -494,26 +494,26 @@ export default function PropertyListScreen() {
             passes = passes && rooms >= min && rooms <= max;
           }
         }
-        
+
         // Furnishing Type
         if (hospitalityFilters.furnishingType && hospitalityFilters.furnishingType !== '') {
           passes = passes && hospitalityDetails.furnishingType === hospitalityFilters.furnishingType;
         }
-        
+
         if (!passes) {
           console.log(`🏨 Filtered out (hospitality filters): ${property.propertyTitle?.en || property.propertyTitle}`);
         }
-        
+
         return passes;
       });
-      
+
       filterSteps.push({
         step: 'Hospitality Filters',
         before: beforeHospitality,
         after: filtered.length,
         removed: beforeHospitality - filtered.length
       });
-      
+
       console.log(`🏨 Hospitality filters: ${beforeHospitality} → ${filtered.length} properties`);
     }
 
@@ -521,56 +521,56 @@ export default function PropertyListScreen() {
     if (filters.plotFilters && Object.keys(filters.plotFilters).length > 0) {
       const beforePlot = filtered.length;
       const plotFilters = filters.plotFilters;
-      
+
       filtered = filtered.filter(property => {
         if (property.commercialDetails?.subType !== 'Plot/Land') return true;
-        
+
         const plotDetails = property.commercialDetails?.plotDetails || {};
         let passes = true;
-        
+
         // Boundary Wall
         if (plotFilters.boundaryWall && plotFilters.boundaryWall !== '') {
           const hasBoundary = plotDetails.boundaryWall === 'Yes';
-          passes = passes && ((plotFilters.boundaryWall === 'Yes' && hasBoundary) || 
-                             (plotFilters.boundaryWall === 'No' && !hasBoundary));
+          passes = passes && ((plotFilters.boundaryWall === 'Yes' && hasBoundary) ||
+            (plotFilters.boundaryWall === 'No' && !hasBoundary));
         }
-        
+
         // Open Sides
         if (plotFilters.openSides && plotFilters.openSides !== '') {
           const openSides = plotDetails.openSides || '';
           passes = passes && openSides === plotFilters.openSides;
         }
-        
+
         // Construction Done
         if (plotFilters.constructionDone && plotFilters.constructionDone !== '') {
           passes = passes && plotDetails.constructionDone === plotFilters.constructionDone;
         }
-        
+
         if (!passes) {
           console.log(`🏞️ Filtered out (plot filters): ${property.propertyTitle?.en || property.propertyTitle}`);
         }
-        
+
         return passes;
       });
-      
+
       filterSteps.push({
         step: 'Plot Filters',
         before: beforePlot,
         after: filtered.length,
         removed: beforePlot - filtered.length
       });
-      
+
       console.log(`🏞️ Plot filters: ${beforePlot} → ${filtered.length} properties`);
     }
 
     // ✅ STEP 11: LOCATION ADVANTAGES FILTER
     if (filters.locAdvantages && filters.locAdvantages.length > 0) {
       const beforeLocAdv = filtered.length;
-      
+
       filtered = filtered.filter(property => {
         const subType = property.commercialDetails?.subType;
         let propertyAdvantages = [];
-        
+
         // Get location advantages based on sub-type
         switch (subType) {
           case 'Office':
@@ -592,39 +592,39 @@ export default function PropertyListScreen() {
             propertyAdvantages = property.commercialDetails?.plotDetails?.locationAdvantages || [];
             break;
         }
-        
+
         const normalizeText = (text) => text.toLowerCase().replace(/[\s_-]+/g, '');
         const normalizedPropertyAdvantages = propertyAdvantages.map(adv => normalizeText(adv));
         const normalizedFilterAdvantages = filters.locAdvantages.map(adv => normalizeText(adv));
-        
-        const hasAdvantage = normalizedFilterAdvantages.some(adv => 
+
+        const hasAdvantage = normalizedFilterAdvantages.some(adv =>
           normalizedPropertyAdvantages.includes(adv)
         );
-        
+
         if (!hasAdvantage) {
           console.log(`📍 Filtered out (location advantages): ${property.propertyTitle?.en || property.propertyTitle}`);
         }
-        
+
         return hasAdvantage;
       });
-      
+
       filterSteps.push({
         step: `Location Advantages (${filters.locAdvantages.length} selected)`,
         before: beforeLocAdv,
         after: filtered.length,
         removed: beforeLocAdv - filtered.length
       });
-      
+
       console.log(`📍 Location advantages filter: ${beforeLocAdv} → ${filtered.length} properties`);
     }
 
     // ✅ STEP 12: QUICK FILTERS
     if (filters.quickFilters && filters.quickFilters.length > 0) {
       const beforeQuick = filtered.length;
-      
+
       filtered = filtered.filter(property => {
         let passes = true;
-        
+
         filters.quickFilters.forEach(quickFilter => {
           switch (quickFilter) {
             case 'verified':
@@ -647,42 +647,42 @@ export default function PropertyListScreen() {
               break;
           }
         });
-        
+
         return passes;
       });
-      
+
       filterSteps.push({
         step: `Quick Filters (${filters.quickFilters.length} selected)`,
         before: beforeQuick,
         after: filtered.length,
         removed: beforeQuick - filtered.length
       });
-      
+
       console.log(`⚡ Quick filters: ${beforeQuick} → ${filtered.length} properties`);
     }
 
     // ✅ STEP 13: SEARCH QUERY FILTER
     if (searchQuery && searchQuery.trim()) {
       const beforeSearch = filtered.length;
-      
+
       filtered = filtered.filter((property) => {
         const propertyTitle = getLocalizedText(property.propertyTitle, currentLanguage);
         const matches = propertyTitle.toLowerCase().includes(searchQuery.toLowerCase());
-        
+
         if (!matches) {
           console.log(`🔎 Filtered out (search): ${propertyTitle} (Query: ${searchQuery})`);
         }
-        
+
         return matches;
       });
-      
+
       filterSteps.push({
         step: `Search Query (${searchQuery})`,
         before: beforeSearch,
         after: filtered.length,
         removed: beforeSearch - filtered.length
       });
-      
+
       console.log(`🔎 Search filter (${searchQuery}): ${beforeSearch} → ${filtered.length} properties`);
     }
 
@@ -785,16 +785,16 @@ export default function PropertyListScreen() {
   // ✅ GET ACTIVE FILTER COUNT
   const getActiveFilterCount = () => {
     if (!activeFilters) return 0;
-    
+
     let count = 0;
-    
+
     // Sub-types
     if (activeFilters.subTypes && activeFilters.subTypes.length > 0) count++;
-    
+
     // Range filters
     if (activeFilters.budgetRange && (activeFilters.budgetRange[0] !== 1 || activeFilters.budgetRange[1] !== 500)) count++;
     if (activeFilters.areaRange && (activeFilters.areaRange[0] !== 0 || activeFilters.areaRange[1] !== 10000)) count++;
-    
+
     // Sub-type specific filters
     if (activeFilters.officeFilters && Object.keys(activeFilters.officeFilters).length > 0) count++;
     if (activeFilters.retailFilters && Object.keys(activeFilters.retailFilters).length > 0) count++;
@@ -802,11 +802,11 @@ export default function PropertyListScreen() {
     if (activeFilters.industryFilters && Object.keys(activeFilters.industryFilters).length > 0) count++;
     if (activeFilters.hospitalityFilters && Object.keys(activeFilters.hospitalityFilters).length > 0) count++;
     if (activeFilters.plotFilters && Object.keys(activeFilters.plotFilters).length > 0) count++;
-    
+
     // Multi-select filters
     if (activeFilters.locAdvantages && activeFilters.locAdvantages.length > 0) count++;
     if (activeFilters.quickFilters && activeFilters.quickFilters.length > 0) count++;
-    
+
     console.log('🔢 Active filter count:', count);
     return count;
   };
@@ -868,12 +868,12 @@ export default function PropertyListScreen() {
                 color: "#6B7280",
               }}
             />
-            <Ionicons name="mic-outline" size={18} />
+
             {/* ✅ FILTER ICON - WITH BADGE */}
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => router.push({
                 pathname: '/home/screens/Commercial/Filter',
-                params: { 
+                params: {
                   propertyType: 'Commercial',
                   currentFilters: activeFilters ? JSON.stringify(activeFilters) : ''
                 }
@@ -907,7 +907,7 @@ export default function PropertyListScreen() {
                     <Text className="text-xs text-green-700">{activeFilters.subTypes.join(', ')}</Text>
                   </View>
                 )}
-                
+
                 {/* Budget */}
                 {activeFilters.budgetRange && (activeFilters.budgetRange[0] !== 1 || activeFilters.budgetRange[1] !== 500) && (
                   <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
@@ -916,7 +916,7 @@ export default function PropertyListScreen() {
                     </Text>
                   </View>
                 )}
-                
+
                 {/* Area */}
                 {activeFilters.areaRange && (activeFilters.areaRange[0] !== 0 || activeFilters.areaRange[1] !== 10000) && (
                   <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
@@ -925,49 +925,49 @@ export default function PropertyListScreen() {
                     </Text>
                   </View>
                 )}
-                
+
                 {/* Office Filters */}
                 {activeFilters.officeFilters && Object.keys(activeFilters.officeFilters).length > 0 && (
                   <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
                     <Text className="text-xs text-green-700">Office Filters</Text>
                   </View>
                 )}
-                
+
                 {/* Retail Filters */}
                 {activeFilters.retailFilters && Object.keys(activeFilters.retailFilters).length > 0 && (
                   <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
                     <Text className="text-xs text-green-700">Retail Filters</Text>
                   </View>
                 )}
-                
+
                 {/* Storage Filters */}
                 {activeFilters.storageFilters && Object.keys(activeFilters.storageFilters).length > 0 && (
                   <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
                     <Text className="text-xs text-green-700">Storage Filters</Text>
                   </View>
                 )}
-                
+
                 {/* Industry Filters */}
                 {activeFilters.industryFilters && Object.keys(activeFilters.industryFilters).length > 0 && (
                   <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
                     <Text className="text-xs text-green-700">Industry Filters</Text>
                   </View>
                 )}
-                
+
                 {/* Hospitality Filters */}
                 {activeFilters.hospitalityFilters && Object.keys(activeFilters.hospitalityFilters).length > 0 && (
                   <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
                     <Text className="text-xs text-green-700">Hospitality Filters</Text>
                   </View>
                 )}
-                
+
                 {/* Plot Filters */}
                 {activeFilters.plotFilters && Object.keys(activeFilters.plotFilters).length > 0 && (
                   <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
                     <Text className="text-xs text-green-700">Plot Filters</Text>
                   </View>
                 )}
-                
+
                 {/* Location Advantages */}
                 {activeFilters.locAdvantages && activeFilters.locAdvantages.length > 0 && (
                   <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
@@ -976,7 +976,7 @@ export default function PropertyListScreen() {
                     </Text>
                   </View>
                 )}
-                
+
                 {/* Quick Filters */}
                 {activeFilters.quickFilters && activeFilters.quickFilters.length > 0 && (
                   <View className="flex-row items-center bg-green-50 border border-green-500 rounded-full px-3 py-1">
@@ -1176,7 +1176,12 @@ export default function PropertyListScreen() {
                           paddingTop: 2,
                         }}
                       >
-                        ₹{item.expectedPrice ? (item.expectedPrice / 100000).toFixed(0) + 'L' : 'N/A'}
+                        {item.expectedPrice
+                          ? item.expectedPrice < 100000
+                            ? '₹0-1L'
+                            : `₹${(item.expectedPrice / 100000).toFixed(0)}L`
+                          : 'N/A'
+                        }
                       </Text>
                     </View>
                   </View>
