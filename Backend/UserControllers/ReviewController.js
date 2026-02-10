@@ -1,4 +1,4 @@
-//Backend//UserControllers//ReviewController.js
+
 import Review from "../UserModels/Review.js";
 
 /* ---------- SUBMIT REVIEW ---------- */
@@ -20,6 +20,18 @@ export const createReview = async (req, res) => {
       comment,
       userName,
     });
+
+    // ✅ Update user statistics if it's a property review
+    if (entityType === 'property') {
+      const Property = (await import('../UserModels/Property.js')).default;
+      const property = await Property.findById(entityId);
+      
+      if (property && property.userId) {
+        // Import and call updateUserStatistics
+        const { updateUserStatistics } = await import('./PropertyController.js');
+        await updateUserStatistics(property.userId);
+      }
+    }
 
     res.status(201).json(review);
   } catch (err) {

@@ -51,7 +51,7 @@ export default function PropertyLayout() {
     });
   } else {
     router.push({
-      pathname: "/home/screens/Commercial/PropertyDetails",
+      pathname: "/home/screens/Resorts/PropertyDetails",
       params: { propertyId, entityType, areaKey }
     });
   }

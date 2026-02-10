@@ -78,8 +78,7 @@ export default function Profile() {
 
   /* ---------------- SAFE INPUT CLASS ---------------- */
   const inputClass = (key) =>
-    `border-b pb-1 text-gray-700 ${
-      focused === key ? "border-[#16A34A]" : "border-gray-300"
+    `border-b pb-1 text-gray-700 ${focused === key ? "border-[#16A34A]" : "border-gray-300"
     }`;
 
   if (!profile) {
@@ -110,19 +109,24 @@ export default function Profile() {
       >
         {/* ---------- PROFILE HEADER ---------- */}
         <View className="flex-row items-center mb-4">
+          {/* Replace the Image component section with: */}
           <TouchableOpacity disabled={!isEditing} onPress={pickImage}>
-            <Image
-  source={
-    profile.profileImage
-      ? {
-          uri: profile.profileImage.startsWith("file://")
-            ? profile.profileImage
-            : getImageUrl(profile.profileImage),
-        }
-      : require("../../../../assets/profile.png")
-  }
-  className="w-24 h-24 rounded-full"
-/>
+            {profile.profileImage ? (
+              <Image
+                source={{
+                  uri: profile.profileImage.startsWith("file://")
+                    ? profile.profileImage
+                    : getImageUrl(profile.profileImage),
+                }}
+                className="w-24 h-24 rounded-full"
+              />
+            ) : (
+              <View className="w-24 h-24 rounded-full bg-[#16A34A] items-center justify-center">
+                <Text className="text-white text-3xl font-bold">
+                  {profile.name?.charAt(0)?.toUpperCase() || 'U'}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
 
           <View className="ml-4 flex-1">
@@ -202,7 +206,7 @@ export default function Profile() {
             placeholder="Address"
           />
         </View>
-          {/* Statistics Section */}
+        {/* Statistics Section */}
         <View className="mt-5">
           <View className="flex-row justify-between">
             <View className="w-[48%] bg-white border border-gray-100 rounded-xl p-4 items-center">
@@ -261,11 +265,10 @@ export default function Profile() {
               onChangeText={(t) => setProfile({ ...profile, about: t })}
               onFocus={() => setFocused("about")}
               onBlur={() => setFocused(null)}
-              className={`border rounded-lg p-2 text-gray-700 ${
-                focused === "about"
+              className={`border rounded-lg p-2 text-gray-700 ${focused === "about"
                   ? "border-[#16A34A]"
                   : "border-gray-300"
-              }`}
+                }`}
             />
           ) : (
             <Text className="text-gray-600 leading-5">

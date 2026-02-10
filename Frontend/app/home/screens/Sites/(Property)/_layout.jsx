@@ -48,7 +48,7 @@ const tabs = [
     });
   } else {
     router.push({
-      pathname: "/home/screens/Commercial/PropertyDetails",
+      pathname: "/home/screens/Sites/PropertyDetails",
       params: { propertyId, entityType, areaKey }
     });
   }
