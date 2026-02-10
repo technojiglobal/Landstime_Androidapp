@@ -1625,6 +1625,33 @@ export const updatePropertyStatus = async (req, res) => {
     if (status === 'rejected' && rejectionReason) {
       updateData.rejectionReason = rejectionReason;
     }
+
+    // ✅ NEW: Check if property should be verified (Diamond subscription only)
+   if (status === 'approved') {
+      const property = await Property.findById(req.params.id).populate('userId');
+      
+      if (property) {
+        // Check if uploaded by admin
+        if (property.uploadedBy === 'admin') {
+          updateData.isVerified = true;
+          console.log(`✅ Property verified - Uploaded by admin`);
+        } 
+        // Check if user has Diamond subscription
+        else if (property.userId) {
+          const user = property.userId;
+          const hasDiamondSubscription = 
+            user.currentSubscription?.planId === 'diamond' && 
+            user.currentSubscription?.status === 'active';
+          
+          if (hasDiamondSubscription) {
+            updateData.isVerified = true;
+            console.log(`✅ Property verified - User has active Diamond subscription`);
+          } else {
+            console.log(`ℹ️ Property approved but not verified - User subscription: ${user.currentSubscription?.planId || 'none'}`);
+          }
+        }
+      }
+    }
    
     const property = await Property.findByIdAndUpdate(
       req.params.id,

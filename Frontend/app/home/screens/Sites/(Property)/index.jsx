@@ -422,20 +422,45 @@ export default function OverviewScreen() {
         <View className="px-5 mt-5">
           {/* Name + Location + Rating */}
           <View className="flex-row items-start justify-between">
-            <View>
-              <Text className="text-[20px] text-green-500 font-semibold" style={{ fontFamily: "Poppins", fontWeight: "bold" }}>
-                {getLocalizedText(property.propertyTitle, currentLanguage) || 'Property'}
-              </Text>
-              <View className="flex-row items-center mt-1">
-                <Image
-                  source={require("../../../../../assets/location-icon.png")}
-                  style={{ width: 12, height: 12, resizeMode: "contain" }}
-                />
-                <Text className="text-[12px] text-[#72707090] ml-1" style={{ fontFamily: "Poppins" }}>
-                  {getLocalizedText(property.location, currentLanguage) || 'Location'}
-                </Text>
-              </View>
-            </View>
+  <View style={{ flex: 1 }}>
+    {/* ✅ FIXED: Title and badge in proper flex layout */}
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+      <Text 
+        className="text-[20px] text-green-500 font-semibold" 
+        style={{ fontFamily: "Poppins", fontWeight: "bold" }}
+      >
+        {getLocalizedText(property.propertyTitle, currentLanguage) || 'Property'}
+      </Text>
+      {property.isVerified && (
+        <View style={{ 
+          backgroundColor: "#22C55E", 
+          paddingHorizontal: 8, 
+          paddingVertical: 3, 
+          borderRadius: 4,
+        }}>
+          <Text style={{ 
+            color: "white", 
+            fontSize: 10, 
+            fontFamily: "Poppins-Medium",
+            fontWeight: "600"
+          }}>
+            ✓ Verified
+          </Text>
+        </View>
+      )}
+    </View>
+
+
+    <View className="flex-row items-center mt-1">
+      <Image
+        source={require("../../../../../assets/location-icon.png")}
+        style={{ width: 12, height: 12, resizeMode: "contain" }}
+      />
+      <Text className="text-[12px] text-[#72707090] ml-1" style={{ fontFamily: "Poppins" }}>
+        {getLocalizedText(property.location, currentLanguage) || 'Location'}
+      </Text>
+    </View>
+  </View>
 
             <View className="flex-row items-center mb-1">
               <Ionicons name="star" size={14} color="#FF9500" />
