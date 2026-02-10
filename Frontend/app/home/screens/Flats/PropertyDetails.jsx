@@ -1086,7 +1086,7 @@ export default function PropertyListScreen() {
                     </Text>
                   </TouchableOpacity>
 
-                  <View
+                 <View
                     style={{
                       flexDirection: "row",
                       justifyContent: "space-between",
@@ -1104,10 +1104,13 @@ export default function PropertyListScreen() {
                     >
                       {item.propertyType || 'Property Type'}
                     </Text>
-                    <Image
-                      source={require("../../../../assets/verify.png")}
-                      style={{ width: 45, height: 16, resizeMode: "contain", marginTop: 1 }}
-                    />
+                    {/* ✅ MODIFIED: Only show verified badge if isVerified is true */}
+                    {item.isVerified && (
+                      <Image
+                        source={require("../../../../assets/verify.png")}
+                        style={{ width: 45, height: 16, resizeMode: "contain", marginTop: 1 }}
+                      />
+                    )}
                   </View>
 
                   <View className="flex-row items-center mb-1 mt-2">

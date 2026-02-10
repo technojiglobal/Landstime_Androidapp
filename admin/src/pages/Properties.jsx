@@ -439,6 +439,12 @@ const filtered = useMemo(() => {
                   >
                     {p.status}
                   </span>
+                  {/* ✅ NEW: Show verified badge in admin panel */}
+                  {p.raw?.isVerified && (
+                    <span className="ml-2 px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                      ✓ Verified
+                    </span>
+                  )}
                 </td>
 
                 <td className="px-4 py-3">

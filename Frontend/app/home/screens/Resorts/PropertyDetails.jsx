@@ -971,10 +971,13 @@ if (filters.resortType && filters.resortType !== '' && filters.resortType !== 'A
                     >
                       {item.resortDetails?.resortType || 'Resort'}
                     </Text>
-                    <Image
-                      source={require("../../../../assets/verify.png")}
-                      style={{ width: 45, height: 16, resizeMode: "contain", marginTop: 1 }}
-                    />
+                    {/* ✅ MODIFIED: Only show verified badge if isVerified is true */}
+                    {item.isVerified && (
+                      <Image
+                        source={require("../../../../assets/verify.png")}
+                        style={{ width: 45, height: 16, resizeMode: "contain", marginTop: 1 }}
+                      />
+                    )}
                   </View>
 
                   <View className="flex-row items-center mb-1 mt-2">

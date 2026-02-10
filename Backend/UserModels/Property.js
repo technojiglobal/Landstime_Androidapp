@@ -135,6 +135,11 @@ email: {
     default: 'Available'
   },
 
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+
   // Site / Plot / Land specific fields
   siteDetails: {
     /* ---------- AREA & DIMENSIONS ---------- */

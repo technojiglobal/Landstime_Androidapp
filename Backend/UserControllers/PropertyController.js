@@ -11,47 +11,6 @@ import {
   deletePropertyImages,
   deletePropertyDocuments,
 } from '../utils/cloudinaryHelper.js';
-// Add this function after imports
-// Update this function after imports
-const updateUserStatistics = async (userId) => {
-  try {
-    const Property = (await import('../UserModels/Property.js')).default;
-    const Review = (await import('../UserModels/Review.js')).default;
-    
-    const properties = await Property.find({ userId });
-    
-    const listed = properties.length;
-    const sold = properties.filter(p => p.propertyStatus === 'Sold').length;
-    const reviews = properties.filter(p => p.status === 'approved').length;
-    
-    // ✅ Calculate average rating from all reviews for user's properties
-    let rating = 0;
-    const propertyIds = properties.map(p => p._id.toString());
-    
-    if (propertyIds.length > 0) {
-      const propertyReviews = await Review.find({
-        entityType: 'property',
-        entityId: { $in: propertyIds }
-      });
-
-      if (propertyReviews.length > 0) {
-        const totalRating = propertyReviews.reduce((sum, review) => sum + review.rating, 0);
-        rating = Number((totalRating / propertyReviews.length).toFixed(1));
-      }
-    }
-    
-    await User.findByIdAndUpdate(userId, {
-      listed,
-      sold,
-      rating,
-      reviews
-    });
-    
-    console.log('✅ User statistics updated:', { listed, sold, rating, reviews });
-  } catch (error) {
-    console.error('❌ Error updating user statistics:', error);
-  }
-};
 
 // ✅ ADD THIS - Reverse translation utility
 const reverseTranslationMap = {
@@ -217,7 +176,7 @@ const convertToEnglish = (obj) => {
       result[key] = convertToEnglish(value);
     }
   }
-
+  
   return result;
 };
 
@@ -235,9 +194,9 @@ export const createProperty = async (req, res) => {
       });
     }
     const propertyData = JSON.parse(req.body.propertyData);
-
+   
     console.log('📋 Property Data:', JSON.stringify(propertyData, null, 2));
-
+    
     // Owner details validation
     if (!propertyData.ownerDetails) {
       return res.status(400).json({
@@ -259,65 +218,65 @@ export const createProperty = async (req, res) => {
       ownershipDocs: req.files?.ownershipDocs?.length || 0,
       identityDocs: req.files?.identityDocs?.length || 0
     });
-
+    
     // ✅ MODIFIED: Upload to Cloudinary instead of local storage
     // ✅ MODIFIED: Upload to Cloudinary with unique IDs
     const uploadTimestamp = Date.now();
-    let images = [];
-    if (req.files?.images) {
-      console.log(`📸 Uploading ${req.files.images.length} images to Cloudinary...`);
+let images = [];
+if (req.files?.images) {
+  console.log(`📸 Uploading ${req.files.images.length} images to Cloudinary...`);
+  
+  // Generate unique timestamp for this upload batch
+  
+  
+  const uploadPromises = req.files.images.map((file, index) => {
+    return uploadToCloudinary(file.buffer, {
+      folder: 'property-listings/properties/images',
+      public_id: `property_${uploadTimestamp}_image_${index}`,
+      resource_type: 'image',
+    });
+  });
 
-      // Generate unique timestamp for this upload batch
+  const uploadResults = await Promise.all(uploadPromises);
+  images = uploadResults.map(result => result.url);
+  console.log('✅ Images uploaded to Cloudinary:', images);
+}
 
+   let ownershipDocs = [];
+if (req.files?.ownershipDocs) {
+  console.log(`📄 Uploading ${req.files.ownershipDocs.length} ownership docs to Cloudinary...`);
+  
+  const uploadPromises = req.files.ownershipDocs.map((file, index) => {
+    const isPDF = file.mimetype === 'application/pdf';
+    return uploadToCloudinary(file.buffer, {
+      folder: 'property-listings/properties/documents/ownership',
+      public_id: `ownership_${uploadTimestamp}_${index}`,
+      resource_type: isPDF ? 'raw' : 'image',
+    });
+  });
 
-      const uploadPromises = req.files.images.map((file, index) => {
-        return uploadToCloudinary(file.buffer, {
-          folder: 'property-listings/properties/images',
-          public_id: `property_${uploadTimestamp}_image_${index}`,
-          resource_type: 'image',
-        });
-      });
-
-      const uploadResults = await Promise.all(uploadPromises);
-      images = uploadResults.map(result => result.url);
-      console.log('✅ Images uploaded to Cloudinary:', images);
-    }
-
-    let ownershipDocs = [];
-    if (req.files?.ownershipDocs) {
-      console.log(`📄 Uploading ${req.files.ownershipDocs.length} ownership docs to Cloudinary...`);
-
-      const uploadPromises = req.files.ownershipDocs.map((file, index) => {
-        const isPDF = file.mimetype === 'application/pdf';
-        return uploadToCloudinary(file.buffer, {
-          folder: 'property-listings/properties/documents/ownership',
-          public_id: `ownership_${uploadTimestamp}_${index}`,
-          resource_type: isPDF ? 'raw' : 'image',
-        });
-      });
-
-      const uploadResults = await Promise.all(uploadPromises);
-      ownershipDocs = uploadResults.map(result => result.url);
-      console.log('✅ Ownership docs uploaded to Cloudinary:', ownershipDocs);
-    }
+  const uploadResults = await Promise.all(uploadPromises);
+  ownershipDocs = uploadResults.map(result => result.url);
+  console.log('✅ Ownership docs uploaded to Cloudinary:', ownershipDocs);
+} 
 
     let identityDocs = [];
-    if (req.files?.identityDocs) {
-      console.log(`📄 Uploading ${req.files.identityDocs.length} identity docs to Cloudinary...`);
+if (req.files?.identityDocs) {
+  console.log(`📄 Uploading ${req.files.identityDocs.length} identity docs to Cloudinary...`);
+  
+  const uploadPromises = req.files.identityDocs.map((file, index) => {
+    const isPDF = file.mimetype === 'application/pdf';
+    return uploadToCloudinary(file.buffer, {
+      folder: 'property-listings/properties/documents/identity',
+      public_id: `identity_${uploadTimestamp}_${index}`,
+      resource_type: isPDF ? 'raw' : 'image',
+    });
+  });
 
-      const uploadPromises = req.files.identityDocs.map((file, index) => {
-        const isPDF = file.mimetype === 'application/pdf';
-        return uploadToCloudinary(file.buffer, {
-          folder: 'property-listings/properties/documents/identity',
-          public_id: `identity_${uploadTimestamp}_${index}`,
-          resource_type: isPDF ? 'raw' : 'image',
-        });
-      });
-
-      const uploadResults = await Promise.all(uploadPromises);
-      identityDocs = uploadResults.map(result => result.url);
-      console.log('✅ Identity docs uploaded to Cloudinary:', identityDocs);
-    }
+  const uploadResults = await Promise.all(uploadPromises);
+  identityDocs = uploadResults.map(result => result.url);
+  console.log('✅ Identity docs uploaded to Cloudinary:', identityDocs);
+}
 
     // Backend validation
     if (!propertyData.propertyTitle) {
@@ -347,7 +306,7 @@ export const createProperty = async (req, res) => {
       finalData.location = propertyData.location;
       finalData.area = propertyData.area;
       finalData.houseDetails = propertyData.houseDetails;
-
+      
       console.log(`🏠 ${propertyData.propertyType} property data:`, {
         location: finalData.location,
         area: finalData.area,
@@ -359,13 +318,13 @@ export const createProperty = async (req, res) => {
     if (propertyData.propertyType === "Site/Plot/Land") {
       finalData.location = propertyData.location;
       finalData.area = propertyData.area;
-
+      
       console.log('🏞️ Site property data:', {
         location: finalData.location,
         area: finalData.area,
         sqft: propertyData.siteDetails?.area
       });
-
+      
       finalData.siteDetails = {
         area: propertyData.siteDetails?.area !== "" ? Number(propertyData.siteDetails.area) : undefined,
         areaUnit: propertyData.siteDetails?.areaUnit,
@@ -395,7 +354,7 @@ export const createProperty = async (req, res) => {
     if (propertyData.propertyType === "Resort") {
       finalData.location = propertyData.location;
       finalData.area = propertyData.area;
-
+      
       console.log('🏨 Resort property data:', {
         location: finalData.location,
         area: finalData.area,
@@ -403,7 +362,7 @@ export const createProperty = async (req, res) => {
         buildArea: propertyData.resortDetails?.buildArea,
         resortType: propertyData.resortDetails?.resortType
       });
-
+      
       finalData.resortDetails = {
         resortType: propertyData.resortDetails?.resortType,
         landArea: Number(propertyData.resortDetails?.landArea) || 0,
@@ -432,7 +391,7 @@ export const createProperty = async (req, res) => {
           garden: propertyData.resortDetails?.vaasthuDetails?.garden,
         }
       };
-
+      
       console.log('✅ Resort details to save:', JSON.stringify(finalData.resortDetails, null, 2));
     }
 
@@ -446,7 +405,7 @@ export const createProperty = async (req, res) => {
       }
       const rawSubType = commercialDetails.subType.trim();
       const subType = rawSubType.toLowerCase();
-
+      
       let canonicalSubType = "Other";
       if (subType.includes("office")) canonicalSubType = "Office";
       else if (subType.includes("retail")) canonicalSubType = "Retail";
@@ -454,7 +413,7 @@ export const createProperty = async (req, res) => {
       else if (subType.includes("stor")) canonicalSubType = "Storage";
       else if (subType.includes("industry")) canonicalSubType = "Industry";
       else if (subType.includes("hospital")) canonicalSubType = "Hospitality";
-
+      
       finalData.commercialDetails = {
         subType: canonicalSubType,
       };
@@ -471,24 +430,24 @@ export const createProperty = async (req, res) => {
             message: "Office location and carpet area are required",
           });
         }
-
+        
         console.log('🏢 Processing Office details:', {
           hasNeighborhoodArea: !!commercialDetails.officeDetails.neighborhoodArea,
           propertyDataArea: propertyData.area,
           hasAllFields: !!commercialDetails.officeDetails.officeKind,
         });
-
+        
         finalData.location = commercialDetails.officeDetails.location;
-
-        const neighborhoodArea = commercialDetails.officeDetails.neighborhoodArea ||
-          propertyData.area ||
-          commercialDetails.area ||
-          '';
-
+        
+        const neighborhoodArea = commercialDetails.officeDetails.neighborhoodArea || 
+                                 propertyData.area || 
+                                 commercialDetails.area || 
+                                 '';
+        
         finalData.area = neighborhoodArea;
-
+        
         console.log('✅ Office area set to:', finalData.area);
-
+        
         finalData.commercialDetails.officeDetails = {
           officeKind: commercialDetails.officeDetails.officeKind,
           propertyTitle: commercialDetails.officeDetails.propertyTitle,
@@ -496,15 +455,15 @@ export const createProperty = async (req, res) => {
           locatedInside: commercialDetails.officeDetails.locatedInside,
           zoneType: commercialDetails.officeDetails.zoneType,
           neighborhoodArea: neighborhoodArea,
-
+          
           carpetArea: Number(commercialDetails.officeDetails.carpetArea) || 0,
           carpetAreaUnit: commercialDetails.officeDetails.carpetAreaUnit || 'sqft',
-
+          
           cabins: Number(commercialDetails.officeDetails.cabins) || 0,
           meetingRooms: Number(commercialDetails.officeDetails.meetingRooms) || 0,
           seats: Number(commercialDetails.officeDetails.seats) || 0,
           maxSeats: Number(commercialDetails.officeDetails.maxSeats) || 0,
-
+          
           conferenceRooms: commercialDetails.officeDetails.conferenceRooms,
           washrooms: {
             public: Number(commercialDetails.officeDetails.washrooms?.public) || 0,
@@ -512,22 +471,22 @@ export const createProperty = async (req, res) => {
           },
           receptionArea: commercialDetails.officeDetails.receptionArea || false,
           furnishing: commercialDetails.officeDetails.furnishing || false,
-
+          
           pantry: commercialDetails.officeDetails.pantry || false,
           pantryType: commercialDetails.officeDetails.pantryType,
           pantrySize: Number(commercialDetails.officeDetails.pantrySize) || 0,
-
+          
           additionalFeatures: commercialDetails.officeDetails.additionalFeatures || [],
           fireSafetyMeasures: commercialDetails.officeDetails.fireSafetyMeasures || [],
-
+          
           totalFloors: Number(commercialDetails.officeDetails.totalFloors) || 0,
           floorNo: Number(commercialDetails.officeDetails.floorNo) || 0,
           staircases: commercialDetails.officeDetails.staircases,
-
+          
           lift: commercialDetails.officeDetails.lift,
           passengerLifts: Number(commercialDetails.officeDetails.passengerLifts) || 0,
           serviceLifts: Number(commercialDetails.officeDetails.serviceLifts) || 0,
-
+          
           parking: {
             type: commercialDetails.officeDetails.parking?.type,
             options: commercialDetails.officeDetails.parking?.options || {
@@ -537,37 +496,37 @@ export const createProperty = async (req, res) => {
             },
             count: Number(commercialDetails.officeDetails.parking?.count) || 0,
           },
-
+          
           availability: commercialDetails.officeDetails.availability,
           ageOfProperty: commercialDetails.officeDetails.ageOfProperty,
           possessionBy: commercialDetails.officeDetails.possessionBy,
           ownership: commercialDetails.officeDetails.ownership,
-
+          
           expectedPrice: Number(commercialDetails.officeDetails.expectedPrice) || 0,
           priceDetails: {
             allInclusive: commercialDetails.officeDetails.priceDetails?.allInclusive || false,
             negotiable: commercialDetails.officeDetails.priceDetails?.negotiable || false,
             taxExcluded: commercialDetails.officeDetails.priceDetails?.taxExcluded || false,
           },
-
+          
           preLeased: commercialDetails.officeDetails.preLeased,
           leaseDuration: commercialDetails.officeDetails.leaseDuration,
           monthlyRent: Number(commercialDetails.officeDetails.monthlyRent) || 0,
-
+          
           nocCertified: commercialDetails.officeDetails.nocCertified,
           occupancyCertified: commercialDetails.officeDetails.occupancyCertified,
-
+          
           previouslyUsedFor: commercialDetails.officeDetails.previouslyUsedFor,
           description: commercialDetails.officeDetails.description,
-
+          
           amenities: commercialDetails.officeDetails.amenities || [],
           locationAdvantages: commercialDetails.officeDetails.locationAdvantages || [],
-
+          
           vaasthuDetails: commercialDetails.officeDetails.vaasthuDetails || {},
         };
-
+        
         finalData.expectedPrice = Number(commercialDetails.officeDetails.expectedPrice) || 0;
-
+        
         console.log('✅ Office details stored:', {
           location: finalData.location,
           area: finalData.area,
@@ -590,29 +549,29 @@ export const createProperty = async (req, res) => {
             message: "Retail location is required",
           });
         }
-
+        
         console.log('🏪 Processing Retail details:', {
           hasNeighborhoodArea: !!commercialDetails.retailDetails.neighborhoodArea,
           propertyDataArea: propertyData.area,
           commercialArea: commercialDetails.area,
         });
-
+        
         finalData.location = commercialDetails.retailDetails.location;
-
-        const neighborhoodArea = commercialDetails.retailDetails.neighborhoodArea ||
-          propertyData.area ||
-          commercialDetails.area ||
-          '';
-
+        
+        const neighborhoodArea = commercialDetails.retailDetails.neighborhoodArea || 
+                                 propertyData.area || 
+                                 commercialDetails.area || 
+                                 '';
+        
         finalData.area = neighborhoodArea;
-
+        
         console.log('✅ Retail area set to:', finalData.area);
-
+        
         finalData.commercialDetails.retailDetails = {
           ...commercialDetails.retailDetails,
           neighborhoodArea: neighborhoodArea,
         };
-
+        
         console.log('✅ Retail details stored:', {
           location: finalData.location,
           area: finalData.area,
@@ -661,9 +620,9 @@ export const createProperty = async (req, res) => {
         finalData.location = commercialDetails.storageDetails.location;
 
         const neighborhoodArea = commercialDetails.storageDetails.neighborhoodArea ||
-          propertyData.area ||
-          commercialDetails.area ||
-          '';
+                                 propertyData.area ||
+                                 commercialDetails.area ||
+                                 '';
 
         finalData.area = neighborhoodArea;
 
@@ -815,8 +774,8 @@ export const createProperty = async (req, res) => {
         finalData.location = commercialDetails.hospitalityDetails.location;
 
         const neighborhoodArea = commercialDetails.hospitalityDetails.neighborhoodArea ||
-          propertyData.area ||
-          '';
+                                 propertyData.area ||
+                                 '';
 
         finalData.area = neighborhoodArea;
 
@@ -848,9 +807,9 @@ export const createProperty = async (req, res) => {
         });
 
         finalData.commercialDetails.hospitalityDetails = {
-          hospitalityType: commercialDetails.hospitalityType ||
-            commercialDetails.hospitalityDetails.hospitalityType ||
-            propertyData.hospitalityType,
+          hospitalityType: commercialDetails.hospitalityType || 
+                           commercialDetails.hospitalityDetails.hospitalityType ||
+                           propertyData.hospitalityType,
 
           location: convertedDetails.location,
           neighborhoodArea: neighborhoodArea,
@@ -927,8 +886,8 @@ export const createProperty = async (req, res) => {
         finalData.location = commercialDetails.plotDetails.location;
 
         const neighborhoodArea = commercialDetails.plotDetails.neighborhoodArea ||
-          propertyData.area ||
-          '';
+                                 propertyData.area ||
+                                 '';
 
         finalData.area = neighborhoodArea;
 
@@ -1000,7 +959,7 @@ export const createProperty = async (req, res) => {
         });
       }
     }
-
+   
     if (images.length === 0) {
       return res.status(400).json({ success: false, message: 'At least one image is required' });
     }
@@ -1024,17 +983,17 @@ export const createProperty = async (req, res) => {
 
     if (propertyData.propertyType === 'Commercial' && propertyData.commercialDetails) {
       const commercialDetails = propertyData.commercialDetails;
-
-      descriptionToTranslate = commercialDetails.description ||
-        commercialDetails.pricingExtras?.description ||
-        commercialDetails.officeDetails?.description ||
-        commercialDetails.retailDetails?.description ||
-        commercialDetails.plotDetails?.description ||
-        commercialDetails.storageDetails?.description ||
-        commercialDetails.industryDetails?.pricing?.description ||
-        commercialDetails.hospitalityDetails?.description ||
-        propertyData.description ||
-        '';
+      
+      descriptionToTranslate = commercialDetails.description || 
+                              commercialDetails.pricingExtras?.description ||
+                              commercialDetails.officeDetails?.description ||
+                              commercialDetails.retailDetails?.description ||
+                              commercialDetails.plotDetails?.description ||
+                              commercialDetails.storageDetails?.description ||
+                              commercialDetails.industryDetails?.pricing?.description ||
+                              commercialDetails.hospitalityDetails?.description ||
+                              propertyData.description ||
+                              '';
     }
 
     console.log('📝 Description to translate:', descriptionToTranslate);
@@ -1047,33 +1006,33 @@ export const createProperty = async (req, res) => {
     }, originalLanguage);
 
     console.log('✅ Translation complete');
-
+    
     const areaKey = normalizeAreaKey(propertyData.area);
     console.log('🔑 Generated areaKey:', areaKey);
-
+    
     finalData.propertyTitle = translatedFields.propertyTitle;
     finalData.description = translatedFields.description;
     finalData.location = translatedFields.location;
     finalData.area = translatedFields.area;
     finalData.areaKey = areaKey;
     finalData.originalLanguage = originalLanguage;
-
+ 
     const property = new Property(finalData);
     await property.save();
-    await updateUserStatistics(req.user._id);
+    
     console.log("✅ PROPERTY SAVED TO DATABASE");
     console.log("🆔 Property ID:", property._id);
     console.log("🏷 Property Type:", property.propertyType);
-
+    
     res.status(201).json({
       success: true,
       message: 'Property submitted successfully and pending approval',
       data: property
     });
-
+    
   } catch (error) {
     console.error('❌ Property creation error:', error);
-
+   
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({
@@ -1082,7 +1041,7 @@ export const createProperty = async (req, res) => {
         errors: messages
       });
     }
-
+   
     res.status(500).json({
       success: false,
       message: 'Failed to create property',
@@ -1095,38 +1054,38 @@ export const createProperty = async (req, res) => {
 export const uploadAdditionalImages = async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
-
+    
     if (!property) {
       return res.status(404).json({
         success: false,
         message: 'Property not found'
       });
     }
-
+    
     if (!req.files?.images || req.files.images.length === 0) {
       return res.status(400).json({
         success: false,
         message: 'No images provided'
       });
     }
-
+    
     // ✅ MODIFIED: Upload to Cloudinary
     console.log(`📸 Uploading ${req.files.images.length} additional images to Cloudinary...`);
     const uploadResults = await uploadPropertyImages(
       req.files.images,
       property._id.toString()
     );
-
+    
     const newImageUrls = uploadResults.map(result => result.url);
     property.images = [...property.images, ...newImageUrls];
     await property.save();
-
+    
     res.status(200).json({
       success: true,
       message: 'Images uploaded successfully',
       data: property
     });
-
+    
   } catch (error) {
     console.error('Upload additional images error:', error);
     res.status(500).json({
@@ -1142,26 +1101,26 @@ export const deletePropertyImage = async (req, res) => {
   try {
     const { id } = req.params;
     const { imageIndex } = req.body;
-
+   
     const property = await Property.findById(id);
-
+   
     if (!property) {
       return res.status(404).json({
         success: false,
         message: 'Property not found'
       });
     }
-
+   
     if (imageIndex >= 0 && imageIndex < property.images.length) {
       // ✅ MODIFIED: Delete from Cloudinary first
       const imageUrl = property.images[imageIndex];
       console.log('🗑️ Deleting image from Cloudinary:', imageUrl);
       await deletePropertyImages([imageUrl]);
-
+      
       // Remove from array
       property.images.splice(imageIndex, 1);
       await property.save();
-
+     
       res.status(200).json({
         success: true,
         message: 'Image deleted successfully',
@@ -1173,7 +1132,7 @@ export const deletePropertyImage = async (req, res) => {
         message: 'Invalid image index'
       });
     }
-
+   
   } catch (error) {
     console.error('Delete image error:', error);
     res.status(500).json({
@@ -1188,32 +1147,32 @@ export const deletePropertyImage = async (req, res) => {
 export const uploadAdditionalDocuments = async (req, res) => {
   try {
     const { documentType } = req.body;
-
+    
     if (!['ownership', 'identity'].includes(documentType)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid document type'
       });
     }
-
+    
     const property = await Property.findById(req.params.id);
-
+    
     if (!property) {
       return res.status(404).json({
         success: false,
         message: 'Property not found'
       });
     }
-
+    
     const fieldName = `${documentType}Docs`;
-
+    
     if (!req.files?.[fieldName] || req.files[fieldName].length === 0) {
       return res.status(400).json({
         success: false,
         message: 'No documents provided'
       });
     }
-
+    
     // ✅ MODIFIED: Upload to Cloudinary
     console.log(`📄 Uploading ${req.files[fieldName].length} ${documentType} documents to Cloudinary...`);
     const uploadResults = await uploadPropertyDocuments(
@@ -1230,13 +1189,13 @@ export const uploadAdditionalDocuments = async (req, res) => {
 
     property.documents[documentType].push(...newDocUrls);
     await property.save();
-
+    
     res.status(200).json({
       success: true,
       message: 'Documents uploaded successfully',
       data: property
     });
-
+    
   } catch (error) {
     console.error('Upload additional documents error:', error);
     res.status(500).json({
@@ -1252,37 +1211,37 @@ export const deletePropertyDocument = async (req, res) => {
   try {
     const { id } = req.params;
     const { documentIndex, documentType } = req.body;
-
+   
     if (!['ownership', 'identity'].includes(documentType)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid document type'
       });
     }
-
+   
     const property = await Property.findById(id);
-
+   
     if (!property) {
       return res.status(404).json({
         success: false,
         message: 'Property not found'
       });
     }
-
+   
     const docsArray = documentType === 'ownership'
       ? property.documents.ownership
       : property.documents.identity;
-
+   
     if (documentIndex >= 0 && documentIndex < docsArray.length) {
       // ✅ MODIFIED: Delete from Cloudinary first
       const documentUrl = docsArray[documentIndex];
       console.log('🗑️ Deleting document from Cloudinary:', documentUrl);
       await deletePropertyDocuments([documentUrl]);
-
+      
       // Remove from array
       docsArray.splice(documentIndex, 1);
       await property.save();
-
+     
       res.status(200).json({
         success: true,
         message: 'Document deleted successfully',
@@ -1294,7 +1253,7 @@ export const deletePropertyDocument = async (req, res) => {
         message: 'Invalid document index'
       });
     }
-
+   
   } catch (error) {
     console.error('Delete document error:', error);
     res.status(500).json({
@@ -1308,10 +1267,10 @@ export const deletePropertyDocument = async (req, res) => {
 // Keep all other existing functions unchanged
 export const getApprovedProperties = async (req, res) => {
   try {
-    const {
-      propertyType,
-      page = 1,
-      limit = 3000,
+    const { 
+      propertyType, 
+      page = 1, 
+      limit = 3000, 
       language = 'en',
       minPrice,
       maxPrice,
@@ -1326,7 +1285,7 @@ export const getApprovedProperties = async (req, res) => {
       maxBuildArea,
       locationAdvantages
     } = req.query;
-
+    
     const query = { status: 'approved' };
     if (propertyType) {
       query.propertyType = propertyType;
@@ -1342,7 +1301,7 @@ export const getApprovedProperties = async (req, res) => {
       if (resortType) {
         query['resortDetails.resortType'] = resortType;
       }
-
+      
       if (minRooms || maxRooms) {
         query['resortDetails.rooms'] = {};
         if (minRooms) query['resortDetails.rooms'].$gte = Number(minRooms);
@@ -1368,19 +1327,19 @@ export const getApprovedProperties = async (req, res) => {
       }
 
       if (locationAdvantages) {
-        const advantages = Array.isArray(locationAdvantages)
-          ? locationAdvantages
+        const advantages = Array.isArray(locationAdvantages) 
+          ? locationAdvantages 
           : [locationAdvantages];
         query['resortDetails.locationAdvantages'] = { $in: advantages };
       }
     }
-
+   
     const properties = await Property.find(query)
       .populate('userId', 'name phone email')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
-
+   
     const transformedProperties = properties.map(prop => {
       let propObj = prop.toObject();
 
@@ -1401,16 +1360,16 @@ export const getApprovedProperties = async (req, res) => {
         areaKey: propObj.areaKey || ''
       };
     });
-
+   
     const count = await Property.countDocuments(query);
-
+   
     res.status(200).json({
       success: true,
       data: transformedProperties,
       totalPages: Math.ceil(count / limit),
       currentPage: page
     });
-
+   
   } catch (error) {
     console.error('Get properties error:', error);
     res.status(500).json({
@@ -1424,35 +1383,35 @@ export const getApprovedProperties = async (req, res) => {
 export const getPropertyById = async (req, res) => {
   try {
     const { language = 'en' } = req.query;
-
+   
     console.log('🔍 Getting property by ID:', req.params.id);
     console.log('🌐 Requested language:', language);
-
+   
     const property = await Property.findById(req.params.id)
       .populate('userId', 'name phone email');
-
+   
     if (!property) {
       return res.status(404).json({
         success: false,
         message: 'Property not found'
       });
     }
-
+   
     console.log('📦 Raw property data:', {
       propertyTitle: property.propertyTitle,
       location: property.location,
       description: property.description
     });
-
+   
     if (property.status !== 'approved' &&
-      property.userId._id.toString() !== req.user._id.toString() &&
-      req.user.role !== 'admin') {
+        property.userId._id.toString() !== req.user._id.toString() &&
+        req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
         message: 'Property not available'
       });
     }
-
+   
     let propObj = property.toObject();
 
     if (propObj.uploadedBy === 'admin' && !propObj.userId) {
@@ -1471,18 +1430,18 @@ export const getPropertyById = async (req, res) => {
       area: propObj.area,
       areaKey: propObj.areaKey || ''
     };
-
+   
     console.log('✅ Transformed property:', {
       propertyTitle: transformedProperty.propertyTitle,
       location: transformedProperty.location,
       description: transformedProperty.description
     });
-
+   
     res.status(200).json({
       success: true,
       data: transformedProperty
     });
-
+   
   } catch (error) {
     console.error('Get property error:', error);
     res.status(500).json({
@@ -1497,21 +1456,21 @@ export const getUserProperties = async (req, res) => {
   try {
     console.log('🔍 getUserProperties called');
     console.log('👤 User ID:', req.user._id);
-
+   
     const properties = await Property.find({ userId: req.user._id })
       .sort({ createdAt: -1 });
-
+    
     const host = req.protocol + '://' + req.get('host');
     const propertiesWithUrls = properties.map((p) => ({
       ...p.toObject(),
       images: p.images || [],
     }));
-
+    
     res.status(200).json({
       success: true,
       data: propertiesWithUrls
     });
-
+   
   } catch (error) {
     console.error('❌ Get user properties error:', error);
     res.status(500).json({
@@ -1525,35 +1484,35 @@ export const getUserProperties = async (req, res) => {
 export const updateProperty = async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
-
+   
     if (!property) {
       return res.status(404).json({
         success: false,
         message: 'Property not found'
       });
     }
-
+   
     if (property.userId.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update this property'
       });
     }
-
+   
     req.body.status = 'pending';
-
+   
     const updatedProperty = await Property.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true, runValidators: true }
     );
-
+   
     res.status(200).json({
       success: true,
       message: 'Property updated successfully',
       data: updatedProperty
     });
-
+   
   } catch (error) {
     console.error('Update property error:', error);
 
@@ -1582,21 +1541,21 @@ export const updateProperty = async (req, res) => {
 export const deleteProperty = async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
-
+   
     if (!property) {
       return res.status(404).json({
         success: false,
         message: 'Property not found'
       });
     }
-
+   
     if (property.userId.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this property'
       });
     }
-
+   
     // ✅ MODIFIED: Delete from Cloudinary before deleting property
     if (property.images?.length > 0) {
       console.log('🗑️ Deleting property images from Cloudinary...');
@@ -1612,14 +1571,14 @@ export const deleteProperty = async (req, res) => {
       console.log('🗑️ Deleting identity documents from Cloudinary...');
       await deletePropertyDocuments(property.documents.identity);
     }
-
+   
     await property.deleteOne();
-    await updateUserStatistics(req.user._id);
+   
     res.status(200).json({
       success: true,
       message: 'Property deleted successfully'
     });
-
+   
   } catch (error) {
     console.error('Delete property error:', error);
     res.status(500).json({
@@ -1635,12 +1594,12 @@ export const getPendingProperties = async (req, res) => {
     const properties = await Property.find({ status: 'pending' })
       .populate('userId', 'name phone email')
       .sort({ createdAt: -1 });
-
+   
     res.status(200).json({
       success: true,
       data: properties
     });
-
+   
   } catch (error) {
     console.error('Get pending properties error:', error);
     res.status(500).json({
@@ -1654,41 +1613,65 @@ export const getPendingProperties = async (req, res) => {
 export const updatePropertyStatus = async (req, res) => {
   try {
     const { status, rejectionReason } = req.body;
-
+   
     if (!['approved', 'rejected'].includes(status)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid status'
       });
     }
-
+   
     const updateData = { status };
     if (status === 'rejected' && rejectionReason) {
       updateData.rejectionReason = rejectionReason;
     }
 
+    // ✅ NEW: Check if property should be verified (Diamond subscription only)
+   if (status === 'approved') {
+      const property = await Property.findById(req.params.id).populate('userId');
+      
+      if (property) {
+        // Check if uploaded by admin
+        if (property.uploadedBy === 'admin') {
+          updateData.isVerified = true;
+          console.log(`✅ Property verified - Uploaded by admin`);
+        } 
+        // Check if user has Diamond subscription
+        else if (property.userId) {
+          const user = property.userId;
+          const hasDiamondSubscription = 
+            user.currentSubscription?.planId === 'diamond' && 
+            user.currentSubscription?.status === 'active';
+          
+          if (hasDiamondSubscription) {
+            updateData.isVerified = true;
+            console.log(`✅ Property verified - User has active Diamond subscription`);
+          } else {
+            console.log(`ℹ️ Property approved but not verified - User subscription: ${user.currentSubscription?.planId || 'none'}`);
+          }
+        }
+      }
+    }
+   
     const property = await Property.findByIdAndUpdate(
       req.params.id,
       updateData,
       { new: true }
     ).populate('userId', 'name phone email');
-     if(property.userId._id) {
-      await updateUserStatistics(property.userId._id);
-    }
-
+   
     if (!property) {
       return res.status(404).json({
         success: false,
         message: 'Property not found'
       });
     }
-
+   
     res.status(200).json({
       success: true,
       message: `Property ${status} successfully`,
       data: property
     });
-
+   
   } catch (error) {
     console.error('Update status error:', error);
     res.status(500).json({
@@ -1702,9 +1685,9 @@ export const updatePropertyStatus = async (req, res) => {
 export const getAllProperties = async (req, res) => {
   try {
     console.log("📥 Admin fetching all properties");
-
+   
     const { status, propertyType, page = 1, limit = 10 } = req.query;
-
+   
     const query = {
       $or: [
         { adminDeletedStatus: 'active' },
@@ -1713,7 +1696,7 @@ export const getAllProperties = async (req, res) => {
     };
     if (status) query.status = status;
     if (propertyType) query.propertyType = propertyType;
-
+   
     const properties = await Property.find(query)
       .populate({
         path: 'userId',
@@ -1722,9 +1705,9 @@ export const getAllProperties = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
-
+    
     const count = await Property.countDocuments(query);
-
+    
     const host = req.protocol + '://' + req.get('host');
     const propertiesWithUrls = properties.map((p) => {
       const obj = p.toObject();
@@ -1750,7 +1733,7 @@ export const getAllProperties = async (req, res) => {
       totalPages: Math.ceil(count / limit),
       currentPage: page
     });
-
+   
   } catch (error) {
     console.error('Get all properties error:', error);
     res.status(500).json({
@@ -1766,7 +1749,7 @@ export const debugProperties = async (req, res) => {
     const allProps = await Property.find({}).select('propertyTitle adminDeletedStatus status');
     const activeProps = await Property.find({ adminDeletedStatus: 'active' });
     const withoutDeleteStatus = await Property.find({ adminDeletedStatus: { $exists: false } });
-
+   
     res.json({
       total: allProps.length,
       allProperties: allProps,
@@ -1785,19 +1768,19 @@ export const softDeleteProperty = async (req, res) => {
       { adminDeletedStatus: 'deleted' },
       { new: true }
     );
-
+   
     if (!property) {
       return res.status(404).json({
         success: false,
         message: 'Property not found'
       });
     }
-
+   
     res.status(200).json({
       success: true,
       message: 'Property deleted successfully'
     });
-
+   
   } catch (error) {
     console.error('Soft delete error:', error);
     res.status(500).json({
@@ -1811,37 +1794,33 @@ export const softDeleteProperty = async (req, res) => {
 export const updatePropertyAvailability = async (req, res) => {
   try {
     const { propertyStatus } = req.body;
-
+   
     if (!['Available', 'Sold'].includes(propertyStatus)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid property status'
       });
     }
-
+   
     const property = await Property.findByIdAndUpdate(
       req.params.id,
       { propertyStatus },
       { new: true }
     );
-    
-if (property.userId) {
-  await updateUserStatistics(property.userId);
-}
-
+   
     if (!property) {
       return res.status(404).json({
         success: false,
         message: 'Property not found'
       });
     }
-
+   
     res.status(200).json({
       success: true,
       message: 'Property status updated successfully',
       data: property
     });
-
+   
   } catch (error) {
     console.error('Update property status error:', error);
     res.status(500).json({
@@ -1856,57 +1835,57 @@ export const adminUpdateProperty = async (req, res) => {
   try {
     console.log('📝 Admin updating property:', req.params.id);
     console.log('📦 Update data:', req.body);
-
+   
     const property = await Property.findById(req.params.id);
-
+   
     if (!property) {
       return res.status(404).json({
         success: false,
         message: 'Property not found'
       });
     }
-
+   
     let updateData = req.body;
-
+    
     const multilingualFields = ['propertyTitle', 'description', 'location', 'area'];
     const fieldsToTranslate = {};
-
+    
     for (const field of multilingualFields) {
       if (updateData[field] && typeof updateData[field] === 'string') {
         fieldsToTranslate[field] = updateData[field];
       }
     }
-
+    
     if (updateData.area && typeof updateData.area === 'string') {
       updateData.areaKey = normalizeAreaKey(updateData.area);
       console.log('🔑 Updated areaKey:', updateData.areaKey);
     }
-
+    
     if (Object.keys(fieldsToTranslate).length > 0) {
       console.log('🌐 Auto-translating fields:', Object.keys(fieldsToTranslate));
       const translated = await translatePropertyFields(fieldsToTranslate, 'en');
-
+      
       for (const field in translated) {
         updateData[field] = translated[field];
       }
-
+      
       console.log('✅ Translation complete');
     }
-
+   
     const updatedProperty = await Property.findByIdAndUpdate(
       req.params.id,
       { $set: updateData },
       { new: true, runValidators: true }
     ).populate('userId', 'name phone email currentSubscription');
-
+   
     console.log('✅ Property updated successfully');
-
+   
     res.status(200).json({
       success: true,
       message: 'Property updated successfully',
       data: updatedProperty
     });
-
+   
   } catch (error) {
     console.error('❌ Admin update property error:', error);
     console.error('Error details:', error.message);
