@@ -6,17 +6,28 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Slot, useRouter, usePathname, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useEffect, useState } from "react";
+import { fetchReviews } from "utils/reviewApi";
 
 export default function PropertyLayout() {
   const router = useRouter();
   const pathname = usePathname() ?? "";
   const params = useLocalSearchParams();
   const propertyId = params.propertyId;
-  const entityType = params.entityType || 'property'; // ✅ Add these two lines// ✅ Get propertyId from params
-
+  const entityType = params.entityType || 'property';
+  const areaKey = params.areaKey || null;
+  const [reviewCount, setReviewCount] = useState(0);
+ // ✅ Add these two lines// ✅ Get propertyId from params
+ useEffect(() => {
+    if (propertyId && entityType) {
+      fetchReviews(entityType, propertyId).then((res) => {
+        setReviewCount(res.count || 0);
+      });
+    }
+  }, [propertyId, entityType]);
   const tabs = [
     { label: "Overview", route: "/home/screens/Resorts/(Property)", params: { propertyId } },
-    { label: "Reviews(27)", route: "/home/screens/Resorts/(Property)/Review", params: { propertyId } },
+    { label: `Reviews(${reviewCount})`, route: "/home/screens/Resorts/(Property)/Review", params: { propertyId } },
     { label: "Write Review", route: "/home/screens/Resorts/(Property)/WriteReview", params: { propertyId } },
   ];
 
@@ -25,10 +36,25 @@ export default function PropertyLayout() {
   const isWriteReview = pathname.includes("/WriteReview");
   const isOverview = !isReview && !isWriteReview;
   const handleBack = () => {
-  router.push({
-    pathname: "/home/screens/Resorts/PropertyDetails",
-    params: { propertyId, entityType, areaKey } // ✅ ADD areaKey here
-  });
+  const fromSaved = params.fromSaved;
+  const fromMyProperties = params.fromMyProperties;
+  const backRoute = params.backRoute;
+  
+  if (fromSaved === 'true') {
+    router.push('/home/screens/Sidebar/SavedPropertiesScreen');
+  } else if (fromMyProperties === 'true') {
+    router.push('/home/screens/Sidebar/MyProperties');
+  } else if (backRoute) {
+    router.push({
+      pathname: backRoute,
+      params: { propertyId, entityType, areaKey }
+    });
+  } else {
+    router.push({
+      pathname: "/home/screens/Commercial/PropertyDetails",
+      params: { propertyId, entityType, areaKey }
+    });
+  }
 };
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
