@@ -8,30 +8,30 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function TabsLayout() {
- const insets = useSafeAreaInsets();
+  const insets = useSafeAreaInsets();
 
-// useEffect(() => {
-//   const setupNavigationBar = async () => {
-//     await NavigationBar.setPositionAsync("absolute");
-//     await NavigationBar.setBackgroundColorAsync("#00000001");
-//     await NavigationBar.setButtonStyleAsync("light");
+  // useEffect(() => {
+  //   const setupNavigationBar = async () => {
+  //     await NavigationBar.setPositionAsync("absolute");
+  //     await NavigationBar.setBackgroundColorAsync("#00000001");
+  //     await NavigationBar.setButtonStyleAsync("light");
 
-   
-//   };
-//   setupNavigationBar();
-// }, []);
-  
 
-// Update the setupNavigationBar function in app/(tabs)/_layout.jsx
+  //   };
+  //   setupNavigationBar();
+  // }, []);
 
-useEffect(() => {
-  const setupNavigationBar = async () => {
-    await NavigationBar.setPositionAsync("absolute");
-    await NavigationBar.setBackgroundColorAsync("#00000001");
-    await NavigationBar.setButtonStyleAsync("light");
-  };
-  setupNavigationBar();
-}, []); // This will run once when the tab layout mounts
+
+  // Update the setupNavigationBar function in app/(tabs)/_layout.jsx
+
+  useEffect(() => {
+    const setupNavigationBar = async () => {
+      await NavigationBar.setPositionAsync("absolute");
+      await NavigationBar.setBackgroundColorAsync("#00000001");
+      await NavigationBar.setButtonStyleAsync("light");
+    };
+    setupNavigationBar();
+  }, []); // This will run once when the tab layout mounts
 
 
   return (
@@ -72,15 +72,16 @@ useEffect(() => {
       />
 
       {/* SHORTS */}
+      {/* INTERIORS */}
       <Tabs.Screen
         name="shorts"
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon
               focused={focused}
-              label="Shorts"
-              icon="play-circle-outline"
-              activeIcon="play-circle"
+              label="Interiors"
+              icon="grid-outline"
+              activeIcon="grid"
             />
           ),
         }}
@@ -170,8 +171,8 @@ function TabIcon({ focused, label, icon, activeIcon, iconSet = "ion" }) {
         size={20}
         color={focused ? "#22C55E" : "#666"}
       />
-      <Text 
-        style={{ 
+      <Text
+        style={{
           color: focused ? "#22C55E" : "#666",
           fontSize: 8,
           marginTop: 2,

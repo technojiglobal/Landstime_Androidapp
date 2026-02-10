@@ -49,7 +49,7 @@ useEffect(() => {
     });
   } else {
     router.push({
-      pathname: "/home/screens/Commercial/PropertyDetails",
+      pathname: "/home/screens/Flats/PropertyDetails",
       params: { propertyId, entityType, areaKey }
     });
   }

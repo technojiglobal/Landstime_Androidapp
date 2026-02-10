@@ -1,54 +1,4 @@
-// import Review from "../UserModels/Review.js";
 
-// /* CREATE REVIEW */
-// export const createReview = async (req, res) => {
-//   try {
-//     const { entityId, entityType, rating, title, comment, userName } = req.body;
-
-//     if (!entityId || !entityType || !rating || !title || !comment) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "All fields are required",
-//       });
-//     }
-
-//     const review = await Review.create({
-//       entityId,
-//       entityType,
-//       rating,
-//       title,
-//       comment,
-//       userName,
-//     });
-
-//     res.status(201).json({ success: true, data: review });
-//   } catch (error) {
-//     res.status(500).json({ success: false, message: error.message });
-//   }
-// };
-
-// /* GET REVIEWS BY ENTITY */
-// export const getReviews = async (req, res) => {
-//   try {
-//     const { entityId, entityType } = req.params;
-
-//     const reviews = await Review.find({ entityId, entityType }).sort({
-//       createdAt: -1,
-//     });
-
-//     const avgRating =
-//       reviews.reduce((sum, r) => sum + r.rating, 0) / (reviews.length || 1);
-
-//     res.json({
-//       success: true,
-//       reviews,
-//       avgRating: Number(avgRating.toFixed(1)),
-//       count: reviews.length,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ success: false, message: error.message });
-//   }
-// };
 import Review from "../UserModels/Review.js";
 
 /* ---------- SUBMIT REVIEW ---------- */
@@ -70,6 +20,18 @@ export const createReview = async (req, res) => {
       comment,
       userName,
     });
+
+    // ✅ Update user statistics if it's a property review
+    if (entityType === 'property') {
+      const Property = (await import('../UserModels/Property.js')).default;
+      const property = await Property.findById(entityId);
+      
+      if (property && property.userId) {
+        // Import and call updateUserStatistics
+        const { updateUserStatistics } = await import('./PropertyController.js');
+        await updateUserStatistics(property.userId);
+      }
+    }
 
     res.status(201).json(review);
   } catch (err) {

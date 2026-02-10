@@ -3,18 +3,18 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-  name : {
-    te : { type: String, trim: true },
-    hi : { type: String, trim: true },
-    en : { type: String, trim: true }   
+  name: {
+    te: { type: String, trim: true },
+    hi: { type: String, trim: true },
+    en: { type: String, trim: true }
   },
 
   // Add this field to track original language of registration
-originalLanguage: {
-  type: String,
-  enum: ['te', 'hi', 'en'],
-  default: 'en'
-},
+  originalLanguage: {
+    type: String,
+    enum: ['te', 'hi', 'en'],
+    default: 'en'
+  },
 
   phone: {
     type: String,
@@ -35,22 +35,22 @@ originalLanguage: {
     lowercase: true,
   },
   // 🔽 ADD
-address: {
-  type: String,
-  default: "",
-  trim: true,
-},
+  address: {
+    type: String,
+    default: "",
+    trim: true,
+  },
 
-about: {
-  type: String,
-  default: "",
-  trim: true,
-},
+  about: {
+    type: String,
+    default: "",
+    trim: true,
+  },
 
-profileImage: {
-  type: String, // stores image URL/path
-  default: "",
-},
+  profileImage: {
+    type: String, // stores image URL/path
+    default: "",
+  },
 
 
   password: {
@@ -117,21 +117,36 @@ profileImage: {
       default: null
     },
     contactViewsRemaining: {
+      type: Number,
+      default: 0
+    },
+    contactViewsUsed: {
+      type: Number,
+      default: 0
+    },
+    viewedProperties: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Property'
+    }]
+
+
+  },
+  listed: {
     type: Number,
     default: 0
   },
-  contactViewsUsed: {
+  sold: {
     type: Number,
     default: 0
   },
-  viewedProperties: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Property'
-  }]
-
-
+  rating: {
+    type: Number,
+    default: 0
   },
-
+  reviews: {
+    type: Number,
+    default: 0
+  },
 
 
   createdAt: {

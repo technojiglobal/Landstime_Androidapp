@@ -5,7 +5,7 @@ import { generateOTP, sendOTPviaSMS, isValidPhone, isValidOTP } from '../utils/o
 import { generateToken } from '../utils/jwtUtils.js';
 import jwt from "jsonwebtoken";
 import { translatePropertyFields } from '../services/translationService.js';
-
+import Property from '../UserModels/Property.js';
 // ✅ NEW: Cloudinary imports
 import {
   uploadToCloudinary,
@@ -523,17 +523,52 @@ export const loginUser = async (req, res) => {
 };
 
 // ==================== GET USER PROFILE ====================
+// ==================== GET USER PROFILE ====================
+// ==================== GET USER PROFILE ====================
 export const getUserProfile = async (req, res) => {
   try {
-    const userId = req.user._id;
-    const user = await User.findById(userId).select('-password');
-    
+    const user = await User.findById(req.user._id).select('-password -otp -otpExpiry');
+
     if (!user) {
       return res.status(404).json({
         success: false,
         message: 'User not found'
       });
     }
+
+    // ✅ Import models
+    const Property = (await import('../UserModels/Property.js')).default;
+    const Review = (await import('../UserModels/Review.js')).default;
+
+    // ✅ Calculate real-time statistics
+    const properties = await Property.find({ userId: user._id });
+
+    // ✅ Get all property IDs for this user
+    const propertyIds = properties.map(p => p._id.toString());
+
+    // ✅ Calculate average rating from all reviews for user's properties
+    let rating = 0;
+    if (propertyIds.length > 0) {
+      const reviews = await Review.find({
+        entityType: 'property',
+        entityId: { $in: propertyIds }
+      });
+
+      if (reviews.length > 0) {
+        const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+        rating = Number((totalRating / reviews.length).toFixed(1));
+      }
+    }
+
+    const statistics = {
+      listed: properties.length,
+      sold: properties.filter(p => p.propertyStatus === 'Sold').length,
+      reviews: properties.filter(p => p.status === 'approved').length,
+      rating: rating
+    };
+
+    // ✅ Update user document with latest statistics
+    await User.findByIdAndUpdate(user._id, statistics);
 
     // ✅ FIX: Always extract English name as string
     let userName = '';
@@ -543,25 +578,30 @@ export const getUserProfile = async (req, res) => {
       userName = user.name.en || user.name.te || user.name.hi || '';
     }
 
-    const userData = {
+    // ✅ Return user data with updated statistics and string name
+    const userWithStats = {
       ...user.toObject(),
-      name: userName
+      name: userName,
+      ...statistics
     };
 
-    console.log('✅ Sending user profile with name as string:', userName);
+    console.log('✅ Sending user profile with statistics:', statistics);
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
-      data: userData
+      data: userWithStats
     });
+
   } catch (error) {
     console.error('Get user profile error:', error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      message: 'Failed to fetch profile'
+      message: 'Failed to fetch user profile',
+      error: error.message
     });
   }
 };
+
 
 // ==================== UPDATE USER PROFILE ====================
 export const updateUserProfile = async (req, res) => {
