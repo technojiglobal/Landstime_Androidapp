@@ -1,15 +1,5 @@
-// import express from "express";
-// import {
-//   createReview,
-//   getReviews,
-// } from "../UserControllers/ReviewController.js";
 
-// const router = express.Router();
-
-// router.post("/reviews", createReview);
-// router.get("/reviews/:entityType/:entityId", getReviews);
-
-// export default router;
+//Backend//UserRoutes//ReviewRoutes.js
 import express from "express";
 import { createReview, getReviews } from "../UserControllers/ReviewController.js";
 
