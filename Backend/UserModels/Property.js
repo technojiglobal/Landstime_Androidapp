@@ -939,12 +939,12 @@ email: {
       // ✅ Location & Area
 
       hospitalityType: {
-        type: String,
-        enum: ['Hotel/Resorts', 'Guest House'],
-        required: function () {
-          return this.commercialDetails?.subType === 'Hospitality';
-        }
-      },
+  type: String,
+  enum: ['Hotel/Resorts', 'Guest House'], // ✅ Matches frontend exactly
+  required: function () {
+    return this.commercialDetails?.subType === 'Hospitality';
+  }
+},
       location: {
         type: String,
         required: function () {
