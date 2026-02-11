@@ -462,6 +462,31 @@ export const updatePropertyAvailability = async (propertyId, propertyStatus) => 
   return await apiRequest(`/admin/${propertyId}/availability`, 'PATCH', { propertyStatus });
 };
 
+
+// ✅ NEW CODE - Add this function
+export const userMarkPropertySold = async (propertyId) => {
+  try {
+    const token = await getToken();
+    const response = await fetch(`${API_BASE_URL}/user/${propertyId}/mark-sold`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    const data = await response.json();
+    return {
+      success: response.ok,
+      status: response.status,
+      data: data
+    };
+  } catch (error) {
+    console.error('Mark sold error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
 // Admin update property details
 export const adminUpdateProperty = async (propertyId, propertyData) => {
   return await apiRequest(`/admin/${propertyId}`, 'PUT', propertyData);
