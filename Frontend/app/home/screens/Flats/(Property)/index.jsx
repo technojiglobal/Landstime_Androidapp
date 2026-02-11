@@ -367,39 +367,14 @@ const getStats = () => {
       }}
       keyExtractor={(item, index) => `image-${index}`}
       renderItem={({ item }) => (
-        <View className="relative" style={{ width: 330, marginHorizontal: 10 }}>
-          <Image
-            source={{ uri: getImageUrl(item) }}
-            className="rounded-[17px]"
-            style={{ height: 223, width: 330, resizeMode: "cover" }}
-          />
-          <View
-            className="absolute bg-white rounded-full p-1"
-            style={{
-              bottom: 10,
-              right: 10,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.2,
-              shadowRadius: 1.5,
-              elevation: 2,
-            }}
-          >
-            <Image
-              source={require("../../../../../assets/tick-icon.png")}
-              style={{ width: 13, height: 13, resizeMode: "contain" }}
-            />
-          </View>
-        </View>
-      )}
+  <View className="relative" style={{ width: 330, marginHorizontal: 10 }}>
+    <Image
+      source={{ uri: getImageUrl(item) }}
+      className="rounded-[17px]"
+      style={{ height: 223, width: 330, resizeMode: "cover" }}
     />
-  ) : (
-    <View className="relative">
-      <Image
-        source={require("../../../../../assets/CommercialHub.jpg")}
-        className="rounded-[17px]"
-        style={{ height: 223, width: 330, resizeMode: "cover" }}
-      />
+    {/* ✅ Only show tick if isVerified is true */}
+    {property.isVerified && (
       <View
         className="absolute bg-white rounded-full p-1"
         style={{
@@ -417,7 +392,39 @@ const getStats = () => {
           style={{ width: 13, height: 13, resizeMode: "contain" }}
         />
       </View>
-    </View>
+    )}
+  </View>
+)}
+    />
+  ) : (
+  <View className="relative">
+  <Image
+    source={{ uri: getImageUrl(item) }}
+    className="rounded-[17px]"
+    style={{ height: 223, width: 330, resizeMode: "cover" }}
+  />
+  {/* ✅ ONLY show icon if property is approved */}
+ {/* ✅ Show tick icon only if isVerified is true */}
+{property.isVerified && (
+  <View
+    className="absolute bg-white rounded-full p-1"
+    style={{
+      bottom: 10,
+      right: 10,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.2,
+      shadowRadius: 1.5,
+      elevation: 2,
+    }}
+  >
+    <Image
+      source={require("../../../../../assets/tick-icon.png")}
+      style={{ width: 13, height: 13, resizeMode: "contain" }}
+    />
+  </View>
+)}
+</View>
   )}
   {/* Image Indicators */}
   {property.images && property.images.length > 1 && (
@@ -440,50 +447,71 @@ const getStats = () => {
         <View className="px-5 mt-5">
           {/* Name + Location + Rating */}
           <View className="flex-row items-start justify-between">
-            <View>
-              <Text className="text-[20px] text-green-500 font-semibold" style={{ fontFamily: "Poppins", fontWeight: "bold" }}>
-                {getLocalizedText(property.propertyTitle, currentLanguage) || 'Property'}
-              </Text>
-              <View className="flex-row items-center mt-1">
-                <Image
-                  source={require("../../../../../assets/location-icon.png")}
-                  style={{ width: 12, height: 12, resizeMode: "contain" }}
-                />
-                <Text className="text-[12px] text-[#72707090] ml-1" style={{ fontFamily: "Poppins" }}>
-                  {getLocalizedText(property.location, currentLanguage) || 'Location'}
-                </Text>
-              </View>
+  <View>
+    <Text className="text-[20px] text-green-500 font-semibold" style={{ fontFamily: "Poppins", fontWeight: "bold" }}>
+      {getLocalizedText(property.propertyTitle, currentLanguage) || 'Property'}
+    </Text>
+    <View className="flex-row items-center mt-1">
+      <Image
+        source={require("../../../../../assets/location-icon.png")}
+        style={{ width: 12, height: 12, resizeMode: "contain" }}
+      />
+      <Text className="text-[12px] text-[#72707090] ml-1" style={{ fontFamily: "Poppins" }}>
+        {getLocalizedText(property.location, currentLanguage) || 'Location'}
+      </Text>
+    </View>
+  </View>
 
-            </View>
+  <View className="flex-row items-center mb-1">
+    <Ionicons name="star" size={14} color="#FF9500" />
+    <Text className="text-[12px] ml-1 text-[#9CA3AF]" style={{ fontFamily: "Poppins" }}>
+      {reviewSummary.avgRating.toFixed(1)} ({reviewSummary.count})
+    </Text>
+  </View>
+</View>
 
-            <View className="flex-row items-center mb-1">
-              <Ionicons name="star" size={14} color="#FF9500" />
-              <Text className="text-[12px] ml-1 text-[#9CA3AF]" style={{ fontFamily: "Poppins" }}>
-                {reviewSummary.avgRating.toFixed(1)} ({reviewSummary.count})
-              </Text>
-            </View>
-          </View>
+{/* ✅ Verified Badge - Right aligned (above View Vaastu) - ONLY if approved */}
+{/* ✅ Verified Badge - Show only if isVerified is true */}
+{property.isVerified && (
+  <View className="flex-row justify-end mt-2">
+    <View style={{ 
+      backgroundColor: "#22C55E", 
+      paddingHorizontal: 8, 
+      paddingVertical: 3, 
+      borderRadius: 4,
+    }}>
+      <Text style={{ 
+        color: "white", 
+        fontSize: 10, 
+        fontFamily: "Poppins-Medium",
+        fontWeight: "600"
+      }}>
+        ✓ Verified
+      </Text>
+    </View>
+  </View>
+)}
 
-          {/* Price + Vaastu */}
-          <View className="mt-2 flex-row items-center justify-between">
-            <Text className="text-[24px] font-semibold text-[#22C55E]" style={{ fontFamily: "Poppins" }}>
-              ₹ {property.expectedPrice ? property.expectedPrice.toLocaleString('en-IN') : '0'}
-            </Text>
+{/* Price + Vaastu */}
+<View className="mt-2 flex-row items-center justify-between">
+  <Text className="text-[24px] font-semibold text-[#22C55E]" style={{ fontFamily: "Poppins" }}>
+    ₹ {property.expectedPrice ? property.expectedPrice.toLocaleString('en-IN') : '0'}
+  </Text>
 
-            <TouchableOpacity
-              onPress={() => setShowVastuModal(true)}
-              className="flex-row items-center px-2 py-[2px] rounded-md"
-              style={{ borderWidth: 0.5, borderColor: "#FFA50066" }}
-            >
-              <Image
-                source={require("../../../../../assets/vastu.png")}
-                style={{ width: 12, height: 12, resizeMode: "contain" }}
-              />
-              <Text className="ml-1 text-[12px] font-bold text-[#FFA500]" style={{ fontFamily: "Poppins" }}>
-                View Vaastu
-              </Text>
-            </TouchableOpacity>
-          </View>
+  <TouchableOpacity
+    onPress={() => setShowVastuModal(true)}
+    className="flex-row items-center px-2 py-[2px] rounded-md"
+    style={{ borderWidth: 0.5, borderColor: "#FFA50066" }}
+  >
+    <Image
+      source={require("../../../../../assets/vastu.png")}
+      style={{ width: 12, height: 12, resizeMode: "contain" }}
+    />
+    <Text className="ml-1 text-[12px] font-bold text-[#FFA500]" style={{ fontFamily: "Poppins" }}>
+      View Vaastu
+    </Text>
+  </TouchableOpacity>
+</View>
 
           {/* Stats */}
           <View className="flex-row justify-between mt-5">
