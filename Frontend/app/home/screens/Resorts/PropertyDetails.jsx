@@ -953,33 +953,38 @@ if (filters.resortType && filters.resortType !== '' && filters.resortType !== 'A
                     </Text>
                   </TouchableOpacity>
 
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      marginTop: 3,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: "Poppins-Regular",
-                        fontSize: 11,
-                        color: "#6B7280",
-                        maxWidth: "60%",
-                      }}
-                    >
-                      {item.resortDetails?.resortType || 'Resort'}
-                    </Text>
-                    {/* ✅ MODIFIED: Only show verified badge if isVerified is true */}
-                    {item.isVerified && (
-                      <Image
-                        source={require("../../../../assets/verify.png")}
-                        style={{ width: 45, height: 16, resizeMode: "contain", marginTop: 1 }}
-                      />
-                    )}
-                  </View>
-
+                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginTop: 3 }}>
+  <Text
+    style={{
+      fontFamily: "Poppins-Regular",
+      fontSize: 11,
+      color: "#6B7280",
+      flex: 1,
+    }}
+  >
+    {item.resortDetails?.resortType || 'Resort'}
+  </Text>
+  
+  {/* ✅ Verified Badge - Show only if isVerified is true */}
+  {item.isVerified && (
+    <View style={{ 
+      backgroundColor: "#22C55E", 
+      paddingHorizontal: 6, 
+      paddingVertical: 2, 
+      borderRadius: 3,
+      marginLeft: 8
+    }}>
+      <Text style={{ 
+        color: "white", 
+        fontSize: 8, 
+        fontFamily: "Poppins-Medium",
+        fontWeight: "600"
+      }}>
+        ✓ Verified
+      </Text>
+    </View>
+  )}
+</View>
                   <View className="flex-row items-center mb-1 mt-2">
                     <Ionicons name="star" size={14} color="#FF9500" />
                     <Text className="text-xs mx-3 text-gray-700 justify-center item-center">

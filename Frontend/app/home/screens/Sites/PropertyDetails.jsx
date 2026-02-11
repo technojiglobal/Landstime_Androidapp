@@ -1005,8 +1005,8 @@ export default function PropertyListScreen() {
                 </TouchableOpacity>
 
 <View style={{ paddingHorizontal: 12, paddingTop: 10 }}>
-  {/* ✅ FIXED: Title + Verified Badge on same line */}
-  <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 5 }}>
+  {/* Title */}
+  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginTop: 5 }}>
     <TouchableOpacity
       activeOpacity={0.6}
       onPress={() => router.push({
@@ -1017,6 +1017,7 @@ export default function PropertyListScreen() {
           entityType: 'property'
         }
       })}
+      style={{ flex: 1 }}
     >
       <Text
         style={{
@@ -1030,13 +1031,14 @@ export default function PropertyListScreen() {
       </Text>
     </TouchableOpacity>
 
-    {/* ✅ Verified Badge next to title */}
+    {/* ✅ Verified Badge - Right aligned */}
     {item.isVerified && (
       <View style={{ 
         backgroundColor: "#22C55E", 
         paddingHorizontal: 6, 
         paddingVertical: 2, 
-        borderRadius: 3 
+        borderRadius: 3,
+        marginLeft: 8
       }}>
         <Text style={{ 
           color: "white", 
@@ -1050,7 +1052,7 @@ export default function PropertyListScreen() {
     )}
   </View>
 
-  {/* Property Type (just text, no badge here) */}
+  {/* Property Type */}
   <Text
     style={{
       fontFamily: "Poppins-Regular",
