@@ -14,11 +14,15 @@ import {
   Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Modal } from "react-native";
 import { getUserProperties } from "utils/propertyApi";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from "../../../../utils/apiConfig";
 import { fetchReviews } from "../../../../utils/reviewApi";
+// ✅ ADD this import
+import { userMarkPropertySold } from "../../../../utils/propertyApi";
+import "../../../../assets/tick-icon.png"; // Ensure this path is correct based on your project structure
 
 export default function MyProperties() {
   const router = useRouter();
@@ -29,6 +33,9 @@ export default function MyProperties() {
   const [reviewSummary, setReviewSummary] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
   const [isListening, setIsListening] = useState(false);
+
+  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [showOptionsModal, setShowOptionsModal] = useState(false);
 
   useEffect(() => {
     loadLanguagePreference();
@@ -174,6 +181,56 @@ export default function MyProperties() {
     }
   };
 
+
+
+
+  // ✅ Handle 3-dot menu press
+  const handleOptionsPress = (property) => {
+    setSelectedProperty(property);
+    setShowOptionsModal(true);
+  };
+
+  // ✅ Handle mark as sold
+  const handleMarkSold = async () => {
+    if (!selectedProperty) return;
+    
+    setShowOptionsModal(false);
+    
+    Alert.alert(
+      "Mark as Sold",
+      "Are you sure you want to mark this property as sold? This action cannot be undone by you.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Mark as Sold",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const response = await userMarkPropertySold(selectedProperty._id);
+              
+              if (response.success) {
+                Alert.alert('Success', 'Property marked as sold');
+                fetchMyProperties(); // Refresh list
+              } else {
+                Alert.alert('Error', response.data?.message || 'Failed to mark property as sold');
+              }
+            } catch (error) {
+              console.error('Error marking sold:', error);
+              Alert.alert('Error', 'Something went wrong');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  // ✅ Handle edit (placeholder)
+  const handleEdit = () => {
+    setShowOptionsModal(false);
+    Alert.alert('Coming Soon', 'Edit functionality will be available soon');
+  };
+
+
   // Helper function to handle base64 images from backend
   const getImageSource = (imageData) => {
     if (!imageData) {
@@ -308,6 +365,7 @@ export default function MyProperties() {
         </View>
       ) : (
         /* Property Cards */
+       /* Property Cards */
         <ScrollView
           className="px-4 flex-1"
           showsVerticalScrollIndicator={false}
@@ -335,42 +393,113 @@ export default function MyProperties() {
                   elevation: 3,
                 }}
               >
-                {/* Property Image */}
-                <View className="relative">
-                  <Image
-                    source={getImageSource(property.images?.[0])}
-                    className="w-full h-52"
-                    resizeMode="cover"
-                  />
+                {/* ✅ Property Image (Clickable) */}
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => {
+                    const propertyType = property.propertyType;
+                    let path = '';
+                    let detailsPath = '';
+                    
+                    if (propertyType === 'House' || propertyType === 'House/Flat') {
+                      path = '/home/screens/Flats/(Property)';
+                      detailsPath = '/home/screens/Flats/PropertyDetails';
+                    } else if (propertyType === 'Site/Plot/Land') {
+                      path = '/home/screens/Sites/(Property)';
+                      detailsPath = '/home/screens/Sites/PropertyDetails';
+                    } else if (propertyType === 'Resort') {
+                      path = '/home/screens/Resorts/(Property)';
+                      detailsPath = '/home/screens/Resorts/PropertyDetails';
+                    } else if (propertyType === 'Commercial') {
+                      path = '/home/screens/Commercial/(Property)';
+                      detailsPath = '/home/screens/Commercial/PropertyDetails';
+                    }
 
-                  {/* Status Badge */}
-                  <View
-                    className={`absolute top-3 left-3 px-3 py-1.5 rounded-full ${statusLabel === "Active"
-                        ? "bg-[#DBFCE7]"
-                        : statusLabel === "Pending Review"
-                          ? "bg-[#FEF9C2]"
-                          : "bg-red-100"
-                      }`}
-                  >
-                    <Text
-                      className={`text-xs font-bold ${statusLabel === "Active"
-                          ? "text-[#008236]"
+                    if (path) {
+                      router.push({
+                        pathname: path,
+                        params: {
+                          propertyId: property._id,
+                          propertyData: JSON.stringify(property),
+                          areaKey: property.areaKey,
+                          entityType: 'property',
+                          backRoute: detailsPath,
+                          fromMyProperties: 'true'
+                        }
+                      });
+                    }
+                  }}
+                >
+                  <View className="relative">
+                    <Image
+                      source={getImageSource(property.images?.[0])}
+                      className="w-full h-52"
+                      resizeMode="cover"
+                    />
+
+                    {/* Status Badge */}
+                    <View
+                      className={`absolute top-3 left-3 px-3 py-1.5 rounded-full ${statusLabel === "Active"
+                          ? "bg-[#DBFCE7]"
                           : statusLabel === "Pending Review"
-                            ? "text-yellow-700"
-                            : "text-red-700"
+                            ? "bg-[#FEF9C2]"
+                            : "bg-red-100"
                         }`}
                     >
-                      {statusLabel}
-                    </Text>
-                  </View>
+                      <Text
+                        className={`text-xs font-bold ${statusLabel === "Active"
+                            ? "text-[#008236]"
+                            : statusLabel === "Pending Review"
+                              ? "text-yellow-700"
+                              : "text-red-700"
+                          }`}
+                      >
+                        {statusLabel}
+                      </Text>
+                    </View>
 
-                  {/* Action Icons */}
-                  <View className="absolute top-3 right-3 flex-row">
-                    <TouchableOpacity className="bg-white/95 p-2.5 rounded-full mr-2">
-                      <Ionicons name="create-outline" size={20} color="black" />
-                    </TouchableOpacity>
+                    {/* ✅ Status Badge + 3-Dot Menu */}
+                    <View className="absolute top-3 right-3 flex-row items-start">
+                      {/* Sold Out Badge */}
+                      {property.propertyStatus === 'Sold' && (
+                        <View className="bg-red-600 px-3 py-1.5 rounded-full mr-2">
+                          <Text className="text-white text-xs font-bold">
+                            Sold Out
+                          </Text>
+                        </View>
+                      )}
+                      
+                      {/* 3-Dot Menu */}
+                      <TouchableOpacity 
+                        className="bg-white/95 p-2 rounded-full"
+                        onPress={() => handleOptionsPress(property)}
+                      >
+                        <MaterialCommunityIcons name="dots-vertical" size={20} color="black" />
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* ✅ Verified Badge on Image */}
+                    {property.isVerified && (
+                      <View
+                        className="absolute bg-white rounded-full p-1"
+                        style={{
+                          bottom: 10,
+                          right: 10,
+                          shadowColor: "#000",
+                          shadowOffset: { width: 0, height: 1 },
+                          shadowOpacity: 0.2,
+                          shadowRadius: 1.5,
+                          elevation: 2,
+                        }}
+                      >
+                        <Image
+                          source={require("../../../../assets/tick-icon.png")}
+                          style={{ width: 13, height: 13, resizeMode: "contain" }}
+                        />
+                      </View>
+                    )}
                   </View>
-                </View>
+                </TouchableOpacity>
 
                 {/* Property Details */}
                 <View className="p-4">
@@ -489,6 +618,66 @@ export default function MyProperties() {
           })}
         </ScrollView>
       )}
+
+      {/* ✅ Options Modal */}
+      <Modal
+        visible={showOptionsModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowOptionsModal(false)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setShowOptionsModal(false)}
+          className="flex-1 bg-black/50 justify-end"
+        >
+          <View className="bg-white rounded-t-3xl p-5">
+            <View className="w-12 h-1 bg-gray-300 rounded-full self-center mb-4" />
+            
+            <Text className="text-lg font-semibold mb-4">Property Options</Text>
+            
+            {/* Edit Option (Placeholder) */}
+            <TouchableOpacity
+              onPress={handleEdit}
+              className="flex-row items-center py-4 border-b border-gray-100"
+            >
+              <Ionicons name="create-outline" size={22} color="#6B7280" />
+              <Text className="text-base ml-3 text-gray-700">Edit Property</Text>
+              <Text className="text-xs text-gray-400 ml-auto">(Coming Soon)</Text>
+            </TouchableOpacity>
+            
+            {/* Mark as Sold Option */}
+            <TouchableOpacity
+              onPress={handleMarkSold}
+              disabled={selectedProperty?.propertyStatus === 'Sold'}
+              className="flex-row items-center py-4"
+            >
+              <MaterialCommunityIcons 
+                name="tag-off" 
+                size={22} 
+                color={selectedProperty?.propertyStatus === 'Sold' ? "#D1D5DB" : "#EF4444"} 
+              />
+              <Text 
+                className={`text-base ml-3 ${
+                  selectedProperty?.propertyStatus === 'Sold' 
+                    ? 'text-gray-400' 
+                    : 'text-red-600'
+                }`}
+              >
+                {selectedProperty?.propertyStatus === 'Sold' ? 'Already Sold' : 'Mark as Sold'}
+              </Text>
+            </TouchableOpacity>
+            
+            {/* Cancel */}
+            <TouchableOpacity
+              onPress={() => setShowOptionsModal(false)}
+              className="bg-gray-100 py-3 rounded-xl mt-4"
+            >
+              <Text className="text-center text-gray-700 font-semibold">Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }

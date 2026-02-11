@@ -984,6 +984,22 @@ export default function PropertyListScreen() {
                     }}
                     resizeMode="cover"
                   />
+
+
+                  {/* ✅ NEW CODE - Sold Out Badge */}
+  {item.propertyStatus === 'Sold' && (
+    <View
+      className="absolute bg-red-600 rounded-full px-3 py-1.5"
+      style={{
+        top: 12,
+        left: 12,
+      }}
+    >
+      <Text className="text-white text-xs font-bold">
+        Sold Out
+      </Text>
+    </View>
+  )}
                 </TouchableOpacity>
 
                 <TouchableOpacity

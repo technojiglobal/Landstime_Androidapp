@@ -447,20 +447,20 @@ const filtered = useMemo(() => {
                   )}
                 </td>
 
-                <td className="px-4 py-3">
-                  <select
-                    value={p.propertyStatus}
-                    onChange={(e) => handlePropertyStatusChange(p.id, e.target.value)}
-                    className={`text-xs border rounded px-2 py-1 cursor-pointer ${
-                      p.propertyStatus === 'Sold' 
-                        ? 'bg-gray-800 text-white' 
-                        : 'bg-green-100 text-green-700'
-                    }`}
-                  >
-                    <option value="Available">Available</option>
-                    <option value="Sold">Sold</option>
-                  </select>
-                </td>
+               <td className="px-4 py-3">
+  <select
+    value={p.propertyStatus}
+    onChange={(e) => handlePropertyStatusChange(p.id, e.target.value)}
+    className={`text-xs border rounded px-2 py-1 cursor-pointer ${
+      p.propertyStatus === 'Sold' 
+        ? (p.raw?.soldBy === 'admin' ? 'bg-green-600 text-white' : 'bg-black text-white')
+        : 'bg-gray-100 text-gray-700'
+    }`}
+  >
+    <option value="Available">Available</option>
+    <option value="Sold">Sold</option>
+  </select>
+</td>
 
                 <td className="px-4 py-3">{p.uploaded}</td>
                 <td className="px-4 py-3">{p.owner}</td>

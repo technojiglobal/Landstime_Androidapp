@@ -355,25 +355,43 @@ export default function OverviewScreen() {
     style={{ height: 223, width: 330, resizeMode: "cover" }}
   />
   {/* ✅ ONLY show icon if property is verified */}
-  {property.isVerified && (
-    <View
-      className="absolute bg-white rounded-full p-1"
-      style={{
-        bottom: 10,
-        right: 10,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 1.5,
-        elevation: 2,
-      }}
-    >
-      <Image
-        source={require("../../../../../assets/tick-icon.png")}
-        style={{ width: 13, height: 13, resizeMode: "contain" }}
-      />
-    </View>
-  )}
+  {/* ✅ NEW CODE - Sold Out Badge (Top-Left) */}
+{property.propertyStatus === 'Sold' && (
+  <View
+    className="absolute bg-red-600 rounded-full px-3 py-1.5"
+    style={{
+      top: 10,
+      left: 10,
+    }}
+  >
+    <Text className="text-white text-xs font-bold">
+      Sold Out
+    </Text>
+  </View>
+)}
+
+{/* ✅ Verified Badge (Bottom-Right) */}
+{property.isVerified && (
+  <View
+    className="absolute bg-white rounded-full p-1"
+    style={{
+      bottom: 10,
+      right: 10,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.2,
+      shadowRadius: 1.5,
+      elevation: 2,
+    }}
+  >
+    <Image
+      source={require("../../../../../assets/tick-icon.png")}
+      style={{ width: 13, height: 13, resizeMode: "contain" }}
+    />
+  </View>
+)}
+
+
 </View>
 
       )}

@@ -1802,9 +1802,16 @@ export const updatePropertyAvailability = async (req, res) => {
       });
     }
    
+    const updateData = { propertyStatus };
+    if (propertyStatus === 'Sold') {
+      updateData.soldBy = 'admin';
+    } else {
+      updateData.soldBy = null;
+    }
+   
     const property = await Property.findByIdAndUpdate(
       req.params.id,
-      { propertyStatus },
+      updateData,
       { new: true }
     );
    
@@ -1830,6 +1837,57 @@ export const updatePropertyAvailability = async (req, res) => {
     });
   }
 };
+
+// ✅ NEW CODE - Add this entire function
+export const userMarkPropertySold = async (req, res) => {
+  try {
+    const property = await Property.findById(req.params.id);
+    
+    if (!property) {
+      return res.status(404).json({
+        success: false,
+        message: 'Property not found'
+      });
+    }
+    
+    // ✅ Check if user owns this property
+    if (property.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this property'
+      });
+    }
+    
+    // ✅ Check if already sold
+    if (property.propertyStatus === 'Sold') {
+      return res.status(400).json({
+        success: false,
+        message: 'Property is already marked as sold'
+      });
+    }
+    
+    // ✅ Update to Sold
+   // ✅ Update to Sold
+property.propertyStatus = 'Sold';
+property.soldBy = 'user';
+await property.save();
+    
+    res.status(200).json({
+      success: true,
+      message: 'Property marked as sold successfully',
+      data: property
+    });
+    
+  } catch (error) {
+    console.error('User mark sold error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to mark property as sold',
+      error: error.message
+    });
+  }
+};
+
 
 export const adminUpdateProperty = async (req, res) => {
   try {
