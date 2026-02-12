@@ -347,7 +347,7 @@ const getStats = () => {
         }}
       >
         {/* Resort Image */}
-       {/* Property Images */}
+{/* Property Images */}
 <View className="items-center relative">
   {property.images && property.images.length > 0 ? (
     <FlatList
@@ -367,65 +367,99 @@ const getStats = () => {
       }}
       keyExtractor={(item, index) => `image-${index}`}
       renderItem={({ item }) => (
-  <View className="relative" style={{ width: 330, marginHorizontal: 10 }}>
-    <Image
-      source={{ uri: getImageUrl(item) }}
-      className="rounded-[17px]"
-      style={{ height: 223, width: 330, resizeMode: "cover" }}
-    />
-    {/* ✅ Only show tick if isVerified is true */}
-    {property.isVerified && (
-      <View
-        className="absolute bg-white rounded-full p-1"
-        style={{
-          bottom: 10,
-          right: 10,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.2,
-          shadowRadius: 1.5,
-          elevation: 2,
-        }}
-      >
-        <Image
-          source={require("../../../../../assets/tick-icon.png")}
-          style={{ width: 13, height: 13, resizeMode: "contain" }}
-        />
-      </View>
-    )}
-  </View>
-)}
+        <View className="relative" style={{ width: 330, marginHorizontal: 10 }}>
+          <Image
+            source={{ uri: getImageUrl(item) }}
+            className="rounded-[17px]"
+            style={{ height: 223, width: 330, resizeMode: "cover" }}
+          />
+          
+          {/* ✅ NEW CODE - Sold Out Badge (Top-Left) */}
+          {property.propertyStatus === 'Sold' && (
+            <View
+              className="absolute bg-red-600 rounded-full px-3 py-1.5"
+              style={{
+                top: 10,
+                left: 10,
+              }}
+            >
+              <Text className="text-white text-xs font-bold">
+                Sold Out
+              </Text>
+            </View>
+          )}
+
+          {/* Verified Badge (Bottom-Right) */}
+          {property.isVerified && (
+            <View
+              className="absolute bg-white rounded-full p-1"
+              style={{
+                bottom: 10,
+                right: 10,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.2,
+                shadowRadius: 1.5,
+                elevation: 2,
+              }}
+            >
+              <Image
+                source={require("../../../../../assets/tick-icon.png")}
+                style={{ width: 13, height: 13, resizeMode: "contain" }}
+              />
+            </View>
+          )}
+        </View>
+      )}
     />
   ) : (
-  <View className="relative">
-  <Image
-    source={{ uri: getImageUrl(item) }}
-    className="rounded-[17px]"
-    style={{ height: 223, width: 330, resizeMode: "cover" }}
-  />
-  {/* ✅ ONLY show icon if property is approved */}
- {/* ✅ Show tick icon only if isVerified is true */}
-{property.isVerified && (
-  <View
-    className="absolute bg-white rounded-full p-1"
-    style={{
-      bottom: 10,
-      right: 10,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.2,
-      shadowRadius: 1.5,
-      elevation: 2,
-    }}
-  >
-    <Image
-      source={require("../../../../../assets/tick-icon.png")}
-      style={{ width: 13, height: 13, resizeMode: "contain" }}
-    />
-  </View>
-)}
-</View>
+    <View className="relative">
+      <Image
+        source={require("../../../../../assets/Flat1.jpg")}
+        className="rounded-[17px]"
+        style={{ height: 223, width: 330, resizeMode: "cover" }}
+      />
+      
+      {/* ✅ NEW CODE - Sold Out Badge for placeholder image */}
+      {property.propertyStatus === 'Sold' && (
+        <View
+          className="absolute bg-red-600 rounded-full px-3 py-1.5"
+          style={{
+            top: 10,
+            left: 10,
+          }}
+        >
+          <Text className="text-white text-xs font-bold">
+            Sold Out
+          </Text>
+        </View>
+      )}
+
+      {/* Verified Badge for placeholder image */}
+      {property.isVerified && (
+        <View
+          className="absolute bg-white rounded-full p-1"
+          style={{
+            bottom: 10,
+            right: 10,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.2,
+            shadowRadius: 1.5,
+            elevation: 2,
+          }}
+        >
+          <Image
+            source={require("../../../../../assets/tick-icon.png")}
+            style={{ width: 13, height: 13, resizeMode: "contain" }}
+          />
+        </View>
+      )}
+    </View>
   )}
+
+ 
+
   {/* Image Indicators */}
   {property.images && property.images.length > 1 && (
     <View className="flex-row justify-center mt-2">
@@ -443,6 +477,8 @@ const getStats = () => {
     </View>
   )}
 </View>
+
+
         {/* Property Info */}
         <View className="px-5 mt-5">
           {/* Name + Location + Rating */}

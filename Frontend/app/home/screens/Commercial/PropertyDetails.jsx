@@ -1032,33 +1032,48 @@ export default function PropertyListScreen() {
                   borderColor: "#E5E7EB",
                 }}
               >
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => router.push({
-                    pathname: '/home/screens/Commercial/(Property)',
-                    params: {
-                      propertyId: item._id,
-                      propertyData: JSON.stringify(item),
-                      areaKey: item.areaKey || areaKey,
-                      entityType: 'property'
-                    }
-                  })}
-                >
-                  <Image
-                    source={
-                      item.images && item.images.length > 0
-                        ? { uri: getImageUrl(item.images[0]) }
-                        : require("../../../../assets/CommercialHub.jpg")
-                    }
-                    style={{
-                      width: CARD_WIDTH,
-                      height: 163,
-                      borderTopLeftRadius: 17,
-                      borderTopRightRadius: 17,
-                    }}
-                    resizeMode="cover"
-                  />
-                </TouchableOpacity>
+               <TouchableOpacity
+  activeOpacity={0.8}
+  onPress={() => router.push({
+    pathname: '/home/screens/Commercial/(Property)',
+    params: {
+      propertyId: item._id,
+      propertyData: JSON.stringify(item),
+      areaKey: item.areaKey || areaKey,
+      entityType: 'property'
+    }
+  })}
+>
+  <Image
+    source={
+      item.images && item.images.length > 0
+        ? { uri: getImageUrl(item.images[0]) }
+        : require("../../../../assets/CommercialHub.jpg")
+    }
+    style={{
+      width: CARD_WIDTH,
+      height: 163,
+      borderTopLeftRadius: 17,
+      borderTopRightRadius: 17,
+    }}
+    resizeMode="cover"
+  />
+
+  {/* ✅ NEW CODE - Sold Out Badge */}
+  {item.propertyStatus === 'Sold' && (
+    <View
+      className="absolute bg-red-600 rounded-full px-3 py-1.5"
+      style={{
+        top: 12,
+        left: 12,
+      }}
+    >
+      <Text className="text-white text-xs font-bold">
+        Sold Out
+      </Text>
+    </View>
+  )}
+</TouchableOpacity>
 
                 <TouchableOpacity
                   onPress={() => handleToggleSave(item._id)}
@@ -1079,44 +1094,33 @@ export default function PropertyListScreen() {
                 </TouchableOpacity>
 
                 <View style={{ paddingHorizontal: 12, paddingTop: 10 }}>
-                  <TouchableOpacity
-                    activeOpacity={0.6}
-                    onPress={() => router.push({
-                      pathname: '/home/screens/Commercial/(Property)',
-                      params: {
-                        propertyId: item._id,
-                        areaKey: item.areaKey || areaKey,
-                        entityType: 'property'
-                      }
-                    })}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: "Poppins-Medium",
-                        fontWeight: "500",
-                        fontSize: 12,
-                        color: "#16A34A",
-                        marginTop: 5,
-                      }}
-                    >
-                      {getLocalizedText(item.propertyTitle, currentLanguage) || 'Property'}
-                      {getSubType(item) && ` (${getSubType(item)})`}
-                    </Text>
-                  </TouchableOpacity>
-
-                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginTop: 3 }}>
-  <Text
-    style={{
-      fontFamily: "Poppins-Regular",
-      fontSize: 11,
-      color: "#6B7280",
-      flex: 1,
-    }}
+                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginTop: 5 }}>
+  <TouchableOpacity
+    activeOpacity={0.6}
+    onPress={() => router.push({
+      pathname: '/home/screens/Commercial/(Property)',
+      params: {
+        propertyId: item._id,
+        areaKey: item.areaKey || areaKey,
+        entityType: 'property'
+      }
+    })}
+    style={{ flex: 1 }}
   >
-    {item.propertyType || 'Commercial'}
-  </Text>
-  
-  {/* ✅ Verified Badge - Show only if isVerified is true */}
+    <Text
+      style={{
+        fontFamily: "Poppins-Medium",
+        fontWeight: "500",
+        fontSize: 12,
+        color: "#16A34A",
+      }}
+    >
+      {getLocalizedText(item.propertyTitle, currentLanguage) || 'Property'}
+      {getSubType(item) && ` (${getSubType(item)})`}
+    </Text>
+  </TouchableOpacity>
+
+  {/* ✅ Verified Badge - Right aligned */}
   {item.isVerified && (
     <View style={{ 
       backgroundColor: "#22C55E", 
@@ -1136,6 +1140,18 @@ export default function PropertyListScreen() {
     </View>
   )}
 </View>
+
+{/* Property Type */}
+<Text
+  style={{
+    fontFamily: "Poppins-Regular",
+    fontSize: 11,
+    color: "#6B7280",
+    marginTop: 3,
+  }}
+>
+  {item.propertyType || 'Commercial'}
+</Text>
 
                   <View className="flex-row items-center mb-1">
                     <Ionicons name="star" size={14} color="#FF9500" />
