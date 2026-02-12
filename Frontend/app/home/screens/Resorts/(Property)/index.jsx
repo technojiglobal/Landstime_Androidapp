@@ -91,92 +91,139 @@ export default function OverviewScreen() {
  
 
   // ✅ NEW: Handle Contact Agent button press
-  const handleContactAgent = async () => {
-    try {
-      if (!property || !property._id) {
-        Alert.alert('Error', 'Property information not available');
-        return;
+ // ✅ NEW: Handle Contact Agent button press
+// ✅ NEW: Handle Contact Agent button press
+const handleContactAgent = async () => {
+  try {
+    if (!property || !property._id) {
+      Alert.alert('Error', 'Property information not available');
+      return;
+    }
+
+    console.log('🔍 Checking if property already viewed:', property._id);
+
+    // ✅ Determine back route based on property type
+    const getBackRoute = () => {
+      const propertyType = property.propertyType;
+      switch(propertyType) {
+        case 'Resort':
+          return '/home/screens/Resorts/PropertyDetails';
+        case 'Site':
+        case 'Site/Plot/Land':
+          return '/home/screens/Sites/PropertyDetails';
+        case 'House':
+        case 'House/Flat':
+        case 'Flat':
+          return '/home/screens/Flats/PropertyDetails';
+        case 'Commercial':
+          return '/home/screens/Commercial/PropertyDetails';
+        default:
+          return '/home/screens/Resorts/PropertyDetails';
+      }
+    };
+
+    const backRoute = getBackRoute();
+    const overviewRoute = '/home/screens/Resorts/(Property)'; // ✅ ADD THIS - current overview route
+
+    // Get user profile to check viewedProperties
+    const userResult = await getUserProfile();
+
+    if (!userResult.success) {
+      console.log('❌ Failed to get user profile, going to ContactForm');
+      router.push({
+        pathname: "/home/screens/ContactForm",
+        params: {
+          propertyId: property._id,
+          areaKey: property.areaKey,
+          backRoute: overviewRoute, // ✅ CHANGED: back to overview, not PropertyDetails
+          propertyDetailsRoute: backRoute, // ✅ ADD THIS: for overview's back button
+          entityType: 'property',
+          propertyType: property.propertyType
+        }
+      });
+      return;
+    }
+
+    const userData = userResult.data.data;
+    const viewedProperties = userData.currentSubscription?.viewedProperties || [];
+
+    // Check if already viewed
+    if (viewedProperties.includes(property._id)) {
+      console.log('✅ Property already viewed - checking access for direct navigation');
+
+      // Get user name
+      let userName = '';
+      if (typeof userData.name === 'string') {
+        userName = userData.name;
+      } else if (userData.name && typeof userData.name === 'object') {
+        userName = userData.name.en || userData.name.te || userData.name.hi || '';
       }
 
-      console.log('🔍 Checking if property already viewed:', property._id);
+      // Get access (will return owner details since already viewed)
+      const accessCheck = await checkViewAccess(
+        property._id,
+        userName,
+        stripPhone(userData.phone)
+      );
 
-      // Get user profile to check viewedProperties
-      const userResult = await getUserProfile();
+      if (accessCheck.success && accessCheck.data.alreadyViewed) {
+        console.log('✅ Navigating directly to ViewContact');
 
-      if (!userResult.success) {
-        console.log('❌ Failed to get user profile, going to ContactForm');
+        // Navigate directly to ViewContact
         router.push({
-          pathname: "/home/screens/ContactForm",
+          pathname: '/home/screens/ViewContact',
           params: {
+            ownerDetails: JSON.stringify(accessCheck.data.ownerDetails),
+            quota: JSON.stringify(accessCheck.data.quota),
+            alreadyViewed: 'true',
+            areaKey: property.areaKey,
             propertyId: property._id,
-            areaKey: property.areaKey
+            backRoute: overviewRoute, // ✅ CHANGED: back to overview
+            propertyDetailsRoute: backRoute, // ✅ ADD THIS
+            entityType: 'property',
+            propertyType: property.propertyType
           }
         });
         return;
       }
-
-      const userData = userResult.data.data;
-      const viewedProperties = userData.currentSubscription?.viewedProperties || [];
-
-      // Check if already viewed
-      if (viewedProperties.includes(property._id)) {
-        console.log('✅ Property already viewed - checking access for direct navigation');
-
-        // Get user name
-        let userName = '';
-        if (typeof userData.name === 'string') {
-          userName = userData.name;
-        } else if (userData.name && typeof userData.name === 'object') {
-          userName = userData.name.en || userData.name.te || userData.name.hi || '';
-        }
-
-        // Get access (will return owner details since already viewed)
-        const accessCheck = await checkViewAccess(
-          property._id,
-          userName,
-          stripPhone(userData.phone)
-        );
-
-        if (accessCheck.success && accessCheck.data.alreadyViewed) {
-          console.log('✅ Navigating directly to ViewContact');
-
-          // Navigate directly to ViewContact
-          router.push({
-            pathname: '/home/screens/ViewContact',
-            params: {
-              ownerDetails: JSON.stringify(accessCheck.data.ownerDetails),
-              quota: JSON.stringify(accessCheck.data.quota),
-              alreadyViewed: 'true',
-              areaKey: property.areaKey,
-              propertyId: property._id
-            }
-          });
-          return;
-        }
-      }
-
-      // Not viewed yet - go to ContactForm
-      console.log('📝 Property not viewed yet - going to ContactForm');
-      router.push({
-        pathname: "/home/screens/ContactForm",
-        params: {
-          propertyId: property._id,
-          areaKey: property.areaKey
-        }
-      });
-
-    } catch (error) {
-      console.error('❌ handleContactAgent error:', error);
-      // On error, fallback to ContactForm
-      router.push({
-        pathname: "/home/screens/ContactForm",
-        params: {
-          propertyId: property._id,
-          areaKey: property.areaKey
-        }
-      });
     }
-  };
+
+    // Not viewed yet - go to ContactForm
+    console.log('📝 Property not viewed yet - going to ContactForm');
+    router.push({
+      pathname: "/home/screens/ContactForm",
+      params: {
+        propertyId: property._id,
+        areaKey: property.areaKey,
+        backRoute: overviewRoute, // ✅ CHANGED: back to overview
+        propertyDetailsRoute: backRoute, // ✅ ADD THIS
+        entityType: 'property',
+        propertyType: property.propertyType
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ handleContactAgent error:', error);
+    const overviewRoute = '/home/screens/Resorts/(Property)';
+    const backRoute = property?.propertyType === 'Resort' ? '/home/screens/Resorts/PropertyDetails' :
+                      property?.propertyType === 'Site' || property?.propertyType === 'Site/Plot/Land' ? '/home/screens/Sites/PropertyDetails' :
+                      property?.propertyType === 'House' || property?.propertyType === 'House/Flat' || property?.propertyType === 'Flat' ? '/home/screens/Flats/PropertyDetails' :
+                      property?.propertyType === 'Commercial' ? '/home/screens/Commercial/PropertyDetails' :
+                      '/home/screens/Resorts/PropertyDetails';
+    
+    router.push({
+      pathname: "/home/screens/ContactForm",
+      params: {
+        propertyId: property._id,
+        areaKey: property.areaKey,
+        backRoute: overviewRoute, // ✅ CHANGED
+        propertyDetailsRoute: backRoute, // ✅ ADD THIS
+        entityType: 'property',
+        propertyType: property.propertyType
+      }
+    });
+  }
+};
   
 
   const handleBrochurePress = () => setShowAlert(true);

@@ -79,7 +79,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ focused }) => (
             <TabIcon
               focused={focused}
-              label="Interiors"
+              label="Interior"
               icon="grid-outline"
               activeIcon="grid"
             />

@@ -15,7 +15,7 @@ import { Picker } from "@react-native-picker/picker";
 import Toast from 'react-native-toast-message';
 import FurnishingsModal from "../../FurnishingsModal";
 import { useTranslation } from 'react-i18next'; // ✅ ADD THIS
-
+import { Ionicons } from "@expo/vector-icons";
 export const PillButton = ({ label, selected, onPress }) => (
     <TouchableOpacity
         onPress={onPress}
@@ -550,7 +550,7 @@ const handleNext = () => {
                                 className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 mb-3"
                             >
                                 <Text className="text-gray-800 text-left">{possessionBy || t('hospitality_expected_by')}</Text>
-                                <Image source={require("../../../../../../assets/arrow.png")} style={{ width: 20, height: 20 }} />
+                               <Ionicons name="chevron-down" size={18} />
                             </TouchableOpacity>
 
                             {visible === "possessionBy" && (
@@ -584,7 +584,7 @@ const handleNext = () => {
                                         className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 mb-3"
                                     >
                                         <Text className="text-gray-800 text-left">{expectedMonth || t('hospitality_select_month')}</Text>
-                                        <Image source={require("../../../../../../assets/arrow.png")} style={{ width: 20, height: 20 }} />
+                                        <Ionicons name="chevron-down" size={18} />
                                     </TouchableOpacity>
 
                                     {visible === "expectedMonth" && (

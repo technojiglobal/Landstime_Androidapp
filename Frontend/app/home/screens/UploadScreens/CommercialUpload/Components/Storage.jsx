@@ -802,10 +802,7 @@ const [showMonthDropdown, setShowMonthDropdown] = useState(false);
                           <Text className="text-gray-800 text-left">
                             {possessionBy || t('industry_expected_by')}
                           </Text>
-                          <Image 
-                            source={require("../../../../../../assets/arrow.png")} 
-                            style={{ width: 20, height: 20 }} 
-                          />
+                          <Ionicons name="chevron-down" size={18} />
                         </TouchableOpacity>
           
                         {visible === "possessionBy" && (
@@ -852,10 +849,7 @@ const [showMonthDropdown, setShowMonthDropdown] = useState(false);
                               <Text className="text-gray-800 text-left">
                                 {expectedMonth || t('hospitality_select_month')}
                               </Text>
-                              <Image 
-                                source={require("../../../../../../assets/arrow.png")} 
-                                style={{ width: 20, height: 20 }} 
-                              />
+                              <Ionicons name="chevron-down" size={18} />
                             </TouchableOpacity>
           
                             {visible === "expectedMonth" && (

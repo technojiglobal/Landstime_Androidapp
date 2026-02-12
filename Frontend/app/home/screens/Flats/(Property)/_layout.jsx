@@ -37,11 +37,17 @@ useEffect(() => {
   const fromSaved = params.fromSaved;
   const fromMyProperties = params.fromMyProperties;
   const backRoute = params.backRoute;
+  const propertyDetailsRoute = params.propertyDetailsRoute; // ✅ ADD THIS
   
   if (fromSaved === 'true') {
     router.push('/home/screens/Sidebar/SavedPropertiesScreen');
   } else if (fromMyProperties === 'true') {
     router.push('/home/screens/Sidebar/MyProperties');
+  } else if (propertyDetailsRoute) { // ✅ ADD THIS - use propertyDetailsRoute if available
+    router.push({
+      pathname: propertyDetailsRoute,
+      params: { propertyId, entityType, areaKey }
+    });
   } else if (backRoute) {
     router.push({
       pathname: backRoute,

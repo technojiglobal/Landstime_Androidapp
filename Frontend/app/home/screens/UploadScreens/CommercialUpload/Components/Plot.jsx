@@ -74,7 +74,24 @@ export default function Plot() {
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
   const [constructionTypes, setConstructionTypes] = useState([]);
   const [focusedField, setFocusedField] = useState(null);
+// Add this state declaration with the other useState hooks (around line 49)
+const [visible, setVisible] = useState(null);
 
+// Add monthOptions constant with the other constants (around line 56)
+const monthOptions = [
+  t('month_january'),
+  t('month_february'),
+  t('month_march'),
+  t('month_april'),
+  t('month_may'),
+  t('month_june'),
+  t('month_july'),
+  t('month_august'),
+  t('month_september'),
+  t('month_october'),
+  t('month_november'),
+  t('month_december'),
+];
   const possessionOptions = [
     t('industry_possession_immediate'),
     t('industry_possession_3months'),
@@ -143,8 +160,8 @@ export default function Plot() {
           setRoadWidth(prevData.roadWidth?.toString() || '');
           setOpenSides(prevData.openSides || '');
           setConstructionDone(prevData.constructionDone || '');
-          setPossessionYear(prevData.possessionYear || '');
-          setPossessionMonth(prevData.possessionMonth || '');
+          setPossessionBy(prevData.possessionBy || '');
+          setExpectedMonth(prevData.expectedMonth || '');
           setConstructionTypes(prevData.constructionTypes || []);
         } catch (e) {
           console.log('❌ Could not restore plot data:', e);
@@ -206,7 +223,7 @@ export default function Plot() {
     const timer = setTimeout(saveDraft, 1000);
     return () => clearTimeout(timer);
   }, [location, locality, neighborhoodArea, plotArea, length, breadth, roadWidth,
-    openSides, constructionDone, possessionYear, possessionMonth, constructionTypes, plotKindFromParams]);
+    openSides, constructionDone, possessionBy, expectedMonth, constructionTypes, plotKindFromParams]);
 
   const handleNext = () => {
     const finalPlotKind = plotKind || plotKindFromParams;
@@ -285,8 +302,8 @@ export default function Plot() {
       roadWidth,
       openSides,
       constructionDone,
-      possessionYear,
-      possessionMonth,
+      possessionBy,
+      expectedMonth,
       constructionTypes,
     };
 
@@ -488,10 +505,7 @@ export default function Plot() {
             <Text className="text-gray-800 text-left">
               {possessionBy || t('industry_expected_by')}
             </Text>
-            <Image
-              source={require("../../../../../../assets/arrow.png")}
-              style={{ width: 20, height: 20 }}
-            />
+            <Ionicons name="chevron-down" size={18} />
           </TouchableOpacity>
 
           {visible === "possessionBy" && (
@@ -536,10 +550,7 @@ export default function Plot() {
                 <Text className="text-gray-800 text-left">
                   {expectedMonth || t('hospitality_select_month')}
                 </Text>
-                <Image
-                  source={require("../../../../../../assets/arrow.png")}
-                  style={{ width: 20, height: 20 }}
-                />
+                <Ionicons name="chevron-down" size={18} />
               </TouchableOpacity>
 
               {visible === "expectedMonth" && (
@@ -567,33 +578,9 @@ export default function Plot() {
               )}
             </>
           )}
-          <TextInput
-            placeholder={t('plot_possession_year_placeholder')}
-            value={possessionYear}
-            onChangeText={(t) => setPossessionYear(t.replace(/[^0-9]/g, ""))}
-            keyboardType="numeric"
-            className="border rounded-[12px] p-3 mb-2"
-            style={{
-              borderWidth: 2,
-              borderColor: focusedField === "possessionYear" ? "#22C55E" : "#E5E7EB",
-            }}
-            onFocus={() => setFocusedField("possessionYear")}
-            onBlur={() => setFocusedField(null)}
-          />
+          
 
-          {possessionYear.length === 4 && (
-            <View className="border border-[#E5E7EB] rounded-[12px]">
-              {monthOptions.map(m => (
-                <TouchableOpacity
-                  key={m}
-                  onPress={() => setPossessionMonth(m)}
-                  className="p-3 border-b border-[#E5E7EB]"
-                >
-                  <Text>{m}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
+          
 
           {constructionDone === "Yes" && (
             <>
