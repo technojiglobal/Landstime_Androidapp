@@ -1,5 +1,5 @@
 //SiteUpload/index.jsx (src/app/home/screens/UploadScreens/SiteUpload/index.jsx)
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import i18n from "../../../../../i18n/index";
 import "../../../../../assets/location.png";
@@ -24,7 +24,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import TopAlert from "../TopAlert";
 import { useLocalSearchParams } from "expo-router";
-import { createProperty } from "utils/propertyApi";
+import { createProperty,updateProperty } from "utils/propertyApi";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import CustomPickerAlert from "components/CustomPickerAlert";
@@ -97,12 +97,153 @@ export default function UploadPropertyScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pickerAlertVisible, setPickerAlertVisible] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
+  const [language, setLanguage] = useState('en');
 
-  const getUserLanguage = () => {
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editPropertyId, setEditPropertyId] = useState(null);
+  const [existingDocuments, setExistingDocuments] = useState({
+  ownership: [],
+  identity: []
+});
+
+ // ✅ NEW - Load property data in edit mode
+  useEffect(() => {
+    if (params.editMode === 'true' && params.propertyData) {
+      try {
+        const property = JSON.parse(params.propertyData);
+        setIsEditMode(true);
+        setEditPropertyId(params.propertyId);
+        
+        console.log('📝 Loading property for edit:', property._id);
+        
+        // Helper function to get localized text
+        const getLocalizedText = (field) => {
+          if (!field) return '';
+          if (typeof field === 'string') return field;
+          if (typeof field === 'object') {
+            return field[language] || field.en || field.te || field.hi || '';
+          }
+          return '';
+        };
+        
+       // Pre-fill basic fields with fallback
+        const titleText = property.propertyTitle?.en || property.propertyTitle?.te || property.propertyTitle?.hi || property.propertyTitle || '';
+        const locationText = property.location?.en || property.location?.te || property.location?.hi || property.location || '';
+        const areaText = property.area?.en || property.area?.te || property.area?.hi || property.area || '';
+        const descText = property.description?.en || property.description?.te || property.description?.hi || property.description || '';
+        
+        setPropertyTitle(typeof titleText === 'string' ? titleText : '');
+        setLocation(typeof locationText === 'string' ? locationText : '');
+        setNeighborhood(typeof areaText === 'string' ? areaText : '');
+        setDescription(typeof descText === 'string' ? descText : '');
+        setExpectedPrice(property.expectedPrice?.toString() || '');
+        
+        // Site details
+        if (property.siteDetails) {
+          setArea(property.siteDetails.area?.toString() || '');
+          setUnit(property.siteDetails.areaUnit || 'sqft');
+          setLength(property.siteDetails.length?.toString() || '');
+          setBreadth(property.siteDetails.breadth?.toString() || '');
+          setFloorsAllowed(property.siteDetails.floorsAllowed?.toString() || '');
+          setBoundaryWall(property.siteDetails.boundaryWall ? 'Yes' : 'No');
+          setOpenSides(property.siteDetails.openSides?.toString() || '');
+          setConstructionDone(property.siteDetails.constructionDone ? 'yes' : 'no');
+          setConstructionType(property.siteDetails.constructionType || []);
+          setPossessionBy(property.siteDetails.possessionBy || '');
+          setOwnership(property.siteDetails.ownership || 'Freehold');
+          setApprovedBy(property.siteDetails.approvedBy || []);
+          setAmenities(property.siteDetails.amenities || []);
+          setPropertyFacing(property.siteDetails.propertyFacing || '');
+          setOverlooking(property.siteDetails.overlooking || []);
+          setLocationAdvantages(property.siteDetails.locationAdvantages || []);
+          setRoadWidth(property.siteDetails.roadWidth?.toString() || '');
+          setRoadUnit(property.siteDetails.roadWidthUnit || 'sqft');
+          
+          // Vastu details
+          if (property.siteDetails.vaasthuDetails) {
+            setPlotFacing(property.siteDetails.vaasthuDetails.plotFacing || t("north_east"));
+            setMainEntryDirection(property.siteDetails.vaasthuDetails.mainEntryDirection || t("south_west"));
+            setPlotSlope(property.siteDetails.vaasthuDetails.plotSlope || t("towards_north"));
+            setOpenSpace(property.siteDetails.vaasthuDetails.openSpace || t("balanced_open_space"));
+            setPlotShape(property.siteDetails.vaasthuDetails.plotShape || t("square"));
+            setRoadPosition(property.siteDetails.vaasthuDetails.roadPosition || t("north_east"));
+            setWaterSource(property.siteDetails.vaasthuDetails.waterSource || t("water_source_north"));
+            setDrainageDirection(property.siteDetails.vaasthuDetails.drainageDirection || t("north_east"));
+            setCompoundWallHeight(property.siteDetails.vaasthuDetails.compoundWallHeight || t("equal_height_all_sides"));
+            setExistingStructures(property.siteDetails.vaasthuDetails.existingStructures || t("no_structures"));
+          }
+          
+          // Price details checkboxes
+          const priceDetailsArray = [];
+          if (property.priceDetails?.allInclusive) priceDetailsArray.push(t("all_inclusive_price"));
+          if (property.priceDetails?.negotiable) priceDetailsArray.push(t("price_negotiable"));
+          if (property.priceDetails?.taxExcluded) priceDetailsArray.push(t("tax_govt_charges_excluded"));
+          setSelectedPrices(priceDetailsArray);
+          
+          // Overlooking checkboxes
+          const overlookingArray = [];
+          if (property.siteDetails.inGatedSociety) overlookingArray.push(t("in_gated_society"));
+          if (property.siteDetails.cornerProperty) overlookingArray.push(t("corner_property"));
+          setSelectedOverlooking(overlookingArray);
+        }
+        
+        // Owner details
+        if (property.ownerDetails) {
+          setOwnerName(property.ownerDetails.name || '');
+          setPhone(property.ownerDetails.phone || '');
+          setEmail(property.ownerDetails.email || '');
+        }
+        
+        // Images - Load existing Cloudinary URLs
+        if (property.images && property.images.length > 0) {
+          setImages(property.images);
+          console.log('✅ Loaded existing images:', property.images.length);
+        }
+        
+        // Store existing documents (read-only)
+        if (property.documents) {
+          setExistingDocuments({
+            ownership: property.documents.ownership || [],
+            identity: property.documents.identity || []
+          });
+          console.log('✅ Loaded existing documents');
+        }
+        
+        console.log('✅ Property data loaded for editing');
+      } catch (error) {
+        console.error('❌ Error loading property data:', error);
+        Alert.alert('Error', 'Failed to load property data');
+      }
+    }
+}, [params.editMode, params.propertyData, params.propertyId]); // ✅ Remove language and t dependencies
+
+ const getUserLanguage = () => {
     const currentLang = i18n.language || 'en';
     console.log('📝 Current app language:', currentLang);
     return currentLang;
   };
+
+  // ✅ ADD THIS NEW FUNCTION
+  const loadLanguagePreference = async () => {
+    try {
+      const savedLanguage = await AsyncStorage.getItem('appLanguage');
+      if (savedLanguage) {
+        setLanguage(savedLanguage);
+      }
+    } catch (error) {
+      console.error('Error loading language preference:', error);
+    }
+  };
+
+  // ✅ ADD THIS useEffect to load language
+  useEffect(() => {
+    loadLanguagePreference();
+  }, []);
+
+  
+
+
+
 
   const showToast = (message) => {
     Toast.show({
@@ -211,127 +352,183 @@ export default function UploadPropertyScreen() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
-  const handleUpload = async () => {
-    try {
-      const token = await AsyncStorage.getItem('userToken');
-      console.log('🔐 Current token before upload:', token);
+const handleUpload = async () => {
+  try {
+    const token = await AsyncStorage.getItem('userToken');
+    console.log('🔐 Current token before upload:', token);
 
-      if (!token) {
-        Alert.alert(
-          t("login_required"),
-          t("please_login_to_upload_properties"),
-          [
-            {
-              text: t("go_to_login"),
-              onPress: () => router.push('/(tabs)/profile')
-            },
-            { text: t("cancel"), style: "cancel" }
-          ]
-        );
-        return;
+    if (!token) {
+      Alert.alert(
+        t("login_required"),
+        t("please_login_to_upload_properties"),
+        [
+          {
+            text: t("go_to_login"),
+            onPress: () => router.push('/(tabs)/profile')
+          },
+          { text: t("cancel"), style: "cancel" }
+        ]
+      );
+      return;
+    }
+
+    console.log(isEditMode ? '🎬 Starting update process...' : '🎬 Starting upload process...');
+    setIsSubmitting(true);
+
+    // Validations (same for both create and update)
+    if (!propertyTitle?.trim()) {
+      showToast(t('property_title_required'));
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!location?.trim()) {
+      showToast(t('location_required'));
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!neighborhood?.trim()) {
+      showToast(t('area_required'));
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!length?.trim()) {
+      showToast(t('length_required'));
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!breadth?.trim()) {
+      showToast(t('breadth_required'));
+      setIsSubmitting(false);
+      return;
+    }
+
+    const priceValue = parseFloat(expectedPrice);
+    if (!expectedPrice || isNaN(priceValue) || priceValue <= 0) {
+      showToast(t('valid_expected_price_required'));
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!description?.trim()) {
+      showToast(t('description_required'));
+      setIsSubmitting(false);
+      return;
+    }
+
+    // ✅ In edit mode, skip image validation if images already exist
+    if (!isEditMode && images.length === 0) {
+      console.log('❌ No images selected');
+      showToast(t('add_at_least_one_image'));
+      setIsSubmitting(false);
+      return;
+    }
+
+    // ✅ In edit mode, skip document validation (documents already exist)
+    if (!isEditMode && (ownershipDocs.length === 0 || identityDocs.length === 0)) {
+      showToast(t('upload_required_documents'));
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!ownerName?.trim()) {
+      showToast(t('owner_name_required'));
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!phone?.trim()) {
+      showToast(t('phone_number_required'));
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!validatePhone(phone.trim())) {
+      showToast('Please enter a valid 10-digit phone number');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!email?.trim()) {
+      showToast(t('email_required'));
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!validateEmail(email.trim())) {
+      showToast('Please enter a valid email address');
+      setIsSubmitting(false);
+      return;
+    }
+
+    console.log('✅ Validation passed');
+
+    // Prepare property data
+    const propertyData = {
+      propertyType: "Site/Plot/Land",
+      propertyTitle,
+      location,
+      area: neighborhood,
+      description,
+      originalLanguage: getUserLanguage(),
+      ownerDetails: {
+        name: ownerName.trim(),
+        phone: phone.trim(),
+        email: email.trim(),
+      },
+      expectedPrice: parseFloat(expectedPrice),
+      priceDetails: {
+        allInclusive: selectedPrices.includes(t("all_inclusive_price")),
+        negotiable: selectedPrices.includes(t("price_negotiable")),
+        taxExcluded: selectedPrices.includes(t("tax_govt_charges_excluded"))
+      },
+      siteDetails: {
+        area: area !== "" ? Number(area) : undefined,
+        areaUnit: unit,
+        length: length !== "" ? Number(length) : undefined,
+        breadth: breadth !== "" ? Number(breadth) : undefined,
+        floorsAllowed: floorsAllowed ? Number(floorsAllowed) : 0,
+        boundaryWall: boundaryWall === "Yes",
+        openSides: openSides ? Number(openSides) : 0,
+        constructionDone: constructionDone === "yes",
+        constructionType,
+        possessionBy,
+        ownership: ownership || "Freehold",
+        approvedBy,
+        amenities,
+        propertyFacing: propertyFacing || "East",
+        overlooking,
+        inGatedSociety: selectedOverlooking.includes(t("in_gated_society")),
+        cornerProperty: selectedOverlooking.includes(t("corner_property")),
+        locationAdvantages,
+        roadWidth: roadWidth ? Number(roadWidth) : 0,
+        roadWidthUnit: roadUnit,
+        vaasthuDetails: {
+          plotFacing,
+          mainEntryDirection,
+          plotSlope,
+          openSpace,
+          plotShape,
+          roadPosition,
+          waterSource,
+          drainageDirection,
+          compoundWallHeight,
+          existingStructures
+        }
       }
+    };
 
-      console.log('🎬 Starting upload process...');
-      setIsSubmitting(true);
-
-      if (!propertyTitle?.trim()) {
-        showToast(t('property_title_required'));
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!location?.trim()) {
-        showToast(t('location_required'));
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!neighborhood?.trim()) {
-        showToast(t('area_required'));
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!length?.trim()) {
-        showToast(t('length_required'));
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!breadth?.trim()) {
-        showToast(t('breadth_required'));
-        setIsSubmitting(false);
-        return;
-      }
-
-      const priceValue = parseFloat(expectedPrice);
-      console.log('💰 Price validation:', { expectedPrice, priceValue, isValid: !isNaN(priceValue) && priceValue > 0 });
-
-      if (!expectedPrice || isNaN(priceValue) || priceValue <= 0) {
-        showToast(t('valid_expected_price_required'));
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!description?.trim()) {
-        showToast(t('description_required'));
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (images.length === 0) {
-        console.log('❌ No images selected');
-        showToast(t('add_at_least_one_image'));
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (ownershipDocs.length === 0 || identityDocs.length === 0) {
-        showToast(t('upload_required_documents'));
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!ownerName?.trim()) {
-        showToast(t('owner_name_required'));
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!neighborhood?.trim()) {
-        showToast(t('area_required'));
-        setIsSubmitting(false);
-        return;
-      }
-
-
-      if (!phone?.trim()) {
-        showToast(t('phone_number_required'));
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!validatePhone(phone.trim())) {
-        showToast('Please enter a valid 10-digit phone number');
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!email?.trim()) {
-        showToast(t('email_required'));
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!validateEmail(email.trim())) {
-        showToast('Please enter a valid email address');
-        setIsSubmitting(false);
-        return;
-      }
-
-      console.log('✅ Validation passed');
-
-      // Web-specific: Convert blob URIs to File objects for upload
+    let result;
+    
+    if (isEditMode) {
+      // ✅ UPDATE MODE
+      console.log('📡 Calling updateProperty API...');
+      result = await updateProperty(editPropertyId, propertyData, images);
+    } else {
+      // ✅ CREATE MODE
       let uploadImages = images;
       if (Platform.OS === 'web') {
         uploadImages = await Promise.all(
@@ -346,104 +543,46 @@ export default function UploadPropertyScreen() {
         );
       }
 
-      const propertyData = {
-        propertyType: "Site/Plot/Land",
-        propertyTitle,
-        location,
-        area: neighborhood,
-        description,
-        originalLanguage: getUserLanguage(),
-        ownerDetails: {
-          name: ownerName.trim(),
-          phone: phone.trim(),
-          email: email.trim(),
-        },
-        expectedPrice: parseFloat(expectedPrice),
-        priceDetails: {
-          allInclusive: selectedPrices.includes(t("all_inclusive_price")),
-          negotiable: selectedPrices.includes(t("price_negotiable")),
-          taxExcluded: selectedPrices.includes(t("tax_govt_charges_excluded"))
-        },
-        siteDetails: {
-          area: area !== "" ? Number(area) : undefined,
-          areaUnit: unit,
-          length: length !== "" ? Number(length) : undefined,
-          breadth: breadth !== "" ? Number(breadth) : undefined,
-          floorsAllowed: floorsAllowed ? Number(floorsAllowed) : 0,
-          boundaryWall: boundaryWall === "Yes",
-          openSides: openSides ? Number(openSides) : 0,
-          constructionDone: constructionDone === "yes",
-          constructionType,
-          possessionBy,
-          ownership: ownership || "Freehold",
-          approvedBy,
-          amenities,
-          propertyFacing: propertyFacing || "East",
-          overlooking,
-          inGatedSociety: selectedOverlooking.includes(t("in_gated_society")),
-          cornerProperty: selectedOverlooking.includes(t("corner_property")),
-          locationAdvantages,
-          roadWidth: roadWidth ? Number(roadWidth) : 0,
-          roadWidthUnit: roadUnit,
-          vaasthuDetails: {
-            plotFacing,
-            mainEntryDirection,
-            plotSlope,
-            openSpace,
-            plotShape,
-            roadPosition,
-            waterSource,
-            drainageDirection,
-            compoundWallHeight,
-            existingStructures
-          }
-        }
-      };
-
       console.log('📡 Calling createProperty API...');
-      console.log('📋 Final property data:', JSON.stringify(propertyData, null, 2));
-      console.log('📸 Images to upload:', uploadImages.length, 'images');
-      console.log('🔍 First image URI:', uploadImages[0]);
-
-      const result = await createProperty(
+      result = await createProperty(
         propertyData,
         uploadImages,
         ownershipDocs,
         identityDocs
       );
-
-      console.log('📥 API Result:', result);
-      console.log('📥 API Result Data:', JSON.stringify(result.data, null, 2));
-
-      if (result.success) {
-        Alert.alert(
-          t("success"),
-          t("property_uploaded_successfully"),
-          [
-            {
-              text: t("ok"),
-              onPress: () => {
-                router.replace("/(tabs)/home");
-              },
-            },
-          ]
-        );
-      }
-      else {
-        console.error('❌ Upload failed:', result);
-        Alert.alert(
-          t("error"),
-          result.data?.message || result.error || t("failed_to_upload_property")
-        );
-      }
-
-    } catch (error) {
-      console.error("Upload error:", error);
-      Alert.alert(t("error"), t("something_went_wrong"));
-    } finally {
-      setIsSubmitting(false);
     }
-  };
+
+    console.log('📥 API Result:', result);
+
+    if (result.success) {
+      Alert.alert(
+        t("success"),
+        isEditMode ? t("property_updated_successfully") : t("property_uploaded_successfully"),
+        [
+          {
+            text: t("ok"),
+            onPress: () => {
+              router.replace(isEditMode ? "/home/screens/Sidebar/MyProperties" : "/(tabs)/home");
+            },
+          },
+        ]
+      );
+    } else {
+      console.error(isEditMode ? '❌ Update failed:' : '❌ Upload failed:', result);
+      Alert.alert(
+        t("error"),
+        result.data?.message || result.error || (isEditMode ? t("failed_to_update_property") : t("failed_to_upload_property"))
+      );
+    }
+
+  } catch (error) {
+    console.error(isEditMode ? "Update error:" : "Upload error:", error);
+    Alert.alert(t("error"), t("something_went_wrong"));
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   return (
     <>
@@ -470,26 +609,26 @@ export default function UploadPropertyScreen() {
           onGalleryPress={pickFromGallery}
         />
 
-        <View className="flex-row items-center mt-12 mb-4">
-          <TouchableOpacity
-            onPress={() => router.push("/home/screens/UploadScreens/AddScreen")}
-            className="p-2"
-            accessibilityRole="button"
-          >
-            <Image
-              source={require("../../../../../assets/arrow.png")}
-              style={{ width: 20, height: 20, resizeMode: "contain" }}
-            />
-          </TouchableOpacity>
-          <View className="ml-2">
-            <Text className="text-[16px] font-semibold">
-              {t('upload_your_property')}
-            </Text>
-            <Text className="text-[12px] text-[#00000066]">
-              {t('add_property_details')}
-            </Text>
-          </View>
-        </View>
+      <View className="flex-row items-center mt-12 mb-4">
+  <TouchableOpacity
+    onPress={() => router.push(isEditMode ? "/home/screens/Sidebar/MyProperties" : "/home/screens/UploadScreens/AddScreen")}
+    className="p-2"
+    accessibilityRole="button"
+  >
+    <Image
+      source={require("../../../../../assets/arrow.png")}
+      style={{ width: 20, height: 20, resizeMode: "contain" }}
+    />
+  </TouchableOpacity>
+  <View className="ml-2">
+    <Text className="text-[16px] font-semibold">
+      {isEditMode ? t('edit_property') : t('upload_your_property')}
+    </Text>
+    <Text className="text-[12px] text-[#00000066]">
+      {isEditMode ? t('update_property_details') : t('add_property_details')}
+    </Text>
+  </View>
+</View>
 
         <ScrollView
           contentContainerStyle={{ paddingBottom: 36 }}
@@ -529,18 +668,22 @@ export default function UploadPropertyScreen() {
               onBlur={() => setFocusedField(null)}
             />
 
-            <Text className="text-[15px] text-[#00000099] mb-2">{t('property_type')}</Text>
-            <TouchableOpacity
-              onPress={() =>
-                setVisible(visible === "propertyType" ? null : "propertyType")
-              }
-              className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300"
-            >
-              <Text className="text-gray-800 text-left">
-                {propertyType || t("house")}
-              </Text>
-              <Ionicons name="chevron-down" size={24} color="#888" />
-            </TouchableOpacity>
+           <Text className="text-[15px] text-[#00000099] mb-2">{t('property_type')}</Text>
+<TouchableOpacity
+  onPress={() => !isEditMode && setVisible(visible === "propertyType" ? null : "propertyType")}
+  className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300"
+  disabled={isEditMode}
+  style={{ opacity: isEditMode ? 0.6 : 1 }}
+>
+  <Text className="text-gray-800 text-left">
+    {propertyType || t("house")}
+  </Text>
+  {!isEditMode && <Ionicons name="chevron-down" size={24} color="#888" />}
+  {isEditMode && <Ionicons name="lock-closed" size={20} color="#888" />}
+</TouchableOpacity>
+{isEditMode && (
+  <Text className="text-xs text-gray-500 mt-1">Property type cannot be changed</Text>
+)}
             {visible === "propertyType" && (
               <View
                 className="bg-white rounded-lg shadow-lg -mt-1 mb-4"
@@ -1267,25 +1410,61 @@ export default function UploadPropertyScreen() {
             ))}
           </View>
 
-          <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
-            <DocumentUpload
-              title={t('property_ownership')}
-              subtitle={t('ownership_verify')}
-              files={ownershipDocs}
-              setFiles={setOwnershipDocs}
-              required
-            />
-          </View>
+         {/* ✅ UPDATED - Document Sections with Read-Only Mode */}
+<View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
+  <Text className="text-base font-semibold">{t('property_ownership')}</Text>
+  <Text className="text-gray-500 text-sm mt-1">{t('ownership_verify')}</Text>
+  
+  {isEditMode && existingDocuments.ownership.length > 0 ? (
+    <View className="mt-4">
+      <View className="flex-row items-center bg-green-50 border border-green-200 rounded-lg px-3 py-3">
+        <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
+        <View className="ml-3 flex-1">
+          <Text className="text-sm font-medium text-gray-800">
+            {existingDocuments.ownership.length} {existingDocuments.ownership.length === 1 ? 'document' : 'documents'} uploaded
+          </Text>
+          <Text className="text-xs text-gray-500 mt-1">Documents cannot be changed during edit</Text>
+        </View>
+      </View>
+    </View>
+ ) : !isEditMode ? (
+    <DocumentUpload
+      title={t('property_ownership')}
+      subtitle={t('ownership_verify')}
+      files={ownershipDocs}
+      setFiles={setOwnershipDocs}
+      required
+    />
+  ) : null}
+</View>
 
-          <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
-            <DocumentUpload
-              title={t('owner_identity')}
-              subtitle={t('upload_identity')}
-              files={identityDocs}
-              setFiles={setIdentityDocs}
-              required
-            />
-          </View>
+{/* ✅ Owner Identity Documents */}
+<View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
+  <Text className="text-base font-semibold">{t('owner_identity')}</Text>
+  <Text className="text-gray-500 text-sm mt-1">{t('upload_identity')}</Text>
+  
+  {isEditMode && existingDocuments.identity.length > 0 ? (
+    <View className="mt-4">
+      <View className="flex-row items-center bg-green-50 border border-green-200 rounded-lg px-3 py-3">
+        <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
+        <View className="ml-3 flex-1">
+          <Text className="text-sm font-medium text-gray-800">
+            {existingDocuments.identity.length} {existingDocuments.identity.length === 1 ? 'document' : 'documents'} uploaded
+          </Text>
+          <Text className="text-xs text-gray-500 mt-1">{t('documents_locked')}</Text>
+        </View>
+      </View>
+    </View>
+  ) : !isEditMode ? (
+    <DocumentUpload
+      title={t('owner_identity')}
+      subtitle={t('upload_identity')}
+      files={identityDocs}
+      setFiles={setIdentityDocs}
+      required
+    />
+  ) : null}
+</View>
 
           <OwnerDetails
             ownerName={ownerName}
@@ -1303,42 +1482,48 @@ export default function UploadPropertyScreen() {
 
         </ScrollView>
 
-        <View
-          style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 16, gap: 12 }}
-          className="space-x-3 mr-4 mb-12"
-        >
-          {/* Cancel Button */}
-          <TouchableOpacity
-            style={{
-              backgroundColor: "#E5E7EB",
-              paddingVertical: 12,
-              paddingHorizontal: 20,
-              borderRadius: 10,
-            }}
-            onPress={() => router.push("/(tabs)/home")}
-          >
-            <Text style={{ color: "black", fontWeight: "600", fontSize: 15 }}>
-              {t('cancel')}
-            </Text>
-          </TouchableOpacity>
+       <View
+  style={{ flexDirection: "row", justifyContent: "flex-end", marginTop: 16, gap: 12 }}
+  className="space-x-3 mr-4 mb-12"
+>
+  {/* Cancel Button */}
+  <TouchableOpacity
+    style={{
+      backgroundColor: "#E5E7EB",
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      borderRadius: 10,
+    }}
+    onPress={() => router.push(isEditMode ? "/home/screens/Sidebar/MyProperties" : "/(tabs)/home")}
+  >
+    <Text style={{ color: "black", fontWeight: "600", fontSize: 15 }}>
+      {t('cancel')}
+    </Text>
+  </TouchableOpacity>
 
-          {/* Upload Property Button */}
-          <TouchableOpacity
-            style={{
-              backgroundColor: "#22C55E",
-              paddingVertical: 12,
-              paddingHorizontal: 20,
-              borderRadius: 10,
-            }}
-            onPress={handleUpload}
-            disabled={isSubmitting}
-          >
-            <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
-              {isSubmitting ? t('uploading') : t('upload_property')}
-            </Text>
-          </TouchableOpacity>
+  {/* Upload/Update Property Button */}
+  <TouchableOpacity
+    style={{
+      backgroundColor: "#22C55E",
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      borderRadius: 10,
+    }}
+    onPress={handleUpload}
+    disabled={isSubmitting}
+  >
+    <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
+      {isSubmitting 
+        ? (isEditMode ? t('updating') : t('uploading'))
+        : (isEditMode ? t('update_property') : t('upload_property'))
+      }
+    </Text>
+  </TouchableOpacity>
+</View>   
+
+
         </View>
-      </View>
+      
       <Toast />
     </>
   );

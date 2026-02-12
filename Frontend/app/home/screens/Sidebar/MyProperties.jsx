@@ -225,10 +225,37 @@ export default function MyProperties() {
   };
 
   // ✅ Handle edit (placeholder)
-  const handleEdit = () => {
-    setShowOptionsModal(false);
-    Alert.alert('Coming Soon', 'Edit functionality will be available soon');
-  };
+ // ✅ Handle edit - Navigate to appropriate upload screen
+const handleEdit = () => {
+  setShowOptionsModal(false);
+  
+  if (!selectedProperty) return;
+  
+  const propertyType = selectedProperty.propertyType;
+  let editPath = '';
+  
+  // Determine which upload screen to navigate to
+  if (propertyType === 'House' || propertyType === 'House/Flat') {
+    editPath = '/home/screens/UploadScreens/AddScreen';
+  } else if (propertyType === 'Site/Plot/Land') {
+    editPath = '/home/screens/UploadScreens/SiteUpload';
+  } else if (propertyType === 'Commercial') {
+    editPath = '/home/screens/UploadScreens/CommercialUpload';
+  } else if (propertyType === 'Resort') {
+    editPath = '/home/screens/UploadScreens/ResortUpload';
+  }
+  
+  if (editPath) {
+    router.push({
+      pathname: editPath,
+      params: {
+        editMode: 'true',
+        propertyId: selectedProperty._id,
+        propertyData: JSON.stringify(selectedProperty)
+      }
+    });
+  }
+};
 
 
   // Helper function to handle base64 images from backend
@@ -637,14 +664,27 @@ export default function MyProperties() {
             <Text className="text-lg font-semibold mb-4">Property Options</Text>
             
             {/* Edit Option (Placeholder) */}
-            <TouchableOpacity
-              onPress={handleEdit}
-              className="flex-row items-center py-4 border-b border-gray-100"
-            >
-              <Ionicons name="create-outline" size={22} color="#6B7280" />
-              <Text className="text-base ml-3 text-gray-700">Edit Property</Text>
-              <Text className="text-xs text-gray-400 ml-auto">(Coming Soon)</Text>
-            </TouchableOpacity>
+            {/* Edit Option */}
+<TouchableOpacity
+  onPress={handleEdit}
+  disabled={selectedProperty?.propertyStatus === 'Sold'}
+  className="flex-row items-center py-4 border-b border-gray-100"
+>
+  <Ionicons 
+    name="create-outline" 
+    size={22} 
+    color={selectedProperty?.propertyStatus === 'Sold' ? "#D1D5DB" : "#6B7280"} 
+  />
+  <Text 
+    className={`text-base ml-3 ${
+      selectedProperty?.propertyStatus === 'Sold' 
+        ? 'text-gray-400' 
+        : 'text-gray-700'
+    }`}
+  >
+    {selectedProperty?.propertyStatus === 'Sold' ? 'Cannot Edit (Sold)' : 'Edit Property'}
+  </Text>
+</TouchableOpacity>
             
             {/* Mark as Sold Option */}
             <TouchableOpacity

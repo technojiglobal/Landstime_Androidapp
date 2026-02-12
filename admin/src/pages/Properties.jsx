@@ -444,25 +444,25 @@ const filtered = useMemo(() => {
 </td>
                 
                 <td className="px-4 py-3">{p.price}</td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      p.status === "approved"
-                        ? "bg-green-100 text-green-700"
-                        : p.status === "pending"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-red-500 text-white"
-                    }`}
-                  >
-                    {p.status}
-                  </span>
-                  {/* ✅ NEW: Show verified badge in admin panel */}
-                  {p.raw?.isVerified && (
-                    <span className="ml-2 px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
-                      ✓ Verified
-                    </span>
-                  )}
-                </td>
+               <td className="px-4 py-3">
+  <span
+    className={`px-3 py-1 rounded-full text-xs font-medium ${
+      p.status === "approved"
+        ? "bg-green-100 text-green-700"
+        : p.status === "pending"
+          ? "bg-blue-100 text-blue-700"
+          : "bg-red-500 text-white"
+    }`}
+  >
+    {p.status}
+  </span>
+  {/* Show verified badge only for approved properties with admin upload or Diamond subscription */}
+  {p.status === "approved" && (p.uploadedBy === "admin" || p.subscription === "Diamond") && (
+    <span className="ml-2 px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+      ✓ Verified
+    </span>
+  )}
+</td>
 
                <td className="px-4 py-3">
   <select

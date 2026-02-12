@@ -51,7 +51,7 @@ router.delete('/admin/:id/delete-document', verifyAdmin, propertyController.dele
 router.get('/similar/:propertyId', similarPropertiesController.getSimilarProperties);
 
 router.get('/:id', verifyToken, propertyController.getPropertyById);
-router.put('/:id', verifyToken, propertyController.updateProperty);
+router.put('/:id', verifyToken, uploadImages, handleUploadError, propertyController.updateProperty);
 router.delete('/:id', verifyToken, propertyController.deleteProperty);
 // Add this temporary route to Backend/UserRoutes/PropertyRoute.js
 router.get('/debug/my-properties', verifyToken, async (req, res) => {
