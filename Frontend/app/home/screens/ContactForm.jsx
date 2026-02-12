@@ -1,7 +1,4 @@
-
-
-
-// Frontend/app/home/screens/ContactForm.jsx (for reference)
+// Frontend/app/home/screens/ContactForm.jsx
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -16,176 +13,170 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-const router = useRouter();
-const { propertyId, areaKey } = useLocalSearchParams();
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserProfile } from '../../../utils/api';
 import { getPropertyById } from '../../../utils/propertyApi';
 import { checkViewAccess, recordPropertyView } from '../../../utils/propertyViewApi';
 
-// ✅ NEW: Add stripPhone helper
+// ✅ stripPhone helper
 const stripPhone = (phoneNum) => {
   if (!phoneNum) return '';
   return phoneNum.replace(/[\s\-\+]/g, '').replace(/^91/, '');
 };
 
 export default function ContactForm() {
-  const router = useRouter();
-  const { propertyId, areaKey } = useLocalSearchParams();
-  
+   const router = useRouter();
+  const { propertyId, areaKey, backRoute, propertyDetailsRoute, propertyType: paramPropertyType } = useLocalSearchParams();  // ✅ Get all params at top level
+
   // Form state
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [agent, setAgent] = useState('no'); // Default to 'no' (Owner)
   const [accepted, setAccepted] = useState(false);
   const [viewEnabled, setViewEnabled] = useState(false);
-  
+
   // User and property state
   const [currentUser, setCurrentUser] = useState(null);
   const [property, setProperty] = useState(null);
   const [maskedPhone, setMaskedPhone] = useState('');
-  
+
   // Loading states
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
-  
 
-  // ✅ NEW: Early validation
-useEffect(() => {
-  if (!propertyId) {
-    console.error('❌ No propertyId in params');
-    Alert.alert('Error', 'Property information missing');
-    router.back();
-  }
-}, [propertyId]);
-
-// Fetch user profile and property on mount
-useEffect(() => {
-  fetchUserAndProperty();
-}, [propertyId]); // Only refetch if propertyId changes
-
-// ✅ NEW: Check if already viewed and skip form
-// ✅ Check if already viewed and skip form (run only once after both are loaded)
-useEffect(() => {
-  if (currentUser && property) {
-    checkAlreadyViewed();
-  }
-}, []); // Remove dependencies to prevent re-runs
-
-const checkAlreadyViewed = async () => {
-  if (!currentUser || !property || !propertyId) {
-    console.log('⏭️ Skipping already viewed check - missing data');
-    return;
-  }
-  
-  console.log('🔍 Checking if property already viewed...');
-  
-  try {
-    // Check if this property is in user's viewedProperties
-    const userResult = await getUserProfile();
-    if (userResult.success) {
-      const userData = userResult.data.data;
-      const viewedProperties = userData.currentSubscription?.viewedProperties || [];
-      
-      if (viewedProperties.includes(propertyId)) {
-        console.log('✅ Property already viewed - auto-navigating to ViewContact');
-        
-        // Get access (will return owner details since already viewed)
-        const accessCheck = await checkViewAccess(
-          propertyId,
-          currentUser.name,
-          stripPhone(currentUser.phone)
-        );
-        
-        if (accessCheck.success && accessCheck.data.alreadyViewed) {
-  // Navigate directly to ViewContact
-  router.replace({
-    pathname: '/home/screens/ViewContact',
-    params: {
-      ownerDetails: JSON.stringify(accessCheck.data.ownerDetails),
-      quota: JSON.stringify(accessCheck.data.quota),
-      alreadyViewed: 'true',
-      areaKey: areaKey,
-      propertyId: propertyId,
-      propertyType: property?.propertyType || 'House'  // ✅ ADD THIS
-    }
-  });
-}
-      }
-    }
-  } catch (error) {
-    console.error('❌ Check already viewed error:', error);
-  }
-};
-  
-const fetchUserAndProperty = async () => {
-  try {
-    setLoading(true);
-    console.log('🚀 Fetching user and property data...');
-    
-    // Get user profile
-    const userResult = await getUserProfile();
-    
-    if (userResult.success) {
-      const userData = userResult.data.data;
-      console.log('✅ User profile loaded');
-      
-      // Extract name
-      let userName = '';
-      if (typeof userData.name === 'string') {
-        userName = userData.name;
-      } else if (userData.name && typeof userData.name === 'object') {
-        userName = userData.name.en || userData.name.te || userData.name.hi || '';
-      }
-     setCurrentUser({
-        name: userName,
-        phone: userData.phone,
-        email: userData.email
-      });
-      
-      console.log('✅ User data set');
-    } 
-    else {
-      console.log('❌ getUserProfile failed:', userResult);
-      Alert.alert('Error', 'Failed to load user profile');
+  // ✅ Early validation
+  useEffect(() => {
+    if (!propertyId) {
+      console.error('❌ No propertyId in params');
+      Alert.alert('Error', 'Property information missing');
       router.back();
+    }
+  }, [propertyId]);
+
+  // Fetch user profile and property on mount
+  useEffect(() => {
+    fetchUserAndProperty();
+  }, [propertyId]);
+
+  // ✅ Check if already viewed and skip form (run only once after both are loaded)
+  useEffect(() => {
+    if (currentUser && property) {
+      checkAlreadyViewed();
+    }
+  }, []); // Remove dependencies to prevent re-runs
+
+  const checkAlreadyViewed = async () => {
+    if (!currentUser || !property || !propertyId) {
+      console.log('⏭️ Skipping already viewed check - missing data');
       return;
     }
-      
+
+    console.log('🔍 Checking if property already viewed...');
+
+    try {
+      const userResult = await getUserProfile();
+      if (userResult.success) {
+        const userData = userResult.data.data;
+        const viewedProperties = userData.currentSubscription?.viewedProperties || [];
+
+        if (viewedProperties.includes(propertyId)) {
+          console.log('✅ Property already viewed - auto-navigating to ViewContact');
+
+          const accessCheck = await checkViewAccess(
+            propertyId,
+            currentUser.name,
+            stripPhone(currentUser.phone)
+          );
+
+          if (accessCheck.success && accessCheck.data.alreadyViewed) {
+            router.replace({
+              pathname: '/home/screens/ViewContact',
+              params: {
+                ownerDetails: JSON.stringify(accessCheck.data.ownerDetails),
+                quota: JSON.stringify(accessCheck.data.quota),
+                alreadyViewed: 'true',
+                areaKey: areaKey,
+                propertyId: propertyId,
+                propertyType: paramPropertyType || property?.propertyType || 'House',
+                backRoute: backRoute || '/home/screens/Flats/(Property)',
+                propertyDetailsRoute: propertyDetailsRoute, // ✅ ADD THIS
+                entityType: 'property'
+              }
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('❌ Check already viewed error:', error);
+    }
+  };
+
+  const fetchUserAndProperty = async () => {
+    try {
+      setLoading(true);
+      console.log('🚀 Fetching user and property data...');
+
+      // Get user profile
+      const userResult = await getUserProfile();
+
+      if (userResult.success) {
+        const userData = userResult.data.data;
+        console.log('✅ User profile loaded');
+
+        // Extract name
+        let userName = '';
+        if (typeof userData.name === 'string') {
+          userName = userData.name;
+        } else if (userData.name && typeof userData.name === 'object') {
+          userName = userData.name.en || userData.name.te || userData.name.hi || '';
+        }
+        setCurrentUser({
+          name: userName,
+          phone: userData.phone,
+          email: userData.email
+        });
+
+        console.log('✅ User data set');
+      } else {
+        console.log('❌ getUserProfile failed:', userResult);
+        Alert.alert('Error', 'Failed to load user profile');
+        router.back();
+        return;
+      }
+
       // Get property details
-     // Get property details
-if (propertyId) {
-  const propResult = await getPropertyById(propertyId);
-  if (propResult.success) {
-    const propData = propResult.data.data || propResult.data;
-    setProperty(propData);
-    
-    // ✅ FIX: Use ownerDetails OR userId (fallback)
-    const ownerPhone = propData.ownerDetails?.phone || propData.userId?.phone || '';
-    setMaskedPhone(maskPhoneNumber(ownerPhone));
-    
-    // ✅ Get property title in current language
-    const titleObj = propData.propertyTitle;
-    const title = typeof titleObj === 'string' ? titleObj : (titleObj?.en || titleObj?.te || titleObj?.hi || 'Property');
-    
-    console.log('✅ Property loaded:', title);
-  } else {
+      if (propertyId) {
+        const propResult = await getPropertyById(propertyId);
+        if (propResult.success) {
+          const propData = propResult.data.data || propResult.data;
+          setProperty(propData);
+
+          // ✅ Use ownerDetails OR userId (fallback)
+          const ownerPhone = propData.ownerDetails?.phone || propData.userId?.phone || '';
+          setMaskedPhone(maskPhoneNumber(ownerPhone));
+
+          // ✅ Get property title in current language
+          const titleObj = propData.propertyTitle;
+          const title = typeof titleObj === 'string' ? titleObj : (titleObj?.en || titleObj?.te || titleObj?.hi || 'Property');
+
+          console.log('✅ Property loaded:', title);
+        } else {
           Alert.alert('Error', 'Failed to load property details');
           router.back();
         }
       }
-      
-   } catch (error) {
-    console.error('❌ fetchUserAndProperty ERROR:', error);
-    console.error('❌ Error stack:', error.stack);
-    Alert.alert('Error', 'Something went wrong');
-    router.back();
-  } finally {
-    setLoading(false);
-  }
-};
-  
+
+    } catch (error) {
+      console.error('❌ fetchUserAndProperty ERROR:', error);
+      console.error('❌ Error stack:', error.stack);
+      Alert.alert('Error', 'Something went wrong');
+      router.back();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Phone number masking helper
   const maskPhoneNumber = (phoneNum) => {
     if (!phoneNum) return '';
@@ -193,67 +184,61 @@ if (propertyId) {
     if (stripped.length < 10) return phoneNum;
     return `+91-${stripped.substring(0, 2)}${'x'.repeat(stripped.length - 4)}${stripped.substring(stripped.length - 2)}`;
   };
-  
-  // Strip phone number helper
-  const stripPhone = (phoneNum) => {
-    if (!phoneNum) return '';
-    return phoneNum.replace(/[\s\-\+]/g, '').replace(/^91/, '');
+
+  const verifyCredentials = () => {
+    console.log('🔍 verifyCredentials called');
+    console.log('🔍 currentUser:', currentUser);
+
+    if (!currentUser) {
+      console.log('❌ No currentUser yet!');
+      return false;
+    }
+
+    console.log('🔍 currentUser.name:', currentUser.name);
+    console.log('🔍 currentUser.name type:', typeof currentUser.name);
+
+    const strippedInputPhone = stripPhone(phone);
+    const strippedUserPhone = stripPhone(currentUser.phone);
+    const phoneMatch = strippedInputPhone === strippedUserPhone;
+
+    const inputName = name.toLowerCase().trim();
+    const userName = (currentUser.name || '').toLowerCase().trim();
+    const nameMatch = inputName === userName;
+
+    console.log('🔐 Frontend verification:', {
+      inputName,
+      userName,
+      currentUserNameRaw: currentUser.name,
+      phoneMatch,
+      nameMatch
+    });
+
+    return phoneMatch && nameMatch;
   };
-  
-const verifyCredentials = () => {
-  console.log('🔍 verifyCredentials called');
-  console.log('🔍 currentUser:', currentUser);
-  
-  if (!currentUser) {
-    console.log('❌ No currentUser yet!');
-    return false;
-  }
-  
-  console.log('🔍 currentUser.name:', currentUser.name);
-  console.log('🔍 currentUser.name type:', typeof currentUser.name);
-  
-  const strippedInputPhone = stripPhone(phone);
-  const strippedUserPhone = stripPhone(currentUser.phone);
-  const phoneMatch = strippedInputPhone === strippedUserPhone;
-  
-  const inputName = name.toLowerCase().trim();
-  const userName = (currentUser.name || '').toLowerCase().trim();
-  const nameMatch = inputName === userName;
-  
-  console.log('🔐 Frontend verification:', {
-    inputName,
-    userName,
-    currentUserNameRaw: currentUser.name,
-    phoneMatch,
-    nameMatch
-  });
-  
-  return phoneMatch && nameMatch;
-};
+
   // Update button enable state
   useEffect(() => {
-  if (!currentUser || loading) {
-    setViewEnabled(false);
-    return;
-  }
-  
-    
+    if (!currentUser || loading) {
+      setViewEnabled(false);
+      return;
+    }
+
     const fieldsValid = name && phone && agent && accepted;
     const credentialsMatch = verifyCredentials();
-    
+
     setViewEnabled(fieldsValid && credentialsMatch);
   }, [name, phone, agent, accepted, currentUser]);
-  
+
   // Numeric input only
   const handlePhoneChange = (text) => {
     setPhone(text.replace(/[^0-9]/g, ''));
   };
-  
+
   // Show limit exceeded popup
   const showLimitExceededPopup = (data) => {
     const nextPlan = data.planName === 'Gold' ? 'Platinum' : 'Diamond';
     const nextPlanLimit = data.planName === 'Gold' ? 30 : 50;
-    
+
     Alert.alert(
       'Subscription Limit Reached',
       `Your ${data.planName} plan allows ${data.totalViews} property contacts.\n\n` +
@@ -261,30 +246,30 @@ const verifyCredentials = () => {
       `Upgrade to ${nextPlan} for ${nextPlanLimit} contacts!`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Upgrade Now', 
-          onPress: () => router.push('/home/screens/PlanScreen') 
+        {
+          text: 'Upgrade Now',
+          onPress: () => router.push('/home/screens/PlanScreen')
         }
       ]
     );
   };
-  
+
   // Handle View Contact button press
   const handleViewContact = async () => {
     try {
       setVerifying(true);
-      
+
       console.log('🔍 Checking access for property:', propertyId);
-      
+
       // Step 1: Check access
       const accessCheck = await checkViewAccess(
         propertyId,
         name,
         stripPhone(phone)
       );
-      
+
       console.log('📥 Access check result:', accessCheck);
-      
+
       if (!accessCheck.success) {
         // Show error based on reason
         if (accessCheck.data?.reason === 'limit_exceeded') {
@@ -314,54 +299,60 @@ const verifyCredentials = () => {
         }
         return;
       }
-      
+
       // Step 2: Handle already viewed or new view
      if (accessCheck.data?.alreadyViewed) {
-  // Already viewed - just navigate
-  console.log('✅ Property already viewed - navigating to ViewContact');
-  router.push({
-    pathname: '/home/screens/ViewContact',
-    params: {
-      ownerDetails: JSON.stringify(accessCheck.data.ownerDetails),
-      quota: JSON.stringify(accessCheck.data.quota),
-      alreadyViewed: 'true',
-      areaKey: areaKey,
-      propertyId: propertyId,
-      propertyType: property?.propertyType || 'House'  // ✅ ADD THIS
-    }
-  });
-} else {
-  // New view - record it
-  console.log('📝 Recording new property view');
-  const recordResult = await recordPropertyView(propertyId);
-  
-  if (!recordResult.success) {
-    Alert.alert('Error', 'Failed to record view');
-    return;
-  }
-  
-  console.log('✅ View recorded - navigating to ViewContact');
-  router.push({
-    pathname: '/home/screens/ViewContact',
-    params: {
-      ownerDetails: JSON.stringify(recordResult.data.ownerDetails),
-      quota: JSON.stringify(recordResult.data.quota),
-      alreadyViewed: 'false',
-      areaKey: areaKey,
-      propertyId: propertyId,
-      propertyType: property?.propertyType || 'House'  // ✅ ADD THIS
-    }
-  });
-}
-      
+        console.log('✅ Property already viewed - navigating to ViewContact');
+        router.push({
+          pathname: '/home/screens/ViewContact',
+          params: {
+            ownerDetails: JSON.stringify(accessCheck.data.ownerDetails),
+            quota: JSON.stringify(accessCheck.data.quota),
+            alreadyViewed: 'true',
+            areaKey: areaKey,
+            propertyId: propertyId,
+            propertyType: paramPropertyType || property?.propertyType || 'House',
+            backRoute: backRoute || '/home/screens/Flats/(Property)',
+            propertyDetailsRoute: propertyDetailsRoute, // ✅ ADD THIS
+            entityType: 'property'
+          }
+        });
+      } else {
+        console.log('📝 Recording new property view');
+        const recordResult = await recordPropertyView(propertyId);
+
+        if (!recordResult.success) {
+          Alert.alert('Error', 'Failed to record view');
+          return;
+        }
+
+        console.log('✅ View recorded - navigating to ViewContact');
+        router.push({
+          pathname: '/home/screens/ViewContact',
+          params: {
+            ownerDetails: JSON.stringify(recordResult.data.ownerDetails),
+            quota: JSON.stringify(recordResult.data.quota),
+            alreadyViewed: 'false',
+            areaKey: areaKey,
+            propertyId: propertyId,
+            propertyType: paramPropertyType || property?.propertyType || 'House',
+            backRoute: backRoute || '/home/screens/Flats/(Property)',
+            propertyDetailsRoute: propertyDetailsRoute, // ✅ ADD THIS
+            entityType: 'property'
+          }
+        });
+      }
+
     } catch (error) {
       console.error('❌ View contact error:', error);
       Alert.alert('Error', 'Something went wrong');
     } finally {
       setVerifying(false);
     }
+
+    
   };
-  
+
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-white mt-12">
@@ -372,35 +363,36 @@ const verifyCredentials = () => {
       </SafeAreaView>
     );
   }
-  
+
   return (
     <SafeAreaView className="flex-1 mt-12 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      
+
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 50 }}
         showsVerticalScrollIndicator={false}
       >
         {/* 🟩 Top Box */}
-        <View className="w-[412px] h-[215px] rounded-b-[30px] bg-[#22C55E33] items-start justify-center px-5">
-          <View className="-mt-32 flex flex-row">
-         <TouchableOpacity onPress={() => {
-  // ✅ ALWAYS go back to Property Details screen
-  if (propertyId) {
-    router.push({
-      pathname: '/home/screens/Sites/(Property)',
-      params: { 
-        propertyId: propertyId,
-        areaKey: areaKey 
-      }
-    });
-  } else {
-    router.back();
-  }
-}}>
-  <Ionicons name="chevron-back-outline" size={22} color="black" />
-</TouchableOpacity>
+        <View className="h-[215px] rounded-b-[30px] bg-[#22C55E33] items-start justify-center px-5">
+          <View className="-mt-32 flex-row">
+            <TouchableOpacity onPress={() => {
+              // ✅ Use backRoute from top level params
+              if (backRoute) {
+                router.push({
+                  pathname: backRoute,
+                  params: { 
+                    propertyId, 
+                    areaKey, 
+                    entityType: 'property',
+                    propertyDetailsRoute // ✅ ADD THIS - pass it through
+                  }
+                })}else {
+                router.back();
+              }
+            }}>
+              <Ionicons name="chevron-back-outline" size={22} color="black" />
+            </TouchableOpacity>
 
             <Text className="ml-8 text-[19px] text-[#4E4E4E] font-medium">
               Please share your details to contact {"\n"}
@@ -501,7 +493,7 @@ const verifyCredentials = () => {
               <Text className="text-[#22C55E] font-semibold">Privacy Policy</Text>
             </Text>
           </View>
-          
+
           {/* Info Note - Show when fields are filled but credentials don't match */}
           {!viewEnabled && name && phone && accepted && agent && (
             <View className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4">
@@ -534,7 +526,7 @@ const verifyCredentials = () => {
               </Text>
             )}
           </TouchableOpacity>
-          
+
           {/* Helper Text */}
           <Text className="text-xs text-gray-500 text-center mt-3">
             Enter the same name and phone number used during registration

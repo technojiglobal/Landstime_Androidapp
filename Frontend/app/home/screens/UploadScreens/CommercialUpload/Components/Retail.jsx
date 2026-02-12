@@ -818,10 +818,7 @@ export default function Retail() {
                 <Text className="text-gray-800 text-left">
                   {possessionBy || t('industry_expected_by')}
                 </Text>
-                <Image
-                  source={require("../../../../../../assets/arrow.png")}
-                  style={{ width: 20, height: 20 }}
-                />
+                <Ionicons name="chevron-down" size={18} />
               </TouchableOpacity>
 
               {visible === "possessionBy" && (
@@ -864,10 +861,7 @@ export default function Retail() {
                     <Text className="text-gray-800 text-left">
                       {possessionMonth || t('hospitality_select_month')}
                     </Text>
-                    <Image
-                      source={require("../../../../../../assets/arrow.png")}
-                      style={{ width: 20, height: 20 }}
-                    />
+                    <Ionicons name="chevron-down" size={18} />
                   </TouchableOpacity>
 
                   {visible === "expectedMonth" && (

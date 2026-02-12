@@ -691,7 +691,7 @@ if (filters.resortType && filters.resortType !== '' && filters.resortType !== 'A
 
       {/* Header */}
       <View className="flex-row items-center px-5 py-3">
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.push("/home/screens/Resorts/SelectSite")}>
           <Ionicons name="chevron-back" size={24} color="black" />
         </TouchableOpacity>
         <Text className="text-xl font-semibold ml-2">{areaName} Properties</Text>
@@ -728,7 +728,7 @@ if (filters.resortType && filters.resortType !== '' && filters.resortType !== 'A
                 color: "#6B7280",
               }}
             />
-            <Ionicons name="mic-outline" size={18} />
+            
             {/* ✅ FILTER ICON - WITH BADGE */}
             <TouchableOpacity 
               onPress={() => router.push({

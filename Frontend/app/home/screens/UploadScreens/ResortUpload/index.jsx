@@ -525,7 +525,7 @@ const RESORT_TYPES = [
     t("close_to_mall"),
     t("close_to_highway"),
   ];
- const directions = [t("north_east"), t("south_west"), t("east"), t("west")];
+ const directions = [t("north_east"), t("south_west"), t("east"), t("west"),t("north_west"), t("south_west"), t("north"), t("south")];
    const fields = [
     { key: "propertyFacing", label: t("property_facing"), value: propertyFacing, setValue: setPropertyFacing },
     { key: "entranceDirection", label: t("entrance_direction"), value: entranceDirection, setValue: setEntranceDirection },
@@ -1127,6 +1127,7 @@ const handleOpenPlayStore = () => {
           padding: 16,
           backgroundColor: "#ffffff",
         }}
+        className="mb-12"
       >
 <View className="flex-row justify-end gap-4">
   <TouchableOpacity 
