@@ -50,15 +50,16 @@ const [isLoading, setIsLoading] = useState(true);
 const [filterPropertyType, setFilterPropertyType] = useState("All");
 const [filterPropertyStatus, setFilterPropertyStatus] = useState("All");
 const [filterApprovalStatus, setFilterApprovalStatus] = useState("All");
+const [filterUploadedBy, setFilterUploadedBy] = useState("All");
 
 
   useEffect(() => {
     loadProperties();
   }, []);
 
- useEffect(() => {
+useEffect(() => {
   setPage(1);
-}, [search, pageSize, filterPropertyType, filterPropertyStatus, filterApprovalStatus]);
+}, [search, pageSize, filterPropertyType, filterPropertyStatus, filterApprovalStatus, filterUploadedBy]);
 
 //   /* ---------- FILTER ---------- */
 //  const filtered = useMemo(() => {
@@ -116,14 +117,19 @@ const filtered = useMemo(() => {
       filterApprovalStatus === "All" ||
       (p.status && p.status.toLowerCase() === filterApprovalStatus.toLowerCase());
 
+    const matchesUploadedBy =
+      filterUploadedBy === "All" ||
+      (p.uploadedBy && p.uploadedBy.toLowerCase() === filterUploadedBy.toLowerCase());
+
     return (
       matchesSearch &&
       matchesPropertyType &&
       matchesPropertyStatus &&
-      matchesApprovalStatus
+      matchesApprovalStatus &&
+      matchesUploadedBy
     );
   });
-}, [properties, search, filterPropertyType, filterPropertyStatus, filterApprovalStatus]);
+}, [properties, search, filterPropertyType, filterPropertyStatus, filterApprovalStatus, filterUploadedBy]);
 
 
   /* ---------- PAGINATION ---------- */
@@ -206,21 +212,22 @@ const filtered = useMemo(() => {
                                'Active';
         }
 
-       return {
-          id: p._id,
-          title: typeof p.propertyTitle === 'string' ? p.propertyTitle : (p.propertyTitle?.en || 'Untitled Property'),
-          location: typeof p.location === 'string' ? p.location : (p.location?.en || 'Unknown Location'),
-          area: typeof p.area === 'string' ? p.area : (p.area?.en || ''),  // ✅ FIXED
-          type: p.propertyType || 'N/A',
-          price: `₹${p.expectedPrice || 0}`,
-          status: p.status || 'pending',
-          propertyStatus: p.propertyStatus || 'Available',
-          subscription: subscriptionDisplay,
-          sold: p.propertyStatus === 'Sold',
-          uploaded: new Date(p.createdAt).toLocaleDateString(),
-          owner: p.ownerDetails?.name || 'N/A',
-          phone: p.ownerDetails?.phone || 'N/A',
-          email: p.ownerDetails?.email || 'N/A',
+      return {
+  id: p._id,
+  title: typeof p.propertyTitle === 'string' ? p.propertyTitle : (p.propertyTitle?.en || 'Untitled Property'),
+  location: typeof p.location === 'string' ? p.location : (p.location?.en || 'Unknown Location'),
+  area: typeof p.area === 'string' ? p.area : (p.area?.en || ''),
+  type: p.propertyType || 'N/A',
+  price: `₹${p.expectedPrice || 0}`,
+  status: p.status || 'pending',
+  propertyStatus: p.propertyStatus || 'Available',
+  subscription: subscriptionDisplay,
+  sold: p.propertyStatus === 'Sold',
+  uploaded: new Date(p.createdAt).toLocaleDateString(),
+  owner: p.ownerDetails?.name || 'N/A',
+  phone: p.ownerDetails?.phone || 'N/A',
+  email: p.ownerDetails?.email || 'N/A',
+  uploadedBy: p.uploadedBy || 'user',
           description: getTranslatedText(p.description, 'No description'),
           images: (p.imageUrls && p.imageUrls.length > 0)
             ? p.imageUrls
@@ -372,6 +379,16 @@ const filtered = useMemo(() => {
         <option value="approved">Approved</option>
         <option value="rejected">Rejected</option>
       </select>
+
+      <select
+        value={filterUploadedBy}
+        onChange={(e) => setFilterUploadedBy(e.target.value)}
+        className="border rounded-lg px-3 py-2 bg-white text-sm focus:outline-none focus:border-blue-500"
+      >
+        <option value="All">All Uploaded By</option>
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+      </select>
     </div>
   </div>
 
@@ -397,7 +414,7 @@ const filtered = useMemo(() => {
         <table className="min-w-[900px] w-full text-sm">
           <thead className="bg-gray-50">
             <tr>
-              {["Property", "Type", "Price", "Status", "Property Status", "Uploaded", "Owner", "Subscription", "Phone", "Actions"].map(
+              {["Property", "Type", "Price", "Status", "Property Status", "Uploaded", "Owner", "Subscription", "Phone", "Uploaded By", "Actions"].map(
                 (h) => (
                   <th
                     key={h}
@@ -482,7 +499,19 @@ const filtered = useMemo(() => {
                     {p.subscription}
                   </span>
                 </td>
-                <td className="px-4 py-3">{p.phone}</td>
+               <td className="px-4 py-3">{p.phone}</td>
+
+                <td className="px-4 py-3">
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      p.uploadedBy === 'admin'
+                        ? 'bg-purple-100 text-purple-700'
+                        : 'bg-blue-100 text-blue-700'
+                    }`}
+                  >
+                    {p.uploadedBy === 'admin' ? 'Admin' : 'User'}
+                  </span>
+                </td>
 
                 <td className="px-4 py-3">
                   <div className="flex gap-3 items-center">
