@@ -1,6 +1,6 @@
 //Frontend//app//home//screens//UploadScreens//ResortUpload//index.jsx
 
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import {useTranslation } from "react-i18next";
 import i18n from "../../../../../i18n/index"; // ✅ ADD THIS LINE
 import {
@@ -18,11 +18,12 @@ import {
 import Toast from 'react-native-toast-message';
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import { useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import TopAlert from "../TopAlert";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DocumentUpload from "components/Documentupload";
-import { createProperty } from "../../../../../utils/propertyApi";
+import { createProperty,updateProperty } from "../../../../../utils/propertyApi";
 import OwnerDetails from "components/OwnersDetails";
 import CustomPickerAlert from "../../../../../components/CustomPickerAlert";
 import HowTo360Modal from "../HowTo360Modal";
@@ -55,6 +56,7 @@ const PillButton = ({ label, selected, onPress }) => (
 export default function PropertyFormScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const params = useLocalSearchParams();
 
   const [title, setTitle] = useState("");
   const [propertyType, setPropertyType] = useState(t("resort"));
@@ -103,13 +105,118 @@ const [pickerAlertVisible, setPickerAlertVisible] = useState(false);
 const [isHowto360ModalVisible, setIsHowto360ModalVisible] = useState(false);
 const [isPhotoGuideModalVisible, setIsPhotoGuideModalVisible] = useState(false);
 
+const [isEditMode, setIsEditMode] = useState(false);
+const [editPropertyId, setEditPropertyId] = useState(null);
+const [existingDocuments, setExistingDocuments] = useState({
+  ownership: [],
+  identity: []
+});
 
-// Inside AddScreen component, add this helper function
+
+
+
 const getUserLanguage = () => {
   const currentLang = i18n.language || 'en';
   console.log('📝 Current app language:', currentLang);
   return currentLang;
 };
+
+// ✅ ADD EDIT MODE DATA LOADING
+useEffect(() => {
+  if (params.editMode === 'true' && params.propertyData) {
+    try {
+      const property = JSON.parse(params.propertyData);
+      setIsEditMode(true);
+      setEditPropertyId(params.propertyId);
+      
+      console.log('📝 Loading resort for edit:', property._id);
+      
+      // Helper function to get localized text
+      const getLocalizedText = (field) => {
+        if (!field) return '';
+        if (typeof field === 'string') return field;
+        if (typeof field === 'object') {
+          const currentLang = i18n.language || 'en';
+          return field[currentLang] || field.en || field.te || field.hi || '';
+        }
+        return '';
+      };
+      
+      // Pre-fill basic fields
+      const titleText = property.propertyTitle?.en || property.propertyTitle?.te || property.propertyTitle?.hi || property.propertyTitle || '';
+      const locationText = property.location?.en || property.location?.te || property.location?.hi || property.location || '';
+      const areaText = property.area?.en || property.area?.te || property.area?.hi || property.area || '';
+      const descText = property.description?.en || property.description?.te || property.description?.hi || property.description || '';
+      
+      setTitle(typeof titleText === 'string' ? titleText : '');
+      setLocation(typeof locationText === 'string' ? locationText : '');
+      setNeighborhood(typeof areaText === 'string' ? areaText : '');
+      setDescription(typeof descText === 'string' ? descText : '');
+      setPrice(property.expectedPrice?.toString() || '');
+      
+      // Resort details
+      if (property.resortDetails) {
+        setRooms(property.resortDetails.rooms?.toString() || '');
+        setFloors(property.resortDetails.floors?.toString() || '');
+        setArea(property.resortDetails.landArea?.toString() || '');
+        setBuildArea(property.resortDetails.buildArea?.toString() || '');
+        setResortType(property.resortDetails.resortType || '');
+        setLocAdvantages(property.resortDetails.locationAdvantages || []);
+        
+        // Vastu details
+        if (property.resortDetails.vaasthuDetails) {
+          setPropertyFacing(property.resortDetails.vaasthuDetails.propertyFacing || t("east"));
+          setEntranceDirection(property.resortDetails.vaasthuDetails.entranceDirection || t("east"));
+          setReceptionAreaFacing(property.resortDetails.vaasthuDetails.receptionAreaFacing || t("east"));
+          setMainLobbyDirection(property.resortDetails.vaasthuDetails.mainLobbyDirection || t("east"));
+          setMasterSuitroom(property.resortDetails.vaasthuDetails.masterSuitroom || t("east"));
+          setGuestRoom(property.resortDetails.vaasthuDetails.guestRoom || t("east"));
+          setRestaurantDirection(property.resortDetails.vaasthuDetails.restaurantDirection || t("east"));
+          setVipSuite(property.resortDetails.vaasthuDetails.vipSuite || t("east"));
+          setconferenceDirection(property.resortDetails.vaasthuDetails.conferenceDirection || t("east"));
+          setSpaRoom(property.resortDetails.vaasthuDetails.spaRoom || t("east"));
+          setSwimmingPool(property.resortDetails.vaasthuDetails.swimmingPool || t("east"));
+          setYoga(property.resortDetails.vaasthuDetails.yoga || t("east"));
+          setKitchenRoom(property.resortDetails.vaasthuDetails.kitchenRoom || t("east"));
+          setPoojaRoom(property.resortDetails.vaasthuDetails.poojaRoom || t("east"));
+          setOffice(property.resortDetails.vaasthuDetails.office || t("east"));
+          setRecreation(property.resortDetails.vaasthuDetails.recreation || t("east"));
+          setBalcony(property.resortDetails.vaasthuDetails.balcony || t("east"));
+          setGarden(property.resortDetails.vaasthuDetails.garden || t("east"));
+        }
+      }
+      
+      // Owner details
+      if (property.ownerDetails) {
+        setOwnerName(property.ownerDetails.name || '');
+        setPhone(property.ownerDetails.phone || '');
+        setEmail(property.ownerDetails.email || '');
+      }
+      
+      // Images - Load existing Cloudinary URLs
+      if (property.images && property.images.length > 0) {
+        setImages(property.images);
+        console.log('✅ Loaded existing images:', property.images.length);
+      }
+      
+      // Store existing documents (read-only)
+      if (property.documents) {
+        setExistingDocuments({
+          ownership: property.documents.ownership || [],
+          identity: property.documents.identity || []
+        });
+        console.log('✅ Loaded existing documents');
+      }
+      
+      console.log('✅ Resort data loaded for editing');
+    } catch (error) {
+      console.error('❌ Error loading resort data:', error);
+      Alert.alert('Error', 'Failed to load resort data');
+    }
+  }
+}, [params.editMode, params.propertyData, params.propertyId]);
+
+  /* ---------- Helpers ---------- */
 
   /* ---------- Helpers ---------- */
   const isAlphaNumeric = (text) => /^[a-zA-Z0-9\s]+$/.test(text);
@@ -148,19 +255,19 @@ const handleUpload = async () => {
       return;
     }
     
-    console.log('🎬 Starting upload process...');
+    console.log(isEditMode ? '🎬 Starting update process...' : '🎬 Starting upload process...');
     setIsSubmitting(true);
 
-    // 2. Validate images first
-    if (images.length === 0) {
+    // 2. ✅ In edit mode, skip image validation if images already exist
+    if (!isEditMode && images.length === 0) {
       console.log('❌ No images selected');
       showToast(t("add_at_least_one_image"));
       setIsSubmitting(false);
       return;
     }
 
-    // 3. Validate documents
-    if (ownershipDocs.length === 0 || identityDocs.length === 0) {
+    // 3. ✅ In edit mode, skip document validation (documents already exist)
+    if (!isEditMode && (ownershipDocs.length === 0 || identityDocs.length === 0)) {
       showToast(t("upload_required_documents"));
       setIsSubmitting(false);
       return;
@@ -333,38 +440,47 @@ const propertyData = {
 };
 
 
-    console.log('📡 Calling createProperty API...');
+   console.log('📡 Calling API...');
     console.log('📋 Final property data:', JSON.stringify(propertyData, null, 2));
     console.log('📸 Images to upload:', uploadImages.length, 'images');
     
     // 9. Call API
-    const result = await createProperty(
-      propertyData,
-      uploadImages,
-      ownershipDocs,
-      identityDocs
-    );
+    let result;
+    
+    if (isEditMode) {
+      // ✅ UPDATE MODE
+      console.log('📡 Calling updateProperty API...');
+      result = await updateProperty(editPropertyId, propertyData, uploadImages);
+    } else {
+      // ✅ CREATE MODE
+      result = await createProperty(
+        propertyData,
+        uploadImages,
+        ownershipDocs,
+        identityDocs
+      );
+    }
 
     console.log('📥 API Result:', result);
     console.log('📥 API Result Data:', JSON.stringify(result.data, null, 2));
 
     // 10. Handle response
-   if (result?.data?.success) {
-  Alert.alert(
-    t("success"),
-    t("upload_success"),
-    [
-      {
-        text: t("ok"),
-        onPress: () => {
-          router.replace("/(tabs)/home");
-        },
-      },
-    ]
-  );
-}else {
-      console.error('❌ Upload failed:', result);
-      showToast(result.data?.message || result.error || t("failed_to_upload_property"));
+    if (result.success) {
+      Alert.alert(
+        t("success"),
+        isEditMode ? t("property_updated_successfully") : t("upload_success"),
+        [
+          {
+            text: t("ok"),
+            onPress: () => {
+              router.replace(isEditMode ? "/home/screens/Sidebar/MyProperties" : "/(tabs)/home");
+            },
+          },
+        ]
+      );
+    } else {
+      console.error(isEditMode ? '❌ Update failed:' : '❌ Upload failed:', result);
+      showToast(result.data?.message || result.error || (isEditMode ? t("failed_to_update_property") : t("failed_to_upload_property")));
     }
 
   } catch (error) {
@@ -539,14 +655,16 @@ const handleOpenPlayStore = () => {
               style={{ width: 20, height: 20 }}
             />
           </TouchableOpacity>
-          <View className="ml-2">
-            <Text className="text-[16px] font-semibold">
-              {t('upload_your_resort')}
-            </Text>
-            <Text className="text-[12px] text-[#00000066]">
-              {t('add_property_details')}
-            </Text>
-          </View>
+
+        <View className="ml-2">
+  <Text className="text-[16px] font-semibold">
+    {isEditMode ? t('edit_property') : t('upload_your_resort')}
+  </Text>
+  <Text className="text-[12px] text-[#00000066]">
+    {isEditMode ? t('update_property_details') : t('add_property_details')}
+  </Text>
+</View>
+
         </View>
       <ScrollView
         contentContainerStyle={{ padding: 16, paddingBottom: 140 }}
@@ -581,20 +699,26 @@ const handleOpenPlayStore = () => {
             className="rounded-md p-3 mb-3 bg-[#D9D9D91C]  border border-gray-300 focus:border-green-500 focus:ring-[#22C55E]"
           />
 
-           {/* Property Type */}
-                        <View className="px-1">
-                          <Text className="text-gray-500 font-semibold mb-2">
-                            {t('property_type')}
-                          </Text>
-                          <TouchableOpacity
-                            onPress={() => setVisible(visible === "propertyType" ? null : "propertyType")}
-                            className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 "
-                          >
-                            <Text className="text-gray-800 text-left">
-                              {propertyType || t("resort")}
-                            </Text>
-                            <Ionicons name="chevron-down" size={24} color="#888" />
-                          </TouchableOpacity>
+          {/* Property Type */}
+<View className="px-1">
+  <Text className="text-gray-500 font-semibold mb-2">
+    {t('property_type')}
+  </Text>
+  <TouchableOpacity
+    onPress={() => !isEditMode && setVisible(visible === "propertyType" ? null : "propertyType")}
+    disabled={isEditMode}
+    className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300"
+    style={{ opacity: isEditMode ? 0.6 : 1 }}
+  >
+    <Text className="text-gray-800 text-left">
+      {propertyType || t("resort")}
+    </Text>
+    {!isEditMode && <Ionicons name="chevron-down" size={24} color="#888" />}
+    {isEditMode && <Ionicons name="lock-closed" size={20} color="#888" />}
+  </TouchableOpacity>
+  {isEditMode && (
+    <Text className="text-xs text-gray-500 mt-1">Property type cannot be changed</Text>
+  )}
                           {visible === "propertyType" && (
                             <View
                               className="bg-white rounded-lg shadow-lg -mt-3 mb-4"
@@ -908,24 +1032,60 @@ const handleOpenPlayStore = () => {
                         </View>
                       ))}
                     </View>
-                <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
-  <DocumentUpload
-    title={t('property_ownership')}
-    subtitle={t('ownership_verify')}
-    files={ownershipDocs}
-    setFiles={setOwnershipDocs}
-    required
-  />
+              {/* ✅ Property Ownership Documents */}
+<View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
+  <Text className="text-base font-semibold">{t('property_ownership')}</Text>
+  <Text className="text-gray-500 text-sm mt-1">{t('ownership_verify')}</Text>
+  
+  {isEditMode && existingDocuments.ownership.length > 0 ? (
+    <View className="mt-4">
+      <View className="flex-row items-center bg-green-50 border border-green-200 rounded-lg px-3 py-3">
+        <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
+        <View className="ml-3 flex-1">
+          <Text className="text-sm font-medium text-gray-800">
+            {existingDocuments.ownership.length} {existingDocuments.ownership.length === 1 ? 'document' : 'documents'} uploaded
+          </Text>
+          <Text className="text-xs text-gray-500 mt-1">Documents cannot be changed during edit</Text>
+        </View>
+      </View>
+    </View>
+  ) : !isEditMode ? (
+    <DocumentUpload
+      title={t('property_ownership')}
+      subtitle={t('ownership_verify')}
+      files={ownershipDocs}
+      setFiles={setOwnershipDocs}
+      required
+    />
+  ) : null}
 </View>
 
+{/* ✅ Owner Identity Documents */}
 <View className="bg-white rounded-lg p-4 mb-4 border border-gray-200">
-  <DocumentUpload
-    title={t('owner_identity')}
-    subtitle={t('upload_identity')}
-    files={identityDocs}
-    setFiles={setIdentityDocs}
-    required
-  />
+  <Text className="text-base font-semibold">{t('owner_identity')}</Text>
+  <Text className="text-gray-500 text-sm mt-1">{t('upload_identity')}</Text>
+  
+  {isEditMode && existingDocuments.identity.length > 0 ? (
+    <View className="mt-4">
+      <View className="flex-row items-center bg-green-50 border border-green-200 rounded-lg px-3 py-3">
+        <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
+        <View className="ml-3 flex-1">
+          <Text className="text-sm font-medium text-gray-800">
+            {existingDocuments.identity.length} {existingDocuments.identity.length === 1 ? 'document' : 'documents'} uploaded
+          </Text>
+          <Text className="text-xs text-gray-500 mt-1">{t('documents_locked')}</Text>
+        </View>
+      </View>
+    </View>
+  ) : !isEditMode ? (
+    <DocumentUpload
+      title={t('owner_identity')}
+      subtitle={t('upload_identity')}
+      files={identityDocs}
+      setFiles={setIdentityDocs}
+      required
+    />
+  ) : null}
 </View>
 
   <OwnerDetails
@@ -968,29 +1128,34 @@ const handleOpenPlayStore = () => {
           backgroundColor: "#ffffff",
         }}
       >
-        <View className="flex-row justify-end gap-4">
-          <TouchableOpacity className="bg-gray-200 px-5 py-3 rounded-lg"
-         onPress={() => router.back()}>
-            <Text className="font-semibold">{t('cancel')}</Text>
-          </TouchableOpacity>
+<View className="flex-row justify-end gap-4">
+  <TouchableOpacity 
+    className="bg-gray-200 px-5 py-3 rounded-lg"
+    onPress={() => router.push(isEditMode ? "/home/screens/Sidebar/MyProperties" : "/(tabs)/home")}
+  >
+    <Text className="font-semibold">{t('cancel')}</Text>
+  </TouchableOpacity>
 
-        {/* Upload Property Button */}
-         <TouchableOpacity
-          style={{
-            backgroundColor: "#22C55E",
-            paddingVertical: 12,
-            paddingHorizontal: 20,
-            borderRadius: 10,
-          }}
-          onPress={handleUpload}
-          disabled={isSubmitting}
-        >
-          <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
-            {isSubmitting ? t('uploading') : t('upload_property')}
-          </Text>
-        </TouchableOpacity>
+  {/* Upload/Update Property Button */}
+  <TouchableOpacity
+    style={{
+      backgroundColor: "#22C55E",
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      borderRadius: 10,
+    }}
+    onPress={handleUpload}
+    disabled={isSubmitting}
+  >
+    <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
+      {isSubmitting 
+        ? (isEditMode ? t('updating') : t('uploading'))
+        : (isEditMode ? t('update_property') : t('upload_property'))
+      }
+    </Text>
+  </TouchableOpacity>
+</View>
 
-        </View>
       </View>
     </SafeAreaView>
 <Toast/>
