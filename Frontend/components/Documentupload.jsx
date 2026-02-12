@@ -1,3 +1,4 @@
+//Frontened//components//Documentupload.jsx
 import React from "react";
 import { View, Text, TouchableOpacity, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";

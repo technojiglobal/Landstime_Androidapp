@@ -1504,6 +1504,8 @@ export const getUserProperties = async (req, res) => {
 
 export const updateProperty = async (req, res) => {
   try {
+    console.log('📝 User updating property:', req.params.id);
+    
     const property = await Property.findById(req.params.id);
    
     if (!property) {
@@ -1513,20 +1515,100 @@ export const updateProperty = async (req, res) => {
       });
     }
    
+    // ✅ Check ownership
     if (property.userId.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update this property'
       });
     }
-   
-    req.body.status = 'pending';
-   
+    
+    // ✅ Parse property data
+    const propertyData = JSON.parse(req.body.propertyData);
+    
+    // ✅ Status management based on current status
+    const currentStatus = property.status;
+    let newStatus = currentStatus;
+    
+    if (currentStatus === 'approved') {
+      newStatus = 'pending'; // Approved → Pending
+      console.log('✅ Status changed from approved to pending');
+    } else if (currentStatus === 'pending') {
+      newStatus = 'pending'; // Pending → Pending (no change)
+      console.log('✅ Status remains pending');
+    } else if (currentStatus === 'rejected') {
+      newStatus = 'rejected'; // Rejected → Rejected (no change)
+      console.log('✅ Status remains rejected');
+    }
+    
+    propertyData.status = newStatus;
+    
+    // ✅ Handle images
+    let finalImages = [];
+    
+    // Get existing images from request
+    if (req.body.existingImages) {
+      const existingImages = JSON.parse(req.body.existingImages);
+      finalImages = [...existingImages];
+      console.log('✅ Preserving existing images:', existingImages.length);
+    }
+    
+    // Upload new images if provided
+    if (req.files?.newImages && req.files.newImages.length > 0) {
+      console.log('📸 Uploading new images:', req.files.newImages.length);
+      const uploadTimestamp = Date.now();
+      
+      const uploadPromises = req.files.newImages.map((file, index) => {
+        return uploadToCloudinary(file.buffer, {
+          folder: 'property-listings/properties/images',
+          public_id: `property_${uploadTimestamp}_image_${index}`,
+          resource_type: 'image',
+        });
+      });
+      
+      const uploadResults = await Promise.all(uploadPromises);
+      const newImageUrls = uploadResults.map(result => result.url);
+      finalImages = [...finalImages, ...newImageUrls];
+      console.log('✅ New images uploaded:', newImageUrls.length);
+    }
+    
+    // ✅ Preserve documents (user cannot change them)
+    propertyData.documents = property.documents;
+    
+    // ✅ Update images
+    propertyData.images = finalImages;
+    
+    // ✅ Translate updated fields
+    const originalLanguage = propertyData.originalLanguage || property.originalLanguage || 'en';
+    
+    const getPlainText = (field) => {
+      if (!field) return '';
+      if (typeof field === 'string') return field;
+      return field[originalLanguage] || field.en || field.te || field.hi || '';
+    };
+    
+    const translatedFields = await translatePropertyFields({
+      propertyTitle: getPlainText(propertyData.propertyTitle),
+      description: getPlainText(propertyData.description),
+      location: getPlainText(propertyData.location),
+      area: getPlainText(propertyData.area)
+    }, originalLanguage);
+    
+    propertyData.propertyTitle = translatedFields.propertyTitle;
+    propertyData.description = translatedFields.description;
+    propertyData.location = translatedFields.location;
+    propertyData.area = translatedFields.area;
+    propertyData.areaKey = normalizeAreaKey(propertyData.area);
+    
+    // ✅ Update property
     const updatedProperty = await Property.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      { $set: propertyData },
       { new: true, runValidators: true }
-    );
+    ).populate('userId', 'name phone email');
+   
+    console.log('✅ Property updated successfully');
+    console.log('📊 New status:', newStatus);
    
     res.status(200).json({
       success: true,
@@ -1535,7 +1617,7 @@ export const updateProperty = async (req, res) => {
     });
    
   } catch (error) {
-    console.error('Update property error:', error);
+    console.error('❌ Update property error:', error);
 
     const responseError = {
       message: error.message,

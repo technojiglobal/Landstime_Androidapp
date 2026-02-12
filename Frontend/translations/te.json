@@ -1436,5 +1436,13 @@
   "search_results_houses": "घर",
   "search_results_sites": "भूमि",
   "search_results_commercial": "व्यावसायिक",
-  "search_results_resorts": "रिसॉर्ट"
+  "search_results_resorts": "रिसॉर्ट",
+  "edit_property": "ప్రాపర్టీ సవరించండి",
+  "update_property_details": "ప్రాపర్టీ వివరాలను నవీకరించండి",
+  "updating": "నవీకరిస్తోంది...",
+  "update_property": "ప్రాపర్టీ నవీకరించండి",
+  "property_updated_successfully": "ప్రాపర్టీ విజయవంతంగా నవీకరించబడింది",
+  "failed_to_update_property": "ప్రాపర్టీ నవీకరణ విఫలమైంది",
+  "documents_locked": "సవరింపు సమయంలో పత్రాలను మార్చలేరు",
+  "property_type_locked": "ప్రాపర్టీ రకాన్ని మార్చలేరు"
 }

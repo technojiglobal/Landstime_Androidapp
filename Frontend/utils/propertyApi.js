@@ -206,6 +206,8 @@ export const createProperty = async (
   }
 };
 
+
+
 // Add this import at the top
 
 
@@ -363,8 +365,117 @@ export const getUserProperties = async () => {
   return properties;
 };
 // Update property
-export const updateProperty = async (propertyId, propertyData) => {
-  return await apiRequest(`/${propertyId}`, 'PUT', propertyData);
+// ✅ UPDATED: Update property with image handling
+export const updateProperty = async (propertyId, propertyData, newImages = []) => {
+  try {
+    console.log('🔄 Updating property:', propertyId);
+    console.log('📸 Total images:', newImages.length);
+    console.log('📋 Property data keys:', Object.keys(propertyData));
+    
+    const formData = new FormData();
+    
+    // ✅ CRITICAL: Only append if propertyData exists
+    if (!propertyData || Object.keys(propertyData).length === 0) {
+      console.error('❌ No property data to update');
+      return { success: false, error: 'No property data provided' };
+    }
+    
+    formData.append("propertyData", JSON.stringify(propertyData));
+    
+    // ✅ Separate new images from existing Cloudinary URLs
+    const existingImages = newImages.filter(img => 
+      typeof img === 'string' && (img.startsWith('http://') || img.startsWith('https://'))
+    );
+    
+    const onlyNewImages = newImages.filter(img => 
+      !(typeof img === 'string' && (img.startsWith('http://') || img.startsWith('https://')))
+    );
+    
+    // Send existing Cloudinary URLs to preserve them
+    if (existingImages.length > 0) {
+      formData.append("existingImages", JSON.stringify(existingImages));
+      console.log('✅ Preserving existing images:', existingImages.length);
+    }
+    
+    // Upload new images if any
+    if (onlyNewImages.length > 0) {
+      console.log('📸 Appending new images:', onlyNewImages.length);
+      
+      // Helper function (same as createProperty)
+      const appendFile = async (fieldName, fileOrUri, index, defaultPrefix) => {
+        if (Platform.OS === 'web') {
+          try {
+            if (fileOrUri instanceof File || fileOrUri instanceof Blob) {
+              const filename = fileOrUri.name || `${defaultPrefix}_${index}.jpg`;
+              formData.append(fieldName, fileOrUri, filename);
+              return;
+            }
+
+            if (typeof fileOrUri === 'string' && (fileOrUri.startsWith('blob:') || fileOrUri.startsWith('data:'))) {
+              const response = await fetch(fileOrUri);
+              const blob = await response.blob();
+              const ext = (blob.type && blob.type.split('/')[1]) || 'jpg';
+              const filename = `${defaultPrefix}_${index}.${ext}`;
+              const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+              formData.append(fieldName, file, filename);
+              return;
+            }
+
+            if (fileOrUri && fileOrUri.uri) {
+              const uri = fileOrUri.uri;
+              
+              if (uri instanceof File || uri instanceof Blob) {
+                const filename = uri.name || fileOrUri.name || `${defaultPrefix}_${index}.jpg`;
+                formData.append(fieldName, uri, filename);
+                return;
+              }
+              
+              if (typeof uri === 'string' && (uri.startsWith('blob:') || uri.startsWith('data:'))) {
+                const response = await fetch(uri);
+                const blob = await response.blob();
+                
+                let ext = 'jpg';
+                if (blob.type) {
+                  const parts = blob.type.split('/');
+                  ext = parts[1] || 'jpg';
+                } else if (fileOrUri.name) {
+                  const nameParts = fileOrUri.name.split('.');
+                  ext = nameParts[nameParts.length - 1] || 'jpg';
+                }
+                
+                const filename = fileOrUri.name || `${defaultPrefix}_${index}.${ext}`;
+                const mimeType = blob.type || fileOrUri.type || 'image/jpeg';
+                const file = new File([blob], filename, { type: mimeType });
+                formData.append(fieldName, file, filename);
+                return;
+              }
+            }
+
+            console.warn(`Unsupported web file for ${fieldName}:`, fileOrUri);
+          } catch (err) {
+            console.error('Error preparing web file for upload:', err);
+          }
+        } else {
+          const uri = typeof fileOrUri === 'string' ? fileOrUri : (fileOrUri.uri || fileOrUri);
+          formData.append(fieldName, {
+            uri: uri.startsWith('file://') ? uri : `file://${uri}`,
+            name: fileOrUri.name || `${defaultPrefix}_${index}.jpg`,
+            type: fileOrUri.type || 'image/jpeg',
+          });
+        }
+      };
+
+      // Append each new image
+      for (let i = 0; i < onlyNewImages.length; i++) {
+        await appendFile('newImages', onlyNewImages[i], i, `image_${Date.now()}_${i}`);
+      }
+    }
+    
+    return await apiRequest(`/${propertyId}`, "PUT", formData, true);
+  } catch (error) {
+    console.error("❌ updateProperty error:", error);
+    return { success: false, error: error.message };
+  }
 };
 
 // Delete property
