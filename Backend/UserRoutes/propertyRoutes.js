@@ -34,6 +34,7 @@ router.get('/admin/all', verifyAdmin, propertyController.getAllProperties);
 router.get('/admin/pending', verifyAdmin, propertyController.getPendingProperties);
 router.get('/admin/debug', verifyAdmin, propertyController.debugProperties);
 router.patch('/admin/:id/status', verifyAdmin, propertyController.updatePropertyStatus);
+router.delete('/admin/:id', verifyAdmin, propertyController.softDeleteProperty);
 router.patch('/admin/:id/soft-delete', verifyAdmin, propertyController.softDeleteProperty);
 router.patch('/admin/:id/availability', verifyAdmin, propertyController.updatePropertyAvailability);
 router.put('/admin/:id/update', verifyAdmin, propertyController.adminUpdateProperty);

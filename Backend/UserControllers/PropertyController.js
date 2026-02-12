@@ -1286,7 +1286,14 @@ export const getApprovedProperties = async (req, res) => {
       locationAdvantages
     } = req.query;
     
-    const query = { status: 'approved' };
+   const query = { 
+      status: 'approved',
+      $or: [
+        { adminDeletedStatus: 'active' },
+        { adminDeletedStatus: { $exists: false } }
+      ]
+    };
+    
     if (propertyType) {
       query.propertyType = propertyType;
     }
@@ -1387,8 +1394,14 @@ export const getPropertyById = async (req, res) => {
     console.log('🔍 Getting property by ID:', req.params.id);
     console.log('🌐 Requested language:', language);
    
-    const property = await Property.findById(req.params.id)
-      .populate('userId', 'name phone email');
+    const property = await Property.findOne({
+      _id: req.params.id,
+      // ✅ Add deleted status check
+      $or: [
+        { adminDeletedStatus: 'active' },
+        { adminDeletedStatus: { $exists: false } }
+      ]
+    }).populate('userId', 'name phone email');
    
     if (!property) {
       return res.status(404).json({
@@ -1452,13 +1465,21 @@ export const getPropertyById = async (req, res) => {
   }
 };
 
+// Backend/UserControllers/PropertyController.js
+
 export const getUserProperties = async (req, res) => {
   try {
     console.log('🔍 getUserProperties called');
     console.log('👤 User ID:', req.user._id);
    
-    const properties = await Property.find({ userId: req.user._id })
-      .sort({ createdAt: -1 });
+    // ✅ Add adminDeletedStatus filter
+    const properties = await Property.find({ 
+      userId: req.user._id,
+      $or: [
+        { adminDeletedStatus: 'active' },
+        { adminDeletedStatus: { $exists: false } }
+      ]
+    }).sort({ createdAt: -1 });
     
     const host = req.protocol + '://' + req.get('host');
     const propertiesWithUrls = properties.map((p) => ({
@@ -1688,12 +1709,14 @@ export const getAllProperties = async (req, res) => {
    
     const { status, propertyType, page = 1, limit = 10 } = req.query;
    
+    // ✅ This query ensures only active properties are shown
     const query = {
       $or: [
         { adminDeletedStatus: 'active' },
         { adminDeletedStatus: { $exists: false } }
       ]
     };
+    
     if (status) query.status = status;
     if (propertyType) query.propertyType = propertyType;
    
@@ -1761,11 +1784,18 @@ export const debugProperties = async (req, res) => {
   }
 };
 
+// Backend/UserControllers/PropertyController.js
+
 export const softDeleteProperty = async (req, res) => {
   try {
+    console.log('🗑️ Admin soft-deleting property:', req.params.id);
+    
     const property = await Property.findByIdAndUpdate(
       req.params.id,
-      { adminDeletedStatus: 'deleted' },
+      { 
+        adminDeletedStatus: 'deleted',
+        status: 'rejected' // Also mark as rejected so it won't show in approved listings
+      },
       { new: true }
     );
    
@@ -1776,13 +1806,15 @@ export const softDeleteProperty = async (req, res) => {
       });
     }
    
+    console.log('✅ Property soft-deleted successfully');
+    
     res.status(200).json({
       success: true,
       message: 'Property deleted successfully'
     });
    
   } catch (error) {
-    console.error('Soft delete error:', error);
+    console.error('❌ Soft delete error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to delete property',
@@ -1989,6 +2021,7 @@ export const searchProperties = async (req, res) => {
     const baseQuery = {
       status: 'approved',
       $or: [
+        
         { [`propertyTitle.${language}`]: searchRegex },
         { [`propertyTitle.en`]: searchRegex },
         { [`description.${language}`]: searchRegex },
