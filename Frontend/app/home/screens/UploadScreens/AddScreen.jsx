@@ -1,6 +1,7 @@
 //Frontend//app//home//screens//UploadScreens//AddScreen.jsx (Home / House)
 import React, { useState, useEffect } from "react";
-import { createProperty, testBackendConnection } from "../../../../utils/propertyApi";
+import { createProperty, testBackendConnection,updateProperty } from "../../../../utils/propertyApi";
+import { useLocalSearchParams } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import i18n from "../../../../i18n/index";
 import { useTranslation } from "react-i18next";
@@ -43,6 +44,15 @@ export default function AddScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const navigation = useNavigation();
+  const params = useLocalSearchParams(); // ✅ ADD THIS
+
+  // ✅ ADD EDIT MODE STATES
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editPropertyId, setEditPropertyId] = useState(null);
+  const [existingDocuments, setExistingDocuments] = useState({
+    ownership: [],
+    identity: []
+  });
 
   // Form state variables
   const [constructionStatus, setConstructionStatus] = useState("");
@@ -140,11 +150,165 @@ export default function AddScreen() {
     { key: "balcony", label: t("balcony"), value: balcony, setValue: setBalcony },
   ];
 
-  const getUserLanguage = () => {
-    const currentLang = i18n.language || "en";
-    console.log("📝 Current app language:", currentLang);
-    return currentLang;
-  };
+const getUserLanguage = () => {
+  const currentLang = i18n.language || "en";
+  console.log("📝 Current app language:", currentLang);
+  return currentLang;
+};
+
+// ✅ ADD EDIT MODE DATA LOADING
+useEffect(() => {
+  if (params.editMode === 'true' && params.propertyData) {
+    try {
+      const property = JSON.parse(params.propertyData);
+      setIsEditMode(true);
+      setEditPropertyId(params.propertyId);
+      
+      console.log('📝 Loading property for edit:', property._id);
+      
+      // Helper function to get localized text
+      const getLocalizedText = (field) => {
+        if (!field) return '';
+        if (typeof field === 'string') return field;
+        if (typeof field === 'object') {
+          const currentLang = i18n.language || 'en';
+          return field[currentLang] || field.en || field.te || field.hi || '';
+        }
+        return '';
+      };
+      
+      // Pre-fill basic fields
+      const titleText = property.propertyTitle?.en || property.propertyTitle?.te || property.propertyTitle?.hi || property.propertyTitle || '';
+      const locationText = property.location?.en || property.location?.te || property.location?.hi || property.location || '';
+      const areaText = property.area?.en || property.area?.te || property.area?.hi || property.area || '';
+      const descText = property.description?.en || property.description?.te || property.description?.hi || property.description || '';
+      
+      setPropertyTitle(typeof titleText === 'string' ? titleText : '');
+      setLocation(typeof locationText === 'string' ? locationText : '');
+      setNeighborhood(typeof areaText === 'string' ? areaText : '');
+      setDescription(typeof descText === 'string' ? descText : '');
+      setExpectedPrice(property.expectedPrice?.toString() || '');
+      
+      // House details
+      if (property.houseDetails) {
+        setFloors(property.houseDetails.floors?.toString() || '');
+        setArea(property.houseDetails.area?.toString() || '');
+        setBedrooms(property.houseDetails.bedrooms?.toString() || '');
+        setBathrooms(property.houseDetails.bathrooms?.toString() || '');
+        setBalconies(property.houseDetails.balconies?.toString() || '');
+        
+        // Availability Status
+        if (property.houseDetails.availabilityStatus === "Ready to Move") {
+          setConstructionStatus("Ready");
+        } else if (property.houseDetails.availabilityStatus === "Under Construction") {
+          setConstructionStatus("Under");
+        }
+        
+        // Age of Property
+        const ageMap = {
+          "0-1 years": t("0_1_years"),
+          "1-5 years": t("1_5_years"),
+          "5-10 years": t("5_10_years"),
+          "10+ years": t("10_years")
+        };
+        setSelectedAge(ageMap[property.houseDetails.ageOfProperty] || '');
+        
+        // Ownership
+        const ownershipMap = {
+          "Freehold": t("freehold"),
+          "Leasehold": t("leasehold"),
+          "Co-operative Society": t("co_operative_society"),
+          "Power of Attorney": t("power_of_attorney")
+        };
+        setSelectedOwnership(ownershipMap[property.houseDetails.ownership] || '');
+        
+        setPossessionBy(property.houseDetails.possessionBy || '');
+        setLocAdvantages(property.houseDetails.locationAdvantages || []);
+        
+        // Other Rooms
+        const roomMap = {
+          "Pooja Room": t("pooja_room"),
+          "Study Room": t("study_room"),
+          "Servant Room": t("servant_room"),
+          "Others": t("others")
+        };
+        setOtherRooms((property.houseDetails.otherRooms || []).map(room => roomMap[room] || room));
+        
+        // Furnishing
+        const furnishingMap = {
+          "Furnished": t("furnished"),
+          "Semi-furnished": t("semi_furnished"),
+          "Unfurnished": t("unfurnished")
+        };
+        setFurnishing(furnishingMap[property.houseDetails.furnishing] || '');
+        setFurnishings(property.houseDetails.furnishingItems || []);
+        
+        // Parking
+        if (property.houseDetails.parking) {
+          setCovered(property.houseDetails.parking.covered || 0);
+          setOpen(property.houseDetails.parking.open || 0);
+        }
+        
+        // Vastu details
+        if (property.houseDetails.vaasthuDetails) {
+          const directionMap = {
+            "North East": t("north_east"),
+            "South West": t("south_west"),
+            "North West": t("north_west"),
+            "South East": t("south_east"),
+            "East": t("east"),
+            "West": t("west"),
+            "North": t("north"),
+            "South": t("south")
+          };
+          
+          setHouseFacing(directionMap[property.houseDetails.vaasthuDetails.houseFacing] || t("north_east"));
+          setMasterBedroom(directionMap[property.houseDetails.vaasthuDetails.masterBedroom] || t("north_east"));
+          setChildrenBedroom(directionMap[property.houseDetails.vaasthuDetails.childrenBedroom] || t("north_east"));
+          setLivingRoom(directionMap[property.houseDetails.vaasthuDetails.livingRoom] || t("north_east"));
+          setKitchenRoom(directionMap[property.houseDetails.vaasthuDetails.kitchenRoom] || t("north_east"));
+          setPoojaRoom(directionMap[property.houseDetails.vaasthuDetails.poojaRoom] || t("north_east"));
+          setBalcony(directionMap[property.houseDetails.vaasthuDetails.balcony] || t("north_east"));
+        }
+      }
+      
+      // Price details checkboxes
+      const priceDetailsArray = [];
+      if (property.priceDetails?.allInclusive) priceDetailsArray.push(t("all_inclusive_price"));
+      if (property.priceDetails?.negotiable) priceDetailsArray.push(t("price_negotiable"));
+      if (property.priceDetails?.taxExcluded) priceDetailsArray.push(t("tax_excluded"));
+      setSelectedPrices(priceDetailsArray);
+      
+      // Owner details
+      if (property.ownerDetails) {
+        setOwnerName(property.ownerDetails.name || '');
+        setPhone(property.ownerDetails.phone || '');
+        setEmail(property.ownerDetails.email || '');
+      }
+      
+      // Images - Load existing Cloudinary URLs
+      if (property.images && property.images.length > 0) {
+        setImages(property.images);
+        console.log('✅ Loaded existing images:', property.images.length);
+      }
+      
+      // Store existing documents (read-only)
+      if (property.documents) {
+        setExistingDocuments({
+          ownership: property.documents.ownership || [],
+          identity: property.documents.identity || []
+        });
+        console.log('✅ Loaded existing documents');
+      }
+      
+      console.log('✅ Property data loaded for editing');
+    } catch (error) {
+      console.error('❌ Error loading property data:', error);
+      Alert.alert('Error', 'Failed to load property data');
+    }
+  }
+}, [params.editMode, params.propertyData, params.propertyId]);
+
   const locationAdvantages = [
     t("close_to_metro_station"),
     t("close_to_school"),
@@ -157,36 +321,37 @@ export default function AddScreen() {
   ];
 
   const handleUpload = async () => {
-    try {
-      const token = await AsyncStorage.getItem("userToken");
-      console.log("🔐 Current token before upload:", token);
-      if (!token) {
-        Alert.alert(t("login_required"), t("please_login_to_upload_properties"), [
-          {
-            text: t("go_to_login"),
-            onPress: () => router.push("/(tabs)/profile"),
-          },
-          {
-            text: t("cancel"),
-            style: "cancel",
-          },
-        ]);
-        return;
-      }
+  try {
+    const token = await AsyncStorage.getItem("userToken");
+    console.log("🔐 Current token before upload:", token);
+    if (!token) {
+      Alert.alert(t("login_required"), t("please_login_to_upload_properties"), [
+        {
+          text: t("go_to_login"),
+          onPress: () => router.push("/(tabs)/profile"),
+        },
+        {
+          text: t("cancel"),
+          style: "cancel",
+        },
+      ]);
+      return;
+    }
 
-      console.log("🧪 Testing backend connection...");
-      const backendReachable = await testBackendConnection();
-      if (!backendReachable) {
-        Alert.alert(
-          "Connection Error",
-          "Cannot reach backend server. Please check if backend is running."
-        );
-        setIsSubmitting(false);
-        return;
-      }
-      console.log("✅ Backend is reachable!");
+    console.log("🧪 Testing backend connection...");
+    const backendReachable = await testBackendConnection();
+    if (!backendReachable) {
+      Alert.alert(
+        "Connection Error",
+        "Cannot reach backend server. Please check if backend is running."
+      );
+      setIsSubmitting(false);
+      return;
+    }
+    console.log("✅ Backend is reachable!");
 
-      console.log("🎬 Starting upload process...");
+    console.log(isEditMode ? '🎬 Starting update process...' : '🎬 Starting upload process...');
+    setIsSubmitting(true);
       setIsSubmitting(true);
       console.log("🔍 Validating fields...");
 
@@ -248,25 +413,39 @@ export default function AddScreen() {
         setIsSubmitting(false);
         return;
       }
-      if (ownershipDocs.length === 0) {
-        Toast.show({
-          type: "error",
-          text1: t("missing_document"),
-          text2: t("sale_deed_conveyance_required"),
-        });
-        setIsSubmitting(false);
-        return;
-      }
-      if (identityDocs.length === 0) {
-        Toast.show({
-          type: "error",
-          text1: t("missing_document"),
-          text2: t("owner_identity_proof_required"),
-        });
-        setIsSubmitting(false);
-        return;
-      }
-      if (!description?.trim()) {
+
+     // ✅ In edit mode, skip image validation if images already exist
+if (!isEditMode && images.length === 0) {
+  console.log("❌ No images selected");
+  Toast.show({
+    type: "error",
+    text1: t("error"),
+    text2: t("add_at_least_one_image"),
+  });
+  setIsSubmitting(false);
+  return;
+}
+// ✅ In edit mode, skip document validation (documents already exist)
+if (!isEditMode && ownershipDocs.length === 0) {
+  Toast.show({
+    type: "error",
+    text1: t("missing_document"),
+    text2: t("sale_deed_conveyance_required"),
+  });
+  setIsSubmitting(false);
+  return;
+}
+if (!isEditMode && identityDocs.length === 0) {
+  Toast.show({
+    type: "error",
+    text1: t("missing_document"),
+    text2: t("owner_identity_proof_required"),
+  });
+  setIsSubmitting(false);
+  return;
+}
+
+       if (!description?.trim()) {
         Toast.show({
           type: "error",
           text1: t("error"),
@@ -275,16 +454,8 @@ export default function AddScreen() {
         setIsSubmitting(false);
         return;
       }
-      if (images.length === 0) {
-        console.log("❌ No images selected");
-        Toast.show({
-          type: "error",
-          text1: t("error"),
-          text2: t("add_at_least_one_image"),
-        });
-        setIsSubmitting(false);
-        return;
-      }
+
+
       if (!ownerName?.trim()) {
         Toast.show({
           type: "error",
@@ -483,29 +654,45 @@ export default function AddScreen() {
         },
       };
 
-      console.log("📡 Calling createProperty API...");
-      console.log("📋 Final property data:", JSON.stringify(propertyData, null, 2));
-      const result = await createProperty(
-        propertyData,
-        images,
-        ownershipDocs,
-        identityDocs
-      );
-      console.log("📥 API Result:", result);
-      if (result.success) {
-        console.log("✅ Upload successful!");
-        Alert.alert(t("success"), t("property_uploaded_successfully"));
-        setAlertVisible(true);
-        setTimeout(() => {
-          router.push("/(tabs)/home");
-        }, 2000);
-      } else {
-        console.error("❌ Upload failed:", result);
-        Alert.alert(
-          t("error"),
-          result.data?.message || result.error || t("failed_to_upload_property")
-        );
-      }
+     console.log('📡 Calling API...');
+console.log("📋 Final property data:", JSON.stringify(propertyData, null, 2));
+
+let result;
+
+if (isEditMode) {
+  // ✅ UPDATE MODE
+  console.log('📡 Calling updateProperty API...');
+  result = await updateProperty(editPropertyId, propertyData, images);
+} else {
+  // ✅ CREATE MODE
+  result = await createProperty(
+    propertyData,
+    images,
+    ownershipDocs,
+    identityDocs
+  );
+}
+
+if (result.success) {
+  console.log(isEditMode ? "✅ Update successful!" : "✅ Upload successful!");
+  Alert.alert(
+    t("success"), 
+    isEditMode 
+      ? (t("property_updated_successfully") || "Property updated successfully!") 
+      : (t("property_uploaded_successfully") || "Property uploaded successfully!")
+  );
+  setAlertVisible(true);
+  setTimeout(() => {
+    router.push(isEditMode ? "/home/screens/Sidebar/MyProperties" : "/(tabs)/home");
+  }, 2000);
+}
+else {
+  console.error(isEditMode ? '❌ Update failed:' : '❌ Upload failed:', result);
+  Alert.alert(
+    t("error"),
+    result.data?.message || result.error || (isEditMode ? t("failed_to_update_property") : t("failed_to_upload_property"))
+  );
+}
     } catch (error) {
       console.error("Upload error:", error);
       Alert.alert(t("error"), t("something_went_wrong"));
@@ -624,12 +811,14 @@ export default function AddScreen() {
                     style={{ width: 20, height: 20, resizeMode: "contain" }}
                   />
                 </TouchableOpacity>
-                <View className="ml-2">
-                  <Text className="text-[16px] font-semibold">{t("upload_property")}</Text>
-                  <Text className="text-[12px] text-[#00000066]">
-                    {t("add_property_details")}
-                  </Text>
-                </View>
+               <View className="ml-2">
+  <Text className="text-[16px] font-semibold">
+    {isEditMode ? t('edit_property') : t("upload_property")}
+  </Text>
+  <Text className="text-[12px] text-[#00000066]">
+    {isEditMode ? t('update_property_details') : t("add_property_details")}
+  </Text>
+</View>
               </View>
 
               <ScrollView>
@@ -679,17 +868,21 @@ export default function AddScreen() {
                     <Text className="text-gray-500 font-semibold mb-2">
                       {t("property_type")}
                     </Text>
-                    <TouchableOpacity
-                      onPress={() =>
-                        setVisible(visible === "propertyType" ? null : "propertyType")
-                      }
-                      className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300"
-                    >
-                      <Text className="text-gray-800 text-left">
-                        {propertyType || "House"}
-                      </Text>
-                      <Ionicons name="chevron-down" size={24} color="#888" />
-                    </TouchableOpacity>
+                   <TouchableOpacity
+  onPress={() => !isEditMode && setVisible(visible === "propertyType" ? null : "propertyType")}
+  disabled={isEditMode}
+  className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300"
+  style={{ opacity: isEditMode ? 0.6 : 1 }}
+>
+  <Text className="text-gray-800 text-left">
+    {propertyType || "House"}
+  </Text>
+  {!isEditMode && <Ionicons name="chevron-down" size={24} color="#888" />}
+  {isEditMode && <Ionicons name="lock-closed" size={20} color="#888" />}
+</TouchableOpacity>
+{isEditMode && (
+  <Text className="text-xs text-gray-500 mt-1">Property type cannot be changed</Text>
+)}
                     {visible === "propertyType" && (
                       <View
                         className="bg-white rounded-lg shadow-lg -mt-3 mb-4"
@@ -1393,20 +1586,61 @@ export default function AddScreen() {
                   ))}
                 </View>
 
-                <DocumentUpload
-                  title={t("property_ownership")}
-                  subtitle={t("ownership_verify")}
-                  files={ownershipDocs}
-                  setFiles={setOwnershipDocs}
-                  required
-                />
-                <DocumentUpload
-                  title={t("owner_identity")}
-                  subtitle={t("upload_identity")}
-                  files={identityDocs}
-                  setFiles={setIdentityDocs}
-                  required
-                />
+                {/* ✅ Property Ownership Documents */}
+<View className="bg-white rounded-lg p-4 mb-4 ml-5 mr-4 border border-gray-200">
+  <Text className="text-base font-semibold">{t('property_ownership')}</Text>
+  <Text className="text-gray-500 text-sm mt-1">{t('ownership_verify')}</Text>
+  
+  {isEditMode && existingDocuments.ownership.length > 0 ? (
+    <View className="mt-4">
+      <View className="flex-row items-center bg-green-50 border border-green-200 rounded-lg px-3 py-3">
+        <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
+        <View className="ml-3 flex-1">
+          <Text className="text-sm font-medium text-gray-800">
+            {existingDocuments.ownership.length} {existingDocuments.ownership.length === 1 ? 'document' : 'documents'} uploaded
+          </Text>
+          <Text className="text-xs text-gray-500 mt-1">Documents cannot be changed during edit</Text>
+        </View>
+      </View>
+    </View>
+  ) : !isEditMode ? (
+    <DocumentUpload
+      title={t("property_ownership")}
+      subtitle={t("ownership_verify")}
+      files={ownershipDocs}
+      setFiles={setOwnershipDocs}
+      required
+    />
+  ) : null}
+</View>
+
+{/* ✅ Owner Identity Documents */}
+<View className="bg-white rounded-lg p-4 mb-4 ml-5 mr-4 border border-gray-200">
+  <Text className="text-base font-semibold">{t('owner_identity')}</Text>
+  <Text className="text-gray-500 text-sm mt-1">{t('upload_identity')}</Text>
+  
+  {isEditMode && existingDocuments.identity.length > 0 ? (
+    <View className="mt-4">
+      <View className="flex-row items-center bg-green-50 border border-green-200 rounded-lg px-3 py-3">
+        <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
+        <View className="ml-3 flex-1">
+          <Text className="text-sm font-medium text-gray-800">
+            {existingDocuments.identity.length} {existingDocuments.identity.length === 1 ? 'document' : 'documents'} uploaded
+          </Text>
+          <Text className="text-xs text-gray-500 mt-1">{t('documents_locked')}</Text>
+        </View>
+      </View>
+    </View>
+  ) : !isEditMode ? (
+    <DocumentUpload
+      title={t("owner_identity")}
+      subtitle={t("upload_identity")}
+      files={identityDocs}
+      setFiles={setIdentityDocs}
+      required
+    />
+  ) : null}
+</View>
                 <OwnerDetails
                   ownerName={ownerName}
                   setOwnerName={setOwnerName}
@@ -1445,20 +1679,23 @@ export default function AddScreen() {
                   </Text>
                 </TouchableOpacity>
                 {/* Upload Property Button */}
-                <TouchableOpacity
-                  style={{
-                    backgroundColor: "#22C55E",
-                    paddingVertical: 12,
-                    paddingHorizontal: 20,
-                    borderRadius: 10,
-                  }}
-                  onPress={handleUpload}
-                  disabled={isSubmitting}
-                >
-                  <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
-                    {isSubmitting ? t("uploading") : t("upload_property")}
-                  </Text>
-                </TouchableOpacity>
+               <TouchableOpacity
+  style={{
+    backgroundColor: "#22C55E",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  }}
+  onPress={handleUpload}
+  disabled={isSubmitting}
+>
+  <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
+  {isSubmitting 
+    ? (isEditMode ? t('updating') : t('uploading'))
+    : (isEditMode ? t('update_property') : t('upload_property'))
+  }
+</Text>
+</TouchableOpacity>
               </View>
             </SafeAreaView>
             <Toast />
