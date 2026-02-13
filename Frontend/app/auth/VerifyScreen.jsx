@@ -171,7 +171,7 @@ const handleSendOTP = async () => {
 
   return (
     <>
-      <View className="flex-1 bg-white px-6 pt-14">
+      <View className="flex-1 bg-white px-4 pt-14">
         {/* Back Arrow */}
         <TouchableOpacity className="mb-6" onPress={() => router.back()}>
           <Image

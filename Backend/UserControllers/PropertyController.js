@@ -1438,11 +1438,11 @@ export const getPropertyById = async (req, res) => {
       });
     }
 
-    console.log('📦 Raw property data:', {
-      propertyTitle: property.propertyTitle,
-      location: property.location,
-      description: property.description
-    });
+    // console.log('📦 Raw property data:', {
+    //   propertyTitle: property.propertyTitle,
+    //   location: property.location,
+    //   description: property.description
+    // });
 
     if (property.status !== 'approved' &&
       property.userId._id.toString() !== req.user._id.toString() &&

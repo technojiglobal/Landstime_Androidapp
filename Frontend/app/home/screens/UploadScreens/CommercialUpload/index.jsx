@@ -160,6 +160,10 @@ export default function PropertyFormScreen() {
 
     // STEP 3: Restore from commercialBaseDetails (highest priority)
     // STEP 3: Restore from commercialBaseDetails (highest priority)
+    // In the useEffect that restores from params (around line 129)
+    // Replace the STEP 3 section with this updated version:
+
+    // STEP 3: Restore from commercialBaseDetails (highest priority)
     if (params.commercialBaseDetails) {
       try {
         const baseDetails = JSON.parse(params.commercialBaseDetails);
@@ -187,10 +191,11 @@ export default function PropertyFormScreen() {
           console.log('✅ Located inside restored from baseDetails:', baseDetails.locatedInside);
         }
 
-        // ✅ FIXED - Check for hospitalityType instead of hospitalityKind
-        if (baseDetails.hospitalityType) {
-          setHospitalityKinds([baseDetails.hospitalityType]);
-          console.log('✅ Hospitality type restored from baseDetails:', baseDetails.hospitalityType);
+        // ✅ FIXED - Support both hospitalityType AND hospitalityKind
+        const hospitalityValue = baseDetails.hospitalityType || baseDetails.hospitalityKind;
+        if (hospitalityValue) {
+          setHospitalityKinds([hospitalityValue]);
+          console.log('✅ Hospitality type restored from baseDetails:', hospitalityValue);
         }
 
         // ✅ Support both storageType and storageKind
@@ -265,7 +270,7 @@ export default function PropertyFormScreen() {
       if (!params.officeDetails && !params.hospitalityDetails &&
         !params.retailDetails && !params.plotDetails &&
         !params.storageDetails && !params.industryDetails &&
-        !params.commercialBaseDetails) {
+        !params.commercialBaseDetails && !params.hospitalityType) {
         console.log('🧹 Fresh entry - clearing all drafts');
 
         try {
@@ -349,6 +354,9 @@ export default function PropertyFormScreen() {
         }
 
         // Try loading Hospitality draft
+        // In the loadDraft useEffect (around line 243), modify the Hospitality draft loading section:
+
+        // Try loading Hospitality draft
         const hospitalityDraft = await AsyncStorage.getItem('draft_commercial_hospitality');
         if (hospitalityDraft) {
           const parsed = JSON.parse(hospitalityDraft);
@@ -356,7 +364,14 @@ export default function PropertyFormScreen() {
 
           if (parsed.selectedType) setSelectedType(parsed.selectedType);
           if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
-          if (parsed.hospitalityKind) setHospitalityKinds([parsed.hospitalityKind]);
+
+          // ✅ FIXED - Support both hospitalityType AND hospitalityKind
+          const hospitalityValue = parsed.hospitalityType || parsed.hospitalityKind;
+          if (hospitalityValue) {
+            setHospitalityKinds([hospitalityValue]);
+            console.log('✅ Hospitality kind restored from draft:', hospitalityValue);
+          }
+
           if (parsed.images) setImages(parsed.images);
           if (parsed.neighborhoodArea) {
             setNeighborhoodArea(parsed.neighborhoodArea);
@@ -369,7 +384,6 @@ export default function PropertyFormScreen() {
           console.log('✅ Hospitality draft loaded successfully');
           return;
         }
-
         // Try loading Plot draft
         const plotDraft = await AsyncStorage.getItem('draft_commercial_plot');
         if (plotDraft) {
