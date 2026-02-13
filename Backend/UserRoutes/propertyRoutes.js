@@ -26,13 +26,17 @@ router.post(
 
 router.get('/user/my-properties', verifyToken, propertyController.getUserProperties);
 
+// ✅ NEW CODE - Add this route
+router.patch('/user/:id/mark-sold', verifyToken, propertyController.userMarkPropertySold);
+
 // Admin routes - Use verifyAdmin instead
 router.get('/admin/all', verifyAdmin, propertyController.getAllProperties);
 router.get('/admin/pending', verifyAdmin, propertyController.getPendingProperties);
 router.get('/admin/debug', verifyAdmin, propertyController.debugProperties);
 router.patch('/admin/:id/status', verifyAdmin, propertyController.updatePropertyStatus);
+router.delete('/admin/:id', verifyAdmin, propertyController.softDeleteProperty);
 router.patch('/admin/:id/soft-delete', verifyAdmin, propertyController.softDeleteProperty);
-router.patch('/admin/:id/property-status', verifyAdmin, propertyController.updatePropertyAvailability);
+router.patch('/admin/:id/availability', verifyAdmin, propertyController.updatePropertyAvailability);
 router.put('/admin/:id/update', verifyAdmin, propertyController.adminUpdateProperty);
 
 
@@ -47,7 +51,7 @@ router.delete('/admin/:id/delete-document', verifyAdmin, propertyController.dele
 router.get('/similar/:propertyId', similarPropertiesController.getSimilarProperties);
 
 router.get('/:id', verifyToken, propertyController.getPropertyById);
-router.put('/:id', verifyToken, propertyController.updateProperty);
+router.put('/:id', verifyToken, uploadImages, handleUploadError, propertyController.updateProperty);
 router.delete('/:id', verifyToken, propertyController.deleteProperty);
 // Add this temporary route to Backend/UserRoutes/PropertyRoute.js
 router.get('/debug/my-properties', verifyToken, async (req, res) => {

@@ -130,9 +130,20 @@ email: {
 
   // Property availability status
   propertyStatus: {
-    type: String,
-    enum: ['Available', 'Sold'],
-    default: 'Available'
+  type: String,
+  enum: ['Available', 'Sold'],
+  default: 'Available'
+},
+
+soldBy: {
+  type: String,
+  enum: ['user', 'admin'],
+  default: null
+},
+
+  isVerified: {
+    type: Boolean,
+    default: false
   },
 
   // Site / Plot / Land specific fields

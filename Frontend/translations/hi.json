@@ -1436,5 +1436,13 @@
   "search_results_houses": "ఇళ్ళు",
   "search_results_sites": "స్థలాలు",
   "search_results_commercial": "వాణిజ్యం",
-  "search_results_resorts": "రిసార్ట్‌లు"
+  "search_results_resorts": "రిసార్ట్‌లు",
+  "edit_property": "प्रॉपर्टी संपादित करें",
+  "update_property_details": "प्रॉपर्टी विवरण अपडेट करें",
+  "updating": "अपडेट हो रहा है...",
+  "update_property": "प्रॉपर्टी अपडेट करें",
+  "property_updated_successfully": "प्रॉपर्टी सफलतापूर्वक अपडेट की गई",
+  "failed_to_update_property": "प्रॉपर्टी अपडेट करने में विफल",
+  "documents_locked": "संपादन के दौरान दस्तावेज़ बदले नहीं जा सकते",
+  "property_type_locked": "प्रॉपर्टी का प्रकार बदला नहीं जा सकता"
 }

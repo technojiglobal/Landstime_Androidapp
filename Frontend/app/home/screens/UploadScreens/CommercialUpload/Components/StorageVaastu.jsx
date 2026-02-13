@@ -101,6 +101,34 @@ export default function VastuDetailsScreen() {
     loadDraft();
   }, [commercialDetails]);
 
+
+  // ✅ NEW - Load property data in edit mode  
+useEffect(() => {
+  if (params.editMode === 'true' && commercialDetails?.storageDetails?.vastuDetails) {
+    try {
+      const vastu = commercialDetails.storageDetails.vastuDetails;
+      
+      console.log('📝 Loading storage vastu for edit');
+      
+      setForm({
+        buildingFacing: vastu.buildingFacing || "",
+        entrance: vastu.entrance || "",
+        storageArea: vastu.storageArea || "",
+        lightGoods: vastu.lightGoods || "",
+        loading: vastu.loading || "",
+        office: vastu.office || "",
+        electrical: vastu.electrical || "",
+        water: vastu.water || "",
+        washroom: vastu.washroom || "",
+        height: vastu.height || "",
+      });
+      
+      console.log('✅ Storage vastu loaded for edit');
+    } catch (error) {
+      console.error('❌ Error loading storage vastu:', error);
+    }
+  }
+}, [params.editMode, commercialDetails]);
   // Auto-save Vaastu draft
   useEffect(() => {
     const saveDraft = async () => {

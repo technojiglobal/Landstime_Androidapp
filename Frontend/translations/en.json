@@ -1436,5 +1436,13 @@
   "search_results_houses": "Houses",
   "search_results_sites": "Sites",
   "search_results_commercial": "Commercial",
-  "search_results_resorts": "Resorts"
+  "search_results_resorts": "Resorts",
+  "edit_property": "Edit Property",
+  "update_property_details": "Update property details",
+  "updating": "Updating...",
+  "update_property": "Update Property",
+  "property_updated_successfully": "Property updated successfully",
+  "failed_to_update_property": "Failed to update property",
+  "documents_locked": "Documents cannot be changed during edit",
+  "property_type_locked": "Property type cannot be changed"
 }

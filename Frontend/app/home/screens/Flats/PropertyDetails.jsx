@@ -1016,32 +1016,47 @@ export default function PropertyListScreen() {
                 }}
               >
                 <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => router.push({
-                    pathname: '/home/screens/Flats/(Property)',
-                    params: {
-                      propertyId: item._id,
-                      propertyData: JSON.stringify(item),
-                      areaKey: item.areaKey || areaKey,
-                      entityType: 'property'
-                    }
-                  })}
-                >
-                  <Image
-                    source={
-                      item.images && item.images.length > 0
-                        ? { uri: getImageUrl(item.images[0]) }
-                        : require("../../../../assets/Flat1.jpg")
-                    }
-                    style={{
-                      width: CARD_WIDTH,
-                      height: 163,
-                      borderTopLeftRadius: 17,
-                      borderTopRightRadius: 17,
-                    }}
-                    resizeMode="cover"
-                  />
-                </TouchableOpacity>
+  activeOpacity={0.8}
+  onPress={() => router.push({
+    pathname: '/home/screens/Flats/(Property)',
+    params: {
+      propertyId: item._id,
+      propertyData: JSON.stringify(item),
+      areaKey: item.areaKey || areaKey,
+      entityType: 'property'
+    }
+  })}
+>
+  <Image
+    source={
+      item.images && item.images.length > 0
+        ? { uri: getImageUrl(item.images[0]) }
+        : require("../../../../assets/Flat1.jpg")
+    }
+    style={{
+      width: CARD_WIDTH,
+      height: 163,
+      borderTopLeftRadius: 17,
+      borderTopRightRadius: 17,
+    }}
+    resizeMode="cover"
+  />
+
+  {/* ✅ NEW CODE - Sold Out Badge */}
+  {item.propertyStatus === 'Sold' && (
+    <View
+      className="absolute bg-red-600 rounded-full px-3 py-1.5"
+      style={{
+        top: 12,
+        left: 12,
+      }}
+    >
+      <Text className="text-white text-xs font-bold">
+        Sold Out
+      </Text>
+    </View>
+  )}
+</TouchableOpacity>
 
                 <TouchableOpacity
                   onPress={() => handleToggleSave(item._id)}
@@ -1062,54 +1077,64 @@ export default function PropertyListScreen() {
                 </TouchableOpacity>
 
                 <View style={{ paddingHorizontal: 12, paddingTop: 10 }}>
-                  <TouchableOpacity
-                    activeOpacity={0.6}
-                    onPress={() => router.push({
-                      pathname: '/home/screens/Flats/(Property)',
-                      params: {
-                        propertyId: item._id,
-                        areaKey: item.areaKey || areaKey,
-                        entityType: 'property'
-                      }
-                    })}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: "Poppins-Medium",
-                        fontWeight: "500",
-                        fontSize: 12,
-                        color: "#16A34A",
-                        marginTop: 5,
-                      }}
-                    >
-                      {getLocalizedText(item.propertyTitle, currentLanguage) || 'Property'}
-                    </Text>
-                  </TouchableOpacity>
 
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      marginTop: 3,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: "Poppins-Regular",
-                        fontSize: 11,
-                        color: "#6B7280",
-                        maxWidth: "60%",
-                      }}
-                    >
-                      {item.propertyType || 'Property Type'}
-                    </Text>
-                    <Image
-                      source={require("../../../../assets/verify.png")}
-                      style={{ width: 45, height: 16, resizeMode: "contain", marginTop: 1 }}
-                    />
-                  </View>
+                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginTop: 5 }}>
+  <TouchableOpacity
+    activeOpacity={0.6}
+    onPress={() => router.push({
+      pathname: '/home/screens/Flats/(Property)',
+      params: {
+        propertyId: item._id,
+        areaKey: item.areaKey || areaKey,
+        entityType: 'property'
+      }
+    })}
+    style={{ flex: 1 }}
+  >
+    <Text
+      style={{
+        fontFamily: "Poppins-Medium",
+        fontWeight: "500",
+        fontSize: 12,
+        color: "#16A34A",
+      }}
+    >
+      {getLocalizedText(item.propertyTitle, currentLanguage) || 'Property'}
+    </Text>
+  </TouchableOpacity>
 
+  {/* ✅ Verified Badge - Right aligned */}
+  {item.isVerified && (
+    <View style={{ 
+      backgroundColor: "#22C55E", 
+      paddingHorizontal: 6, 
+      paddingVertical: 2, 
+      borderRadius: 3,
+      marginLeft: 8
+    }}>
+      <Text style={{ 
+        color: "white", 
+        fontSize: 8, 
+        fontFamily: "Poppins-Medium",
+        fontWeight: "600"
+      }}>
+        ✓ Verified
+      </Text>
+    </View>
+  )}
+</View>
+
+{/* Property Type */}
+<Text
+  style={{
+    fontFamily: "Poppins-Regular",
+    fontSize: 11,
+    color: "#6B7280",
+    marginTop: 3,
+  }}
+>
+  {item.propertyType || 'Property Type'}
+</Text>
                   <View className="flex-row items-center mb-1 mt-2">
                     <Ionicons name="star" size={14} color="#FF9500" />
                     <Text className="text-xs mx-3 text-gray-700">

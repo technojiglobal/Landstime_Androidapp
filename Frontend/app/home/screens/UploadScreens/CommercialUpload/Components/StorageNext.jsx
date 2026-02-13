@@ -137,7 +137,37 @@ const StorageNext = () => {
 
   // Load draft from AsyncStorage
   useEffect(() => {
-    const loadDraft = async () => {
+  const loadDraft = async () => {
+    // ✅ PRIORITY 1: Load from edit mode first
+    if (params.editMode === 'true' && commercialDetails?.storageDetails) {
+      try {
+        const storage = commercialDetails.storageDetails;
+        console.log('📝 Loading storage pricing for edit');
+        
+        setOwnership(storage.ownership || '');
+        setExpectedPrice(storage.expectedPrice?.toString() || '');
+        setAllInclusive(storage.priceDetails?.allInclusive || false);
+        setPriceNegotiable(storage.priceDetails?.negotiable || false);
+        setTaxExcluded(storage.priceDetails?.taxExcluded || false);
+        setIndustryApprovedBy(storage.authority || '');
+        setApprovedIndustryType(storage.approvedIndustryType || '');
+        setPreLeased(storage.preLeased || null);
+        setLeaseDuration(storage.leaseDuration || '');
+        setMonthlyRent(storage.monthlyRent?.toString() || '');
+        setDescribeProperty(storage.description || '');
+        setWheelchairFriendly(storage.wheelchairFriendly || false);
+        setAmenities(storage.amenities || []);
+        setLocAdvantages(storage.locationAdvantages || []);
+        
+        console.log('✅ Storage pricing loaded for edit');
+        return; // Exit early, don't load draft
+      } catch (error) {
+        console.error('❌ Error loading storage pricing:', error);
+      }
+    }
+
+    // ✅ PRIORITY 2: Load from draft (only in create mode)
+    if (params.editMode !== 'true') {
       try {
         const draft = await AsyncStorage.getItem('draft_storage_pricing');
         if (draft) {
@@ -155,7 +185,7 @@ const StorageNext = () => {
           setLeaseDuration(savedData.leaseDuration || '');
           setMonthlyRent(savedData.monthlyRent?.toString() || '');
           setDescribeProperty(savedData.describeProperty || '');
-          setWheelchairFriendly(parsed.wheelchairFriendly || false);
+          setWheelchairFriendly(savedData.wheelchairFriendly || false);
           if (Array.isArray(savedData.amenities)) {
             setAmenities(savedData.amenities);
           }
@@ -169,9 +199,11 @@ const StorageNext = () => {
       } catch (e) {
         console.log('⚠️ Failed to load Storage pricing draft:', e);
       }
+    }
 
-      // Fallback to params
-      if (commercialDetails?.storageDetails) {
+    // ✅ PRIORITY 3: Fallback to params
+// ✅ PRIORITY 3: Fallback to params (only if not in edit mode and no draft)
+    if (params.editMode !== 'true' && commercialDetails?.storageDetails) {
         const storage = commercialDetails.storageDetails;
 
         setOwnership(storage.ownership || '');
@@ -185,6 +217,7 @@ const StorageNext = () => {
         setLeaseDuration(storage.leaseDuration || '');
         setMonthlyRent(storage.monthlyRent?.toString() || '');
         setDescribeProperty(storage.description || '');
+        setWheelchairFriendly(storage.wheelchairFriendly || false);
 
         const restoredAmenities = storage.amenities || [];
         const restoredLocAdvantages = storage.locationAdvantages || storage.locAdvantages || [];
@@ -200,42 +233,78 @@ const StorageNext = () => {
     };
 
     loadDraft();
-  }, [commercialDetails]);
+  }, [params.editMode, params.propertyData, commercialDetails]);
 
-  // Auto-save pricing draft
-  useEffect(() => {
-    const saveDraft = async () => {
-      const pricingDraft = {
-        ownership,
-        expectedPrice,
-        allInclusive,
-        priceNegotiable,
-        taxExcluded,
-        IndustryApprovedBy,
-        approvedIndustryType,
-        preLeased,
-        leaseDuration,
-        monthlyRent,
-        describeProperty,
-        amenities,
-        locAdvantages,
-        wheelchairFriendly,
-        timestamp: new Date().toISOString(),
-      };
+// Auto-save pricing draft
+useEffect(() => {
+  // ✅ DON'T auto-save in edit mode
+  if (params.editMode === 'true') {
+    return;
+  }
 
-      try {
-        await AsyncStorage.setItem('draft_storage_pricing', JSON.stringify(pricingDraft));
-        console.log('💾 Storage pricing draft auto-saved');
-      } catch (e) {
-        console.log('⚠️ Failed to save Storage pricing draft:', e);
-      }
+  const saveDraft = async () => {
+    const pricingDraft = {
+      ownership,
+      expectedPrice,
+      allInclusive,
+      priceNegotiable,
+      taxExcluded,
+      IndustryApprovedBy,
+      approvedIndustryType,
+      preLeased,
+      leaseDuration,
+      monthlyRent,
+      describeProperty,
+      amenities,
+      locAdvantages,
+      wheelchairFriendly,
+      timestamp: new Date().toISOString(),
     };
 
-    const timer = setTimeout(saveDraft, 1000);
-    return () => clearTimeout(timer);
-  }, [ownership, expectedPrice, allInclusive, priceNegotiable, taxExcluded,
-    IndustryApprovedBy, approvedIndustryType, preLeased, leaseDuration,
-    monthlyRent, describeProperty, wheelchairFriendly, amenities, locAdvantages]);
+    try {
+      await AsyncStorage.setItem('draft_storage_pricing', JSON.stringify(pricingDraft));
+      console.log('💾 Storage pricing draft auto-saved');
+    } catch (e) {
+      console.log('⚠️ Failed to save Storage pricing draft:', e);
+    }
+  };
+
+  const timer = setTimeout(saveDraft, 1000);
+  return () => clearTimeout(timer);
+}, [params.editMode, ownership, expectedPrice, allInclusive, priceNegotiable, taxExcluded,
+  IndustryApprovedBy, approvedIndustryType, preLeased, leaseDuration,
+  monthlyRent, describeProperty, wheelchairFriendly, amenities, locAdvantages]);
+
+//     // ✅ NEW - Load property data in edit mode
+// useEffect(() => {
+//   if (params.editMode === 'true' && commercialDetails?.storageDetails) {
+//     try {
+//       const storage = commercialDetails.storageDetails;
+      
+//       console.log('📝 Loading storage pricing for edit');
+      
+//       setOwnership(storage.ownership || '');
+//       setExpectedPrice(storage.expectedPrice?.toString() || '');
+//       setAllInclusive(storage.priceDetails?.allInclusive || false);
+//       setPriceNegotiable(storage.priceDetails?.negotiable || false);
+//       setTaxExcluded(storage.priceDetails?.taxExcluded || false);
+//       setIndustryApprovedBy(storage.authority || '');
+//       setApprovedIndustryType(storage.approvedIndustryType || '');
+//       setPreLeased(storage.preLeased || null);
+//       setLeaseDuration(storage.leaseDuration || '');
+//       setMonthlyRent(storage.monthlyRent?.toString() || '');
+//       setDescribeProperty(storage.description || '');
+//       setWheelchairFriendly(storage.wheelchairFriendly || false);
+//       setAmenities(storage.amenities || []);
+//       setLocAdvantages(storage.locationAdvantages || []);
+      
+//       console.log('✅ Storage pricing loaded for edit');
+//     } catch (error) {
+//       console.error('❌ Error loading storage pricing:', error);
+//     }
+//   }
+// }, [params.editMode, commercialDetails]);
+
 
   /* ---------------- HELPERS ---------------- */
   const toggleArrayItem = (setter, array, value) => {
