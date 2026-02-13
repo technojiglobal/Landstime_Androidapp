@@ -334,7 +334,7 @@ if (response?.success && response?.data?.success) {
       >
         {/* Back Arrow */}
         <TouchableOpacity className="mb-6" onPress={() => router.push("/auth")}>
-          <ChevronLeft color="gray" size={25} />
+          <ChevronLeft color="gray" size={28} />
         </TouchableOpacity>
 
         {/* Title */}

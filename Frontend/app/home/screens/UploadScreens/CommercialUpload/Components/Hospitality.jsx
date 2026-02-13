@@ -62,65 +62,65 @@ export default function Hospitality() {
 
     /* ---------- VALIDATION ---------- */
     /* ---------- VALIDATION ---------- */
-const handleNext = () => {
-    if (!location.trim()) {
-        Toast.show({ type: "error", text1: t('hospitality_location_required') });
-        return;
-    }
-    if (!neighborhoodArea.trim()) {
-        Toast.show({ type: "error", text1: t('hospitality_area_required') });
-        return;
-    }
-    if (!plotArea.trim()) {
-        Toast.show({ type: "error", text1: t('hospitality_plot_area_required') });
-        return;
-    }
-
-    // ✅ CRITICAL FIX - Extract hospitalityType from params
-    let hospitalityType = params.hospitalityType;
-    
-    if (params.commercialBaseDetails) {
-        try {
-            const baseDetails = JSON.parse(params.commercialBaseDetails);
-            hospitalityType = baseDetails.hospitalityType || hospitalityType;
-        } catch (e) {
-            console.log('⚠️ Could not parse commercialBaseDetails:', e);
+    const handleNext = () => {
+        if (!location.trim()) {
+            Toast.show({ type: "error", text1: t('hospitality_location_required') });
+            return;
         }
-    }
+        if (!neighborhoodArea.trim()) {
+            Toast.show({ type: "error", text1: t('hospitality_area_required') });
+            return;
+        }
+        if (!plotArea.trim()) {
+            Toast.show({ type: "error", text1: t('hospitality_plot_area_required') });
+            return;
+        }
 
-    console.log('🔄 Hospitality handleNext - hospitalityType:', hospitalityType); // ✅ Debug log
+        // ✅ CRITICAL FIX - Extract hospitalityType from params
+        let hospitalityType = params.hospitalityType;
 
-    const commercialDetails = {
-        subType: "Hospitality",
-        hospitalityDetails: {
-            hospitalityType: hospitalityType, // ✅ CRITICAL - Add this line
-            location,
-            neighborhoodArea: neighborhoodArea.trim(),
-            rooms,
-            washroomType,
-            balconies,
-            otherRooms,
-            furnishingType,
-            furnishingDetails,
-            area: { value: Number(plotArea), unit },
-            areaUnit: unit,
-            availability,
-            ageOfProperty,
-            possessionBy,
-            expectedMonth,
-        },
+        if (params.commercialBaseDetails) {
+            try {
+                const baseDetails = JSON.parse(params.commercialBaseDetails);
+                hospitalityType = baseDetails.hospitalityType || hospitalityType;
+            } catch (e) {
+                console.log('⚠️ Could not parse commercialBaseDetails:', e);
+            }
+        }
+
+        console.log('🔄 Hospitality handleNext - hospitalityType:', hospitalityType); // ✅ Debug log
+
+        const commercialDetails = {
+            subType: "Hospitality",
+            hospitalityDetails: {
+                hospitalityType: hospitalityType, // ✅ CRITICAL - Add this line
+                location,
+                neighborhoodArea: neighborhoodArea.trim(),
+                rooms,
+                washroomType,
+                balconies,
+                otherRooms,
+                furnishingType,
+                furnishingDetails,
+                area: { value: Number(plotArea), unit },
+                areaUnit: unit,
+                availability,
+                ageOfProperty,
+                possessionBy,
+                expectedMonth,
+            },
+        };
+
+        router.push({
+            pathname: "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityNext",
+            params: {
+                commercialDetails: JSON.stringify(commercialDetails),
+                images: JSON.stringify(images),
+                area: neighborhoodArea.trim(),
+                hospitalityType: hospitalityType, // ✅ Pass it forward
+            },
+        });
     };
-
-    router.push({
-        pathname: "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityNext",
-        params: {
-            commercialDetails: JSON.stringify(commercialDetails),
-            images: JSON.stringify(images),
-            area: neighborhoodArea.trim(),
-            hospitalityType: hospitalityType, // ✅ Pass it forward
-        },
-    });
-};
     const [focusedField, setFocusedField] = useState(null);
     const [visible, setVisible] = useState(null);
 
@@ -145,6 +145,8 @@ const handleNext = () => {
     const [showMonthDropdown, setShowMonthDropdown] = useState(false);
     const [hospitalityType, setHospitalityType] = useState("");
     // ✅ Load draft from AsyncStorage on mount
+    // In Hospitality.jsx - Modify the loadDraft useEffect (around line 114)
+
     useEffect(() => {
         const loadDraft = async () => {
             try {
@@ -156,7 +158,7 @@ const handleNext = () => {
                     setLocation(savedData.location || '');
                     setNeighborhoodArea(savedData.neighborhoodArea || savedData.area || params.area || '');
                     setPlotArea(savedData.plotArea?.toString() || '');
-                    setPropertyTitle(savedData.propertyTitle || params.propertyTitle || ''); // ✅ ADD THIS LINE
+                    setPropertyTitle(savedData.propertyTitle || params.propertyTitle || '');
                     setUnit(savedData.unit || 'sqft');
                     setRooms(savedData.rooms?.toString() || '');
                     setWashroomType(savedData.washroomType || null);
@@ -168,8 +170,13 @@ const handleNext = () => {
                     setAgeOfProperty(savedData.ageOfProperty || null);
                     setPossessionBy(savedData.possessionBy || '');
                     setExpectedMonth(savedData.expectedMonth || '');
-                    setHospitalityType(savedData.hospitalityType || params.hospitalityType || '');
+
+                    // ✅ FIXED - Support both field names
+                    const hospitalityValue = savedData.hospitalityType || savedData.hospitalityKind || params.hospitalityType;
+                    setHospitalityType(hospitalityValue || '');
+
                     console.log('✅ Hospitality draft loaded from AsyncStorage');
+                    console.log('✅ Hospitality type restored:', hospitalityValue);
                     return;
                 }
             } catch (e) {
@@ -181,12 +188,31 @@ const handleNext = () => {
                 setNeighborhoodArea(params.area);
                 console.log('✅ Area set from params.area:', params.area);
             }
+
+            // ✅ FALLBACK: Load hospitalityType from params
+            if (params.hospitalityType || params.commercialBaseDetails) {
+                let hospitalityValue = params.hospitalityType;
+
+                if (params.commercialBaseDetails) {
+                    try {
+                        const baseDetails = JSON.parse(params.commercialBaseDetails);
+                        hospitalityValue = baseDetails.hospitalityType || hospitalityValue;
+                    } catch (e) {
+                        console.log('⚠️ Could not parse commercialBaseDetails:', e);
+                    }
+                }
+
+                setHospitalityType(hospitalityValue || '');
+                console.log('✅ Hospitality type set from params:', hospitalityValue);
+            }
         };
 
         loadDraft();
-    }, [params.area]);
+    }, [params.area, params.hospitalityType, params.commercialBaseDetails]);
 
     // ✅ Auto-save draft
+    // In the auto-save useEffect (around line 158), add hospitalityType to the draftData:
+
     useEffect(() => {
         const saveDraft = async () => {
             const draftData = {
@@ -196,7 +222,7 @@ const handleNext = () => {
                 plotArea,
                 unit,
                 rooms,
-                propertyTitle, // ✅ ADD THIS LINE
+                propertyTitle,
                 washroomType,
                 balconies,
                 otherRooms,
@@ -206,6 +232,7 @@ const handleNext = () => {
                 ageOfProperty,
                 possessionBy,
                 expectedMonth,
+                hospitalityType, // ✅ ADD THIS LINE
                 timestamp: new Date().toISOString(),
             };
 
@@ -219,9 +246,9 @@ const handleNext = () => {
 
         const timer = setTimeout(saveDraft, 1000);
         return () => clearTimeout(timer);
-   }, [location, neighborhoodArea, plotArea, unit, rooms, washroomType, balconies,
-    otherRooms, furnishingType, furnishingDetails, availability, ageOfProperty,
-    possessionBy, expectedMonth, propertyTitle]); // ✅ ADD propertyTitle HERE
+    }, [location, neighborhoodArea, plotArea, unit, rooms, washroomType, balconies,
+        otherRooms, furnishingType, furnishingDetails, availability, ageOfProperty,
+        possessionBy, expectedMonth, propertyTitle, hospitalityType]); // ✅ ADD hospitalityType HERE// ✅ ADD propertyTitle HERE
 
     const toggleOtherRoom = (room) => {
         setOtherRooms((prev) =>
@@ -276,60 +303,60 @@ const handleNext = () => {
             <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
                 {/* HEADER */}
                 <View className="flex-row items-center mt-7 mb-4">
-               <TouchableOpacity
-  onPress={() => {
-    const currentData = {
-      location,
-      neighborhoodArea,
-      plotArea,
-      unit,
-      rooms,
-      washroomType,
-      balconies,
-      otherRooms,
-      furnishingType,
-      furnishingDetails,
-      availability,
-      ageOfProperty,
-      possessionBy,
-      expectedMonth,
-      propertyTitle,
-    };
+                    <TouchableOpacity
+                        onPress={() => {
+                            const currentData = {
+                                location,
+                                neighborhoodArea,
+                                plotArea,
+                                unit,
+                                rooms,
+                                washroomType,
+                                balconies,
+                                otherRooms,
+                                furnishingType,
+                                furnishingDetails,
+                                availability,
+                                ageOfProperty,
+                                possessionBy,
+                                expectedMonth,
+                                propertyTitle,
+                            };
 
-    // ✅ FIXED - Extract hospitalityType from commercialBaseDetails
-    let hospitalityType = params.hospitalityType;
-    let savedPropertyTitle = propertyTitle || params.propertyTitle || '';
-    
-    if (params.commercialBaseDetails) {
-      try {
-        const baseDetails = JSON.parse(params.commercialBaseDetails);
-        hospitalityType = baseDetails.hospitalityType || hospitalityType;
-        savedPropertyTitle = baseDetails.propertyTitle || savedPropertyTitle;
-      } catch (e) {
-        console.log('⚠️ Could not parse commercialBaseDetails:', e);
-      }
-    }
+                            // ✅ FIXED - Extract hospitalityType from commercialBaseDetails
+                            let hospitalityType = params.hospitalityType;
+                            let savedPropertyTitle = propertyTitle || params.propertyTitle || '';
 
-    // ✅ IMPORTANT - Log to verify hospitalityType is being passed
-   // console.log('🔙 Going back with hospitalityType:', hospitalityType);
+                            if (params.commercialBaseDetails) {
+                                try {
+                                    const baseDetails = JSON.parse(params.commercialBaseDetails);
+                                    hospitalityType = baseDetails.hospitalityType || hospitalityType;
+                                    savedPropertyTitle = baseDetails.propertyTitle || savedPropertyTitle;
+                                } catch (e) {
+                                    console.log('⚠️ Could not parse commercialBaseDetails:', e);
+                                }
+                            }
 
-    router.push({
-      pathname: "/home/screens/UploadScreens/CommercialUpload",
-      params: {
-        hospitalityDetails: JSON.stringify(currentData),
-        images: JSON.stringify(images),
-        area: neighborhoodArea.trim(),
-        hospitalityType: hospitalityType, // ✅ ADD THIS LINE
-        commercialBaseDetails: JSON.stringify({
-          subType: "Hospitality",
-          hospitalityType: hospitalityType, // ✅ CRITICAL - Include hospitalityType
-          propertyTitle: savedPropertyTitle,
-        }),
-      },
-    });
-  }}
-  className="p-2"
->
+                            // ✅ IMPORTANT - Log to verify hospitalityType is being passed
+                            // console.log('🔙 Going back with hospitalityType:', hospitalityType);
+
+                            router.push({
+                                pathname: "/home/screens/UploadScreens/CommercialUpload",
+                                params: {
+                                    hospitalityDetails: JSON.stringify(currentData),
+                                    images: JSON.stringify(images),
+                                    area: neighborhoodArea.trim(),
+                                    hospitalityType: hospitalityType, // ✅ ADD THIS LINE
+                                    commercialBaseDetails: JSON.stringify({
+                                        subType: "Hospitality",
+                                        hospitalityType: hospitalityType, // ✅ CRITICAL - Include hospitalityType
+                                        propertyTitle: savedPropertyTitle,
+                                    }),
+                                },
+                            });
+                        }}
+                        className="p-2"
+                    >
                         <Image
                             source={require("../../../../../../assets/arrow.png")}
                             style={{ width: 20, height: 20 }}
@@ -550,7 +577,7 @@ const handleNext = () => {
                                 className="bg-[#D9D9D91C] rounded-lg p-3 flex-row justify-between items-center border border-gray-300 mb-3"
                             >
                                 <Text className="text-gray-800 text-left">{possessionBy || t('hospitality_expected_by')}</Text>
-                               <Ionicons name="chevron-down" size={18} />
+                                <Ionicons name="chevron-down" size={18} />
                             </TouchableOpacity>
 
                             {visible === "possessionBy" && (
@@ -613,8 +640,36 @@ const handleNext = () => {
             {/* FOOTER */}
             <View className="bg-white border-t border-gray-200">
                 <View className="flex-row justify-end mt-4 mx-3 mb-12">
-                    <TouchableOpacity className="px-8 py-3 rounded-lg bg-gray-200 mx-3"
-                        onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload")}>
+                    <TouchableOpacity
+                        className="px-8 py-3 rounded-lg bg-gray-200 mx-3"
+                        onPress={() => {
+                            // ✅ Extract hospitalityType from params
+                            let hospitalityTypeValue = hospitalityType || params.hospitalityType;
+
+                            if (params.commercialBaseDetails) {
+                                try {
+                                    const baseDetails = JSON.parse(params.commercialBaseDetails);
+                                    hospitalityTypeValue = baseDetails.hospitalityType || hospitalityTypeValue;
+                                } catch (e) {
+                                    console.log('⚠️ Could not parse commercialBaseDetails:', e);
+                                }
+                            }
+
+                            router.push({
+                                pathname: "/home/screens/UploadScreens/CommercialUpload",
+                                params: {
+                                    images: JSON.stringify(images),
+                                    area: neighborhoodArea || params.area,
+                                    hospitalityType: hospitalityTypeValue,
+                                    commercialBaseDetails: JSON.stringify({
+                                        subType: "Hospitality",
+                                        hospitalityType: hospitalityTypeValue,
+                                        propertyTitle: propertyTitle || params.propertyTitle || '',
+                                    }),
+                                },
+                            });
+                        }}
+                    >
                         <Text className="font-semibold">{t('button_cancel')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity

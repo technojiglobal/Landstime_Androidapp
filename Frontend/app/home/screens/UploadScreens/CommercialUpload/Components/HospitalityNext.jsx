@@ -601,7 +601,7 @@ const HospitalityNext = () => {
                 <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-12">
                     <TouchableOpacity
                         className="px-10 py-3 rounded-lg bg-gray-200 mx-3"
-                        onPress={() => router.back()}
+                        onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload/Components/Hospitality") }
                     >
                         <Text className="font-semibold">{t('button_cancel')}</Text>
                     </TouchableOpacity>
