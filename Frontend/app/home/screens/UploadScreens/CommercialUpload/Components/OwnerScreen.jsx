@@ -7,7 +7,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import DocumentUpload from "components/Documentupload";
 import OwnerDetails from "components/OwnersDetails";
-import { createProperty } from "utils/propertyApi";
+import { createProperty,updateProperty } from "utils/propertyApi";
 import Toast from 'react-native-toast-message';
 
 export default function OwnerScreen() {
@@ -15,6 +15,11 @@ export default function OwnerScreen() {
   const { i18n } = useTranslation();
   const params = useLocalSearchParams();
   const rawCommercialDetails = params.commercialDetails;
+
+  const [existingDocuments, setExistingDocuments] = useState({
+  ownership: [],
+  identity: []
+});
 
   const getUserLanguage = () => {
     const currentLang = i18n.language || 'en';
@@ -148,37 +153,72 @@ export default function OwnerScreen() {
     }
   }, [commercialDetails?.subType]);
 
-  // ✅ Load draft on mount ONCE
-  useEffect(() => {
-    const loadDraft = async () => {
-      try {
-        const draft = await AsyncStorage.getItem('draft_owner_screen');
-        if (draft) {
-          const parsed = JSON.parse(draft);
-          console.log('📦 Loading OwnerScreen draft from AsyncStorage');
-
-          if (parsed.subType === commercialDetails?.subType) {
-            if (!ownerName && parsed.ownerName) setOwnerName(parsed.ownerName);
-            if (!phone && parsed.phone) setPhone(parsed.phone);
-            if (!email && parsed.email) setEmail(parsed.email);
-
-            if (ownershipDocs.length === 0 && parsed.ownershipDocs?.length > 0) {
-              setOwnershipDocs(parsed.ownershipDocs);
-            }
-            if (identityDocs.length === 0 && parsed.identityDocs?.length > 0) {
-              setIdentityDocs(parsed.identityDocs);
-            }
-
-            console.log('✅ OwnerScreen draft loaded successfully');
+useEffect(() => {
+  const loadDraft = async () => {
+    try {
+      // ✅ FIRST: Load existing documents in edit mode
+      if (params.editMode === 'true') {
+        console.log('📝 Edit mode detected - loading existing documents');
+        
+        // Try to get documents from commercialDetails
+        let documents = null;
+        
+        if (commercialDetails?.documents) {
+          documents = commercialDetails.documents;
+        } else if (params.propertyData) {
+          try {
+            const propertyData = typeof params.propertyData === 'string' 
+              ? JSON.parse(params.propertyData) 
+              : params.propertyData;
+            documents = propertyData.documents;
+          } catch (e) {
+            console.log('⚠️ Could not parse propertyData for documents:', e);
           }
         }
-      } catch (e) {
-        console.log('⚠️ Failed to load OwnerScreen draft:', e);
+        
+        if (documents) {
+          setExistingDocuments({
+            ownership: documents.ownership || [],
+            identity: documents.identity || []
+          });
+          console.log('✅ Loaded existing documents:', {
+            ownership: documents.ownership?.length || 0,
+            identity: documents.identity?.length || 0
+          });
+        }
+        
+        // ✅ In edit mode, don't load draft - return early
+        return;
       }
-    };
+      
+      // ✅ SECOND: Load draft (only in create mode)
+      const draft = await AsyncStorage.getItem('draft_owner_screen');
+      if (draft) {
+        const parsed = JSON.parse(draft);
+        console.log('📦 Loading OwnerScreen draft from AsyncStorage');
 
-    loadDraft();
-  }, []);
+        if (parsed.subType === commercialDetails?.subType) {
+          if (!ownerName && parsed.ownerName) setOwnerName(parsed.ownerName);
+          if (!phone && parsed.phone) setPhone(parsed.phone);
+          if (!email && parsed.email) setEmail(parsed.email);
+
+          if (ownershipDocs.length === 0 && parsed.ownershipDocs?.length > 0) {
+            setOwnershipDocs(parsed.ownershipDocs);
+          }
+          if (identityDocs.length === 0 && parsed.identityDocs?.length > 0) {
+            setIdentityDocs(parsed.identityDocs);
+          }
+
+          console.log('✅ OwnerScreen draft loaded successfully');
+        }
+      }
+    } catch (e) {
+      console.log('⚠️ Failed to load OwnerScreen data:', e);
+    }
+  };
+
+  loadDraft();
+}, [params.editMode, params.propertyData, commercialDetails]);
 
   // ✅ Auto-save with debounce
   useEffect(() => {
@@ -372,7 +412,16 @@ export default function OwnerScreen() {
         ? images.map(img => typeof img === 'string' ? img : img.uri)
         : [];
 
-      const result = await createProperty(propertyData, imageUris, ownershipDocs, identityDocs);
+      let result;
+
+if (params.editMode === 'true' && params.propertyId) {
+  // ✅ UPDATE MODE
+  console.log('📡 Calling updateProperty API...');
+  result = await updateProperty(params.propertyId, propertyData, imageUris);
+} else {
+  // ✅ CREATE MODE
+  result = await createProperty(propertyData, imageUris, ownershipDocs, identityDocs);
+}
 
       if (!result.success) {
         throw new Error(result.error || result.data?.message || "Upload failed");
@@ -418,12 +467,22 @@ export default function OwnerScreen() {
         console.log('⚠️ Failed to clear drafts:', e);
       }
 
-      Alert.alert("Success", "Property uploaded successfully!", [
-        {
-          text: "OK",
-          onPress: () => router.push("/(tabs)/home"),
-        },
-      ]);
+     Alert.alert(
+  "Success", 
+  params.editMode === 'true' 
+    ? "Property updated successfully!" 
+    : "Property uploaded successfully!", 
+  [
+    {
+      text: "OK",
+      onPress: () => router.push(
+        params.editMode === 'true' 
+          ? "/home/screens/Sidebar/MyProperties" 
+          : "/(tabs)/home"
+      ),
+    },
+  ]
+);
     } catch (error) {
       console.error('❌ Upload error:', error);
 
@@ -491,20 +550,61 @@ export default function OwnerScreen() {
       keyboardShouldPersistTaps="handled"
     >
       <View className="px-4 mt-4 border border-gray-200 rounded-lg bg-white space-y-4 mb-4">
-        <DocumentUpload 
-          title="Property Ownership" 
-          subtitle="Verify ownership to publish your property listing securely." 
-          files={ownershipDocs} 
-          setFiles={setOwnershipDocs} 
-          required 
-        />
-        <DocumentUpload 
-          title="Owner Identity" 
-          subtitle="Upload PAN, Aadhaar, Passport or Driver's License" 
-          files={identityDocs} 
-          setFiles={setIdentityDocs} 
-          required 
-        />
+        {/* ✅ Property Ownership Documents */}
+<View className="mb-4">
+  <Text className="text-base font-semibold">Property Ownership</Text>
+  <Text className="text-gray-500 text-sm mt-1">Verify ownership to publish your property listing securely</Text>
+  
+  {params.editMode === 'true' && existingDocuments.ownership.length > 0 ? (
+    <View className="mt-4">
+      <View className="flex-row items-center bg-green-50 border border-green-200 rounded-lg px-3 py-3">
+        <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
+        <View className="ml-3 flex-1">
+          <Text className="text-sm font-medium text-gray-800">
+            {existingDocuments.ownership.length} {existingDocuments.ownership.length === 1 ? 'document' : 'documents'} uploaded
+          </Text>
+          <Text className="text-xs text-gray-500 mt-1">Documents cannot be changed during edit</Text>
+        </View>
+      </View>
+    </View>
+  ) : params.editMode !== 'true' ? (
+    <DocumentUpload 
+      title="Property Ownership" 
+      subtitle="Verify ownership to publish your property listing securely." 
+      files={ownershipDocs} 
+      setFiles={setOwnershipDocs} 
+      required 
+    />
+  ) : null}
+</View>
+
+{/* ✅ Owner Identity Documents */}
+<View className="mb-4">
+  <Text className="text-base font-semibold">Owner Identity</Text>
+  <Text className="text-gray-500 text-sm mt-1">Upload PAN, Aadhaar, Passport or Driver's License</Text>
+  
+  {params.editMode === 'true' && existingDocuments.identity.length > 0 ? (
+    <View className="mt-4">
+      <View className="flex-row items-center bg-green-50 border border-green-200 rounded-lg px-3 py-3">
+        <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
+        <View className="ml-3 flex-1">
+          <Text className="text-sm font-medium text-gray-800">
+            {existingDocuments.identity.length} {existingDocuments.identity.length === 1 ? 'document' : 'documents'} uploaded
+          </Text>
+          <Text className="text-xs text-gray-500 mt-1">Documents cannot be changed during edit</Text>
+        </View>
+      </View>
+    </View>
+  ) : params.editMode !== 'true' ? (
+    <DocumentUpload 
+      title="Owner Identity" 
+      subtitle="Upload PAN, Aadhaar, Passport or Driver's License" 
+      files={identityDocs} 
+      setFiles={setIdentityDocs} 
+      required 
+    />
+  ) : null}
+</View>
         <OwnerDetails 
           ownerName={ownerName} 
           setOwnerName={setOwnerName} 
