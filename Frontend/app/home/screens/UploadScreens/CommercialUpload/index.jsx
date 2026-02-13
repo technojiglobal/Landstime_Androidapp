@@ -259,35 +259,36 @@ export default function PropertyFormScreen() {
   }, [params.officeDetails, params.hospitalityDetails, params.plotDetails, params.images, params.commercialBaseDetails, params.area]);
 
   // ✅ Load draft from AsyncStorage on mount
-  useEffect(() => {
-    const loadDraft = async () => {
-      // ✅ NEW - If coming fresh from AddScreen, clear all drafts
-      if (!params.officeDetails && !params.hospitalityDetails &&
-        !params.retailDetails && !params.plotDetails &&
-        !params.storageDetails && !params.industryDetails &&
-        !params.commercialBaseDetails) {
-        console.log('🧹 Fresh entry - clearing all drafts');
+  // ✅ Load draft from AsyncStorage on mount
+useEffect(() => {
+  const loadDraft = async () => {
+    // ✅ FIXED - Don't clear drafts if in edit mode
+    if (!params.officeDetails && !params.hospitalityDetails &&
+      !params.retailDetails && !params.plotDetails &&
+      !params.storageDetails && !params.industryDetails &&
+      !params.commercialBaseDetails && 
+      params.editMode !== 'true') {  // ✅ ADD THIS CHECK
+      console.log('🧹 Fresh entry - clearing all drafts');
 
-        try {
-          await AsyncStorage.multiRemove([
-            'draft_commercial_office',
-            'draft_commercial_retail',
-            'draft_commercial_hospitality',
-            'draft_commercial_plot',
-            'draft_commercial_storage',
-            'draft_commercial_industry',
-            'draft_hospitality_details',
-            'draft_hospitality_pricing',
-            'draft_hospitality_vaastu',
-          ]);
-          console.log('✅ All drafts cleared');
-        } catch (e) {
-          console.log('⚠️ Error clearing drafts:', e);
-        }
-
-        return; // Don't load any drafts
+      try {
+        await AsyncStorage.multiRemove([
+          'draft_commercial_office',
+          'draft_commercial_retail',
+          'draft_commercial_hospitality',
+          'draft_commercial_plot',
+          'draft_commercial_storage',
+          'draft_commercial_industry',
+          'draft_hospitality_details',
+          'draft_hospitality_pricing',
+          'draft_hospitality_vaastu',
+        ]);
+        console.log('✅ All drafts cleared');
+      } catch (e) {
+        console.log('⚠️ Error clearing drafts:', e);
       }
 
+      return; // Don't load any drafts
+    }
       try {
         // Try loading Office draft first
         const officeDraft = await AsyncStorage.getItem('draft_commercial_office');
@@ -518,6 +519,84 @@ export default function PropertyFormScreen() {
     return () => clearTimeout(timer);
   }, [selectedType, propertyTitle, images, officeKinds, retailKinds,
     HospitalityKinds, storageKinds, plotKinds, industryKinds, locatedInside, area, neighborhoodArea]);
+
+
+    // ✅ NEW - Load property data in EDIT MODE
+useEffect(() => {
+  if (params.editMode === 'true' && params.propertyData) {
+    try {
+      const property = JSON.parse(params.propertyData);
+      console.log('📝 Loading commercial property for edit:', property._id);
+      
+      // Set basic fields
+      setPropertyTitle(property.propertyTitle?.en || property.propertyTitle?.te || property.propertyTitle || '');
+      setNeighborhoodArea(property.area?.en || property.area?.te || property.area || '');
+      setArea(property.area?.en || property.area?.te || property.area || '');
+      
+      // Load images
+      if (property.images && property.images.length > 0) {
+        setImages(property.images);
+        console.log('✅ Loaded existing images:', property.images.length);
+      }
+      
+      // Determine subType and set selections
+      if (property.commercialDetails) {
+        const subType = property.commercialDetails.subType;
+        setSelectedType(subType);
+        
+        // Load subtype-specific data
+        if (subType === 'Storage' && property.commercialDetails.storageDetails) {
+          const storage = property.commercialDetails.storageDetails;
+          
+          // Set storage type
+          if (storage.storageType) {
+            // Reverse map English to current language
+            const storageTypeReverseMap = {
+              'Warehouse': t('storage_warehouse'),
+              'Cold Storage': t('storage_cold_storage')
+            };
+            const displayValue = storageTypeReverseMap[storage.storageType] || storage.storageType;
+            setStorageKinds([displayValue]);
+            console.log('✅ Storage type loaded:', displayValue);
+          }
+        } else if (subType === 'Office' && property.commercialDetails.officeDetails) {
+          const office = property.commercialDetails.officeDetails;
+          if (office.officeKind) {
+            setOfficeKinds([office.officeKind]);
+          }
+        } else if (subType === 'Retail' && property.commercialDetails.retailDetails) {
+          const retail = property.commercialDetails.retailDetails;
+          if (retail.retailKind) {
+            setRetailKinds([retail.retailKind]);
+          }
+          if (retail.locatedInside) {
+            setLocatedInside(retail.locatedInside);
+          }
+        } else if (subType === 'Plot/Land' && property.commercialDetails.plotDetails) {
+          const plot = property.commercialDetails.plotDetails;
+          if (plot.plotKind) {
+            setPlotKinds([plot.plotKind]);
+          }
+        } else if (subType === 'Hospitality' && property.commercialDetails.hospitalityDetails) {
+          const hospitality = property.commercialDetails.hospitalityDetails;
+          if (hospitality.hospitalityType) {
+            setHospitalityKinds([hospitality.hospitalityType]);
+          }
+        } else if (subType === 'Industry' && property.commercialDetails.industryDetails) {
+          const industry = property.commercialDetails.industryDetails;
+          if (industry.industryKind) {
+            setIndustryKinds([industry.industryKind]);
+          }
+        }
+      }
+      
+      console.log('✅ Commercial property data loaded for editing');
+    } catch (error) {
+      console.error('❌ Error loading commercial property data:', error);
+      Alert.alert('Error', 'Failed to load property data');
+    }
+  }
+}, [params.editMode, params.propertyData, params.propertyId]);
 
   /* ---------- IMAGE HANDLERS ---------- */
   const takePhoto = async () => {
@@ -778,17 +857,21 @@ export default function PropertyFormScreen() {
           console.log('⚠️ Failed to save Storage draft:', e);
         }
 
-        router.push({
-          pathname: `${base}/Storage`,
-          params: {
-            ...commonParams,
-            commercialBaseDetails: JSON.stringify({
-              subType: "Storage",
-              storageType: convertedStorageType, // ✅ USE CONVERTED VALUE
-              propertyTitle,
-            }),
-          },
-        });
+       router.push({
+  pathname: `${base}/Storage`,
+  params: {
+    ...commonParams,
+    commercialBaseDetails: JSON.stringify({
+      subType: "Storage",
+      storageType: convertedStorageType,
+      propertyTitle,
+    }),
+    // ✅ Pass edit mode params
+    editMode: params.editMode,
+    propertyId: params.propertyId,
+    propertyData: params.propertyData,
+  },
+});
         break;
 
 
