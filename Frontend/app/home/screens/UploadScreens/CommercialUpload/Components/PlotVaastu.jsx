@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Image, Alert } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import VastuDropdown from "../../VastuDropdown";
 import { useTranslation } from 'react-i18next';
@@ -11,9 +11,12 @@ import { convertToEnglish } from '../../../../../../utils/reverseTranslation';
 export default function VastuDetailsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [form, setForm] = useState({});
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editPropertyId, setEditPropertyId] = useState(null);
+  const [originalPropertyData, setOriginalPropertyData] = useState(null); // ✅ Store original property
 
   const safeParse = (raw) => {
     if (!raw) return null;
@@ -46,6 +49,15 @@ export default function VastuDetailsScreen() {
     }
   }, [params.images]);
 
+  // ✅ Data inspection helper - logs all available data paths
+  const inspectPropertyData = (property, label = "Property Data") => {
+    console.log(`\n🔍 === ${label} ===`);
+    console.log('📌 Root keys:', Object.keys(property || {}).join(', '));
+    console.log('📌 commercialDetails keys:', Object.keys(property.commercialDetails || {}).join(', '));
+    console.log('📌 vastuDetails:', JSON.stringify(property.commercialDetails?.vastuDetails, null, 2));
+    console.log(`🔍 === End ${label} ===\n`);
+  };
+
   const commercialDetails = useMemo(() => {
     try {
       if (!params.commercialDetails) return null;
@@ -60,37 +72,123 @@ export default function VastuDetailsScreen() {
   const update = (key, value) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
-  // ✅ Load draft from AsyncStorage
+  // ✅ Load data from edit mode, params, or AsyncStorage
   useEffect(() => {
-    const loadDraft = async () => {
-      // ✅ PRIORITY 1: Load from params if coming back from OwnerScreen
-      if (commercialDetailsFromPrev?.vaastuDetails) {
-        const vastu = commercialDetailsFromPrev.vaastuDetails;
-        console.log('🔄 Restoring Plot Vaastu from params:', vastu);
-        setForm(vastu);
-        return;
+    const loadData = async () => {
+      // ✅ PRIORITY 1: Load data in edit mode
+      if (params.editMode === 'true' && params.propertyData) {
+        try {
+          const property = JSON.parse(params.propertyData);
+          setIsEditMode(true);
+          setEditPropertyId(params.propertyId);
+          setOriginalPropertyData(property); // ✅ Store original data
+          
+          console.log('📝 Loading Plot Vaastu for edit:', property._id);
+          inspectPropertyData(property, "Plot Vaastu Edit Mode");
+
+          // ✅ ADD MASTER DEBUGGING LOG
+          console.log('\n🎯 PLOT VAASTU EDIT MODE - COMPLETE DATA INSPECTION:');
+          console.log('📌 property._id:', property._id);
+          console.log('📌 Has commercialDetails:', !!property.commercialDetails);
+          if (property.commercialDetails) {
+            console.log('📌 commercialDetails.vastuDetails:', !!property.commercialDetails.vastuDetails);
+            if (property.commercialDetails.vastuDetails) {
+              const vastu = property.commercialDetails.vastuDetails;
+              console.log('  - plotFacing:', vastu.plotFacing);
+              console.log('  - mainEntry:', vastu.mainEntry);
+              console.log('  - drainage:', vastu.drainage);
+              console.log('  - Full vastu:', JSON.stringify(vastu, null, 2));
+            }
+          }
+          console.log('🎯 === END MASTER DEBUG ===\n');
+
+          // Helper function to get localized text
+          const getLocalizedText = (field) => {
+            if (!field) return '';
+            if (typeof field === 'string') return field;
+            if (typeof field === 'object') {
+              const currentLang = i18n.language || 'en';
+              return field[currentLang] || field.en || field.te || field.hi || '';
+            }
+            return '';
+          };
+
+          // Load vaastu details from commercialDetails
+          if (property.commercialDetails?.vastuDetails) {
+            const vastu = property.commercialDetails.vastuDetails;
+            console.log('🔄 Restoring Plot Vaastu from edit mode:', vastu);
+            console.log('📊 Vaastu Fields:', {
+              plotFacing: vastu.plotFacing,
+              mainEntry: vastu.mainEntry,
+              plotSlope: vastu.plotSlope,
+              openSpace: vastu.openSpace,
+              shape: vastu.shape,
+              roadPosition: vastu.roadPosition,
+              waterSource: vastu.waterSource,
+              drainage: vastu.drainage,
+              compoundWall: vastu.compoundWall,
+              structures: vastu.structures,
+            });
+            setForm(vastu);
+            return;
+          } else if (property.vastuDetails) {
+            // ✅ FALLBACK: Try loading from property.vastuDetails directly
+            console.log('📦 Fallback: Loading from property.vastuDetails');
+            const vastu = property.vastuDetails;
+            console.log('🔄 Vaastu details from fallback path:', vastu);
+            setForm(vastu);
+            return;
+          } else if (property.commercialDetails?.plotDetails?.vastuDetails) {
+            // ✅ FALLBACK: Try loading from deeper nesting
+            console.log('📦 Fallback: Loading from property.commercialDetails.plotDetails.vastuDetails');
+            const vastu = property.commercialDetails.plotDetails.vastuDetails;
+            setForm(vastu);
+            return;
+          } else {
+            console.warn('⚠️  No vaastu details found in any expected locations');
+            console.log('🔍 Full property structure:', JSON.stringify(property, null, 2));
+          }
+
+          console.log('✅ Plot Vaastu loaded for editing');
+          return; // Don't load draft in edit mode
+        } catch (error) {
+          console.error('❌ Error loading plot vaastu data:', error);
+          Alert.alert('Error', 'Failed to load property data');
+        }
       }
 
-      // ✅ PRIORITY 2: Load from AsyncStorage draft
-      try {
-        console.log("📦 Loading Plot Vaastu draft from AsyncStorage");
-        const draft = await AsyncStorage.getItem('draft_plot_vaastu');
-        if (draft) {
-          const parsed = JSON.parse(draft);
-          console.log('✅ Plot Vaastu draft loaded from storage:', parsed);
-          setForm(parsed);
+      // ✅ PRIORITY 2: Load from params if coming back from OwnerScreen (only in create mode)
+      if (!params.editMode || params.editMode !== 'true') {
+        if (commercialDetailsFromPrev?.vastuDetails) {
+          const vastu = commercialDetailsFromPrev.vastuDetails;
+          console.log('🔄 Restoring Plot Vaastu from params:', vastu);
+          setForm(vastu);
           return;
         }
-      } catch (e) {
-        console.log('⚠️ Failed to load Plot Vaastu draft:', e);
+
+        // ✅ PRIORITY 3: Load from AsyncStorage draft
+        try {
+          console.log("📦 Loading Plot Vaastu draft from AsyncStorage");
+          const draft = await AsyncStorage.getItem('draft_plot_vaastu');
+          if (draft) {
+            const parsed = JSON.parse(draft);
+            console.log('✅ Plot Vaastu draft loaded from storage:', parsed);
+            setForm(parsed);
+            return;
+          }
+        } catch (e) {
+          console.log('⚠️ Failed to load Plot Vaastu draft:', e);
+        }
       }
     };
 
-    loadDraft();
-  }, [commercialDetailsFromPrev]);
+    loadData();
+  }, [params.editMode, params.propertyData, params.propertyId, commercialDetailsFromPrev]);
 
   // ✅ Auto-save Vaastu draft
   useEffect(() => {
+    if (isEditMode) return; // ✅ Don't save drafts in edit mode
+    
     const saveDraft = async () => {
       try {
         await AsyncStorage.setItem('draft_plot_vaastu', JSON.stringify(form));
@@ -102,7 +200,7 @@ export default function VastuDetailsScreen() {
 
     const timer = setTimeout(saveDraft, 1000);
     return () => clearTimeout(timer);
-  }, [form]);
+  }, [form, isEditMode]);
 
   const handleBack = () => {
     if (!commercialDetailsFromPrev) {
@@ -126,6 +224,10 @@ export default function VastuDetailsScreen() {
         area: params.area,
         propertyTitle: commercialDetails?.propertyTitle || params.propertyTitle,
         plotKind: params.plotKind,
+        // ✅ In edit mode, pass original full property data
+        editMode: isEditMode ? 'true' : params.editMode,
+        propertyId: isEditMode ? editPropertyId : params.propertyId,
+        propertyData: isEditMode && originalPropertyData ? JSON.stringify(originalPropertyData) : params.propertyData,
       },
     });
   };
@@ -166,6 +268,10 @@ export default function VastuDetailsScreen() {
         area: params.area,
         propertyTitle: commercialDetails?.propertyTitle || params.propertyTitle,
         plotKind: params.plotKind,
+        // ✅ In edit mode, pass original full property data
+        editMode: isEditMode ? 'true' : params.editMode,
+        propertyId: isEditMode ? editPropertyId : params.propertyId,
+        propertyData: isEditMode && originalPropertyData ? JSON.stringify(originalPropertyData) : params.propertyData,
       },
     });
   };

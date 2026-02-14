@@ -137,27 +137,41 @@ const StorageNext = () => {
 
   // Load draft from AsyncStorage
   useEffect(() => {
-  const loadDraft = async () => {
+  const loadData = async () => {
     // ✅ PRIORITY 1: Load from edit mode first
-    if (params.editMode === 'true' && commercialDetails?.storageDetails) {
+    if (params.editMode === 'true' && params.propertyData) {
       try {
-        const storage = commercialDetails.storageDetails;
-        console.log('📝 Loading storage pricing for edit');
+        const property = JSON.parse(params.propertyData);
+        console.log('📝 Loading storage pricing for edit:', property._id);
         
-        setOwnership(storage.ownership || '');
-        setExpectedPrice(storage.expectedPrice?.toString() || '');
-        setAllInclusive(storage.priceDetails?.allInclusive || false);
-        setPriceNegotiable(storage.priceDetails?.negotiable || false);
-        setTaxExcluded(storage.priceDetails?.taxExcluded || false);
-        setIndustryApprovedBy(storage.authority || '');
-        setApprovedIndustryType(storage.approvedIndustryType || '');
-        setPreLeased(storage.preLeased || null);
-        setLeaseDuration(storage.leaseDuration || '');
-        setMonthlyRent(storage.monthlyRent?.toString() || '');
-        setDescribeProperty(storage.description || '');
-        setWheelchairFriendly(storage.wheelchairFriendly || false);
-        setAmenities(storage.amenities || []);
-        setLocAdvantages(storage.locationAdvantages || []);
+        // Helper function to get localized text
+        const getLocalizedText = (field) => {
+          if (!field) return '';
+          if (typeof field === 'string') return field;
+          if (typeof field === 'object') {
+            return field.en || field.te || field.hi || '';
+          }
+          return '';
+        };
+        
+        if (property.commercialDetails?.storageDetails) {
+          const storage = property.commercialDetails.storageDetails;
+          
+          setOwnership(storage.ownership || '');
+          setExpectedPrice(storage.expectedPrice?.toString() || '');
+          setAllInclusive(storage.priceDetails?.allInclusive || false);
+          setPriceNegotiable(storage.priceDetails?.negotiable || false);
+          setTaxExcluded(storage.priceDetails?.taxExcluded || false);
+          setIndustryApprovedBy(storage.authority || '');
+          setApprovedIndustryType(storage.approvedIndustryType || '');
+          setPreLeased(storage.preLeased || null);
+          setLeaseDuration(storage.leaseDuration || '');
+          setMonthlyRent(storage.monthlyRent?.toString() || '');
+          setDescribeProperty(getLocalizedText(storage.description) || '');
+          setWheelchairFriendly(storage.wheelchairFriendly || false);
+          setAmenities(storage.amenities || []);
+          setLocAdvantages(storage.locationAdvantages || []);
+        }
         
         console.log('✅ Storage pricing loaded for edit');
         return; // Exit early, don't load draft
@@ -166,8 +180,36 @@ const StorageNext = () => {
       }
     }
 
-    // ✅ PRIORITY 2: Load from draft (only in create mode)
-    if (params.editMode !== 'true') {
+    // ✅ PRIORITY 2: Load from params (navigation back)
+    if (commercialDetails?.storageDetails) {
+      const storage = commercialDetails.storageDetails;
+
+      setOwnership(storage.ownership || '');
+      setExpectedPrice(storage.expectedPrice?.toString() || '');
+      setAllInclusive(storage.priceDetails?.allInclusive || false);
+      setPriceNegotiable(storage.priceDetails?.negotiable || false);
+      setTaxExcluded(storage.priceDetails?.taxExcluded || false);
+      setIndustryApprovedBy(storage.authority || '');
+      setApprovedIndustryType(storage.approvedIndustryType || '');
+      setPreLeased(storage.preLeased || null);
+      setLeaseDuration(storage.leaseDuration || '');
+      setMonthlyRent(storage.monthlyRent?.toString() || '');
+      setDescribeProperty(storage.description || '');
+      setWheelchairFriendly(storage.wheelchairFriendly || false);
+
+      if (Array.isArray(storage.amenities)) {
+        setAmenities(storage.amenities);
+      }
+      if (Array.isArray(storage.locationAdvantages)) {
+        setLocAdvantages(storage.locationAdvantages);
+      }
+
+      console.log('✅ Storage pricing restored from params');
+      return;
+    }
+
+    // ✅ PRIORITY 3: Load from draft (only in create mode)
+    if (!params.editMode || params.editMode !== 'true') {
       try {
         const draft = await AsyncStorage.getItem('draft_storage_pricing');
         if (draft) {
@@ -194,47 +236,15 @@ const StorageNext = () => {
           }
 
           console.log('✅ Storage pricing draft loaded');
-          return;
         }
       } catch (e) {
         console.log('⚠️ Failed to load Storage pricing draft:', e);
       }
     }
+  };
 
-    // ✅ PRIORITY 3: Fallback to params
-// ✅ PRIORITY 3: Fallback to params (only if not in edit mode and no draft)
-    if (params.editMode !== 'true' && commercialDetails?.storageDetails) {
-        const storage = commercialDetails.storageDetails;
-
-        setOwnership(storage.ownership || '');
-        setExpectedPrice(storage.expectedPrice?.toString() || '');
-        setAllInclusive(storage.priceDetails?.allInclusive || false);
-        setPriceNegotiable(storage.priceDetails?.negotiable || false);
-        setTaxExcluded(storage.priceDetails?.taxExcluded || false);
-        setIndustryApprovedBy(storage.authority || '');
-        setApprovedIndustryType(storage.approvedIndustryType || '');
-        setPreLeased(storage.preLeased || null);
-        setLeaseDuration(storage.leaseDuration || '');
-        setMonthlyRent(storage.monthlyRent?.toString() || '');
-        setDescribeProperty(storage.description || '');
-        setWheelchairFriendly(storage.wheelchairFriendly || false);
-
-        const restoredAmenities = storage.amenities || [];
-        const restoredLocAdvantages = storage.locationAdvantages || storage.locAdvantages || [];
-
-        if (Array.isArray(restoredAmenities) && restoredAmenities.length > 0) {
-          setAmenities(restoredAmenities);
-        }
-
-        if (Array.isArray(restoredLocAdvantages) && restoredLocAdvantages.length > 0) {
-          setLocAdvantages(restoredLocAdvantages);
-        }
-      }
-    };
-
-    loadDraft();
-  }, [params.editMode, params.propertyData, commercialDetails]);
-
+  loadData();
+}, [params.editMode, params.propertyData, commercialDetails]);
 // Auto-save pricing draft
 useEffect(() => {
   // ✅ DON'T auto-save in edit mode
@@ -380,15 +390,19 @@ useEffect(() => {
       },
     };
 
-    router.push({
-      pathname: "/home/screens/UploadScreens/CommercialUpload/Components/StorageVaastu",
-      params: {
-        commercialDetails: JSON.stringify(updatedCommercialDetails),
-        images: JSON.stringify(images),
-        area: params.area,
-        propertyTitle: commercialDetails.storageDetails?.propertyTitle || params.propertyTitle,
-      },
-    });
+   router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/StorageVaastu",
+  params: {
+    commercialDetails: JSON.stringify(updatedCommercialDetails),
+    images: JSON.stringify(images),
+    area: params.area,
+    propertyTitle: commercialDetails.storageDetails?.propertyTitle || params.propertyTitle,
+    // ✅ ADD THESE THREE LINES
+    editMode: params.editMode,
+    propertyId: params.propertyId,
+    propertyData: params.propertyData,
+  },
+});
   };
 
   return (

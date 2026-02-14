@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Image } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import LocationSection from "components/LocationSection";
@@ -25,10 +25,19 @@ const PillButton = ({ label, selected, onPress }) => (
   </TouchableOpacity>
 );
 
+// ✅ Data inspection helper - logs all available data paths
+const inspectPropertyData = (property, label = "Property Data") => {
+  console.log(`\n🔍 === ${label} ===`);
+  console.log('📌 Root keys:', Object.keys(property || {}).join(', '));
+  console.log('📌 commercialDetails keys:', Object.keys(property.commercialDetails || {}).join(', '));
+  console.log('📌 plotDetails:', JSON.stringify(property.commercialDetails?.plotDetails, null, 2));
+  console.log(`🔍 === End ${label} ===\n`);
+};
+
 export default function Plot() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // ✅ Parse params safely
   const safeParse = (raw) => {
@@ -74,8 +83,10 @@ export default function Plot() {
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
   const [constructionTypes, setConstructionTypes] = useState([]);
   const [focusedField, setFocusedField] = useState(null);
-// Add this state declaration with the other useState hooks (around line 49)
-const [visible, setVisible] = useState(null);
+  const [visible, setVisible] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editPropertyId, setEditPropertyId] = useState(null);
+  const [originalPropertyData, setOriginalPropertyData] = useState(null); // ✅ Store original property
 
 // Add monthOptions constant with the other constants (around line 56)
 const monthOptions = [
@@ -111,74 +122,223 @@ const monthOptions = [
     }
   };
 
-  // ✅ Load draft from AsyncStorage on mount
+  // ✅ Load data from AsyncStorage or edit mode
   useEffect(() => {
-    const loadDraft = async () => {
-      try {
-        console.log("📦 Loading Plot draft from AsyncStorage");
-        const draft = await AsyncStorage.getItem('draft_plot_details');
-        if (draft) {
-          const parsed = JSON.parse(draft);
-          console.log('✅ Plot draft loaded:', parsed);
-
-          setLocation(parsed.location || '');
-          setLocality(parsed.locality || '');
-          setNeighborhoodArea(parsed.neighborhoodArea || params.area || '');
-          setPlotArea(parsed.plotArea?.toString() || '');
-          setLength(parsed.length?.toString() || '');
-          setBreadth(parsed.breadth?.toString() || '');
-          setRoadWidth(parsed.roadWidth?.toString() || '');
-          setOpenSides(parsed.openSides || '');
-          setConstructionDone(parsed.constructionDone || '');
-          setPossessionBy(parsed.possessionBy || '');
-          setExpectedMonth(parsed.expectedMonth || '');
-          if (parsed.possessionBy?.includes("By")) setShowMonthDropdown(true);
-          setConstructionTypes(parsed.constructionTypes || []);
-
-          const restoredPlotKind = parsed.plotKind || plotKindFromParams || '';
-          setPlotKind(restoredPlotKind);
-          console.log('✅ plotKind restored:', restoredPlotKind);
-          return;
-        }
-      } catch (e) {
-        console.log('⚠️ Failed to load Plot draft:', e);
-      }
-
-      // ✅ FALLBACK: Load from params if no draft
-      if (params.plotDetails) {
+    const loadData = async () => {
+      console.log('\n🔄 === PLOT.JSX LOAD DATA START ===');
+      console.log('📍 params.editMode:', params.editMode);
+      console.log('📍 params.propertyId:', params.propertyId);
+      console.log('📍 params.propertyData exists:', !!params.propertyData);
+      
+      // ✅ PRIORITY 1: Load data in edit mode
+      if (params.editMode === 'true' && params.propertyData) {
+        console.log('✅ TAKING EDIT MODE PATH');
         try {
-          const prevData = safeParse(params.plotDetails);
-          console.log('🔄 Restoring from params.plotDetails');
-
-          setLocation(prevData.location || '');
-          setLocality(prevData.locality || '');
-          setNeighborhoodArea(prevData.neighborhoodArea || params.area || '');
-          setPlotArea(prevData.plotArea?.toString() || '');
-          setPlotKind(prevData.plotKind || plotKindFromParams || '');
-          setLength(prevData.length?.toString() || '');
-          setBreadth(prevData.breadth?.toString() || '');
-          setRoadWidth(prevData.roadWidth?.toString() || '');
-          setOpenSides(prevData.openSides || '');
-          setConstructionDone(prevData.constructionDone || '');
-          setPossessionBy(prevData.possessionBy || '');
-          setExpectedMonth(prevData.expectedMonth || '');
-          setConstructionTypes(prevData.constructionTypes || []);
-        } catch (e) {
-          console.log('❌ Could not restore plot data:', e);
+          const property = JSON.parse(params.propertyData);
+          setIsEditMode(true);
+          setEditPropertyId(params.propertyId);
+          setOriginalPropertyData(property); // ✅ Store original data
+          
+          console.log('📝 Loading Plot for edit:', property._id);
+          inspectPropertyData(property, "Plot Edit Mode");
+          
+          // ✅ ADD MASTER DEBUGGING LOG
+          console.log('\n🎯 PLOT EDIT MODE - COMPLETE DATA INSPECTION:');
+          console.log('📌 property._id:', property._id);
+          console.log('📌 property.location:', property.location);
+          console.log('📌 property.area:', property.area);
+          console.log('📌 property.expectedPrice:', property.expectedPrice);
+          console.log('📌 Has commercialDetails:', !!property.commercialDetails);
+          if (property.commercialDetails) {
+            console.log('📌 commercialDetails.plotDetails:', !!property.commercialDetails.plotDetails);
+            if (property.commercialDetails.plotDetails) {
+              console.log('  - plotDetails.area:', property.commercialDetails.plotDetails.area);
+              console.log('  - plotDetails.dimensions:', property.commercialDetails.plotDetails.dimensions);
+              console.log('  - plotDetails.length:', property.commercialDetails.plotDetails.length);
+              console.log('  - plotDetails.breadth:', property.commercialDetails.plotDetails.breadth);
+              console.log('  - plotDetails.locality:', property.commercialDetails.plotDetails.locality);
+            }
+          }
+          console.log('🎯 === END MASTER DEBUG ===\n');
+          
+          // Helper function to get localized text
+          const getLocalizedText = (field) => {
+            if (!field) return '';
+            if (typeof field === 'string') return field;
+            if (typeof field === 'object') {
+              const currentLang = i18n.language || 'en';
+              return field[currentLang] || field.en || field.te || field.hi || '';
+            }
+            return '';
+          };
+          
+          // Load location and area
+          setLocation(getLocalizedText(property.location));
+          setNeighborhoodArea(getLocalizedText(property.area));
+          
+          // Load plot details
+          if (property.commercialDetails?.plotDetails) {
+            const plot = property.commercialDetails.plotDetails;
+            
+            console.log('📊 Plot Details from DB:', {
+              locality: plot.locality,
+              area: plot.area,
+              plotKind: plot.plotKind,
+              dimensions: plot.dimensions,
+              roadWidth: plot.roadWidth,
+              openSides: plot.openSides,
+              constructionDone: plot.constructionDone,
+              possessionBy: plot.possessionBy,
+              expectedMonth: plot.expectedMonth,
+              constructionTypes: plot.constructionTypes,
+            });
+            
+            setLocality(getLocalizedText(plot.locality) || '');
+            setPlotArea(plot.area?.toString() || '');
+            setPlotKind(plot.plotKind || '');
+            setLength(plot.dimensions?.length?.toString() || '');
+            setBreadth(plot.dimensions?.breadth?.toString() || '');
+            setRoadWidth(plot.roadWidth?.toString() || '');
+            setOpenSides(plot.openSides || '');
+            setConstructionDone(plot.constructionDone || '');
+            setPossessionBy(plot.possessionBy || '');
+            setExpectedMonth(plot.expectedMonth || '');
+            setConstructionTypes(plot.constructionTypes || []);
+            
+            console.log('✅ ALL STATES SET - Checking values...');
+            console.log('  🔍 Full plotDetails JSON:', JSON.stringify(plot, null, 2));
+          } else if (property.plotDetails) {
+            // ✅ FALLBACK 1: Try loading from property.plotDetails directly
+            console.log('📦 Fallback 1: Loading from property.plotDetails');
+            console.log('📦 property.plotDetails:', JSON.stringify(property.plotDetails, null, 2));
+            const plot = property.plotDetails;
+            setLocality(getLocalizedText(plot.locality) || '');
+            setPlotArea(plot.area?.toString() || '');
+            setPlotKind(plot.plotKind || '');
+            setLength(plot.dimensions?.length?.toString() || plot.length?.toString() || '');
+            setBreadth(plot.dimensions?.breadth?.toString() || plot.breadth?.toString() || '');
+            setRoadWidth(plot.roadWidth?.toString() || '');
+            setOpenSides(plot.openSides || '');
+            setConstructionDone(plot.constructionDone || '');
+            setPossessionBy(plot.possessionBy || '');
+            setExpectedMonth(plot.expectedMonth || '');
+            setConstructionTypes(plot.constructionTypes || []);
+            console.log('✅ Fallback 1 SET - Plot dimensions from property.plotDetails');
+          } else if (property.commercialDetails?.plotDetails?.plotDetails) {
+            // ✅ FALLBACK 2: Try deeper nesting
+            console.log('📦 Fallback 2: Loading from property.commercialDetails.plotDetails.plotDetails');
+            const plot = property.commercialDetails.plotDetails.plotDetails;
+            setLocality(getLocalizedText(plot.locality) || '');
+            setPlotArea(plot.area?.toString() || '');
+            setPlotKind(plot.plotKind || '');
+            setLength(plot.dimensions?.length?.toString() || plot.length?.toString() || '');
+            setBreadth(plot.dimensions?.breadth?.toString() || plot.breadth?.toString() || '');
+            setRoadWidth(plot.roadWidth?.toString() || '');
+            setOpenSides(plot.openSides || '');
+            setConstructionDone(plot.constructionDone || '');
+            setPossessionBy(plot.possessionBy || '');
+            setExpectedMonth(plot.expectedMonth || '');
+            setConstructionTypes(plot.constructionTypes || []);
+            console.log('✅ Fallback 2 SET');
+          } else if (property.dimensions) {
+            // ✅ FALLBACK 3: Check if dimensions are at top level
+            console.log('📦 Fallback 3: Found dimensions at top level');
+            console.log('📦 property.dimensions:', JSON.stringify(property.dimensions, null, 2));
+            setLength(property.dimensions?.length?.toString() || property.length?.toString() || '');
+            setBreadth(property.dimensions?.breadth?.toString() || property.breadth?.toString() || '');
+            console.log('✅ Fallback 3 SET - top-level dimensions');
+          } else {
+            console.warn('⚠️  No plot details found in ANY expected locations');
+            console.log('🔍 Full property structure:', JSON.stringify(property, null, 2));
+            console.log('📌 Checking for alternate paths...');
+            console.log('  - property.length:', property.length);
+            console.log('  - property.breadth:', property.breadth);
+            console.log('  - property.area:', property.area);
+            console.log('  - property.plotArea:', property.plotArea);
+          }
+          
+          console.log('✅ Plot data loaded for editing');
+          console.log('🔄 === PLOT.JSX LOAD DATA END (EDIT MODE) ===\n');
+          return; // Don't load draft in edit mode
+        } catch (error) {
+          console.error('❌ Error loading plot data:', error);
+          Alert.alert('Error', 'Failed to load property data');
         }
       }
+      
+      console.log('❌ NOT in edit mode, checking draft...');
+      // ✅ PRIORITY 2: Load draft from AsyncStorage (only in create mode)
+      if (!params.editMode || params.editMode !== 'true') {
+        console.log('✅ TAKING DRAFT PATH');
+        try {
+          console.log("📦 Loading Plot draft from AsyncStorage");
+          const draft = await AsyncStorage.getItem('draft_plot_details');
+          if (draft) {
+            const parsed = JSON.parse(draft);
+            console.log('✅ Plot draft loaded:', parsed);
 
-      if (params.area) {
-        setNeighborhoodArea(params.area);
-        console.log('✅ Area restored from params:', params.area);
+            setLocation(parsed.location || '');
+            setLocality(parsed.locality || '');
+            setNeighborhoodArea(parsed.neighborhoodArea || params.area || '');
+            setPlotArea(parsed.plotArea?.toString() || '');
+            setLength(parsed.length?.toString() || '');
+            setBreadth(parsed.breadth?.toString() || '');
+            setRoadWidth(parsed.roadWidth?.toString() || '');
+            setOpenSides(parsed.openSides || '');
+            setConstructionDone(parsed.constructionDone || '');
+            setPossessionBy(parsed.possessionBy || '');
+            setExpectedMonth(parsed.expectedMonth || '');
+            if (parsed.possessionBy?.includes("By")) setShowMonthDropdown(true);
+            setConstructionTypes(parsed.constructionTypes || []);
+
+            const restoredPlotKind = parsed.plotKind || plotKindFromParams || '';
+            setPlotKind(restoredPlotKind);
+            console.log('✅ plotKind restored:', restoredPlotKind);
+            return;
+          }
+        } catch (e) {
+          console.log('⚠️ Failed to load Plot draft:', e);
+        }
+
+        // ✅ PRIORITY 3: Load from params if no draft
+        if (params.plotDetails) {
+          try {
+            const prevData = safeParse(params.plotDetails);
+            console.log('🔄 Restoring from params.plotDetails');
+
+            setLocation(prevData.location || '');
+            setLocality(prevData.locality || '');
+            setNeighborhoodArea(prevData.neighborhoodArea || params.area || '');
+            setPlotArea(prevData.plotArea?.toString() || '');
+            setPlotKind(prevData.plotKind || plotKindFromParams || '');
+            setLength(prevData.length?.toString() || '');
+            setBreadth(prevData.breadth?.toString() || '');
+            setRoadWidth(prevData.roadWidth?.toString() || '');
+            setOpenSides(prevData.openSides || '');
+            setConstructionDone(prevData.constructionDone || '');
+            setPossessionBy(prevData.possessionBy || '');
+            setExpectedMonth(prevData.expectedMonth || '');
+            setConstructionTypes(prevData.constructionTypes || []);
+          } catch (e) {
+            console.log('❌ Could not restore plot data:', e);
+          }
+        }
+
+        if (params.area) {
+          setNeighborhoodArea(params.area);
+          console.log('✅ Area restored from params:', params.area);
+        }
       }
+      console.log('🔄 === PLOT.JSX LOAD DATA END (DRAFT PATH) ===\n');
     };
 
-    loadDraft();
-  }, [params.plotDetails, params.area, plotKindFromParams]);
+    loadData();
+  }, [params.editMode, params.propertyData, params.propertyId, params.plotDetails, params.area, plotKindFromParams]);
 
   // ✅ Auto-save draft to AsyncStorage
   useEffect(() => {
+    if (isEditMode) return; // ✅ Don't save drafts in edit mode
+    
     const saveDraft = async () => {
       let existingPlotKind = plotKindFromParams;
 
@@ -223,7 +383,7 @@ const monthOptions = [
     const timer = setTimeout(saveDraft, 1000);
     return () => clearTimeout(timer);
   }, [location, locality, neighborhoodArea, plotArea, length, breadth, roadWidth,
-    openSides, constructionDone, possessionBy, expectedMonth, constructionTypes, plotKindFromParams]);
+    openSides, constructionDone, possessionBy, expectedMonth, constructionTypes, plotKindFromParams, isEditMode]);
 
   const handleNext = () => {
     const finalPlotKind = plotKind || plotKindFromParams;
@@ -287,6 +447,10 @@ const monthOptions = [
         images: JSON.stringify(images),
         area: neighborhoodArea,
         plotKind: plotKindFromParams,
+        // ✅ In edit mode, pass original full property data
+        editMode: isEditMode ? 'true' : params.editMode,
+        propertyId: isEditMode ? editPropertyId : params.propertyId,
+        propertyData: isEditMode && originalPropertyData ? JSON.stringify(originalPropertyData) : params.propertyData,
       },
     });
   };
