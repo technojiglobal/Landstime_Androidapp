@@ -75,7 +75,7 @@ const RoundOption = ({ label, selected, onPress }) => (
 export default function PropertyFormScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { t } = useTranslation(); // ✅ ADD THIS
+  const { t,i18n } = useTranslation(); // ✅ ADD THIS
 
   const [visible, setVisible] = useState(null);
   const [focusedField, setFocusedField] = useState(null);
@@ -137,16 +137,27 @@ const [existingDocuments, setExistingDocuments] = useState({
     }
   }, [params.commercialBaseDetails]);
 useEffect(() => {
-  const loadDraft = async () => {
+  const loadData = async () => {
     // ✅ PRIORITY 1: Load from edit mode first
     if (params.editMode === 'true' && params.propertyData) {
       try {
         const property = JSON.parse(params.propertyData);
         console.log('📝 Loading storage property for edit:', property._id);
         
+        // Helper function to get localized text
+        const getLocalizedText = (field) => {
+          if (!field) return '';
+          if (typeof field === 'string') return field;
+          if (typeof field === 'object') {
+            const currentLang = i18n.language || 'en';
+            return field[currentLang] || field.en || field.te || field.hi || '';
+          }
+          return '';
+        };
+        
         // Pre-fill basic fields
-        setLocation(property.location?.en || property.location?.te || property.location || '');
-        setNeighborhoodArea(property.area?.en || property.area?.te || property.area || '');
+        setLocation(getLocalizedText(property.location));
+        setNeighborhoodArea(getLocalizedText(property.area));
         
         if (property.commercialDetails?.storageDetails) {
           const storage = property.commercialDetails.storageDetails;
@@ -167,83 +178,93 @@ useEffect(() => {
           setAgeOfProperty(storage.ageOfProperty || null);
           setPossessionBy(storage.possession?.expectedBy || '');
           setExpectedMonth(storage.possession?.expectedMonth || '');
+          if (storage.possession?.expectedBy?.includes("By")) {
+            setShowMonthDropdown(true);
+          }
         }
         
         console.log('✅ Storage property data loaded for editing');
         return; // Exit early, don't load draft
       } catch (error) {
         console.error('❌ Error loading storage property data:', error);
+        Alert.alert('Error', 'Failed to load property data');
       }
     }
 
-    // ✅ PRIORITY 2: Load from draft
-    try {
-      const draft = await AsyncStorage.getItem('draft_storage_details');
-      if (draft) {
-        const prevData = JSON.parse(draft);
-        console.log('📦 Loading Storage draft from AsyncStorage');
-
-        setLocation(prevData.location || '');
-        setNeighborhoodArea(prevData.neighborhoodArea || '');
-        setPlotArea(prevData.plotArea?.toString() || '');
-        setUnit(prevData.unit || 'sqft');
-        setLength(prevData.length?.toString() || '');
-        setBreadth(prevData.breadth?.toString() || '');
-        setWashroomType(prevData.washroomType || null);
-        setCeilingHeight(prevData.ceilingHeight?.toString() || '');
-        setFlooring(prevData.flooring || '');
-        setVentilation(prevData.ventilation || null);
-        setTemperatureControl(prevData.temperatureControl || false);
-        setCovered(prevData.covered || null);
-        setSecurity(prevData.security || []);
-        setAccessibility(prevData.accessibility || '');
-        setAvailability(prevData.availability || null);
-        setAgeOfProperty(prevData.ageOfProperty || null);
-        setPossessionBy(prevData.possessionBy || '');
-        setExpectedMonth(prevData.expectedMonth || '');
-        setShowMonthDropdown(false);
-        console.log('✅ Storage draft loaded');
-        return;
-      }
-    } catch (e) {
-      console.log('⚠️ Failed to load Storage draft:', e);
-    }
-
-    // ✅ PRIORITY 3: Fallback to params
-    if (params.storageDetails) {
+    // ✅ PRIORITY 2: Load from draft (only in create mode)
+    if (!params.editMode || params.editMode !== 'true') {
       try {
-        const prevData = JSON.parse(params.storageDetails);
-        setLocation(prevData.location || '');
-        setNeighborhoodArea(prevData.neighborhoodArea || '');
-        setPlotArea(prevData.storageArea?.value?.toString() || '');
-        setUnit(prevData.storageArea?.unit || 'sqft');
-        setLength(prevData.dimensions?.length?.toString() || '');
-        setBreadth(prevData.dimensions?.breadth?.toString() || '');
-        setWashroomType(prevData.washroomType || null);
-        setCeilingHeight(prevData.ceilingHeight?.toString() || '');
-        setFlooring(prevData.flooring || '');
-        setVentilation(prevData.ventilation || null);
-        setTemperatureControl(prevData.temperatureControl || false);
-        setCovered(prevData.covered || null);
-        setSecurity(prevData.security || []);
-        setAccessibility(prevData.accessibility || '');
-        setAvailability(prevData.availability || null);
-        setAgeOfProperty(prevData.ageOfProperty || null);
-        setPossessionBy(prevData.possession?.expectedBy || '');
+        const draft = await AsyncStorage.getItem('draft_storage_details');
+        if (draft) {
+          const prevData = JSON.parse(draft);
+          console.log('📦 Loading Storage draft from AsyncStorage');
 
-        console.log('✅ Restored from params');
+          setLocation(prevData.location || '');
+          setNeighborhoodArea(prevData.neighborhoodArea || '');
+          setPlotArea(prevData.plotArea?.toString() || '');
+          setUnit(prevData.unit || 'sqft');
+          setLength(prevData.length?.toString() || '');
+          setBreadth(prevData.breadth?.toString() || '');
+          setWashroomType(prevData.washroomType || null);
+          setCeilingHeight(prevData.ceilingHeight?.toString() || '');
+          setFlooring(prevData.flooring || '');
+          setVentilation(prevData.ventilation || null);
+          setTemperatureControl(prevData.temperatureControl || false);
+          setCovered(prevData.covered || null);
+          setSecurity(prevData.security || []);
+          setAccessibility(prevData.accessibility || '');
+          setAvailability(prevData.availability || null);
+          setAgeOfProperty(prevData.ageOfProperty || null);
+          setPossessionBy(prevData.possessionBy || '');
+          setExpectedMonth(prevData.expectedMonth || '');
+          if (prevData.possessionBy?.includes("By")) {
+            setShowMonthDropdown(true);
+          }
+          
+          console.log('✅ Storage draft loaded');
+          return;
+        }
       } catch (e) {
-        console.log('❌ Could not restore storage data:', e);
+        console.log('⚠️ Failed to load Storage draft:', e);
       }
-    }
 
-    if (params.area) {
-      setNeighborhoodArea(params.area);
+      // ✅ PRIORITY 3: Fallback to params
+      if (params.storageDetails) {
+        try {
+          const prevData = JSON.parse(params.storageDetails);
+          setLocation(prevData.location || '');
+          setNeighborhoodArea(prevData.neighborhoodArea || '');
+          setPlotArea(prevData.storageArea?.value?.toString() || '');
+          setUnit(prevData.storageArea?.unit || 'sqft');
+          setLength(prevData.dimensions?.length?.toString() || '');
+          setBreadth(prevData.dimensions?.breadth?.toString() || '');
+          setWashroomType(prevData.washroomType || null);
+          setCeilingHeight(prevData.ceilingHeight?.toString() || '');
+          setFlooring(prevData.flooring || '');
+          setVentilation(prevData.ventilation || null);
+          setTemperatureControl(prevData.temperatureControl || false);
+          setCovered(prevData.covered || null);
+          setSecurity(prevData.security || []);
+          setAccessibility(prevData.accessibility || '');
+          setAvailability(prevData.availability || null);
+          setAgeOfProperty(prevData.ageOfProperty || null);
+          setPossessionBy(prevData.possession?.expectedBy || '');
+          setExpectedMonth(prevData.possession?.expectedMonth || '');
+
+          console.log('✅ Restored from params');
+        } catch (e) {
+          console.log('❌ Could not restore storage data:', e);
+        }
+      }
+
+      if (params.area) {
+        setNeighborhoodArea(params.area);
+      }
     }
   };
 
-  loadDraft();
-}, [params.storageDetails, params.area, params.commercialBaseDetails, params.storageType, params.editMode, params.propertyData, params.propertyId]);
+  loadData();
+}, [params.editMode, params.propertyData, params.propertyId, params.storageDetails, params.area, params.commercialBaseDetails, params.storageType]);
 
   // Auto-save draft
   
