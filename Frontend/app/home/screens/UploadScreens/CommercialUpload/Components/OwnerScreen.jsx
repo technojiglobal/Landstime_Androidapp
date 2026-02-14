@@ -7,9 +7,9 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import DocumentUpload from "components/Documentupload";
 import OwnerDetails from "components/OwnersDetails";
-import { createProperty,updateProperty } from "utils/propertyApi";
+import { createProperty, updateProperty } from "utils/propertyApi";
 import Toast from 'react-native-toast-message';
-
+import { Ionicons } from "@expo/vector-icons";
 export default function OwnerScreen() {
   const router = useRouter();
   const { i18n } = useTranslation();
@@ -17,10 +17,10 @@ export default function OwnerScreen() {
   const rawCommercialDetails = params.commercialDetails;
 
   const [existingDocuments, setExistingDocuments] = useState({
-  ownership: [],
-  identity: []
-});
-
+    ownership: [],
+    identity: []
+  });
+  const [isEditMode, setIsEditMode] = useState(false);
   const getUserLanguage = () => {
     const currentLang = i18n.language || 'en';
     console.log('📝 Current app language:', currentLang);
@@ -153,72 +153,73 @@ export default function OwnerScreen() {
     }
   }, [commercialDetails?.subType]);
 
-useEffect(() => {
-  const loadDraft = async () => {
-    try {
-      // ✅ FIRST: Load existing documents in edit mode
-      if (params.editMode === 'true') {
-        console.log('📝 Edit mode detected - loading existing documents');
-        
-        // Try to get documents from commercialDetails
-        let documents = null;
-        
-        if (commercialDetails?.documents) {
-          documents = commercialDetails.documents;
-        } else if (params.propertyData) {
-          try {
-            const propertyData = typeof params.propertyData === 'string' 
-              ? JSON.parse(params.propertyData) 
-              : params.propertyData;
-            documents = propertyData.documents;
-          } catch (e) {
-            console.log('⚠️ Could not parse propertyData for documents:', e);
+  useEffect(() => {
+    const loadDraft = async () => {
+      try {
+        // ✅ FIRST: Load existing documents in edit mode
+        if (params.editMode === 'true') {
+          setIsEditMode(true);
+          console.log('📝 Edit mode detected - loading existing documents');
+
+          // Try to get documents from commercialDetails
+          let documents = null;
+
+          if (commercialDetails?.documents) {
+            documents = commercialDetails.documents;
+          } else if (params.propertyData) {
+            try {
+              const propertyData = typeof params.propertyData === 'string'
+                ? JSON.parse(params.propertyData)
+                : params.propertyData;
+              documents = propertyData.documents;
+            } catch (e) {
+              console.log('⚠️ Could not parse propertyData for documents:', e);
+            }
+          }
+
+          if (documents) {
+            setExistingDocuments({
+              ownership: documents.ownership || [],
+              identity: documents.identity || []
+            });
+            console.log('✅ Loaded existing documents:', {
+              ownership: documents.ownership?.length || 0,
+              identity: documents.identity?.length || 0
+            });
+          }
+
+          // ✅ In edit mode, don't load draft - return early
+          return;
+        }
+
+        // ✅ SECOND: Load draft (only in create mode)
+        const draft = await AsyncStorage.getItem('draft_owner_screen');
+        if (draft) {
+          const parsed = JSON.parse(draft);
+          console.log('📦 Loading OwnerScreen draft from AsyncStorage');
+
+          if (parsed.subType === commercialDetails?.subType) {
+            if (!ownerName && parsed.ownerName) setOwnerName(parsed.ownerName);
+            if (!phone && parsed.phone) setPhone(parsed.phone);
+            if (!email && parsed.email) setEmail(parsed.email);
+
+            if (ownershipDocs.length === 0 && parsed.ownershipDocs?.length > 0) {
+              setOwnershipDocs(parsed.ownershipDocs);
+            }
+            if (identityDocs.length === 0 && parsed.identityDocs?.length > 0) {
+              setIdentityDocs(parsed.identityDocs);
+            }
+
+            console.log('✅ OwnerScreen draft loaded successfully');
           }
         }
-        
-        if (documents) {
-          setExistingDocuments({
-            ownership: documents.ownership || [],
-            identity: documents.identity || []
-          });
-          console.log('✅ Loaded existing documents:', {
-            ownership: documents.ownership?.length || 0,
-            identity: documents.identity?.length || 0
-          });
-        }
-        
-        // ✅ In edit mode, don't load draft - return early
-        return;
+      } catch (e) {
+        console.log('⚠️ Failed to load OwnerScreen data:', e);
       }
-      
-      // ✅ SECOND: Load draft (only in create mode)
-      const draft = await AsyncStorage.getItem('draft_owner_screen');
-      if (draft) {
-        const parsed = JSON.parse(draft);
-        console.log('📦 Loading OwnerScreen draft from AsyncStorage');
+    };
 
-        if (parsed.subType === commercialDetails?.subType) {
-          if (!ownerName && parsed.ownerName) setOwnerName(parsed.ownerName);
-          if (!phone && parsed.phone) setPhone(parsed.phone);
-          if (!email && parsed.email) setEmail(parsed.email);
-
-          if (ownershipDocs.length === 0 && parsed.ownershipDocs?.length > 0) {
-            setOwnershipDocs(parsed.ownershipDocs);
-          }
-          if (identityDocs.length === 0 && parsed.identityDocs?.length > 0) {
-            setIdentityDocs(parsed.identityDocs);
-          }
-
-          console.log('✅ OwnerScreen draft loaded successfully');
-        }
-      }
-    } catch (e) {
-      console.log('⚠️ Failed to load OwnerScreen data:', e);
-    }
-  };
-
-  loadDraft();
-}, [params.editMode, params.propertyData, commercialDetails]);
+    loadDraft();
+  }, [params.editMode, params.propertyData, commercialDetails]);
 
   // ✅ Auto-save with debounce
   useEffect(() => {
@@ -282,13 +283,30 @@ useEffect(() => {
       return;
     }
 
-    if (ownershipDocs.length === 0) {
-      Alert.alert("Missing Documents", "Please upload property ownership documents (Sale deed, Conveyance, etc.).");
-      return;
-    }
-    if (identityDocs.length === 0) {
-      Alert.alert("Missing Documents", "Please upload owner identity documents (PAN, Aadhaar, Passport, or Driver's License).");
-      return;
+    // ✅ FIXED - Skip document validation in edit mode if documents already exist
+    if (!isEditMode || params.editMode !== 'true') {
+      // Create mode - require new document uploads
+      if (ownershipDocs.length === 0) {
+        Alert.alert("Missing Documents", "Please upload property ownership documents (Sale deed, Conveyance, etc.).");
+        return;
+      }
+      if (identityDocs.length === 0) {
+        Alert.alert("Missing Documents", "Please upload owner identity documents (PAN, Aadhaar, Passport, or Driver's License).");
+        return;
+      }
+    } else {
+      // ✅ Edit mode - check if documents exist (either new uploads or existing from backend)
+      const hasOwnershipDocs = ownershipDocs.length > 0 || existingDocuments.ownership.length > 0;
+      const hasIdentityDocs = identityDocs.length > 0 || existingDocuments.identity.length > 0;
+
+      if (!hasOwnershipDocs) {
+        Alert.alert("Missing Documents", "Property ownership documents are required.");
+        return;
+      }
+      if (!hasIdentityDocs) {
+        Alert.alert("Missing Documents", "Owner identity documents are required.");
+        return;
+      }
     }
     if (!ownerName.trim()) {
       Alert.alert("Missing Information", "Please enter the property owner's name.");
@@ -387,7 +405,10 @@ useEffect(() => {
       area: getNeighborhoodArea(),
       description: getDescription(),
       expectedPrice: getExpectedPrice(),
-      commercialDetails: restOfCommercialDetails,
+      commercialDetails: {
+        ...restOfCommercialDetails,
+        subType: restOfCommercialDetails.subType || "Industry" // ✅ Ensure subType is always present
+      },
       ownerDetails: {
         name: ownerName,
         phone,
@@ -414,14 +435,14 @@ useEffect(() => {
 
       let result;
 
-if (params.editMode === 'true' && params.propertyId) {
-  // ✅ UPDATE MODE
-  console.log('📡 Calling updateProperty API...');
-  result = await updateProperty(params.propertyId, propertyData, imageUris);
-} else {
-  // ✅ CREATE MODE
-  result = await createProperty(propertyData, imageUris, ownershipDocs, identityDocs);
-}
+      if (params.editMode === 'true' && params.propertyId) {
+        // ✅ UPDATE MODE
+        console.log('📡 Calling updateProperty API...');
+        result = await updateProperty(params.propertyId, propertyData, imageUris);
+      } else {
+        // ✅ CREATE MODE
+        result = await createProperty(propertyData, imageUris, ownershipDocs, identityDocs);
+      }
 
       if (!result.success) {
         throw new Error(result.error || result.data?.message || "Upload failed");
@@ -467,22 +488,22 @@ if (params.editMode === 'true' && params.propertyId) {
         console.log('⚠️ Failed to clear drafts:', e);
       }
 
-     Alert.alert(
-  "Success", 
-  params.editMode === 'true' 
-    ? "Property updated successfully!" 
-    : "Property uploaded successfully!", 
-  [
-    {
-      text: "OK",
-      onPress: () => router.push(
-        params.editMode === 'true' 
-          ? "/home/screens/Sidebar/MyProperties" 
-          : "/(tabs)/home"
-      ),
-    },
-  ]
-);
+      Alert.alert(
+        "Success",
+        params.editMode === 'true'
+          ? "Property updated successfully!"
+          : "Property uploaded successfully!",
+        [
+          {
+            text: "OK",
+            onPress: () => router.push(
+              params.editMode === 'true'
+                ? "/home/screens/Sidebar/MyProperties"
+                : "/(tabs)/home"
+            ),
+          },
+        ]
+      );
     } catch (error) {
       console.error('❌ Upload error:', error);
 
@@ -494,6 +515,7 @@ if (params.editMode === 'true' && params.propertyId) {
 
         console.log('📋 Error response:', errorData);
 
+        console.log('📋 Full error details:', JSON.stringify(errorData, null, 2)); // ✅ ADD THIS
         if (errorData.errors && Array.isArray(errorData.errors)) {
           errorTitle = errorData.message || "Validation Error";
           errorMessage = errorData.errors.join('\n\n');
@@ -530,137 +552,137 @@ if (params.editMode === 'true' && params.propertyId) {
     }
   };
 
- return (
-  <View className="flex-1 bg-[#F5F6F8]">
-    {/* Header */}
-    <View className="flex-row items-center mt-12 mb-4">
-      <TouchableOpacity onPress={handleBack} className="p-2" accessibilityRole="button">
-        <Image source={require("../../../../../../assets/arrow.png")} style={{ width: 20, height: 20, resizeMode: "contain" }} />
-      </TouchableOpacity>
-      <View className="ml-2">
-        <Text className="text-[16px] font-semibold">Upload Your Property</Text>
-        <Text className="text-[12px] text-[#00000066]">Add your property details</Text>
+  return (
+    <View className="flex-1 bg-[#F5F6F8]">
+      {/* Header */}
+      <View className="flex-row items-center mt-12 mb-4">
+        <TouchableOpacity onPress={handleBack} className="p-2" accessibilityRole="button">
+          <Image source={require("../../../../../../assets/arrow.png")} style={{ width: 20, height: 20, resizeMode: "contain" }} />
+        </TouchableOpacity>
+        <View className="ml-2">
+          <Text className="text-[16px] font-semibold">Upload Your Property</Text>
+          <Text className="text-[12px] text-[#00000066]">Add your property details</Text>
+        </View>
       </View>
-    </View>
 
-    {/* Scrollable Content - Extended padding */}
-    <ScrollView 
-      contentContainerStyle={{ padding: 16, paddingBottom: 250 }} 
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-    >
-      <View className="px-4 mt-4 border border-gray-200 rounded-lg bg-white space-y-4 mb-4">
-        {/* ✅ Property Ownership Documents */}
-<View className="mb-4">
-  <Text className="text-base font-semibold">Property Ownership</Text>
-  <Text className="text-gray-500 text-sm mt-1">Verify ownership to publish your property listing securely</Text>
-  
-  {params.editMode === 'true' && existingDocuments.ownership.length > 0 ? (
-    <View className="mt-4">
-      <View className="flex-row items-center bg-green-50 border border-green-200 rounded-lg px-3 py-3">
-        <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
-        <View className="ml-3 flex-1">
-          <Text className="text-sm font-medium text-gray-800">
-            {existingDocuments.ownership.length} {existingDocuments.ownership.length === 1 ? 'document' : 'documents'} uploaded
-          </Text>
-          <Text className="text-xs text-gray-500 mt-1">Documents cannot be changed during edit</Text>
+      {/* Scrollable Content - Extended padding */}
+      <ScrollView
+        contentContainerStyle={{ padding: 16, paddingBottom: 250 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View className="px-4 mt-4 border border-gray-200 rounded-lg bg-white space-y-4 mb-4">
+          {/* ✅ Property Ownership Documents */}
+          <View className="mb-4">
+            <Text className="text-base font-semibold">Property Ownership</Text>
+            <Text className="text-gray-500 text-sm mt-1">Verify ownership to publish your property listing securely</Text>
+
+            {params.editMode === 'true' && existingDocuments.ownership.length > 0 ? (
+              <View className="mt-4">
+                <View className="flex-row items-center bg-green-50 border border-green-200 rounded-lg px-3 py-3">
+                  <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
+                  <View className="ml-3 flex-1">
+                    <Text className="text-sm font-medium text-gray-800">
+                      {existingDocuments.ownership.length} {existingDocuments.ownership.length === 1 ? 'document' : 'documents'} uploaded
+                    </Text>
+                    <Text className="text-xs text-gray-500 mt-1">Documents cannot be changed during edit</Text>
+                  </View>
+                </View>
+              </View>
+            ) : params.editMode !== 'true' ? (
+              <DocumentUpload
+                title="Property Ownership"
+                subtitle="Verify ownership to publish your property listing securely."
+                files={ownershipDocs}
+                setFiles={setOwnershipDocs}
+                required
+              />
+            ) : null}
+          </View>
+
+          {/* ✅ Owner Identity Documents */}
+          <View className="mb-4">
+            <Text className="text-base font-semibold">Owner Identity</Text>
+            <Text className="text-gray-500 text-sm mt-1">Upload PAN, Aadhaar, Passport or Driver's License</Text>
+
+            {params.editMode === 'true' && existingDocuments.identity.length > 0 ? (
+              <View className="mt-4">
+                <View className="flex-row items-center bg-green-50 border border-green-200 rounded-lg px-3 py-3">
+                  <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
+                  <View className="ml-3 flex-1">
+                    <Text className="text-sm font-medium text-gray-800">
+                      {existingDocuments.identity.length} {existingDocuments.identity.length === 1 ? 'document' : 'documents'} uploaded
+                    </Text>
+                    <Text className="text-xs text-gray-500 mt-1">Documents cannot be changed during edit</Text>
+                  </View>
+                </View>
+              </View>
+            ) : params.editMode !== 'true' ? (
+              <DocumentUpload
+                title="Owner Identity"
+                subtitle="Upload PAN, Aadhaar, Passport or Driver's License"
+                files={identityDocs}
+                setFiles={setIdentityDocs}
+                required
+              />
+            ) : null}
+          </View>
+          <OwnerDetails
+            ownerName={ownerName}
+            setOwnerName={setOwnerName}
+            phone={phone}
+            setPhone={validatePhone}
+            phoneError={phoneError}
+            email={email}
+            setEmail={setEmail}
+            focusedField={focusedField}
+            setFocusedField={setFocusedField}
+          />
+        </View>
+
+        {/* Extra spacing to ensure content is visible above keyboard */}
+        <View style={{ height: 100 }} />
+      </ScrollView>
+
+      {/* Footer Buttons - Absolute positioning */}
+      <View
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: 'white',
+          borderTopWidth: 1,
+          borderTopColor: '#E5E7EB',
+          paddingVertical: 16,
+          paddingBottom: Platform.OS === 'ios' ? 24 : 16
+        }}
+      >
+        <View className="flex-row justify-end space-x-3 mx-3 mb-8">
+          <TouchableOpacity
+            style={{ backgroundColor: "#E5E7EB", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10 }}
+            onPress={handleBack}
+            className="mx-4"
+            disabled={isSubmitting}
+          >
+            <Text style={{ color: "black", fontWeight: "600", fontSize: 15 }}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              backgroundColor: isSubmitting ? "#9CA3AF" : "#22C55E",
+              paddingVertical: 12,
+              paddingHorizontal: 20,
+              borderRadius: 10
+            }}
+            onPress={handleSubmit}
+            disabled={isSubmitting}
+          >
+            <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
+              {isSubmitting ? "Uploading..." : "Upload Property"}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
-  ) : params.editMode !== 'true' ? (
-    <DocumentUpload 
-      title="Property Ownership" 
-      subtitle="Verify ownership to publish your property listing securely." 
-      files={ownershipDocs} 
-      setFiles={setOwnershipDocs} 
-      required 
-    />
-  ) : null}
-</View>
-
-{/* ✅ Owner Identity Documents */}
-<View className="mb-4">
-  <Text className="text-base font-semibold">Owner Identity</Text>
-  <Text className="text-gray-500 text-sm mt-1">Upload PAN, Aadhaar, Passport or Driver's License</Text>
-  
-  {params.editMode === 'true' && existingDocuments.identity.length > 0 ? (
-    <View className="mt-4">
-      <View className="flex-row items-center bg-green-50 border border-green-200 rounded-lg px-3 py-3">
-        <Ionicons name="checkmark-circle" size={24} color="#22C55E" />
-        <View className="ml-3 flex-1">
-          <Text className="text-sm font-medium text-gray-800">
-            {existingDocuments.identity.length} {existingDocuments.identity.length === 1 ? 'document' : 'documents'} uploaded
-          </Text>
-          <Text className="text-xs text-gray-500 mt-1">Documents cannot be changed during edit</Text>
-        </View>
-      </View>
-    </View>
-  ) : params.editMode !== 'true' ? (
-    <DocumentUpload 
-      title="Owner Identity" 
-      subtitle="Upload PAN, Aadhaar, Passport or Driver's License" 
-      files={identityDocs} 
-      setFiles={setIdentityDocs} 
-      required 
-    />
-  ) : null}
-</View>
-        <OwnerDetails 
-          ownerName={ownerName} 
-          setOwnerName={setOwnerName} 
-          phone={phone} 
-          setPhone={validatePhone} 
-          phoneError={phoneError} 
-          email={email} 
-          setEmail={setEmail} 
-          focusedField={focusedField} 
-          setFocusedField={setFocusedField} 
-        />
-      </View>
-      
-      {/* Extra spacing to ensure content is visible above keyboard */}
-      <View style={{ height: 100 }} />
-    </ScrollView>
-
-    {/* Footer Buttons - Absolute positioning */}
-    <View 
-      style={{ 
-        position: 'absolute', 
-        bottom: 0, 
-        left: 0, 
-        right: 0,
-        backgroundColor: 'white',
-        borderTopWidth: 1,
-        borderTopColor: '#E5E7EB',
-        paddingVertical: 16,
-        paddingBottom: Platform.OS === 'ios' ? 24 : 16
-      }}
-    >
-      <View className="flex-row justify-end space-x-3 mx-3 mb-8">
-        <TouchableOpacity 
-          style={{ backgroundColor: "#E5E7EB", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10 }} 
-          onPress={handleBack} 
-          className="mx-4"
-          disabled={isSubmitting}
-        >
-          <Text style={{ color: "black", fontWeight: "600", fontSize: 15 }}>Cancel</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={{ 
-            backgroundColor: isSubmitting ? "#9CA3AF" : "#22C55E", 
-            paddingVertical: 12, 
-            paddingHorizontal: 20, 
-            borderRadius: 10 
-          }} 
-          onPress={handleSubmit} 
-          disabled={isSubmitting}
-        >
-          <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
-            {isSubmitting ? "Uploading..." : "Upload Property"}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </View>
-);
+  );
 }

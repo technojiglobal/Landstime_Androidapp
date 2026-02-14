@@ -308,14 +308,18 @@ const IndustryNext = () => {
         },
       };
 
-      router.push({
-        pathname: "/home/screens/UploadScreens/CommercialUpload/Components/IndustryVaastu",
-        params: {
-          commercialDetails: JSON.stringify(updatedCommercialDetails),
-          images: JSON.stringify(images),
-          area: params.area,
-        },
-      });
+     router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/IndustryVaastu",
+  params: {
+    commercialDetails: JSON.stringify(updatedCommercialDetails),
+    images: JSON.stringify(images),
+    area: params.area,
+    // ✅ Pass edit mode params
+    editMode: params.editMode,
+    propertyId: params.propertyId,
+    propertyData: params.propertyData,
+  },
+});
     };
 
     const handleBack = () => {
@@ -338,14 +342,18 @@ const IndustryNext = () => {
       };
 
       router.push({
-        pathname: "/home/screens/UploadScreens/CommercialUpload/Components/Industry",
-        params: {
-          commercialDetails: JSON.stringify(commercialDetailsFromPrev),
-          industryDetails: JSON.stringify(currentData),
-          images: JSON.stringify(images),
-          area: params.area,
-        },
-      });
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/Industry",
+  params: {
+    commercialDetails: JSON.stringify(commercialDetailsFromPrev),
+    industryDetails: JSON.stringify(currentData),
+    images: JSON.stringify(images),
+    area: params.area,
+    // ✅ Pass edit mode params
+    editMode: params.editMode,
+    propertyId: params.propertyId,
+    propertyData: params.propertyData,
+  },
+});
     };
 
     return (

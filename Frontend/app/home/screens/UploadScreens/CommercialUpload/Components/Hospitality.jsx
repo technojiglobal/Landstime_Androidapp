@@ -16,6 +16,8 @@ import Toast from 'react-native-toast-message';
 import FurnishingsModal from "../../FurnishingsModal";
 import { useTranslation } from 'react-i18next'; // ✅ ADD THIS
 import { Ionicons } from "@expo/vector-icons";
+import { Alert } from 'react-native';
+
 export const PillButton = ({ label, selected, onPress }) => (
     <TouchableOpacity
         onPress={onPress}
@@ -56,7 +58,7 @@ const RoundOption = ({ label, selected, onPress }) => (
 export default function Hospitality() {
     const router = useRouter();
     const params = useLocalSearchParams();
-    const { t } = useTranslation(); // ✅ ADD THIS
+    const { t, i18n } = useTranslation(); // ✅ Get i18n from hook// ✅ ADD THIS
 
     const images = params.images ? JSON.parse(params.images) : [];
 
@@ -112,14 +114,18 @@ export default function Hospitality() {
         };
 
         router.push({
-            pathname: "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityNext",
-            params: {
-                commercialDetails: JSON.stringify(commercialDetails),
-                images: JSON.stringify(images),
-                area: neighborhoodArea.trim(),
-                hospitalityType: hospitalityType, // ✅ Pass it forward
-            },
-        });
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityNext",
+  params: {
+    commercialDetails: JSON.stringify(commercialDetails),
+    images: JSON.stringify(images),
+    area: neighborhoodArea.trim(),
+    hospitalityType: hospitalityType,
+    // ✅ ADD THESE THREE LINES
+    editMode: params.editMode,
+    propertyId: params.propertyId,
+    propertyData: params.propertyData,
+  },
+});
     };
     const [focusedField, setFocusedField] = useState(null);
     const [visible, setVisible] = useState(null);
@@ -146,109 +152,159 @@ export default function Hospitality() {
     const [hospitalityType, setHospitalityType] = useState("");
     // ✅ Load draft from AsyncStorage on mount
     // In Hospitality.jsx - Modify the loadDraft useEffect (around line 114)
-
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editPropertyId, setEditPropertyId] = useState(null);
     useEffect(() => {
-        const loadDraft = async () => {
-            try {
-                const draft = await AsyncStorage.getItem('draft_hospitality_details');
-                if (draft) {
-                    const savedData = JSON.parse(draft);
-                    console.log('📦 Loading Hospitality draft from AsyncStorage');
-
-                    setLocation(savedData.location || '');
-                    setNeighborhoodArea(savedData.neighborhoodArea || savedData.area || params.area || '');
-                    setPlotArea(savedData.plotArea?.toString() || '');
-                    setPropertyTitle(savedData.propertyTitle || params.propertyTitle || '');
-                    setUnit(savedData.unit || 'sqft');
-                    setRooms(savedData.rooms?.toString() || '');
-                    setWashroomType(savedData.washroomType || null);
-                    setBalconies(savedData.balconies || null);
-                    setOtherRooms(savedData.otherRooms || []);
-                    setFurnishingType(savedData.furnishingType || 'Unfurnished');
-                    setFurnishingDetails(savedData.furnishingDetails || []);
-                    setAvailability(savedData.availability || null);
-                    setAgeOfProperty(savedData.ageOfProperty || null);
-                    setPossessionBy(savedData.possessionBy || '');
-                    setExpectedMonth(savedData.expectedMonth || '');
-
-                    // ✅ FIXED - Support both field names
-                    const hospitalityValue = savedData.hospitalityType || savedData.hospitalityKind || params.hospitalityType;
-                    setHospitalityType(hospitalityValue || '');
-
-                    console.log('✅ Hospitality draft loaded from AsyncStorage');
-                    console.log('✅ Hospitality type restored:', hospitalityValue);
-                    return;
-                }
-            } catch (e) {
-                console.log('⚠️ Failed to load Hospitality draft:', e);
-            }
-
-            // ✅ FALLBACK: Load from params
-            if (params.area) {
-                setNeighborhoodArea(params.area);
-                console.log('✅ Area set from params.area:', params.area);
-            }
-
-            // ✅ FALLBACK: Load hospitalityType from params
-            if (params.hospitalityType || params.commercialBaseDetails) {
-                let hospitalityValue = params.hospitalityType;
-
-                if (params.commercialBaseDetails) {
-                    try {
-                        const baseDetails = JSON.parse(params.commercialBaseDetails);
-                        hospitalityValue = baseDetails.hospitalityType || hospitalityValue;
-                    } catch (e) {
-                        console.log('⚠️ Could not parse commercialBaseDetails:', e);
-                    }
-                }
-
-                setHospitalityType(hospitalityValue || '');
-                console.log('✅ Hospitality type set from params:', hospitalityValue);
-            }
+  const loadData = async () => {
+    // ✅ PRIORITY 1: Load data in edit mode
+    if (params.editMode === 'true' && params.propertyData) {
+      try {
+        const property = JSON.parse(params.propertyData);
+        setIsEditMode(true);
+        setEditPropertyId(params.propertyId);
+        
+        console.log('📝 Loading Hospitality for edit:', property._id);
+        
+        // Helper function to get localized text
+        const getLocalizedText = (field) => {
+          if (!field) return '';
+          if (typeof field === 'string') return field;
+          if (typeof field === 'object') {
+            const currentLang = i18n.language || 'en';
+            return field[currentLang] || field.en || field.te || field.hi || '';
+          }
+          return '';
         };
+        
+        // Load location and area
+        setLocation(getLocalizedText(property.location));
+        setNeighborhoodArea(getLocalizedText(property.area));
+        
+        // Load hospitality details
+        if (property.commercialDetails?.hospitalityDetails) {
+          const hosp = property.commercialDetails.hospitalityDetails;
+          
+          setPlotArea(hosp.area?.value?.toString() || '');
+          setUnit(hosp.area?.unit || 'sqft');
+          setRooms(hosp.rooms?.toString() || '');
+          setWashroomType(hosp.washroomType || null);
+          setBalconies(hosp.balconies || null);
+          setOtherRooms(hosp.otherRooms || []);
+          setFurnishingType(hosp.furnishingType || 'Unfurnished');
+          setFurnishingDetails(hosp.furnishingDetails || []);
+          setAvailability(hosp.availability || null);
+          setAgeOfProperty(hosp.ageOfProperty || null);
+          setPossessionBy(hosp.possessionBy || '');
+          setExpectedMonth(hosp.expectedMonth || '');
+          setHospitalityType(hosp.hospitalityType || '');
+        }
+        
+        console.log('✅ Hospitality data loaded for editing');
+        return; // Don't load draft in edit mode
+      } catch (error) {
+        console.error('❌ Error loading hospitality data:', error);
+        Alert.alert('Error', 'Failed to load property data');
+      }
+    }
+    
+    // ✅ PRIORITY 2: Load draft (only in create mode)
+    if (!params.editMode || params.editMode !== 'true') {
+      try {
+        const draft = await AsyncStorage.getItem('draft_hospitality_details');
+        if (draft) {
+          const savedData = JSON.parse(draft);
+          console.log('📦 Loading Hospitality draft from AsyncStorage');
+          
+          setLocation(savedData.location || '');
+          setNeighborhoodArea(savedData.neighborhoodArea || savedData.area || params.area || '');
+          setPlotArea(savedData.plotArea?.toString() || '');
+          setPropertyTitle(savedData.propertyTitle || params.propertyTitle || '');
+          setUnit(savedData.unit || 'sqft');
+          setRooms(savedData.rooms?.toString() || '');
+          setWashroomType(savedData.washroomType || null);
+          setBalconies(savedData.balconies || null);
+          setOtherRooms(savedData.otherRooms || []);
+          setFurnishingType(savedData.furnishingType || 'Unfurnished');
+          setFurnishingDetails(savedData.furnishingDetails || []);
+          setAvailability(savedData.availability || null);
+          setAgeOfProperty(savedData.ageOfProperty || null);
+          setPossessionBy(savedData.possessionBy || '');
+          setExpectedMonth(savedData.expectedMonth || '');
+          
+          const hospitalityValue = savedData.hospitalityType || savedData.hospitalityKind || params.hospitalityType;
+          setHospitalityType(hospitalityValue || '');
+          
+          console.log('✅ Hospitality draft loaded from AsyncStorage');
+          return;
+        }
+      } catch (e) {
+        console.log('⚠️ Failed to load Hospitality draft:', e);
+      }
 
-        loadDraft();
-    }, [params.area, params.hospitalityType, params.commercialBaseDetails]);
+      // ✅ FALLBACK: Load from params
+      if (params.area) {
+        setNeighborhoodArea(params.area);
+      }
+
+      if (params.hospitalityType || params.commercialBaseDetails) {
+        let hospitalityValue = params.hospitalityType;
+        if (params.commercialBaseDetails) {
+          try {
+            const baseDetails = JSON.parse(params.commercialBaseDetails);
+            hospitalityValue = baseDetails.hospitalityType || hospitalityValue;
+          } catch (e) {
+            console.log('⚠️ Could not parse commercialBaseDetails:', e);
+          }
+        }
+        setHospitalityType(hospitalityValue || '');
+      }
+    }
+  };
+
+  loadData();
+}, [params.editMode, params.propertyData, params.propertyId, params.area, params.hospitalityType, params.commercialBaseDetails]);
 
     // ✅ Auto-save draft
     // In the auto-save useEffect (around line 158), add hospitalityType to the draftData:
 
     useEffect(() => {
-        const saveDraft = async () => {
-            const draftData = {
-                location,
-                neighborhoodArea,
-                area: neighborhoodArea,
-                plotArea,
-                unit,
-                rooms,
-                propertyTitle,
-                washroomType,
-                balconies,
-                otherRooms,
-                furnishingType,
-                furnishingDetails,
-                availability,
-                ageOfProperty,
-                possessionBy,
-                expectedMonth,
-                hospitalityType, // ✅ ADD THIS LINE
-                timestamp: new Date().toISOString(),
-            };
+  if (isEditMode) return; // ✅ Don't save drafts in edit mode
+  
+  const saveDraft = async () => {
+    const draftData = {
+      location,
+      neighborhoodArea,
+      area: neighborhoodArea,
+      plotArea,
+      unit,
+      rooms,
+      propertyTitle,
+      washroomType,
+      balconies,
+      otherRooms,
+      furnishingType,
+      furnishingDetails,
+      availability,
+      ageOfProperty,
+      possessionBy,
+      expectedMonth,
+      hospitalityType,
+      timestamp: new Date().toISOString(),
+    };
 
-            try {
-                await AsyncStorage.setItem('draft_hospitality_details', JSON.stringify(draftData));
-                console.log('💾 Hospitality draft auto-saved');
-            } catch (e) {
-                console.log('⚠️ Failed to save Hospitality draft:', e);
-            }
-        };
+    try {
+      await AsyncStorage.setItem('draft_hospitality_details', JSON.stringify(draftData));
+      console.log('💾 Hospitality draft auto-saved');
+    } catch (e) {
+      console.log('⚠️ Failed to save Hospitality draft:', e);
+    }
+  };
 
-        const timer = setTimeout(saveDraft, 1000);
-        return () => clearTimeout(timer);
-    }, [location, neighborhoodArea, plotArea, unit, rooms, washroomType, balconies,
-        otherRooms, furnishingType, furnishingDetails, availability, ageOfProperty,
-        possessionBy, expectedMonth, propertyTitle, hospitalityType]); // ✅ ADD hospitalityType HERE// ✅ ADD propertyTitle HERE
+  const timer = setTimeout(saveDraft, 1000);
+  return () => clearTimeout(timer);
+}, [location, neighborhoodArea, plotArea, unit, rooms, washroomType, balconies,
+    otherRooms, furnishingType, furnishingDetails, availability, ageOfProperty,
+    possessionBy, expectedMonth, propertyTitle, hospitalityType, isEditMode]); // ✅ Add isEditMode/ ✅ ADD hospitalityType HERE// ✅ ADD propertyTitle HERE
 
     const toggleOtherRoom = (room) => {
         setOtherRooms((prev) =>

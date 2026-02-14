@@ -64,33 +64,61 @@ export default function VastuDetailsScreen() {
     }, [params.commercialDetails]);
 
     // Load draft from AsyncStorage
-    useEffect(() => {
-        const loadDraft = async () => {
-            try {
-                const draft = await AsyncStorage.getItem('draft_hospitality_vaastu');
-                if (draft) {
-                    const savedForm = JSON.parse(draft);
-                    console.log('📦 Loading Hospitality Vaastu draft from AsyncStorage');
-                    setForm(savedForm);
-                    return;
-                }
-            } catch (e) {
-                console.log('⚠️ Failed to load Vaastu draft:', e);
-            }
+  useEffect(() => {
+  const loadData = async () => {
+    // ✅ PRIORITY 1: Load data in edit mode
+    if (params.editMode === 'true' && params.propertyData) {
+      try {
+        const property = JSON.parse(params.propertyData);
+        console.log('📝 Loading Hospitality Vaastu for edit:', property._id);
 
-            // FALLBACK: Load from params
-            if (commercialDetails?.hospitalityDetails?.vastuDetails) {
-                const vastu = commercialDetails.hospitalityDetails.vastuDetails;
-                console.log('🔄 Restoring Vaastu data from params:', vastu);
-                setForm(vastu);
-            }
-        };
+        // Load vaastu details from commercialDetails
+        if (property.commercialDetails?.hospitalityDetails?.vastuDetails) {
+          const vastu = property.commercialDetails.hospitalityDetails.vastuDetails;
+          console.log('🔄 Restoring Hospitality Vaastu from edit mode:', vastu);
+          setForm(vastu);
+          return;
+        }
+      } catch (error) {
+        console.error('❌ Error loading hospitality vaastu data:', error);
+      }
+    }
 
-        loadDraft();
-    }, [commercialDetails]);
+    // ✅ PRIORITY 2: Load from params (navigation back from next step)
+    if (commercialDetails?.hospitalityDetails?.vastuDetails) {
+      const vastu = commercialDetails.hospitalityDetails.vastuDetails;
+      console.log('🔄 Restoring Hospitality Vaastu from params:', vastu);
+      setForm(vastu);
+      return;
+    }
+
+    // ✅ PRIORITY 3: Load from AsyncStorage draft (only in create mode)
+    if (!params.editMode || params.editMode !== 'true') {
+      try {
+        console.log("📦 Loading Hospitality Vaastu draft from AsyncStorage");
+        const draft = await AsyncStorage.getItem('draft_hospitality_vaastu');
+        if (draft) {
+          const parsed = JSON.parse(draft);
+          console.log('✅ Hospitality Vaastu draft loaded from storage:', parsed);
+          setForm(parsed);
+          return;
+        }
+      } catch (e) {
+        console.log('⚠️ Failed to load Hospitality Vaastu draft:', e);
+      }
+    }
+  };
+
+  loadData();
+}, [params.editMode, params.propertyData, commercialDetails]);
 
     // Auto-save Vaastu draft
     useEffect(() => {
+        // Don't save drafts in edit mode
+        if (params.editMode === 'true') {
+            return;
+        }
+
         const saveDraft = async () => {
             try {
                 await AsyncStorage.setItem('draft_hospitality_vaastu', JSON.stringify(form));
@@ -102,50 +130,53 @@ export default function VastuDetailsScreen() {
 
         const timer = setTimeout(saveDraft, 1000);
         return () => clearTimeout(timer);
-    }, [form]);
+    }, [params.editMode, form]);
 
     const update = (key, value) => {
         setForm(prev => ({ ...prev, [key]: value }));
     };
 
-  const handleBack = () => {
-    if (!commercialDetails || !commercialDetails.hospitalityDetails) {
-        router.back();
-        return;
-    }
+    const handleBack = () => {
+        if (!commercialDetails || !commercialDetails.hospitalityDetails) {
+            router.back();
+            return;
+        }
 
-    const updatedCommercialDetails = {
-        ...commercialDetails,
-        hospitalityDetails: {
-            ...commercialDetails.hospitalityDetails,
-            vastuDetails: form,
-        },
+        const updatedCommercialDetails = {
+            ...commercialDetails,
+            hospitalityDetails: {
+                ...commercialDetails.hospitalityDetails,
+                vastuDetails: form,
+            },
+        };
+
+        // ✅ FIXED - Extract hospitalityType
+        let hospitalityType;
+        if (params.commercialBaseDetails) {
+            try {
+                const baseDetails = JSON.parse(params.commercialBaseDetails);
+                hospitalityType = baseDetails.hospitalityType;
+            } catch (e) {
+                console.log('⚠️ Could not parse commercialBaseDetails:', e);
+            }
+        }
+        router.push({
+            pathname: "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityNext",
+            params: {
+                hospitalityDetails: JSON.stringify(commercialDetails.hospitalityDetails),
+                commercialDetails: JSON.stringify(updatedCommercialDetails),
+                images: JSON.stringify(images),
+                area: params.area,
+                propertyTitle: commercialDetails.hospitalityDetails?.propertyTitle || params.propertyTitle,
+                hospitalityType: hospitalityType,
+                commercialBaseDetails: params.commercialBaseDetails,
+                // ✅ ADD THESE THREE LINES
+                editMode: params.editMode,
+                propertyId: params.propertyId,
+                propertyData: params.propertyData,
+            },
+        });
     };
-
-    // ✅ FIXED - Extract hospitalityType
-    let hospitalityType;
-    if (params.commercialBaseDetails) {
-      try {
-        const baseDetails = JSON.parse(params.commercialBaseDetails);
-        hospitalityType = baseDetails.hospitalityType;
-      } catch (e) {
-        console.log('⚠️ Could not parse commercialBaseDetails:', e);
-      }
-    }
-
-    router.push({
-        pathname: "/home/screens/UploadScreens/CommercialUpload/Components/HospitalityNext",
-        params: {
-            hospitalityDetails: JSON.stringify(commercialDetails.hospitalityDetails),
-            commercialDetails: JSON.stringify(updatedCommercialDetails),
-            images: JSON.stringify(images),
-            area: params.area,
-            propertyTitle: commercialDetails.hospitalityDetails?.propertyTitle || params.propertyTitle,
-            hospitalityType: hospitalityType, // ✅ ADD THIS
-            commercialBaseDetails: params.commercialBaseDetails,
-        },
-    });
-};
 
     const handleNext = () => {
         console.log('🔄 handleNext called with:', {
@@ -171,33 +202,37 @@ export default function VastuDetailsScreen() {
             },
         };
 
-      // ✅ FIXED - Extract hospitalityType before navigation
-let hospitalityType;
-if (params.commercialBaseDetails) {
-  try {
-    const baseDetails = JSON.parse(params.commercialBaseDetails);
-    hospitalityType = baseDetails.hospitalityType;
-  } catch (e) {
-    console.log('⚠️ Could not parse commercialBaseDetails:', e);
-  }
-}
+        // ✅ FIXED - Extract hospitalityType before navigation
+        let hospitalityType;
+        if (params.commercialBaseDetails) {
+            try {
+                const baseDetails = JSON.parse(params.commercialBaseDetails);
+                hospitalityType = baseDetails.hospitalityType;
+            } catch (e) {
+                console.log('⚠️ Could not parse commercialBaseDetails:', e);
+            }
+        }
 
-router.push({
-    pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
-    params: {
-        commercialDetails: JSON.stringify(updatedCommercialDetails),
-        images: JSON.stringify(images),
-        area: params.area,
-        propertyTitle: commercialDetails.hospitalityDetails?.propertyTitle || params.propertyTitle,
-        hospitalityType: hospitalityType, // ✅ ADD THIS
-        commercialBaseDetails: params.commercialBaseDetails,
-        hospitalityDetails: JSON.stringify(commercialDetails.hospitalityDetails),
-    },
-});
+        router.push({
+            pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
+            params: {
+                commercialDetails: JSON.stringify(updatedCommercialDetails),
+                images: JSON.stringify(images),
+                area: params.area,
+                propertyTitle: commercialDetails.hospitalityDetails?.propertyTitle || params.propertyTitle,
+                hospitalityType: hospitalityType,
+                commercialBaseDetails: params.commercialBaseDetails,
+                hospitalityDetails: JSON.stringify(commercialDetails.hospitalityDetails),
+                // ✅ ADD THESE THREE LINES
+                editMode: params.editMode,
+                propertyId: params.propertyId,
+                propertyData: params.propertyData,
+            },
+        });
     };
 
     // ✅ Define Vaastu options with translations
-    
+
 
     return (
         <View className="flex-1 bg-white">
@@ -225,91 +260,91 @@ router.push({
                     <VastuDropdown
                         label={t('building_property_facing')}
                         value={form.buildingFacing}
-                        
+
                         onSelect={(v) => update("buildingFacing", v)}
                     />
 
                     <VastuDropdown
                         label={t('main_entrance_direction')}
                         value={form.entrance}
-                       
+
                         onSelect={(v) => update("entrance", v)}
                     />
 
                     <VastuDropdown
                         label={t('reception_lobby_direction')}
                         value={form.reception}
-                        
+
                         onSelect={(v) => update("reception", v)}
                     />
 
                     <VastuDropdown
                         label={t('admin_office_direction')}
                         value={form.adminOffice}
-                        
+
                         onSelect={(v) => update("adminOffice", v)}
                     />
 
                     <VastuDropdown
                         label={t('guest_rooms_direction')}
                         value={form.guestRooms}
-                      
+
                         onSelect={(v) => update("guestRooms", v)}
                     />
 
                     <VastuDropdown
                         label={t('banquet_direction')}
                         value={form.banquet}
-                       
+
                         onSelect={(v) => update("banquet", v)}
                     />
 
                     <VastuDropdown
                         label="Kitchen/Cooking Area Direction"
                         value={form.kitchen}
-                       
+
                         onSelect={(v) => update("kitchen", v)}
                     />
 
                     <VastuDropdown
                         label={t('dining_direction')}
                         value={form.dining}
-                       
+
                         onSelect={(v) => update("dining", v)}
                     />
 
                     <VastuDropdown
                         label={t('cash_counter_direction')}
                         value={form.cashCounter}
-                       
+
                         onSelect={(v) => update("cashCounter", v)}
                     />
 
                     <VastuDropdown
                         label={t('electrical_area_direction')}
                         value={form.electrical}
-                        
+
                         onSelect={(v) => update("electrical", v)}
                     />
 
                     <VastuDropdown
                         label={t('water_structure_direction')}
                         value={form.waterStructure}
-                       
+
                         onSelect={(v) => update("waterStructure", v)}
                     />
 
                     <VastuDropdown
                         label={t('washroom_direction')}
                         value={form.washroom}
-                       
+
                         onSelect={(v) => update("washroom", v)}
                     />
 
                     <VastuDropdown
                         label={t('storage_direction')}
                         value={form.storage}
-                       
+
                         onSelect={(v) => update("storage", v)}
                     />
                 </View>

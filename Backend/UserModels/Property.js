@@ -18,47 +18,47 @@ const propertySchema = new mongoose.Schema({
     type: String // URLs of uploaded images
   }],
   documents: {
-  ownership: [String], // Sale deed, conveyance
-  identity: [String]   // PAN, Aadhaar, etc
-},
-ownerDetails: {
-  name: {
-    type: String,
-    required: [true, "Owner name is required"],
-    trim: true,
+    ownership: [String], // Sale deed, conveyance
+    identity: [String]   // PAN, Aadhaar, etc
   },
-  // ✅ NEW CODE - Add this new field
-originalLanguage: {
-  type: String,
-  enum: ['te', 'hi', 'en'],
-  default: 'en'
-},
-  phone: {
-  type: String,
-  required: [true, "Owner phone is required"],
-  validate: {
-    validator: function(v) {
-      // Matches Indian phone numbers: 10 digits, optional +91 or 0 prefix
-      return /^(?:\+91|91|0)?[6-9]\d{9}$/.test(v);
+  ownerDetails: {
+    name: {
+      type: String,
+      required: [true, "Owner name is required"],
+      trim: true,
     },
-    message: props => `${props.value} is not a valid phone number!`
+    // ✅ NEW CODE - Add this new field
+    originalLanguage: {
+      type: String,
+      enum: ['te', 'hi', 'en'],
+      default: 'en'
+    },
+    phone: {
+      type: String,
+      required: [true, "Owner phone is required"],
+      validate: {
+        validator: function (v) {
+          // Matches Indian phone numbers: 10 digits, optional +91 or 0 prefix
+          return /^(?:\+91|91|0)?[6-9]\d{9}$/.test(v);
+        },
+        message: props => `${props.value} is not a valid phone number!`
+      },
+      trim: true
+    },
+    email: {
+      type: String,
+      required: [true, "Owner email is required"],
+      lowercase: true,
+      trim: true,
+      validate: {
+        validator: function (v) {
+          // Standard email validation regex
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+        },
+        message: props => `${props.value} is not a valid email address!`
+      }
+    }
   },
-  trim: true
-},
-email: {
-  type: String,
-  required: [true, "Owner email is required"],
-  lowercase: true,
-  trim: true,
-  validate: {
-    validator: function(v) {
-      // Standard email validation regex
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-    },
-    message: props => `${props.value} is not a valid email address!`
-  }
-}
-},
 
   location: {
     te: { type: String, trim: true },
@@ -130,16 +130,16 @@ email: {
 
   // Property availability status
   propertyStatus: {
-  type: String,
-  enum: ['Available', 'Sold'],
-  default: 'Available'
-},
+    type: String,
+    enum: ['Available', 'Sold'],
+    default: 'Available'
+  },
 
-soldBy: {
-  type: String,
-  enum: ['user', 'admin'],
-  default: null
-},
+  soldBy: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: null
+  },
 
   isVerified: {
     type: Boolean,
@@ -195,11 +195,11 @@ soldBy: {
       type: Number,
     },
 
-   roadWidthUnit: {
-  type: String,
-  enum: ["ft", "m", "sqft", "sqm", "acre"], // ✅ ADD "ft" and "m"
-  default: "ft",
-},
+    roadWidthUnit: {
+      type: String,
+      enum: ["ft", "m", "sqft", "sqm", "acre"], // ✅ ADD "ft" and "m"
+      default: "ft",
+    },
 
     /* ---------- CONSTRUCTION ---------- */
     constructionDone: {
@@ -498,15 +498,15 @@ soldBy: {
       },
 
       totalFloors: Number, // ✅ ADD THIS
-  
-  furnishingType: {  // ✅ ADD THIS
-    type: String,
-    enum: ['Unfurnished', 'Semi-furnished', 'Furnished']
-  },
-  
-  furnishingItems: [String], // ✅ ADD THIS
-  
-  ownershipType: String, // ✅ ADD THIS (alias for ownership)
+
+      furnishingType: {  // ✅ ADD THIS
+        type: String,
+        enum: ['Unfurnished', 'Semi-furnished', 'Furnished']
+      },
+
+      furnishingItems: [String], // ✅ ADD THIS
+
+      ownershipType: String, // ✅ ADD THIS (alias for ownership)
 
       /* ---------- PRICING (FLATTENED STRUCTURE) ---------- */
 
@@ -561,20 +561,20 @@ soldBy: {
       /* ---------- VAASTU DETAILS (MATCHING RetailVaastu.jsx) ---------- */
 
       vaasthuDetails: {  // ✅ Single 'a' spelling
-    shopFacing: String,
-    entrance: String,
-    cashCounter: String,
-    cashLocker: String,
-    ownerSeating: String,
-    staffSeating: String,
-    storage: String,
-    displayArea: String,
-    electrical: String,
-    pantryArea: String,
-    staircase: String,
-    staircaseInside: String,
-  },
-},
+        shopFacing: String,
+        entrance: String,
+        cashCounter: String,
+        cashLocker: String,
+        ownerSeating: String,
+        staffSeating: String,
+        storage: String,
+        displayArea: String,
+        electrical: String,
+        pantryArea: String,
+        staircase: String,
+        staircaseInside: String,
+      },
+    },
 
 
 
@@ -719,7 +719,13 @@ soldBy: {
       location: {
         type: String,
         required: function () {
-          return this.commercialDetails.subType === 'Industry';
+          if (this.commercialDetails) {
+            return this.commercialDetails.subType === 'Industry';
+          }
+          if (this._update?.$set?.commercialDetails) {
+            return this._update.$set.commercialDetails.subType === 'Industry';
+          }
+          return false;
         },
       },
       neighborhoodArea: String, // NEW
@@ -727,7 +733,13 @@ soldBy: {
         value: {
           type: Number,
           required: function () {
-            return this.commercialDetails.subType === 'Industry';
+            if (this.commercialDetails) {
+              return this.commercialDetails.subType === 'Industry';
+            }
+            if (this._update?.$set?.commercialDetails) {
+              return this._update.$set.commercialDetails.subType === 'Industry';
+            }
+            return false;
           },
         },
         unit: {
@@ -749,7 +761,13 @@ soldBy: {
         expectedPrice: {
           type: Number,
           required: function () {
-            return this.commercialDetails.subType === 'Industry';
+            if (this.commercialDetails) {
+              return this.commercialDetails.subType === 'Industry';
+            }
+            if (this._update?.$set?.commercialDetails) {
+              return this._update.$set.commercialDetails.subType === 'Industry';
+            }
+            return false;
           },
         },
         priceDetails: {
@@ -950,12 +968,12 @@ soldBy: {
       // ✅ Location & Area
 
       hospitalityType: {
-  type: String,
-  enum: ['Hotel/Resorts', 'Guest House'], // ✅ Matches frontend exactly
-  required: function () {
-    return this.commercialDetails?.subType === 'Hospitality';
-  }
-},
+        type: String,
+        enum: ['Hotel/Resorts', 'Guest-House/Banquet-Halls'], // ✅ Matches frontend exactly
+        required: function () {
+          return this.commercialDetails?.subType === 'Hospitality';
+        }
+      },
       location: {
         type: String,
         required: function () {
