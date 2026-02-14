@@ -19,7 +19,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import Toast from "react-native-toast-message";
 import { useTranslation } from 'react-i18next'; // ✅ ADD THIS
-
+import { Alert } from 'react-native';
 export const PillButton = ({ label, selected, onPress }) => (
   <TouchableOpacity
     onPress={onPress}
@@ -119,7 +119,7 @@ const Counter = ({ value, setValue }) => (
 
 export default function PropertyFormScreen() {
   const params = useLocalSearchParams();
-  const { t } = useTranslation(); // ✅ ADD THIS
+  const { t,i18n } = useTranslation(); // ✅ ADD THIS
 
   const images = params.images ? JSON.parse(params.images) : [];
 
@@ -206,8 +206,115 @@ export default function PropertyFormScreen() {
   const [ownership, setOwnership] = useState("");
 
   const router = useRouter();
-
-  // ✅ Load draft from AsyncStorage
+// ✅ NEW - Load property data in EDIT MODE
+// ✅ NEW - Load property data in EDIT MODE
+useEffect(() => {
+  if (params.editMode === 'true' && params.propertyData) {
+    try {
+      const property = JSON.parse(params.propertyData);
+      console.log('📝 Loading office property for edit:', property._id);
+      
+      // Helper function to get localized text
+      const getLocalizedText = (field) => {
+        if (!field) return '';
+        if (typeof field === 'string') return field;
+        if (typeof field === 'object') {
+          const currentLang = i18n.language || 'en';
+          return field[currentLang] || field.en || field.te || field.hi || '';
+        }
+        return '';
+      };
+      
+      // Set basic fields
+      setLocation(getLocalizedText(property.location));
+      setNeighborhoodArea(getLocalizedText(property.area));
+      
+      // Load office details
+      if (property.commercialDetails?.officeDetails) {
+        const office = property.commercialDetails.officeDetails;
+        
+        // Basic details
+        setCarpetArea(office.carpetArea?.toString() || '');
+        setUnit(office.carpetAreaUnit || 'sqft');
+        setLocatedInside(office.locatedInside || '');
+        setZoneType(office.zoneType || '');
+        
+        // Office setup
+        setCabins(office.cabins?.toString() || '');
+        setMeetingRooms(office.meetingRooms?.toString() || '');
+        setSeats(office.seats?.toString() || '');
+        setMaxSeats(office.maxSeats?.toString() || '');
+        if (office.maxSeats) setShowMaxSeats(true);
+        
+        // Features
+        setFeatures({
+          conferenceRoom: !!office.conferenceRooms,
+          washRoom: !!(office.washrooms?.public || office.washrooms?.private),
+          reception: office.receptionArea || false,
+          pantry: office.pantry || false,
+          furnishing: office.furnishing || false,
+          centralAC: office.additionalFeatures?.includes('Central AC') || false,
+          oxygenDuct: office.additionalFeatures?.includes('Oxygen Duct') || false,
+          ups: office.additionalFeatures?.includes('UPS') || false,
+        });
+        
+        // Conference rooms
+        if (office.conferenceRooms) {
+          setConferenceCount(office.conferenceRooms.toString());
+        }
+        
+        // Washrooms
+        if (office.washrooms) {
+          setPublicWashrooms(office.washrooms.public?.toString() || null);
+          setPrivateWashrooms(office.washrooms.private?.toString() || null);
+        }
+        
+        // Pantry
+        if (office.pantry) {
+          setPantryType(office.pantryType || null);
+          setPantrySize(office.pantrySize?.toString() || '');
+        }
+        
+        // Fire safety
+        setFireMeasures(office.fireSafetyMeasures || []);
+        
+        // Floor details
+        setTotalFloors(office.totalFloors?.toString() || '');
+        setFloorNo(office.floorNo?.toString() || '');
+        setStairCase(office.staircases || null);
+        
+        // Lift
+        setLift(office.lift || null);
+        setPassengerLifts(office.passengerLifts || 0);
+        setServiceLifts(office.serviceLifts || 0);
+        
+        // Parking
+        if (office.parking) {
+          setParking(office.parking.type || null);
+          setParkingOptions(office.parking.options || {
+            basement: false,
+            outside: false,
+            private: false
+          });
+          setParkingCount(office.parking.count?.toString() || '');
+        }
+        
+        // Availability
+        setAvailability(office.availability || null);
+        setAgeOfProperty(office.ageOfProperty || null);
+        setPossessionBy(office.possessionBy || '');
+        setOwnership(office.ownership || '');
+        
+        console.log('✅ Office property data loaded for editing');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error loading office property data:', error);
+      Alert.alert('Error', 'Failed to load property data');
+    }
+  }
+}, [params.editMode, params.propertyData, params.propertyId]);
+  // ✅ Load draft from AuseEffectsyncStorage
   useEffect(() => {
     const loadDraft = async () => {
       try {
@@ -309,6 +416,7 @@ export default function PropertyFormScreen() {
 
   // ✅ Auto-save draft
   useEffect(() => {
+    if (params.editMode === 'true') return; 
     const saveDraft = async () => {
       const draftData = {
         location,
@@ -369,7 +477,7 @@ export default function PropertyFormScreen() {
       conferenceCount, publicWashrooms, privateWashrooms, pantryType, pantrySize,
       features, fireMeasures, totalFloors, floorNo, stairCase, lift,
       passengerLifts, serviceLifts, parking, parkingOptions, parkingCount,
-      availability, ageOfProperty, possessionBy, ownership, zoneType, locatedInside, unit]);
+      availability, ageOfProperty, possessionBy, ownership, zoneType, locatedInside, unit, params.editMode]);
 
   const toggleArrayItem = (arrSetter, arr, value) => {
     if (arr.includes(value)) arrSetter(arr.filter((a) => a !== value));
@@ -464,14 +572,18 @@ export default function PropertyFormScreen() {
   const officeDetails = convertToEnglish(rawOfficeDetails);
 
   router.push({
-    pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OfficeNext",
-    params: {
-      officeDetails: JSON.stringify(officeDetails),
-      images: JSON.stringify(images),
-      area: neighborhoodArea.trim(),
-      propertyTitle: baseDetails?.propertyTitle,
-    },
-  });
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OfficeNext",
+  params: {
+    officeDetails: JSON.stringify(officeDetails),
+    images: JSON.stringify(images),
+    area: neighborhoodArea.trim(),
+    propertyTitle: baseDetails?.propertyTitle,
+    // ✅ ADD THESE THREE LINES
+    editMode: params.editMode,
+    propertyId: params.propertyId,
+    propertyData: params.propertyData,
+  },
+});
 };
 
   const locatedInsideOptions = [

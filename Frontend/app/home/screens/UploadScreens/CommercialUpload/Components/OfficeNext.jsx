@@ -88,7 +88,7 @@ const LOCATION_ADVANTAGES = [
 const OfficeNext = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { t } = useTranslation();
+  const { t ,i18n} = useTranslation();
 
   const images = params.images ? JSON.parse(params.images) : [];
 
@@ -119,8 +119,82 @@ const OfficeNext = () => {
     t('office_prev_warehouse')
   ];
 
-  useEffect(() => {
-    const loadDraft = async () => {
+ useEffect(() => {
+  const loadData = async () => {
+    // ✅ PRIORITY 1: Load data in edit mode
+    if (params.editMode === 'true' && params.propertyData) {
+      try {
+        const property = JSON.parse(params.propertyData);
+        console.log('📝 Loading Office pricing for edit:', property._id);
+        
+        // Helper function to get localized text
+        const getLocalizedText = (field) => {
+          if (!field) return '';
+          if (typeof field === 'string') return field;
+          if (typeof field === 'object') {
+            return field.en || field.te || field.hi || '';
+          }
+          return '';
+        };
+        
+        // Load pricing details from commercialDetails
+        if (property.commercialDetails?.officeDetails) {
+          const office = property.commercialDetails.officeDetails;
+          
+          setExpectedPrice(office.expectedPrice?.toString() || '');
+          setAllInclusive(office.priceDetails?.allInclusive || false);
+          setPriceNegotiable(office.priceDetails?.negotiable || false);
+          setTaxExcluded(office.priceDetails?.taxExcluded || false);
+          setPreLeased(office.preLeased || null);
+          setLeaseDuration(office.leaseDuration || '');
+          setMonthlyRent(office.monthlyRent?.toString() || '');
+          setNocCertified(office.nocCertified || null);
+          setOccupancyCertified(office.occupancyCertified || null);
+          setPrevUsedFor(office.previouslyUsedFor || 'Commercial');
+          setDescribeProperty(getLocalizedText(office.description) || '');
+          setAmenities(office.amenities || []);
+          setLocAdvantages(office.locationAdvantages || []);
+        }
+        
+        console.log('✅ Office pricing loaded for editing');
+        return; // Don't load draft in edit mode
+      } catch (error) {
+        console.error('❌ Error loading office pricing data:', error);
+      }
+    }
+    
+    // ✅ PRIORITY 2: Load from params (navigation back from next step)
+    if (params.commercialDetails) {
+      try {
+        const details = JSON.parse(params.commercialDetails);
+        if (details.officeDetails) {
+          const office = details.officeDetails;
+          console.log('🔄 Restoring Office pricing from params');
+
+          setExpectedPrice(office.expectedPrice?.toString() || '');
+          setAllInclusive(office.priceDetails?.allInclusive || false);
+          setPriceNegotiable(office.priceDetails?.negotiable || false);
+          setTaxExcluded(office.priceDetails?.taxExcluded || false);
+          setPreLeased(office.preLeased || null);
+          setLeaseDuration(office.leaseDuration || '');
+          setMonthlyRent(office.monthlyRent?.toString() || '');
+          setNocCertified(office.nocCertified || null);
+          setOccupancyCertified(office.occupancyCertified || null);
+          setPrevUsedFor(office.previouslyUsedFor || 'Commercial');
+          setDescribeProperty(office.description || '');
+          setAmenities(office.amenities || []);
+          setLocAdvantages(office.locationAdvantages || []);
+
+          console.log('✅ Office pricing restored from params');
+          return;
+        }
+      } catch (e) {
+        console.log('❌ Could not restore from params:', e);
+      }
+    }
+    
+    // ✅ PRIORITY 3: Load from AsyncStorage draft (only in create mode)
+    if (!params.editMode || params.editMode !== 'true') {
       try {
         const draft = await AsyncStorage.getItem('draft_office_pricing');
         if (draft) {
@@ -142,37 +216,18 @@ const OfficeNext = () => {
           setLocAdvantages(savedData.locAdvantages || []);
           
           console.log('✅ Pricing draft loaded');
-          return;
         }
       } catch (e) {
         console.log('⚠️ Failed to load pricing draft:', e);
       }
-
-      const officeDetails = params.officeDetails ? JSON.parse(params.officeDetails) : null;
-      
-      if (officeDetails) {
-        console.log('🔄 Restoring OfficeNext data from params');
-        
-        setExpectedPrice(officeDetails.expectedPrice?.toString() || '');
-        setAllInclusive(officeDetails.priceDetails?.allInclusive || false);
-        setPriceNegotiable(officeDetails.priceDetails?.negotiable || false);
-        setTaxExcluded(officeDetails.priceDetails?.taxExcluded || false);
-        setPreLeased(officeDetails.preLeased || null);
-        setLeaseDuration(officeDetails.leaseDuration || '');
-        setMonthlyRent(officeDetails.monthlyRent?.toString() || '');
-        setNocCertified(officeDetails.nocCertified || null);
-        setOccupancyCertified(officeDetails.occupancyCertified || null);
-        setPrevUsedFor(officeDetails.previouslyUsedFor || 'Commercial');
-        setDescribeProperty(officeDetails.description || '');
-        setAmenities(officeDetails.amenities || []);
-        setLocAdvantages(officeDetails.locationAdvantages || []);
-      }
-    };
-
-    loadDraft();
-  }, [params.officeDetails]);
+    }
+  };
+  
+  loadData();
+}, [params.editMode, params.propertyData, params.commercialDetails]);
 
   useEffect(() => {
+     if (params.editMode === 'true') return;
     const saveDraft = async () => {
       const pricingDraft = {
         expectedPrice,
@@ -203,7 +258,7 @@ const OfficeNext = () => {
     return () => clearTimeout(timer);
   }, [expectedPrice, allInclusive, priceNegotiable, taxExcluded, preLeased, 
       leaseDuration, monthlyRent, nocCertified, occupancyCertified, prevUsedFor,
-      describeProperty, amenities, locAdvantages]);
+      describeProperty, amenities, locAdvantages,params.editMode]);
 
   const toggleArrayItem = (setter, array, value) => {
     if (array.includes(value)) {
@@ -289,15 +344,19 @@ const handleNext = () => {
     propertyTitle: commercialDetails.propertyTitle,
   });
 
-  router.push({
-    pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OfficeVaastu",
-    params: {
-      commercialDetails: JSON.stringify(commercialDetails),
-      images: JSON.stringify(images),
-      area: params.area,
-      propertyTitle: commercialDetails.officeDetails?.propertyTitle || params.propertyTitle,
-    },
-  });
+ router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OfficeVaastu",
+  params: {
+    commercialDetails: JSON.stringify(commercialDetails),
+    images: JSON.stringify(images),
+    area: params.area,
+    propertyTitle: commercialDetails.officeDetails?.propertyTitle || params.propertyTitle,
+    // ✅ ADD THESE THREE LINES
+    editMode: params.editMode,
+    propertyId: params.propertyId,
+    propertyData: params.propertyData,
+  },
+});
 };
 
   return (

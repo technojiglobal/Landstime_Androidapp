@@ -159,59 +159,113 @@ export default function RetailNext() {
   };
 
   // ✅ Load draft from AsyncStorage
-  useEffect(() => {
-    const loadDraft = async () => {
+ useEffect(() => {
+  const loadData = async () => {
+    // ✅ PRIORITY 1: Load data in edit mode
+    if (params.editMode === 'true' && params.propertyData) {
+      try {
+        const property = JSON.parse(params.propertyData);
+        console.log('📝 Loading Retail pricing for edit:', property._id);
+        
+        // Helper function to get localized text
+        const getLocalizedText = (field) => {
+          if (!field) return '';
+          if (typeof field === 'string') return field;
+          if (typeof field === 'object') {
+            return field.en || field.te || field.hi || '';
+          }
+          return '';
+        };
+        
+        // Load pricing details from commercialDetails
+        if (property.commercialDetails?.retailDetails) {
+          const retail = property.commercialDetails.retailDetails;
+          
+          setOwnership(retail.ownership || '');
+          setExpectedPrice(retail.expectedPrice?.toString() || '');
+          setAllInclusive(retail.priceDetails?.allInclusive || false);
+          setNegotiable(retail.priceDetails?.negotiable || false);
+          setTaxExcluded(retail.priceDetails?.taxExcluded || false);
+          setPreLeased(retail.preLeased || null);
+          setLeaseDuration(retail.leaseDuration || '');
+          setMonthlyRent(retail.monthlyRent?.toString() || '');
+          setPrevUsedFor(retail.previouslyUsedFor || 'Commercial');
+          setDescription(getLocalizedText(retail.description) || '');
+          setAmenities(retail.amenities || []);
+          setLocationAdvantages(retail.locationAdvantages || []);
+        }
+        
+        console.log('✅ Retail pricing loaded for editing');
+        return; // Don't load draft in edit mode
+      } catch (error) {
+        console.error('❌ Error loading retail pricing data:', error);
+      }
+    }
+    
+    // ✅ PRIORITY 2: Load from params (navigation back)
+    if (params.commercialDetails) {
+      try {
+        const details = JSON.parse(params.commercialDetails);
+        if (details.retailDetails) {
+          const retail = details.retailDetails;
+          console.log('🔄 Restoring Retail pricing from params');
+
+          setOwnership(retail.ownership || '');
+          setExpectedPrice(retail.expectedPrice?.toString() || '');
+          setAllInclusive(retail.priceDetails?.allInclusive || false);
+          setNegotiable(retail.priceDetails?.negotiable || false);
+          setTaxExcluded(retail.priceDetails?.taxExcluded || false);
+          setPreLeased(retail.preLeased || null);
+          setLeaseDuration(retail.leaseDuration || '');
+          setMonthlyRent(retail.monthlyRent?.toString() || '');
+          setPrevUsedFor(retail.previouslyUsedFor || 'Commercial');
+          setDescription(retail.description || '');
+          setAmenities(retail.amenities || []);
+          setLocationAdvantages(retail.locationAdvantages || []);
+
+          console.log('✅ Retail pricing restored from params');
+          return;
+        }
+      } catch (e) {
+        console.log('❌ Could not restore from params:', e);
+      }
+    }
+    
+    // ✅ PRIORITY 3: Load from AsyncStorage draft (only in create mode)
+    if (!params.editMode || params.editMode !== 'true') {
       try {
         const draft = await AsyncStorage.getItem('draft_retail_pricing');
         if (draft) {
           const savedData = JSON.parse(draft);
           console.log('📦 Loading Retail pricing draft from AsyncStorage');
           
-          setOwnership(toEnglish(savedData.ownership) || '');
+          setOwnership(savedData.ownership || '');
           setExpectedPrice(savedData.expectedPrice?.toString() || '');
           setAllInclusive(savedData.allInclusive || false);
           setNegotiable(savedData.negotiable || false);
           setTaxExcluded(savedData.taxExcluded || false);
-          setPreLeased(toEnglish(savedData.preLeased) || null);
+          setPreLeased(savedData.preLeased || null);
           setLeaseDuration(savedData.leaseDuration || '');
           setMonthlyRent(savedData.monthlyRent?.toString() || '');
-          setPrevUsedFor(toEnglish(savedData.previouslyUsedFor) || 'Commercial');
+          setPrevUsedFor(savedData.previouslyUsedFor || 'Commercial');
           setDescription(savedData.description || '');
-          setAmenities(convertToEnglish(savedData.amenities) || []);
-          setLocationAdvantages(convertToEnglish(savedData.locationAdvantages) || []);
+          setAmenities(savedData.amenities || []);
+          setLocationAdvantages(savedData.locationAdvantages || []);
           
           console.log('✅ Retail pricing draft loaded');
-          return;
         }
       } catch (e) {
         console.log('⚠️ Failed to load Retail pricing draft:', e);
       }
+    }
+  };
 
-      // ✅ FALLBACK: Load from params
-      if (commercialDetails?.retailDetails) {
-        const retail = commercialDetails.retailDetails;
-        console.log('🔄 Restoring RetailNext data from params');
-        
-        setOwnership(toEnglish(retail.ownership) || '');
-        setExpectedPrice(retail.expectedPrice?.toString() || '');
-        setAllInclusive(retail.priceDetails?.allInclusive || false);
-        setNegotiable(retail.priceDetails?.negotiable || false);
-        setTaxExcluded(retail.priceDetails?.taxExcluded || false);
-        setPreLeased(toEnglish(retail.preLeased) || null);
-        setLeaseDuration(retail.leaseDuration || '');
-        setMonthlyRent(retail.monthlyRent?.toString() || '');
-        setPrevUsedFor(toEnglish(retail.previouslyUsedFor) || 'Commercial');
-        setDescription(retail.description || '');
-       setAmenities(convertToEnglish(retail.amenities) || []);
-      setLocationAdvantages(convertToEnglish(retail.locationAdvantages) || []);
-      }
-    };
-
-    loadDraft();
-  }, [commercialDetails]);
+  loadData();
+}, [params.editMode, params.propertyData, params.commercialDetails]);
 
   // ✅ Auto-save pricing draft
   useEffect(() => {
+    if (params.editMode === 'true') return;
     const saveDraft = async () => {
       const pricingDraft = {
         ownership,
@@ -239,7 +293,7 @@ export default function RetailNext() {
 
     const timer = setTimeout(saveDraft, 1000);
     return () => clearTimeout(timer);
-  }, [ownership, expectedPrice, allInclusive, negotiable, taxExcluded, 
+  }, [params.editMode, ownership, expectedPrice, allInclusive, negotiable, taxExcluded, 
       preLeased, leaseDuration, monthlyRent, prevUsedFor, description, 
       amenities, locationAdvantages]);
 
@@ -340,16 +394,20 @@ export default function RetailNext() {
       propertyTitle: updatedCommercialDetails.propertyTitle,
     });
 
-    router.push({
-      pathname: "/home/screens/UploadScreens/CommercialUpload/Components/RetailVaastu",
-      params: {
-        commercialDetails: JSON.stringify(updatedCommercialDetails),
-        images: JSON.stringify(images),
-        area: params.area || area,
-        propertyTitle: updatedCommercialDetails.propertyTitle,
-        commercialBaseDetails: params.commercialBaseDetails,
-      },
-    });
+   router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/RetailVaastu",
+  params: {
+    commercialDetails: JSON.stringify(updatedCommercialDetails),
+    images: JSON.stringify(images),
+    area: params.area || area,
+    propertyTitle: updatedCommercialDetails.propertyTitle,
+    commercialBaseDetails: params.commercialBaseDetails,
+    // ✅ ADD THESE THREE LINES
+    editMode: params.editMode,
+    propertyId: params.propertyId,
+    propertyData: params.propertyData,
+  },
+});
   };
 
   return (

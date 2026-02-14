@@ -76,30 +76,50 @@ export default function VastuDetailsScreen() {
   }, [params.commercialDetails]);
 
   // Load draft from AsyncStorage
-  useEffect(() => {
-    const loadDraft = async () => {
+ useEffect(() => {
+  const loadData = async () => {
+    // ✅ PRIORITY 1: Load from edit mode first
+    if (params.editMode === 'true' && params.propertyData) {
+      try {
+        const property = JSON.parse(params.propertyData);
+        console.log('📝 Loading storage vaastu for edit:', property._id);
+        
+        if (property.commercialDetails?.storageDetails?.vastuDetails) {
+          const vastu = property.commercialDetails.storageDetails.vastuDetails;
+          console.log('🔄 Restoring Storage Vaastu from edit mode:', vastu);
+          setForm(vastu);
+          return;
+        }
+      } catch (error) {
+        console.error('❌ Error loading storage vaastu:', error);
+      }
+    }
+
+    // ✅ PRIORITY 2: Load from params (navigation back)
+    if (commercialDetails?.storageDetails?.vastuDetails) {
+      const vastu = commercialDetails.storageDetails.vastuDetails;
+      console.log('🔄 Restoring Storage Vaastu data from params:', vastu);
+      setForm(vastu);
+      return;
+    }
+
+    // ✅ PRIORITY 3: Load from draft (only in create mode)
+    if (!params.editMode || params.editMode !== 'true') {
       try {
         const draft = await AsyncStorage.getItem('draft_storage_vaastu');
         if (draft) {
           const savedForm = JSON.parse(draft);
           console.log('📦 Loading Storage Vaastu draft from AsyncStorage');
           setForm(savedForm);
-          return;
         }
       } catch (e) {
         console.log('⚠️ Failed to load Storage Vaastu draft:', e);
       }
+    }
+  };
 
-      // Fallback: Load from params
-      if (commercialDetails?.storageDetails?.vastuDetails) {
-        const vastu = commercialDetails.storageDetails.vastuDetails;
-        console.log('🔄 Restoring Storage Vaastu data from params:', vastu);
-        setForm(vastu);
-      }
-    };
-
-    loadDraft();
-  }, [commercialDetails]);
+  loadData();
+}, [params.editMode, params.propertyData, commercialDetails]);
 
 
   // ✅ NEW - Load property data in edit mode  
@@ -131,18 +151,20 @@ useEffect(() => {
 }, [params.editMode, commercialDetails]);
   // Auto-save Vaastu draft
   useEffect(() => {
-    const saveDraft = async () => {
-      try {
-        await AsyncStorage.setItem('draft_storage_vaastu', JSON.stringify(form));
-        console.log('💾 Storage Vaastu draft auto-saved');
-      } catch (e) {
-        console.log('⚠️ Failed to save Storage Vaastu draft:', e);
-      }
-    };
+  if (params.editMode === 'true') return; // ✅ Don't save drafts in edit mode
+  
+  const saveDraft = async () => {
+    try {
+      await AsyncStorage.setItem('draft_storage_vaastu', JSON.stringify(form));
+      console.log('💾 Storage Vaastu draft auto-saved');
+    } catch (e) {
+      console.log('⚠️ Failed to save Storage Vaastu draft:', e);
+    }
+  };
 
-    const timer = setTimeout(saveDraft, 1000);
-    return () => clearTimeout(timer);
-  }, [form]);
+  const timer = setTimeout(saveDraft, 1000);
+  return () => clearTimeout(timer);
+}, [form, params.editMode]); // ✅ Add params.editMode dependency
 
   const update = (key, value) => {
     setForm(prev => ({ ...prev, [key]: value }));
@@ -241,6 +263,10 @@ const handleNext = () => {
     area: params.area,
     propertyTitle: commercialDetails.storageDetails?.propertyTitle || params.propertyTitle,
     commercialBaseDetails: params.commercialBaseDetails,
+    // ✅ ADD THESE THREE LINES
+    editMode: params.editMode,
+    propertyId: params.propertyId,
+    propertyData: params.propertyData,
   },
 });
 };
