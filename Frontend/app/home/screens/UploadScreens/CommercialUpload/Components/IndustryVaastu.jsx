@@ -104,15 +104,18 @@ export default function VastuDetailsScreen() {
 
     console.log("➡️ Industry Vastu → Owner payload:", updatedCommercialDetails);
 
-    router.push({
-      pathname:
-        "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
-      params: {
-        commercialDetails: JSON.stringify(updatedCommercialDetails),
-        images: JSON.stringify(images),
-        area: params.area,
-      },
-    });
+   router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
+  params: {
+    commercialDetails: JSON.stringify(updatedCommercialDetails),
+    images: JSON.stringify(images),
+    area: params.area,
+    // ✅ Pass edit mode params
+    editMode: params.editMode,
+    propertyId: params.propertyId,
+    propertyData: params.propertyData,
+  },
+});
   };
 
   const handleBack = () => {
@@ -132,15 +135,19 @@ export default function VastuDetailsScreen() {
 
     console.log('🔙 Going back to IndustryNext with Vaastu data:', form);
 
-    router.push({
-      pathname: "/home/screens/UploadScreens/CommercialUpload/Components/IndustryNext",
-      params: {
-        commercialDetails: JSON.stringify(updatedCommercialDetails),
-        images: JSON.stringify(images),
-        area: params.area,
-        commercialBaseDetails: params.commercialBaseDetails,
-      },
-    });
+   router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/IndustryNext",
+  params: {
+    commercialDetails: JSON.stringify(updatedCommercialDetails),
+    images: JSON.stringify(images),
+    area: params.area,
+    commercialBaseDetails: params.commercialBaseDetails,
+    // ✅ Pass edit mode params
+    editMode: params.editMode,
+    propertyId: params.propertyId,
+    propertyData: params.propertyData,
+  },
+});
   };
 
   // ✅ Define Vaastu options with translations

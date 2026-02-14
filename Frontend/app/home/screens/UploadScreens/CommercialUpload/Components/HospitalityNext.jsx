@@ -97,69 +97,127 @@ const HospitalityNext = () => {
     const [monthlyRent, setMonthlyRent] = useState("");
 
     // ✅ Load draft from AsyncStorage
-    useEffect(() => {
-        const loadDraft = async () => {
-            try {
-                const draft = await AsyncStorage.getItem('draft_hospitality_pricing');
-                if (draft) {
-                    const savedData = JSON.parse(draft);
-                    console.log('📦 Loading Hospitality pricing draft from AsyncStorage');
+   
+   useEffect(() => {
+  const loadData = async () => {
+    // ✅ PRIORITY 1: Load data in edit mode
+    if (params.editMode === 'true' && params.propertyData) {
+      try {
+        const property = JSON.parse(params.propertyData);
+        console.log('📝 Loading Hospitality pricing for edit:', property._id);
 
-                    setOwnership(savedData.ownership || '');
-                    setIndustryApprovedBy(savedData.IndustryApprovedBy || '');
-                    setApprovedIndustryType(savedData.approvedIndustryType || '');
-                    setExpectedPrice(savedData.expectedPrice?.toString() || '');
-                    setAllInclusive(savedData.allInclusive || false);
-                    setPriceNegotiable(savedData.priceNegotiable || false);
-                    setTaxExcluded(savedData.taxExcluded || false);
-                    setPreLeased(savedData.preLeased || null);
-                    setLeaseDuration(savedData.leaseDuration || '');
-                    setMonthlyRent(savedData.monthlyRent?.toString() || '');
-                    setDescribeProperty(savedData.describeProperty || '');
-                    setWheelchairFriendly(savedData.wheelchairFriendly || false);
-                    setAmenities(savedData.amenities || []);
-                    setLocAdvantages(savedData.locAdvantages || []);
-                    setFlooringType(savedData.flooringType || '');
-
-                    console.log('✅ Hospitality pricing draft loaded');
-                    return;
-                }
-            } catch (e) {
-                console.log('⚠️ Failed to load pricing draft:', e);
-            }
-
-            // ✅ FALLBACK: Load from params
-            if (params.commercialDetails) {
-                try {
-                    const details = JSON.parse(params.commercialDetails);
-                    if (details.hospitalityDetails) {
-                        const hospitality = details.hospitalityDetails;
-
-                        setOwnership(hospitality.ownership || '');
-                        setExpectedPrice(hospitality.expectedPrice?.toString() || '');
-                        setAllInclusive(hospitality.priceDetails?.allInclusive || false);
-                        setPriceNegotiable(hospitality.priceDetails?.negotiable || false);
-                        setTaxExcluded(hospitality.priceDetails?.taxExcluded || false);
-                        setPreLeased(hospitality.preLeased || null);
-                        setLeaseDuration(hospitality.leaseDuration || '');
-                        setMonthlyRent(hospitality.monthlyRent?.toString() || '');
-                        setDescribeProperty(hospitality.description || '');
-                        setAmenities(hospitality.amenities || []);
-                        setLocAdvantages(hospitality.locationAdvantages || []);
-
-                        console.log('✅ Hospitality pricing restored from params');
-                    }
-                } catch (e) {
-                    console.log('❌ Could not restore from params:', e);
-                }
-            }
+        // Helper function to get localized text
+        const getLocalizedText = (field) => {
+          if (!field) return '';
+          if (typeof field === 'string') return field;
+          if (typeof field === 'object') {
+            return field.en || field.te || field.hi || '';
+          }
+          return '';
         };
 
-        loadDraft();
-    }, [params.commercialDetails]);
+        // Load pricing details from commercialDetails
+        if (property.commercialDetails?.hospitalityDetails) {
+          const hosp = property.commercialDetails.hospitalityDetails;
+          
+          setOwnership(hosp.ownership || '');
+          setIndustryApprovedBy(hosp.IndustryApprovedBy || '');
+          setApprovedIndustryType(hosp.approvedIndustryType || '');
+          setExpectedPrice(hosp.expectedPrice?.toString() || '');
+          setAllInclusive(hosp.priceDetails?.allInclusive || false);
+          setPriceNegotiable(hosp.priceDetails?.negotiable || false);
+          setTaxExcluded(hosp.priceDetails?.taxExcluded || false);
+          setPreLeased(hosp.preLeased || null);
+          setLeaseDuration(hosp.leaseDuration || '');
+          setMonthlyRent(hosp.monthlyRent?.toString() || '');
+          setDescribeProperty(getLocalizedText(hosp.description) || '');
+          setWheelchairFriendly(hosp.wheelchairFriendly || false);
+          setAmenities(hosp.amenities || []);
+          setLocAdvantages(hosp.locationAdvantages || []);
+          setFlooringType(hosp.flooringType || '');
+        }
+
+        console.log('✅ Hospitality pricing loaded for editing');
+        return; // Don't load draft in edit mode
+      } catch (error) {
+        console.error('❌ Error loading hospitality pricing data:', error);
+      }
+    }
+
+    // ✅ PRIORITY 2: Load from params (navigation back from next step)
+    if (params.commercialDetails) {
+      try {
+        const details = JSON.parse(params.commercialDetails);
+        if (details.hospitalityDetails) {
+          const hospitality = details.hospitalityDetails;
+          console.log('🔄 Restoring Hospitality pricing from params');
+
+          setOwnership(hospitality.ownership || '');
+          setIndustryApprovedBy(hospitality.IndustryApprovedBy || '');
+          setApprovedIndustryType(hospitality.approvedIndustryType || '');
+          setExpectedPrice(hospitality.expectedPrice?.toString() || '');
+          setAllInclusive(hospitality.priceDetails?.allInclusive || false);
+          setPriceNegotiable(hospitality.priceDetails?.negotiable || false);
+          setTaxExcluded(hospitality.priceDetails?.taxExcluded || false);
+          setPreLeased(hospitality.preLeased || null);
+          setLeaseDuration(hospitality.leaseDuration || '');
+          setMonthlyRent(hospitality.monthlyRent?.toString() || '');
+          setDescribeProperty(hospitality.description || '');
+          setWheelchairFriendly(hospitality.wheelchairFriendly || false);
+          setAmenities(hospitality.amenities || []);
+          setLocAdvantages(hospitality.locationAdvantages || []);
+          setFlooringType(hospitality.flooringType || '');
+
+          console.log('✅ Hospitality pricing restored from params');
+          return;
+        }
+      } catch (e) {
+        console.log('❌ Could not restore from params:', e);
+      }
+    }
+
+    // ✅ PRIORITY 3: Load from AsyncStorage draft (only in create mode)
+    if (!params.editMode || params.editMode !== 'true') {
+      try {
+        const draft = await AsyncStorage.getItem('draft_hospitality_pricing');
+        if (draft) {
+          const savedData = JSON.parse(draft);
+          console.log('📦 Loading Hospitality pricing draft from AsyncStorage');
+
+          setOwnership(savedData.ownership || '');
+          setIndustryApprovedBy(savedData.IndustryApprovedBy || '');
+          setApprovedIndustryType(savedData.approvedIndustryType || '');
+          setExpectedPrice(savedData.expectedPrice?.toString() || '');
+          setAllInclusive(savedData.allInclusive || false);
+          setPriceNegotiable(savedData.priceNegotiable || false);
+          setTaxExcluded(savedData.taxExcluded || false);
+          setPreLeased(savedData.preLeased || null);
+          setLeaseDuration(savedData.leaseDuration || '');
+          setMonthlyRent(savedData.monthlyRent?.toString() || '');
+          setDescribeProperty(savedData.describeProperty || '');
+          setWheelchairFriendly(savedData.wheelchairFriendly || false);
+          setAmenities(savedData.amenities || []);
+          setLocAdvantages(savedData.locAdvantages || []);
+          setFlooringType(savedData.flooringType || '');
+
+          console.log('✅ Hospitality pricing draft loaded');
+        }
+      } catch (e) {
+        console.log('⚠️ Failed to load pricing draft:', e);
+      }
+    }
+  };
+
+  loadData();
+}, [params.editMode, params.propertyData, params.commercialDetails]);
 
     // ✅ Auto-save pricing draft
     useEffect(() => {
+        // Don't save drafts in edit mode
+        if (params.editMode === 'true') {
+            return;
+        }
+
         const saveDraft = async () => {
             const pricingDraft = {
                 ownership,
@@ -190,31 +248,31 @@ const HospitalityNext = () => {
 
         const timer = setTimeout(saveDraft, 1000);
         return () => clearTimeout(timer);
-    }, [ownership, IndustryApprovedBy, approvedIndustryType, expectedPrice,
+    }, [params.editMode, ownership, IndustryApprovedBy, approvedIndustryType, expectedPrice,
         allInclusive, priceNegotiable, taxExcluded, preLeased, leaseDuration,
         monthlyRent, describeProperty, wheelchairFriendly, amenities,
         locAdvantages, flooringType]);
 
     /* ---------------- AMENITIES ---------------- */
-   const amenityOptions = [
-    t('hospitality_amenity_water_storage'),
-    t('hospitality_amenity_air_conditioned'),
-    t('hospitality_amenity_vaastu_complex'),
-    t('hospitality_amenity_fire_alarm'),
-    t('hospitality_amenity_visitor_parking'),
-];
+    const amenityOptions = [
+        t('hospitality_amenity_water_storage'),
+        t('hospitality_amenity_air_conditioned'),
+        t('hospitality_amenity_vaastu_complex'),
+        t('hospitality_amenity_fire_alarm'),
+        t('hospitality_amenity_visitor_parking'),
+    ];
 
     /* ---------------- LOCATION ADVANTAGES ---------------- */
-   const locationAdvantages = [
-    t('hospitality_loc_metro_station'),
-    t('hospitality_loc_school'),
-    t('hospitality_loc_hospital'),
-    t('hospitality_loc_market'),
-    t('hospitality_loc_railway_station'),
-    t('hospitality_loc_airport'),
-    t('hospitality_loc_mall'),
-    t('hospitality_loc_highway'),
-];
+    const locationAdvantages = [
+        t('hospitality_loc_metro_station'),
+        t('hospitality_loc_school'),
+        t('hospitality_loc_hospital'),
+        t('hospitality_loc_market'),
+        t('hospitality_loc_railway_station'),
+        t('hospitality_loc_airport'),
+        t('hospitality_loc_mall'),
+        t('hospitality_loc_highway'),
+    ];
 
     /* ---------------- HELPERS ---------------- */
     const toggleArrayItem = (setter, array, value) => {
@@ -280,6 +338,10 @@ const HospitalityNext = () => {
                 images: JSON.stringify(images),
                 area: params.area || updatedCommercialDetails.hospitalityDetails.neighborhoodArea,
                 propertyTitle: updatedCommercialDetails.hospitalityDetails?.propertyTitle || params.propertyTitle,
+                // ✅ ADD THESE THREE LINES
+                editMode: params.editMode,
+                propertyId: params.propertyId,
+                propertyData: params.propertyData,
             },
         });
     };
@@ -601,7 +663,7 @@ const HospitalityNext = () => {
                 <View className="flex-row justify-end mt-4 space-x-3 mx-3 mb-12">
                     <TouchableOpacity
                         className="px-10 py-3 rounded-lg bg-gray-200 mx-3"
-                        onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload/Components/Hospitality") }
+                        onPress={() => router.push("/home/screens/UploadScreens/CommercialUpload/Components/Hospitality")}
                     >
                         <Text className="font-semibold">{t('button_cancel')}</Text>
                     </TouchableOpacity>

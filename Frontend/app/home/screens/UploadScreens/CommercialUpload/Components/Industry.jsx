@@ -1,6 +1,8 @@
 //Frontend/app/home/screens/UploadScreens/CommercialUpload/Components/Industry.jsx
+// ✅ MODIFIED FOR EDIT MODE SUPPORT
 
 import React, { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -17,7 +19,6 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import Toast from 'react-native-toast-message';
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTranslation } from 'react-i18next';
 
 const PillButton = ({ label, selected, onPress }) => (
@@ -74,7 +75,11 @@ const RoundOption = ({ label, selected, onPress }) => (
 export default function PropertyFormScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation(); // ✅ Get i18n from useTranslation hook
+
+  // ✅ ADD EDIT MODE STATE
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editPropertyId, setEditPropertyId] = useState(null);
 
   const safeParse = (raw) => {
     if (!raw) return null;
@@ -116,68 +121,120 @@ export default function PropertyFormScreen() {
   const [expectedMonth, setExpectedMonth] = useState("");
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
 
-  // ✅ Load draft from AsyncStorage on mount
+  // ✅ MODIFIED - Load edit data OR draft from AsyncStorage on mount
   useEffect(() => {
-    const loadDraft = async () => {
-      try {
-        console.log("📦 Loading Industry draft from AsyncStorage");
-        const draft = await AsyncStorage.getItem('draft_industry_details');
-        if (draft) {
-          const parsed = JSON.parse(draft);
-          console.log('✅ Industry draft loaded:', parsed);
-          
-          setLocation(parsed.location || '');
-          setNeighborhoodArea(parsed.neighborhoodArea || params.area || '');
-          setPlotArea(parsed.plotArea?.toString() || '');
-          setUnit(parsed.unit || 'sqft');
-          setLength(parsed.length?.toString() || '');
-          setBreadth(parsed.breadth?.toString() || '');
-          setWashroomType(parsed.washroomType || null);
-          setAvailability(parsed.availability || null);
-          setAgeOfProperty(parsed.ageOfProperty || null);
-          setPossessionBy(parsed.possessionBy || '');
-          setExpectedMonth(parsed.expectedMonth || '');
-          console.log('✅ Industry draft loaded successfully');
-          return;
-        }
-      } catch (e) {
-        console.log('⚠️ Failed to load Industry draft:', e);
-      }
-
-      // ✅ FALLBACK: Load from params if no draft
-      if (params.industryDetails) {
+    const loadData = async () => {
+      // ✅ PRIORITY 1: Load data in edit mode
+      if (params.editMode === 'true' && params.propertyData) {
         try {
-          const prevData = JSON.parse(params.industryDetails);
-          console.log('🔄 Restoring from params.industryDetails');
+          const property = JSON.parse(params.propertyData);
+          setIsEditMode(true);
+          setEditPropertyId(params.propertyId);
           
-          setLocation(prevData.location || '');
-          setNeighborhoodArea(prevData.neighborhoodArea || params.area || '');
-          setPlotArea(prevData.plotArea?.toString() || '');
-          setUnit(prevData.unit || 'sqft');
-          setLength(prevData.length?.toString() || '');
-          setBreadth(prevData.breadth?.toString() || '');
-          setWashroomType(prevData.washroomType || null);
-          setAvailability(prevData.availability || null);
-          setAgeOfProperty(prevData.ageOfProperty || null);
-          setPossessionBy(prevData.possessionBy || '');
-          setExpectedMonth(prevData.expectedMonth || '');
-        } catch (e) {
-          console.log('❌ Could not restore industry data:', e);
+          console.log('📝 Loading Industry for edit:', property._id);
+          
+          // Helper function to get localized text
+          const getLocalizedText = (field) => {
+            if (!field) return '';
+            if (typeof field === 'string') return field;
+            if (typeof field === 'object') {
+              const currentLang = i18n.language || 'en';
+              return field[currentLang] || field.en || field.te || field.hi || '';
+            }
+            return '';
+          };
+          
+          // Load location and area
+          setLocation(getLocalizedText(property.location));
+          setNeighborhoodArea(getLocalizedText(property.area));
+          
+          // Load industry details
+          if (property.commercialDetails?.industryDetails) {
+            const industry = property.commercialDetails.industryDetails;
+            
+            setPlotArea(industry.area?.value?.toString() || '');
+            setUnit(industry.area?.unit || 'sqft');
+            setLength(industry.length?.toString() || '');
+            setBreadth(industry.breadth?.toString() || '');
+            setWashroomType(industry.washroomType || null);
+            setAvailability(industry.availability || null);
+            setAgeOfProperty(industry.ageOfProperty || null);
+            setPossessionBy(industry.possessionBy || '');
+            setExpectedMonth(industry.expectedMonth || '');
+          }
+          
+          console.log('✅ Industry data loaded for editing');
+          return; // Don't load draft in edit mode
+        } catch (error) {
+          console.error('❌ Error loading industry data:', error);
+          Alert.alert('Error', 'Failed to load property data');
         }
       }
       
-      // ✅ FIX: Always restore area from params if available
-      if (params.area) {
-        setNeighborhoodArea(params.area);
-        console.log('✅ Area restored from params:', params.area);
+      // ✅ PRIORITY 2: Load draft (only in create mode)
+      if (!params.editMode || params.editMode !== 'true') {
+        try {
+          console.log("📦 Loading Industry draft from AsyncStorage");
+          const draft = await AsyncStorage.getItem('draft_industry_details');
+          if (draft) {
+            const parsed = JSON.parse(draft);
+            console.log('✅ Industry draft loaded:', parsed);
+            
+            setLocation(parsed.location || '');
+            setNeighborhoodArea(parsed.neighborhoodArea || params.area || '');
+            setPlotArea(parsed.plotArea?.toString() || '');
+            setUnit(parsed.unit || 'sqft');
+            setLength(parsed.length?.toString() || '');
+            setBreadth(parsed.breadth?.toString() || '');
+            setWashroomType(parsed.washroomType || null);
+            setAvailability(parsed.availability || null);
+            setAgeOfProperty(parsed.ageOfProperty || null);
+            setPossessionBy(parsed.possessionBy || '');
+            setExpectedMonth(parsed.expectedMonth || '');
+            console.log('✅ Industry draft loaded successfully');
+            return;
+          }
+        } catch (e) {
+          console.log('⚠️ Failed to load Industry draft:', e);
+        }
+
+        // ✅ FALLBACK: Load from params if no draft
+        if (params.industryDetails) {
+          try {
+            const prevData = JSON.parse(params.industryDetails);
+            console.log('🔄 Restoring from params.industryDetails');
+            
+            setLocation(prevData.location || '');
+            setNeighborhoodArea(prevData.neighborhoodArea || params.area || '');
+            setPlotArea(prevData.plotArea?.toString() || '');
+            setUnit(prevData.unit || 'sqft');
+            setLength(prevData.length?.toString() || '');
+            setBreadth(prevData.breadth?.toString() || '');
+            setWashroomType(prevData.washroomType || null);
+            setAvailability(prevData.availability || null);
+            setAgeOfProperty(prevData.ageOfProperty || null);
+            setPossessionBy(prevData.possessionBy || '');
+            setExpectedMonth(prevData.expectedMonth || '');
+          } catch (e) {
+            console.log('❌ Could not restore industry data:', e);
+          }
+        }
+        
+        // ✅ Always restore area from params if available
+        if (params.area) {
+          setNeighborhoodArea(params.area);
+          console.log('✅ Area restored from params:', params.area);
+        }
       }
     };
 
-    loadDraft();
-  }, [params.industryDetails, params.area]);
+    loadData();
+  }, [params.editMode, params.propertyData, params.propertyId, params.industryDetails, params.area]);
 
-  // ✅ Auto-save draft to AsyncStorage
+  // ✅ Auto-save draft to AsyncStorage (only in create mode)
   useEffect(() => {
+    if (isEditMode) return; // Don't save drafts in edit mode
+
     const saveDraft = async () => {
       const draftData = {
         location,
@@ -206,7 +263,7 @@ export default function PropertyFormScreen() {
     const timer = setTimeout(saveDraft, 1000);
     return () => clearTimeout(timer);
   }, [location, neighborhoodArea, plotArea, unit, length, breadth, washroomType, 
-      availability, ageOfProperty, possessionBy, expectedMonth, baseDetails?.industryKind, params.industryKind]);
+      availability, ageOfProperty, possessionBy, expectedMonth, baseDetails?.industryKind, params.industryKind, isEditMode]);
 
   const handleNext = () => {
     if (!location.trim()) {
@@ -262,6 +319,10 @@ export default function PropertyFormScreen() {
         commercialDetails: JSON.stringify(commercialDetails),
         images: JSON.stringify(images),
         area: neighborhoodArea.trim(),
+        // ✅ Pass edit mode params
+        editMode: params.editMode,
+        propertyId: params.propertyId,
+        propertyData: params.propertyData,
       },
     });
   };
@@ -341,10 +402,10 @@ export default function PropertyFormScreen() {
 
           <View className="ml-2">
             <Text className="text-[16px] font-semibold">
-              {t('upload_property_title')}
+              {isEditMode ? t('edit_property') : t('upload_property_title')}
             </Text>
             <Text className="text-[12px] text-[#00000066]">
-              {t('upload_property_subtitle')}
+              {isEditMode ? t('update_property_details') : t('upload_property_subtitle')}
             </Text>
           </View>
         </View>
