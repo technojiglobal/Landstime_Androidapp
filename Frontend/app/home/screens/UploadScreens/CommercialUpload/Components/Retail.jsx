@@ -60,7 +60,7 @@ const Checkbox = ({ selected }) => (
 export default function Retail() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { t } = useTranslation();
+  const { t ,i18n} = useTranslation();
 
   const images = params.images ? JSON.parse(params.images) : [];
 
@@ -133,9 +133,68 @@ export default function Retail() {
     t('industry_possession_2029'),
     t('industry_possession_2030'),
   ];
+  const [isEditMode, setIsEditMode] = useState(false);
+const [editPropertyId, setEditPropertyId] = useState(null);
   /* ---------- LOAD DRAFT ---------- */
   useEffect(() => {
-    const loadDraft = async () => {
+  const loadData = async () => {
+    // ✅ PRIORITY 1: Load data in edit mode
+    if (params.editMode === 'true' && params.propertyData) {
+      try {
+        const property = JSON.parse(params.propertyData);
+        setIsEditMode(true);
+        setEditPropertyId(params.propertyId);
+        
+        console.log('📝 Loading Retail for edit:', property._id);
+        
+        // Helper function to get localized text
+        const getLocalizedText = (field) => {
+          if (!field) return '';
+          if (typeof field === 'string') return field;
+          if (typeof field === 'object') {
+            const currentLang = i18n.language || 'en';
+            return field[currentLang] || field.en || field.te || field.hi || '';
+          }
+          return '';
+        };
+        
+        // Load location and area
+        setLocation(getLocalizedText(property.location));
+        setNeighborhoodArea(getLocalizedText(property.area));
+        
+        // Load retail details
+        if (property.commercialDetails?.retailDetails) {
+          const retail = property.commercialDetails.retailDetails;
+          
+          setLocality(retail.locality || '');
+          setLocatedInside(retail.locatedInside || '');
+          setZoneType(retail.zoneType || '');
+          setCarpetArea(retail.carpetArea?.toString() || '');
+          setUnit(retail.carpetAreaUnit || 'sqft');
+          setEntranceWidth(retail.entranceWidth?.toString() || '');
+          setCeilingHeight(retail.ceilingHeight?.toString() || '');
+          setWashroom(retail.washroom || '');
+          setFloorDetails(retail.floorDetails || '');
+          setLocatedNear(retail.locatedNear || []);
+          setParkingType(retail.parkingType || '');
+          setAvailability(retail.availability || '');
+          setPropertyAge(retail.propertyAge || '');
+          setPossessionBy(retail.possessionBy || '');
+          setPossessionMonth(retail.possessionMonth || '');
+          if (retail.possessionBy?.includes("By")) setShowMonthDropdown(true);
+          setBusinessTypes(retail.suitableFor || []);
+        }
+        
+        console.log('✅ Retail data loaded for editing');
+        return; // Don't load draft in edit mode
+      } catch (error) {
+        console.error('❌ Error loading retail data:', error);
+        Alert.alert('Error', 'Failed to load property data');
+      }
+    }
+    
+    // ✅ PRIORITY 2: Load draft (only in create mode)
+    if (!params.editMode || params.editMode !== 'true') {
       try {
         const draft = await AsyncStorage.getItem('draft_retail_details');
         if (draft) {
@@ -147,24 +206,20 @@ export default function Retail() {
           setNeighborhoodArea(parsed.neighborhoodArea || params.area || '');
           setCarpetArea(parsed.carpetArea?.toString() || '');
           setUnit(parsed.carpetAreaUnit || 'sqft');
-
-          setLocatedInside(toEnglish(prevData.locatedInside) || '');
+          setLocatedInside(parsed.locatedInside || '');
           setZoneType(parsed.zoneType || '');
-
           setEntranceWidth(parsed.entranceWidth?.toString() || '');
           setCeilingHeight(parsed.ceilingHeight?.toString() || '');
-          setWashroom(toEnglish(parsed.washroom) || '');
-          setFloorDetails(toEnglish(parsed.floorDetails) || '');
-          setLocatedNear(convertToEnglish(parsed.locatedNear) || []);
-          setParkingType(toEnglish(parsed.parkingType) || '');
-          setAvailability(toEnglish(parsed.availability) || '');
-          setPropertyAge(toEnglish(parsed.propertyAge) || '');
-
-          setPossessionBy(toEnglish(parsed.possessionBy) || '');
-          setPossessionMonth(toEnglish(parsed.possessionMonth) || '');
+          setWashroom(parsed.washroom || '');
+          setFloorDetails(parsed.floorDetails || '');
+          setLocatedNear(parsed.locatedNear || []);
+          setParkingType(parsed.parkingType || '');
+          setAvailability(parsed.availability || '');
+          setPropertyAge(parsed.propertyAge || '');
+          setPossessionBy(parsed.possessionBy || '');
+          setPossessionMonth(parsed.possessionMonth || '');
           if (parsed.possessionBy?.includes("By")) setShowMonthDropdown(true);
-
-          if (parsed.suitableFor) setBusinessTypes(convertToEnglish(parsed.suitableFor));
+          if (parsed.suitableFor) setBusinessTypes(parsed.suitableFor);
 
           console.log('✅ Retail draft loaded successfully');
           return;
@@ -184,26 +239,22 @@ export default function Retail() {
           setNeighborhoodArea(prevData.neighborhoodArea || params.area || '');
           setCarpetArea(prevData.carpetArea?.toString() || '');
           setUnit(prevData.carpetAreaUnit || 'sqft');
-
-          setLocatedInside(toEnglish(prevData.locatedInside) || '');
+          setLocatedInside(prevData.locatedInside || '');
           setZoneType(prevData.zoneType || '');
-
           setEntranceWidth(prevData.entranceWidth?.toString() || '');
           setCeilingHeight(prevData.ceilingHeight?.toString() || '');
-          setWashroom(toEnglish(prevData.washroom) || '');
-          setFloorDetails(toEnglish(prevData.floorDetails) || '');
-          setLocatedNear(convertToEnglish(prevData.locatedNear) || []);
-          setParkingType(toEnglish(prevData.parkingType) || '');
-          setAvailability(toEnglish(prevData.availability) || '');
-          setPropertyAge(toEnglish(prevData.propertyAge) || '');
-
+          setWashroom(prevData.washroom || '');
+          setFloorDetails(prevData.floorDetails || '');
+          setLocatedNear(prevData.locatedNear || []);
+          setParkingType(prevData.parkingType || '');
+          setAvailability(prevData.availability || '');
+          setPropertyAge(prevData.propertyAge || '');
           if (prevData.possession) {
-
-            setPossessionMonth(toEnglish(prevData.possession.month) || '');
+            setPossessionBy(prevData.possession.year || '');
+            setPossessionMonth(prevData.possession.month || '');
             if (prevData.possession.year) setShowMonthDropdown(true);
           }
-
-          if (prevData.suitableFor) setBusinessTypes(convertToEnglish(prevData.suitableFor));
+          if (prevData.suitableFor) setBusinessTypes(prevData.suitableFor);
         } catch (e) {
           console.log('❌ Could not restore retail data:', e);
         }
@@ -214,13 +265,15 @@ export default function Retail() {
         setNeighborhoodArea(params.area);
         console.log('✅ Area restored from params:', params.area);
       }
-    };
+    }
+  };
 
-    loadDraft();
-  }, [params.retailDetails, params.area]);
+  loadData();
+}, [params.editMode, params.propertyData, params.propertyId, params.retailDetails, params.area]);
 
   /* ---------- AUTO-SAVE DRAFT ---------- */
   useEffect(() => {
+    if (isEditMode) return;
     const saveDraft = async () => {
       const draftData = {
         location,
@@ -262,7 +315,7 @@ export default function Retail() {
     locatedInside, zoneType,
     entranceWidth, ceilingHeight, washroom, floorDetails, locatedNear,
     parkingType, availability, propertyAge, possessionBy, possessionMonth,
-    businessTypes, baseDetails?.retailType]);
+    businessTypes, baseDetails?.retailType,isEditMode]);
 
   /* ---------- OPTIONS ---------- */
   const locatedInsideOptions = [
@@ -451,14 +504,18 @@ export default function Retail() {
     };
 
     router.push({
-      pathname: "/home/screens/UploadScreens/CommercialUpload/Components/RetailNext",
-      params: {
-        commercialDetails: JSON.stringify(commercialDetails),
-        propertyTitle: baseDetails?.propertyTitle,
-        images: JSON.stringify(images),
-        area: neighborhoodArea.trim(),
-      },
-    });
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/RetailNext",
+  params: {
+    commercialDetails: JSON.stringify(commercialDetails),
+    propertyTitle: baseDetails?.propertyTitle,
+    images: JSON.stringify(images),
+    area: neighborhoodArea.trim(),
+    // ✅ ADD THESE THREE LINES
+    editMode: params.editMode,
+    propertyId: params.propertyId,
+    propertyData: params.propertyData,
+  },
+});
   };
 
   /* ---------- STYLES ---------- */

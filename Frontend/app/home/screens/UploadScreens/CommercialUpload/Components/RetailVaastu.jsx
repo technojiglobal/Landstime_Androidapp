@@ -89,8 +89,36 @@ export default function RetailVaastu() {
   };
 
   // ✅ Load draft from AsyncStorage
-  useEffect(() => {
-    const loadDraft = async () => {
+ useEffect(() => {
+  const loadData = async () => {
+    // ✅ PRIORITY 1: Load data in edit mode
+    if (params.editMode === 'true' && params.propertyData) {
+      try {
+        const property = JSON.parse(params.propertyData);
+        console.log('📝 Loading Retail Vaastu for edit:', property._id);
+        
+        // Load vaastu details from commercialDetails
+        if (property.commercialDetails?.retailDetails?.vaastuDetails) {
+          const vastu = property.commercialDetails.retailDetails.vaastuDetails;
+          console.log('🔄 Restoring Retail Vaastu from edit mode:', vastu);
+          setForm(vastu);
+          return;
+        }
+      } catch (error) {
+        console.error('❌ Error loading retail vaastu data:', error);
+      }
+    }
+    
+    // ✅ PRIORITY 2: Load from params (navigation back from next step)
+    if (commercialDetails?.retailDetails?.vaastuDetails) {
+      const vastu = commercialDetails.retailDetails.vaastuDetails;
+      console.log('🔄 Restoring Retail Vaastu from params:', vastu);
+      setForm(vastu);
+      return;
+    }
+    
+    // ✅ PRIORITY 3: Load from AsyncStorage draft (only in create mode)
+    if (!params.editMode || params.editMode !== 'true') {
       try {
         const draft = await AsyncStorage.getItem('draft_retail_vaastu');
         if (draft) {
@@ -102,20 +130,15 @@ export default function RetailVaastu() {
       } catch (e) {
         console.log('⚠️ Failed to load Retail Vaastu draft:', e);
       }
+    }
+  };
 
-      // ✅ FALLBACK: Load from params
-      if (commercialDetails?.retailDetails?.vaastuDetails) {
-        const vastu = commercialDetails.retailDetails.vaastuDetails;
-        console.log('🔄 Restoring Retail Vaastu data from params:', vastu);
-        setForm(vastu);
-      }
-    };
-
-    loadDraft();
-  }, [commercialDetails]);
+  loadData();
+}, [params.editMode, params.propertyData, commercialDetails]);
 
   // ✅ Auto-save Vaastu draft
   useEffect(() => {
+    if (params.editMode === 'true') return;
     const saveDraft = async () => {
       try {
         await AsyncStorage.setItem('draft_retail_vaastu', JSON.stringify(form));
@@ -127,7 +150,7 @@ export default function RetailVaastu() {
 
     const timer = setTimeout(saveDraft, 1000);
     return () => clearTimeout(timer);
-  }, [form]);
+  }, [form,params.editMode]);
 
   // ✅ handleBack function
   const handleBack = () => {
@@ -204,18 +227,21 @@ const updatedCommercialDetails = {
     },
   },
 };
-
-    router.push({
-      pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
-      params: {
-        commercialDetails: JSON.stringify(updatedCommercialDetails),
-        images: JSON.stringify(images),
-        area: params.area,
-        propertyTitle: commercialDetails.retailDetails?.propertyTitle || params.propertyTitle,
-        commercialBaseDetails: params.commercialBaseDetails,
-        retailDetails: JSON.stringify(commercialDetails.retailDetails),
-      },
-    });
+router.push({
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
+  params: {
+    commercialDetails: JSON.stringify(updatedCommercialDetails),
+    images: JSON.stringify(images),
+    area: params.area,
+    propertyTitle: commercialDetails.retailDetails?.propertyTitle || params.propertyTitle,
+    commercialBaseDetails: params.commercialBaseDetails,
+    retailDetails: JSON.stringify(commercialDetails.retailDetails),
+    // ✅ ADD THESE THREE LINES
+    editMode: params.editMode,
+    propertyId: params.propertyId,
+    propertyData: params.propertyData,
+  },
+});
   };
 
   return (

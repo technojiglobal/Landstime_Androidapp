@@ -79,17 +79,36 @@ export default function VastuDetailsScreen() {
     }
   }, [params.commercialDetails]);
 
-  useEffect(() => {
-    const loadDraft = async () => {
-      // ✅ PRIORITY 1: Load from params if coming back from OwnerScreen
-      if (commercialDetails?.officeDetails?.vaasthuDetails) {
-        const vastu = commercialDetails.officeDetails.vaasthuDetails;
-        console.log('🔄 Restoring Vaastu data from params:', vastu);
-        setForm(vastu);
-        return;
+ useEffect(() => {
+  const loadData = async () => {
+    // ✅ PRIORITY 1: Load data in edit mode
+    if (params.editMode === 'true' && params.propertyData) {
+      try {
+        const property = JSON.parse(params.propertyData);
+        console.log('📝 Loading Office Vaastu for edit:', property._id);
+        
+        // Load vaastu details from commercialDetails
+        if (property.commercialDetails?.officeDetails?.vaasthuDetails) {
+          const vastu = property.commercialDetails.officeDetails.vaasthuDetails;
+          console.log('🔄 Restoring Office Vaastu from edit mode:', vastu);
+          setForm(vastu);
+          return;
+        }
+      } catch (error) {
+        console.error('❌ Error loading office vaastu data:', error);
       }
-
-      // ✅ PRIORITY 2: Load from AsyncStorage
+    }
+    
+    // ✅ PRIORITY 2: Load from params (navigation back from next step)
+    if (commercialDetails?.officeDetails?.vaasthuDetails) {
+      const vastu = commercialDetails.officeDetails.vaasthuDetails;
+      console.log('🔄 Restoring Office Vaastu from params:', vastu);
+      setForm(vastu);
+      return;
+    }
+    
+    // ✅ PRIORITY 3: Load from AsyncStorage draft (only in create mode)
+    if (!params.editMode || params.editMode !== 'true') {
       try {
         const draft = await AsyncStorage.getItem('draft_office_vaastu');
         if (draft) {
@@ -101,10 +120,11 @@ export default function VastuDetailsScreen() {
       } catch (e) {
         console.log('⚠️ Failed to load Vaastu draft:', e);
       }
-    };
-
-    loadDraft();
-  }, [commercialDetails]);
+    }
+  };
+  
+  loadData();
+}, [params.editMode, params.propertyData, commercialDetails]);
 
   const update = (key, value) => {
     setForm(prev => ({ ...prev, [key]: value }));
@@ -112,6 +132,7 @@ export default function VastuDetailsScreen() {
 
   // ✅ Auto-save Vaastu draft
   useEffect(() => {
+    if (params.editMode === 'true') return;
     const saveDraft = async () => {
       try {
         await AsyncStorage.setItem('draft_office_vaastu', JSON.stringify(form));
@@ -123,7 +144,7 @@ export default function VastuDetailsScreen() {
 
     const timer = setTimeout(saveDraft, 1000);
     return () => clearTimeout(timer);
-  }, [form]);
+  }, [form,params.editMode]);
 
   const handleBack = () => {
     if (!commercialDetails || !commercialDetails.officeDetails) {
@@ -192,16 +213,20 @@ export default function VastuDetailsScreen() {
     console.log("➡️ Office Vastu → Owner payload:", updatedCommercialDetails);
 
     router.push({
-      pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
-      params: {
-        commercialDetails: JSON.stringify(updatedCommercialDetails),
-        images: JSON.stringify(images),
-        area: params.area,
-        propertyTitle: commercialDetails.officeDetails?.propertyTitle || params.propertyTitle,
-        commercialBaseDetails: params.commercialBaseDetails,
-        officeDetails: JSON.stringify(commercialDetails.officeDetails),
-      },
-    });
+  pathname: "/home/screens/UploadScreens/CommercialUpload/Components/OwnerScreen",
+  params: {
+    commercialDetails: JSON.stringify(updatedCommercialDetails),
+    images: JSON.stringify(images),
+    area: params.area,
+    propertyTitle: commercialDetails.officeDetails?.propertyTitle || params.propertyTitle,
+    commercialBaseDetails: params.commercialBaseDetails,
+    officeDetails: JSON.stringify(commercialDetails.officeDetails),
+    // ✅ ADD THESE THREE LINES
+    editMode: params.editMode,
+    propertyId: params.propertyId,
+    propertyData: params.propertyData,
+  },
+});
   };
 
   // ✅ Define Vaastu options with translations

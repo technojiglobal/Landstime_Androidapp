@@ -15,7 +15,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { Linking } from "react-native";
-import { useTranslation } from 'react-i18next'; // ✅ ADD THIS
+import { useTranslation } from 'react-i18next';
 
 import PropertyImageUpload from "components/PropertyImageUpload";
 import TopAlert from "../TopAlert";
@@ -55,7 +55,7 @@ const PillButton = ({ label, selected, onPress }) => (
 export default function PropertyFormScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { t } = useTranslation(); // ✅ ADD THIS
+  const { t } = useTranslation();
 
   /* ---------- STATES ---------- */
   const [propertyTitle, setPropertyTitle] = useState(params.propertyTitle || "");
@@ -128,8 +128,108 @@ export default function PropertyFormScreen() {
     t('retail_market_high_street'),
   ];
 
-  // ✅ Restore from params
+  // ✅ NEW - Load property data in EDIT MODE (HIGHEST PRIORITY)
   useEffect(() => {
+    if (params.editMode === 'true' && params.propertyData) {
+      try {
+        const property = JSON.parse(params.propertyData);
+        console.log('📝 Loading commercial property for edit:', property._id);
+
+        // Helper function to get localized text
+        const getLocalizedText = (field) => {
+          if (!field) return '';
+          if (typeof field === 'string') return field;
+          if (typeof field === 'object') {
+            return field.en || field.te || field.hi || '';
+          }
+          return '';
+        };
+
+        // Set basic fields
+        setPropertyTitle(getLocalizedText(property.propertyTitle) || '');
+        setNeighborhoodArea(getLocalizedText(property.area) || '');
+        setArea(getLocalizedText(property.area) || '');
+
+        // Load images
+        if (property.images && property.images.length > 0) {
+          setImages(property.images);
+          console.log('✅ Loaded existing images:', property.images.length);
+        }
+
+        // Determine subType and set selections
+        if (property.commercialDetails) {
+          const subType = property.commercialDetails.subType;
+          setSelectedType(subType);
+          console.log('✅ Property subType:', subType);
+
+          // Load subtype-specific data
+          if (subType === 'Office' && property.commercialDetails.officeDetails) {
+            const office = property.commercialDetails.officeDetails;
+            if (office.officeKind) {
+              setOfficeKinds([office.officeKind]);
+              console.log('✅ Office kind loaded:', office.officeKind);
+            }
+          } 
+          else if (subType === 'Retail' && property.commercialDetails.retailDetails) {
+            const retail = property.commercialDetails.retailDetails;
+            if (retail.retailKind) {
+              setRetailKinds([retail.retailKind]);
+              console.log('✅ Retail kind loaded:', retail.retailKind);
+            }
+            if (retail.locatedInside) {
+              setLocatedInside(retail.locatedInside);
+              console.log('✅ Located inside loaded:', retail.locatedInside);
+            }
+          } 
+          else if (subType === 'Storage' && property.commercialDetails.storageDetails) {
+            const storage = property.commercialDetails.storageDetails;
+            if (storage.storageType) {
+              // Reverse map English to current language
+              const storageTypeReverseMap = {
+                'Warehouse': t('storage_warehouse'),
+                'Cold Storage': t('storage_cold_storage')
+              };
+              const displayValue = storageTypeReverseMap[storage.storageType] || storage.storageType;
+              setStorageKinds([displayValue]);
+              console.log('✅ Storage type loaded:', displayValue);
+            }
+          } 
+          else if (subType === 'Plot/Land' && property.commercialDetails.plotDetails) {
+            const plot = property.commercialDetails.plotDetails;
+            if (plot.plotKind) {
+              setPlotKinds([plot.plotKind]);
+              console.log('✅ Plot kind loaded:', plot.plotKind);
+            }
+          } 
+          else if (subType === 'Hospitality' && property.commercialDetails.hospitalityDetails) {
+            const hospitality = property.commercialDetails.hospitalityDetails;
+            if (hospitality.hospitalityType) {
+              setHospitalityKinds([hospitality.hospitalityType]);
+              console.log('✅ Hospitality type loaded:', hospitality.hospitalityType);
+            }
+          } 
+          else if (subType === 'Industry' && property.commercialDetails.industryDetails) {
+            const industry = property.commercialDetails.industryDetails;
+            if (industry.industryKind) {
+              setIndustryKinds([industry.industryKind]);
+              console.log('✅ Industry kind loaded:', industry.industryKind);
+            }
+          }
+        }
+
+        console.log('✅ Commercial property data loaded for editing');
+      } catch (error) {
+        console.error('❌ Error loading commercial property data:', error);
+        Alert.alert('Error', 'Failed to load property data');
+      }
+    }
+  }, [params.editMode, params.propertyData, params.propertyId]);
+
+  // ✅ Restore from params (navigation back from child screens)
+  useEffect(() => {
+    // Don't run if in edit mode (edit mode useEffect handles it)
+    if (params.editMode === 'true') return;
+
     console.log('🔍 index.jsx useEffect - params:', {
       hasOfficeDetails: !!params.officeDetails,
       hasHospitalityDetails: !!params.hospitalityDetails,
@@ -158,12 +258,7 @@ export default function PropertyFormScreen() {
       console.log('✅ Area restored from params:', params.area);
     }
 
-    // STEP 3: Restore from commercialBaseDetails (highest priority)
-    // STEP 3: Restore from commercialBaseDetails (highest priority)
-    // In the useEffect that restores from params (around line 129)
-    // Replace the STEP 3 section with this updated version:
-
-    // STEP 3: Restore from commercialBaseDetails (highest priority)
+    // STEP 3: Restore from commercialBaseDetails
     if (params.commercialBaseDetails) {
       try {
         const baseDetails = JSON.parse(params.commercialBaseDetails);
@@ -191,17 +286,14 @@ export default function PropertyFormScreen() {
           console.log('✅ Located inside restored from baseDetails:', baseDetails.locatedInside);
         }
 
-        // ✅ FIXED - Support both hospitalityType AND hospitalityKind
         const hospitalityValue = baseDetails.hospitalityType || baseDetails.hospitalityKind;
         if (hospitalityValue) {
           setHospitalityKinds([hospitalityValue]);
           console.log('✅ Hospitality type restored from baseDetails:', hospitalityValue);
         }
 
-        // ✅ Support both storageType and storageKind
         const storageTypeValue = baseDetails.storageType || baseDetails.storageKind;
         if (storageTypeValue) {
-          // ✅ If it's already in English, reverse map to current language for UI
           const reverseMap = {
             'Warehouse': t('storage_warehouse'),
             'Cold Storage': t('storage_cold_storage')
@@ -261,223 +353,60 @@ export default function PropertyFormScreen() {
         console.log('❌ Could not restore from hospitalityDetails:', e);
       }
     }
-  }, [params.officeDetails, params.hospitalityDetails, params.plotDetails, params.images, params.commercialBaseDetails, params.area]);
+  }, [params.editMode, params.officeDetails, params.hospitalityDetails, params.plotDetails, params.images, params.commercialBaseDetails, params.area]);
 
-  // ✅ Load draft from AsyncStorage on mount
   // ✅ Load draft from AsyncStorage on mount
   useEffect(() => {
     const loadDraft = async () => {
-      // ✅ FIXED - Don't clear drafts if in edit mode
-      if (!params.officeDetails && !params.hospitalityDetails &&
-        !params.retailDetails && !params.plotDetails &&
-        !params.storageDetails && !params.industryDetails &&
-        !params.commercialBaseDetails &&
-        params.editMode !== 'true' && !params.hospitalityType) {  // ✅ ADD THIS CHECK
-        console.log('🧹 Fresh entry - clearing all drafts');
-
-        try {
-          await AsyncStorage.multiRemove([
-            'draft_commercial_office',
-            'draft_commercial_retail',
-            'draft_commercial_hospitality',
-            'draft_commercial_plot',
-            'draft_commercial_storage',
-            'draft_commercial_industry',
-            'draft_hospitality_details',
-            'draft_hospitality_pricing',
-            'draft_hospitality_vaastu',
-          ]);
-          console.log('✅ All drafts cleared');
-        } catch (e) {
-          console.log('⚠️ Error clearing drafts:', e);
-        }
-
-        return; // Don't load any drafts
+      // Don't load drafts if in edit mode or coming back from child screens
+      if (params.editMode === 'true' || 
+          params.officeDetails || 
+          params.hospitalityDetails ||
+          params.retailDetails || 
+          params.plotDetails ||
+          params.storageDetails || 
+          params.industryDetails ||
+          params.commercialBaseDetails ||
+          params.hospitalityType) {
+        console.log('⏭️ Skipping draft load - edit mode or navigation back detected');
+        return;
       }
+
+      console.log('🧹 Fresh entry - clearing all drafts');
+
       try {
-        // Try loading Office draft first
-        const officeDraft = await AsyncStorage.getItem('draft_commercial_office');
-        if (officeDraft) {
-          const parsed = JSON.parse(officeDraft);
-          console.log('📦 Loading Office draft from AsyncStorage:', parsed);
-
-          if (parsed.selectedType) setSelectedType(parsed.selectedType);
-          if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
-          if (parsed.officeKind) setOfficeKinds([parsed.officeKind]);
-          if (parsed.retailKind) {
-            setRetailKinds([parsed.retailKind]);
-            console.log('✅ Retail kind restored from draft:', parsed.retailKind);
-          }
-          if (parsed.locatedInside) {
-            setLocatedInside(parsed.locatedInside);
-            console.log('✅ Located inside restored from draft:', parsed.locatedInside);
-          }
-          if (parsed.images) setImages(parsed.images);
-          if (parsed.neighborhoodArea) {
-            setNeighborhoodArea(parsed.neighborhoodArea);
-            setArea(parsed.neighborhoodArea);
-          }
-          if (parsed.area) {
-            setArea(parsed.area);
-          }
-
-          console.log('✅ Office draft loaded successfully');
-          return;
-        }
-
-        // Try loading Retail draft
-        const retailDraft = await AsyncStorage.getItem('draft_commercial_retail');
-        if (retailDraft) {
-          const parsed = JSON.parse(retailDraft);
-          console.log('📦 Loading Retail draft from AsyncStorage:', parsed);
-
-          if (parsed.selectedType) setSelectedType(parsed.selectedType);
-          if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
-          if (parsed.retailKind) {
-            setRetailKinds([parsed.retailKind]);
-            console.log('✅ Retail kind restored:', parsed.retailKind);
-          }
-          if (parsed.locatedInside) {
-            setLocatedInside(parsed.locatedInside);
-            console.log('✅ Located inside restored:', parsed.locatedInside);
-          }
-          if (parsed.images) setImages(parsed.images);
-          if (parsed.neighborhoodArea) {
-            setNeighborhoodArea(parsed.neighborhoodArea);
-            setArea(parsed.neighborhoodArea);
-          }
-          if (parsed.area) {
-            setArea(parsed.area);
-          }
-
-          console.log('✅ Retail draft loaded successfully');
-          return;
-        }
-
-        // Try loading Hospitality draft
-        // In the loadDraft useEffect (around line 243), modify the Hospitality draft loading section:
-
-        // Try loading Hospitality draft
-        const hospitalityDraft = await AsyncStorage.getItem('draft_commercial_hospitality');
-        if (hospitalityDraft) {
-          const parsed = JSON.parse(hospitalityDraft);
-          console.log('📦 Loading Hospitality draft from AsyncStorage:', parsed);
-
-          if (parsed.selectedType) setSelectedType(parsed.selectedType);
-          if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
-
-          // ✅ FIXED - Support both hospitalityType AND hospitalityKind
-          const hospitalityValue = parsed.hospitalityType || parsed.hospitalityKind;
-          if (hospitalityValue) {
-            setHospitalityKinds([hospitalityValue]);
-            console.log('✅ Hospitality kind restored from draft:', hospitalityValue);
-          }
-
-          if (parsed.images) setImages(parsed.images);
-          if (parsed.neighborhoodArea) {
-            setNeighborhoodArea(parsed.neighborhoodArea);
-            setArea(parsed.neighborhoodArea);
-          }
-          if (parsed.area) {
-            setArea(parsed.area);
-          }
-
-          console.log('✅ Hospitality draft loaded successfully');
-          return;
-        }
-        // Try loading Plot draft
-        const plotDraft = await AsyncStorage.getItem('draft_commercial_plot');
-        if (plotDraft) {
-          const parsed = JSON.parse(plotDraft);
-          console.log('📦 Loading Plot draft from AsyncStorage:', parsed);
-
-          if (parsed.selectedType) setSelectedType(parsed.selectedType);
-          if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
-          if (parsed.plotKind) {
-            setPlotKinds([parsed.plotKind]);
-            console.log('✅ Plot kind restored from draft:', parsed.plotKind);
-          }
-          if (parsed.images) setImages(parsed.images);
-          if (parsed.neighborhoodArea) {
-            setNeighborhoodArea(parsed.neighborhoodArea);
-            setArea(parsed.neighborhoodArea);
-          }
-          if (parsed.area) {
-            setArea(parsed.area);
-          }
-
-          console.log('✅ Plot draft loaded successfully');
-          return;
-        }
-
-        // Try loading Storage draft
-        // Try loading Storage draft
-        const storageDraft = await AsyncStorage.getItem('draft_commercial_storage');
-        if (storageDraft) {
-          const parsed = JSON.parse(storageDraft);
-          console.log('📦 Loading Storage draft from AsyncStorage:', parsed);
-
-          if (parsed.selectedType) setSelectedType(parsed.selectedType);
-          if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
-
-          // ✅ Support both old 'storageKind' and new 'storageType' fields
-          const storageTypeValue = parsed.storageType || parsed.storageKind;
-          if (storageTypeValue) {
-            // ✅ Reverse map back to Telugu/Hindi for UI display
-            const reverseMap = {
-              'Warehouse': t('storage_warehouse'),
-              'Cold Storage': t('storage_cold_storage')
-            };
-            const displayValue = reverseMap[storageTypeValue] || storageTypeValue;
-            setStorageKinds([displayValue]);
-            console.log('✅ Storage type restored:', displayValue);
-          }
-          if (parsed.images) setImages(parsed.images);
-          if (parsed.neighborhoodArea) {
-            setNeighborhoodArea(parsed.neighborhoodArea);
-            setArea(parsed.neighborhoodArea);
-          }
-          if (parsed.area) {
-            setArea(parsed.area);
-          }
-
-          console.log('✅ Storage draft loaded successfully');
-        }
-
-        // Try loading Industry draft
-        const industryDraft = await AsyncStorage.getItem('draft_commercial_industry');
-        if (industryDraft) {
-          const parsed = JSON.parse(industryDraft);
-          console.log('📦 Loading Industry draft from AsyncStorage:', parsed);
-
-          if (parsed.selectedType) setSelectedType(parsed.selectedType);
-          if (parsed.propertyTitle) setPropertyTitle(parsed.propertyTitle);
-          if (parsed.industryKind) setIndustryKinds([parsed.industryKind]);
-          if (parsed.images) setImages(parsed.images);
-          if (parsed.neighborhoodArea) {
-            setNeighborhoodArea(parsed.neighborhoodArea);
-            setArea(parsed.neighborhoodArea);
-          }
-          if (parsed.area) {
-            setArea(parsed.area);
-          }
-
-          console.log('✅ Industry draft loaded successfully');
-        }
+        await AsyncStorage.multiRemove([
+          'draft_commercial_office',
+          'draft_commercial_retail',
+          'draft_commercial_hospitality',
+          'draft_commercial_plot',
+          'draft_commercial_storage',
+          'draft_commercial_industry',
+          'draft_hospitality_details',
+          'draft_hospitality_pricing',
+          'draft_hospitality_vaastu',
+          'draft_office_details',
+          'draft_office_pricing',
+          'draft_office_vaastu',
+        ]);
+        console.log('✅ All drafts cleared');
       } catch (e) {
-        console.log('⚠️ Failed to load draft:', e);
+        console.log('⚠️ Error clearing drafts:', e);
       }
     };
 
     loadDraft();
-  }, []); // ✅ Only run on mount
+  }, []); // Only run on mount
 
   // ✅ Auto-save index.jsx state changes
   useEffect(() => {
+    // Don't save drafts in edit mode
+    if (params.editMode === 'true') return;
+
     const saveDraft = async () => {
       if (!selectedType) return;
 
-      // ✅ CONVERT storage type if present
+      // Convert storage type if present
       let storageTypeValue = undefined;
       if (storageKinds.length > 0) {
         const storageTypeMap = {
@@ -497,7 +426,7 @@ export default function PropertyFormScreen() {
         officeKind: officeKinds.length > 0 ? officeKinds[0] : undefined,
         retailKind: retailKinds.length > 0 ? retailKinds[0] : undefined,
         hospitalityKind: HospitalityKinds.length > 0 ? HospitalityKinds[0] : undefined,
-        storageType: storageTypeValue, // ✅ CHANGED from storageKind to storageType
+        storageType: storageTypeValue,
         plotKind: plotKinds.length > 0 ? plotKinds[0] : undefined,
         industryKind: industryKinds.length > 0 ? industryKinds[0] : undefined,
         locatedInside: locatedInside || undefined,
@@ -531,88 +460,8 @@ export default function PropertyFormScreen() {
 
     const timer = setTimeout(saveDraft, 1000);
     return () => clearTimeout(timer);
-  }, [selectedType, propertyTitle, images, officeKinds, retailKinds,
+  }, [params.editMode, selectedType, propertyTitle, images, officeKinds, retailKinds,
     HospitalityKinds, storageKinds, plotKinds, industryKinds, locatedInside, area, neighborhoodArea]);
-
-
-  // ✅ NEW - Load property data in EDIT MODE
-  useEffect(() => {
-    if (params.editMode === 'true' && params.propertyData) {
-      try {
-        const property = JSON.parse(params.propertyData);
-        console.log('📝 Loading commercial property for edit:', property._id);
-
-        // Set basic fields
-        setPropertyTitle(property.propertyTitle?.en || property.propertyTitle?.te || property.propertyTitle || '');
-        setNeighborhoodArea(property.area?.en || property.area?.te || property.area || '');
-        setArea(property.area?.en || property.area?.te || property.area || '');
-
-        // Load images
-        if (property.images && property.images.length > 0) {
-          setImages(property.images);
-          console.log('✅ Loaded existing images:', property.images.length);
-        }
-
-        // Determine subType and set selections
-        if (property.commercialDetails) {
-          const subType = property.commercialDetails.subType;
-          setSelectedType(subType);
-
-          // Load subtype-specific data
-          if (subType === 'Storage' && property.commercialDetails.storageDetails) {
-            const storage = property.commercialDetails.storageDetails;
-
-            // Set storage type
-            if (storage.storageType) {
-              // Reverse map English to current language
-              const storageTypeReverseMap = {
-                'Warehouse': t('storage_warehouse'),
-                'Cold Storage': t('storage_cold_storage')
-              };
-              const displayValue = storageTypeReverseMap[storage.storageType] || storage.storageType;
-              setStorageKinds([displayValue]);
-              console.log('✅ Storage type loaded:', displayValue);
-            }
-          } else if (subType === 'Office' && property.commercialDetails.officeDetails) {
-            const office = property.commercialDetails.officeDetails;
-            if (office.officeKind) {
-              setOfficeKinds([office.officeKind]);
-            }
-          } else if (subType === 'Retail' && property.commercialDetails.retailDetails) {
-            const retail = property.commercialDetails.retailDetails;
-            if (retail.retailKind) {
-              setRetailKinds([retail.retailKind]);
-            }
-            if (retail.locatedInside) {
-              setLocatedInside(retail.locatedInside);
-            }
-          } else if (subType === 'Plot/Land' && property.commercialDetails.plotDetails) {
-            const plot = property.commercialDetails.plotDetails;
-            if (plot.plotKind) {
-              setPlotKinds([plot.plotKind]);
-            }
-          } else if (subType === 'Hospitality' && property.commercialDetails.hospitalityDetails) {
-            const hospitality = property.commercialDetails.hospitalityDetails;
-            if (hospitality.hospitalityType) {
-              setHospitalityKinds([hospitality.hospitalityType]);
-              console.log('✅ Hospitality type loaded:', hospitality.hospitalityType);
-            }
-          }
-          else if (subType === 'Industry' && property.commercialDetails.industryDetails) {
-            const industry = property.commercialDetails.industryDetails;
-            if (industry.industryKind) {
-              setIndustryKinds([industry.industryKind]);
-            }
-          }
-        }
-
-        console.log('✅ Commercial property data loaded for editing');
-      } catch (error) {
-        console.error('❌ Error loading commercial property data:', error);
-        Alert.alert('Error', 'Failed to load property data');
-      }
-    }
-  }, [params.editMode, params.propertyData, params.propertyId]);
 
   /* ---------- IMAGE HANDLERS ---------- */
   const takePhoto = async () => {
@@ -707,19 +556,6 @@ export default function PropertyFormScreen() {
       return;
     }
 
-    // ✅ VALIDATE PROPERTY TYPE SELECTION
-    if (!selectedType) {
-      Toast.show({
-        type: 'error',
-        text1: t('alert_select_property_type') || 'Property Type Required',
-        text2: t('alert_select_property_type_message') || 'Please select a property type',
-        position: 'top',
-        visibilityTime: 3000,
-      });
-      return;
-    }
-
-
     const base = "/home/screens/UploadScreens/CommercialUpload/Components";
 
     const commonParams = {
@@ -737,25 +573,20 @@ export default function PropertyFormScreen() {
           return;
         }
 
-        const draftData = {
+        const officeDraftData = {
           selectedType,
           propertyTitle,
           images: images,
-          officeKind: officeKinds.length > 0 ? officeKinds[0] : undefined,
-          retailKind: retailKinds.length > 0 ? retailKinds[0] : undefined,
-          hospitalityKind: HospitalityKinds.length > 0 ? HospitalityKinds[0] : undefined,
-          storageKind: storageKinds.length > 0 ? storageKinds[0] : undefined,
-          plotKind: plotKinds.length > 0 ? plotKinds[0] : undefined,
-          locatedInside: locatedInside || undefined,
+          officeKind: officeKinds[0],
           area: area || neighborhoodArea || undefined,
           timestamp: new Date().toISOString(),
         };
 
         try {
-          await AsyncStorage.setItem('draft_commercial_office', JSON.stringify(draftData));
-          console.log('✅ Draft saved to AsyncStorage');
+          await AsyncStorage.setItem('draft_commercial_office', JSON.stringify(officeDraftData));
+          console.log('✅ Office draft saved to AsyncStorage');
         } catch (e) {
-          console.log('⚠️ Failed to save draft:', e);
+          console.log('⚠️ Failed to save Office draft:', e);
         }
 
         router.push({
@@ -767,12 +598,14 @@ export default function PropertyFormScreen() {
               officeKind: officeKinds[0],
               propertyTitle,
             }),
+            editMode: params.editMode,
+            propertyId: params.propertyId,
+            propertyData: params.propertyData,
           },
         });
         break;
 
       case "Retail":
-        // ✅ ADD VALIDATION
         if (!retailKinds.length) {
           Alert.alert(
             t('alert_retail_type_required') || 'Retail Type Required',
@@ -816,11 +649,30 @@ export default function PropertyFormScreen() {
               locatedInside: locatedInside,
               propertyTitle,
             }),
+            editMode: params.editMode,
+            propertyId: params.propertyId,
+            propertyData: params.propertyData,
           },
         });
         break;
 
       case "Plot/Land":
+        const plotDraftData = {
+          selectedType: "Plot/Land",
+          propertyTitle,
+          plotKind: plotKinds.length > 0 ? plotKinds[0] : undefined,
+          images,
+          area: area || neighborhoodArea,
+          timestamp: new Date().toISOString(),
+        };
+
+        try {
+          await AsyncStorage.setItem('draft_commercial_plot', JSON.stringify(plotDraftData));
+          console.log('✅ Plot draft saved to AsyncStorage');
+        } catch (e) {
+          console.log('⚠️ Failed to save Plot draft:', e);
+        }
+
         router.push({
           pathname: `${base}/Plot`,
           params: {
@@ -831,6 +683,9 @@ export default function PropertyFormScreen() {
               propertyTitle,
             }),
             area: area || neighborhoodArea,
+            editMode: params.editMode,
+            propertyId: params.propertyId,
+            propertyData: params.propertyData,
           },
         });
         break;
@@ -841,7 +696,6 @@ export default function PropertyFormScreen() {
           return;
         }
 
-        // ✅ CONVERT Telugu/Hindi to English
         const storageTypeMap = {
           'వేర్‌హౌస్': 'Warehouse',
           'गोदाम': 'Warehouse',
@@ -860,7 +714,7 @@ export default function PropertyFormScreen() {
         const storageDraftData = {
           selectedType: "Storage",
           propertyTitle,
-          storageType: convertedStorageType, // ✅ CHANGED from storageKind
+          storageType: convertedStorageType,
           images,
           area: area || neighborhoodArea,
           timestamp: new Date().toISOString(),
@@ -882,20 +736,12 @@ export default function PropertyFormScreen() {
               storageType: convertedStorageType,
               propertyTitle,
             }),
-            // ✅ Pass edit mode params
             editMode: params.editMode,
             propertyId: params.propertyId,
             propertyData: params.propertyData,
           },
         });
         break;
-
-
-      case "Industry":
-        if (!industryKinds.length) {
-          Alert.alert(t('alert_industry_type_required'), t('alert_select_industry_type'));
-          return;
-        }
 
       case "Industry":
         if (!industryKinds.length) {
@@ -928,13 +774,13 @@ export default function PropertyFormScreen() {
               industryKind: industryKinds[0],
               propertyTitle,
             }),
-            // ✅ ADD THESE THREE LINES
             editMode: params.editMode,
             propertyId: params.propertyId,
             propertyData: params.propertyData,
           },
         });
         break;
+
       case "Hospitality":
         if (!HospitalityKinds.length) {
           Toast.show({
@@ -973,7 +819,6 @@ export default function PropertyFormScreen() {
               hospitalityType: HospitalityKinds[0],
               propertyTitle,
             }),
-            // ✅ ADD THESE THREE LINES
             editMode: params.editMode,
             propertyId: params.propertyId,
             propertyData: params.propertyData,
@@ -981,14 +826,15 @@ export default function PropertyFormScreen() {
         });
         break;
 
-
-
-
-
       case "Other":
         router.push({
           pathname: `${base}/Other`,
-          params: commonParams,
+          params: {
+            ...commonParams,
+            editMode: params.editMode,
+            propertyId: params.propertyId,
+            propertyData: params.propertyData,
+          },
         });
         break;
     }
