@@ -137,44 +137,28 @@ const IndustryNext = () => {
     };
 
     // ✅ Load draft from AsyncStorage
-    useEffect(() => {
-      const loadDraft = async () => {
-        try {
-          console.log("📦 Loading Industry pricing draft from AsyncStorage");
-          const draft = await AsyncStorage.getItem('draft_industry_pricing');
-          if (draft) {
-            const parsed = JSON.parse(draft);
-            console.log('✅ Industry pricing draft loaded:', parsed);
-
-            setOwnership(parsed.ownership || '');
-            setExpectedPrice(parsed.expectedPrice?.toString() || '');
-            setAllInclusive(parsed.allInclusive || false);
-            setPriceNegotiable(parsed.priceNegotiable || false);
-            setTaxExcluded(parsed.taxExcluded || false);
-            setIndustryApprovedBy(parsed.IndustryApprovedBy || '');
-            setApprovedIndustryType(parsed.approvedIndustryType || '');
-            setPreLeased(parsed.preLeased || null);
-            setNocCertified(parsed.nocCertified || null);
-            setOccupancyCertified(parsed.occupancyCertified || null);
-            setLeaseDuration(parsed.leaseDuration || '');
-            setMonthlyRent(parsed.monthlyRent?.toString() || '');
-            setDescribeProperty(parsed.describeProperty || '');
-            setWheelchairFriendly(parsed.wheelchairFriendly || false);
-            setAmenities(parsed.amenities || []);
-            setLocAdvantages(parsed.locAdvantages || []);
-
-            console.log('✅ Industry pricing draft loaded successfully');
-            return;
+   useEffect(() => {
+  const loadData = async () => {
+    // ✅ PRIORITY 1: Load from edit mode first
+    if (params.editMode === 'true' && params.propertyData) {
+      try {
+        const property = JSON.parse(params.propertyData);
+        console.log('📝 Loading industry pricing for edit:', property._id);
+        
+        // Helper function to get localized text
+        const getLocalizedText = (field) => {
+          if (!field) return '';
+          if (typeof field === 'string') return field;
+          if (typeof field === 'object') {
+            return field.en || field.te || field.hi || '';
           }
-        } catch (e) {
-          console.log('⚠️ Failed to load Industry pricing draft:', e);
-        }
-
-        // ✅ FALLBACK: Load from params
-        if (commercialDetailsFromPrev?.industryDetails?.pricing) {
-          const pricing = commercialDetailsFromPrev.industryDetails.pricing;
-          console.log('🔄 Restoring from params.industryDetails.pricing');
-
+          return '';
+        };
+        
+        if (property.commercialDetails?.industryDetails) {
+          const industry = property.commercialDetails.industryDetails;
+          const pricing = industry.pricing || industry;
+          
           setOwnership(pricing.ownership || '');
           setExpectedPrice(pricing.expectedPrice?.toString() || '');
           setAllInclusive(pricing.priceDetails?.allInclusive || false);
@@ -183,55 +167,122 @@ const IndustryNext = () => {
           setIndustryApprovedBy(pricing.approvedBy || '');
           setApprovedIndustryType(pricing.approvedIndustryType || '');
           setPreLeased(pricing.preLeased || null);
+          setNocCertified(pricing.nocCertified || null);
+          setOccupancyCertified(pricing.occupancyCertified || null);
           setLeaseDuration(pricing.leaseDuration || '');
           setMonthlyRent(pricing.monthlyRent?.toString() || '');
-          setDescribeProperty(pricing.description || '');
+          setDescribeProperty(getLocalizedText(pricing.description) || '');
           setWheelchairFriendly(pricing.wheelchairFriendly || false);
           setAmenities(pricing.amenities || []);
           setLocAdvantages(pricing.locationAdvantages || []);
         }
-      };
+        
+        console.log('✅ Industry pricing loaded for edit');
+        return; // Exit early, don't load draft
+      } catch (error) {
+        console.error('❌ Error loading industry pricing:', error);
+      }
+    }
 
-      loadDraft();
-    }, []); // ✅ CHANGED: Remove commercialDetailsFromPrev from dependencies
+    // ✅ PRIORITY 2: Load from params (navigation back)
+    if (commercialDetailsFromPrev?.industryDetails?.pricing) {
+      const pricing = commercialDetailsFromPrev.industryDetails.pricing;
+      console.log('🔄 Restoring from params.industryDetails.pricing');
+
+      setOwnership(pricing.ownership || '');
+      setExpectedPrice(pricing.expectedPrice?.toString() || '');
+      setAllInclusive(pricing.priceDetails?.allInclusive || false);
+      setPriceNegotiable(pricing.priceDetails?.negotiable || false);
+      setTaxExcluded(pricing.priceDetails?.taxExcluded || false);
+      setIndustryApprovedBy(pricing.approvedBy || '');
+      setApprovedIndustryType(pricing.approvedIndustryType || '');
+      setPreLeased(pricing.preLeased || null);
+      setLeaseDuration(pricing.leaseDuration || '');
+      setMonthlyRent(pricing.monthlyRent?.toString() || '');
+      setDescribeProperty(pricing.description || '');
+      setWheelchairFriendly(pricing.wheelchairFriendly || false);
+      setAmenities(pricing.amenities || []);
+      setLocAdvantages(pricing.locationAdvantages || []);
+      
+      console.log('✅ Industry pricing restored from params');
+      return;
+    }
+
+    // ✅ PRIORITY 3: Load from draft (only in create mode)
+    if (!params.editMode || params.editMode !== 'true') {
+      try {
+        console.log("📦 Loading Industry pricing draft from AsyncStorage");
+        const draft = await AsyncStorage.getItem('draft_industry_pricing');
+        if (draft) {
+          const parsed = JSON.parse(draft);
+          console.log('✅ Industry pricing draft loaded:', parsed);
+
+          setOwnership(parsed.ownership || '');
+          setExpectedPrice(parsed.expectedPrice?.toString() || '');
+          setAllInclusive(parsed.allInclusive || false);
+          setPriceNegotiable(parsed.priceNegotiable || false);
+          setTaxExcluded(parsed.taxExcluded || false);
+          setIndustryApprovedBy(parsed.IndustryApprovedBy || '');
+          setApprovedIndustryType(parsed.approvedIndustryType || '');
+          setPreLeased(parsed.preLeased || null);
+          setNocCertified(parsed.nocCertified || null);
+          setOccupancyCertified(parsed.occupancyCertified || null);
+          setLeaseDuration(parsed.leaseDuration || '');
+          setMonthlyRent(parsed.monthlyRent?.toString() || '');
+          setDescribeProperty(parsed.describeProperty || '');
+          setWheelchairFriendly(parsed.wheelchairFriendly || false);
+          setAmenities(parsed.amenities || []);
+          setLocAdvantages(parsed.locAdvantages || []);
+
+          console.log('✅ Industry pricing draft loaded successfully');
+        }
+      } catch (e) {
+        console.log('⚠️ Failed to load Industry pricing draft:', e);
+      }
+    }
+  };
+
+  loadData();
+}, [params.editMode, params.propertyData, commercialDetailsFromPrev]); // ✅ CHANGED: Remove commercialDetailsFromPrev from dependencies
 
     // ✅ Auto-save pricing draft
     useEffect(() => {
-      const saveDraft = async () => {
-        const pricingDraft = {
-          ownership,
-          expectedPrice,
-          allInclusive,
-          priceNegotiable,
-          taxExcluded,
-          IndustryApprovedBy,
-          approvedIndustryType,
-          preLeased,
-          nocCertified,
-          occupancyCertified,
-          leaseDuration,
-          monthlyRent,
-          describeProperty,
-          wheelchairFriendly,
-          amenities,
-          locAdvantages,
-          timestamp: new Date().toISOString(),
-        };
+  if (params.editMode === 'true') return; // ✅ Don't save drafts in edit mode
+  
+  const saveDraft = async () => {
+    const pricingDraft = {
+      ownership,
+      expectedPrice,
+      allInclusive,
+      priceNegotiable,
+      taxExcluded,
+      IndustryApprovedBy,
+      approvedIndustryType,
+      preLeased,
+      nocCertified,
+      occupancyCertified,
+      leaseDuration,
+      monthlyRent,
+      describeProperty,
+      wheelchairFriendly,
+      amenities,
+      locAdvantages,
+      timestamp: new Date().toISOString(),
+    };
 
-        try {
-          await AsyncStorage.setItem('draft_industry_pricing', JSON.stringify(pricingDraft));
-          console.log('💾 Industry pricing draft auto-saved');
-        } catch (e) {
-          console.log('⚠️ Failed to save Industry pricing draft:', e);
-        }
-      };
+    try {
+      await AsyncStorage.setItem('draft_industry_pricing', JSON.stringify(pricingDraft));
+      console.log('💾 Industry pricing draft auto-saved');
+    } catch (e) {
+      console.log('⚠️ Failed to save Industry pricing draft:', e);
+    }
+  };
 
-      const timer = setTimeout(saveDraft, 1000);
-      return () => clearTimeout(timer);
-    }, [ownership, expectedPrice, allInclusive, priceNegotiable, taxExcluded, 
-        IndustryApprovedBy, approvedIndustryType, preLeased, nocCertified, occupancyCertified, 
-        leaseDuration, monthlyRent, describeProperty, wheelchairFriendly, amenities, locAdvantages]);
-
+  const timer = setTimeout(saveDraft, 1000);
+  return () => clearTimeout(timer);
+}, [params.editMode, ownership, expectedPrice, allInclusive, priceNegotiable, taxExcluded, 
+    IndustryApprovedBy, approvedIndustryType, preLeased, nocCertified, occupancyCertified, 
+    leaseDuration, monthlyRent, describeProperty, wheelchairFriendly, amenities, locAdvantages]);
     const handleNext = () => {
       if (!expectedPrice.trim()) {
         Toast.show({
