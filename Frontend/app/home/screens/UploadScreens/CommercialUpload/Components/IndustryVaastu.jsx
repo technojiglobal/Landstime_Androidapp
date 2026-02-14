@@ -46,16 +46,34 @@ export default function VastuDetailsScreen() {
 
   // ✅ Load draft from AsyncStorage
   useEffect(() => {
-    const loadDraft = async () => {
-      // ✅ PRIORITY 1: Load from params if coming back from OwnerScreen
-      if (commercialDetailsFromPrev?.industryDetails?.vastuDetails) {
-        const vastu = commercialDetailsFromPrev.industryDetails.vastuDetails;
-        console.log('🔄 Restoring Industry Vaastu from params:', vastu);
-        setForm(vastu);
-        return;
+  const loadData = async () => {
+    // ✅ PRIORITY 1: Load from edit mode first
+    if (params.editMode === 'true' && params.propertyData) {
+      try {
+        const property = JSON.parse(params.propertyData);
+        console.log('📝 Loading industry vaastu for edit:', property._id);
+        
+        if (property.commercialDetails?.industryDetails?.vastuDetails) {
+          const vastu = property.commercialDetails.industryDetails.vastuDetails;
+          console.log('🔄 Restoring Industry Vaastu from edit mode:', vastu);
+          setForm(vastu);
+          return;
+        }
+      } catch (error) {
+        console.error('❌ Error loading industry vaastu:', error);
       }
+    }
 
-      // ✅ PRIORITY 2: Load from AsyncStorage draft
+    // ✅ PRIORITY 2: Load from params (navigation back from next screen)
+    if (commercialDetailsFromPrev?.industryDetails?.vastuDetails) {
+      const vastu = commercialDetailsFromPrev.industryDetails.vastuDetails;
+      console.log('🔄 Restoring Industry Vaastu from params:', vastu);
+      setForm(vastu);
+      return;
+    }
+
+    // ✅ PRIORITY 3: Load from AsyncStorage draft (only in create mode)
+    if (!params.editMode || params.editMode !== 'true') {
       try {
         console.log("📦 Loading Industry Vaastu draft from AsyncStorage");
         const draft = await AsyncStorage.getItem('draft_industry_vaastu');
@@ -63,30 +81,32 @@ export default function VastuDetailsScreen() {
           const parsed = JSON.parse(draft);
           console.log('✅ Industry Vaastu draft loaded from storage:', parsed);
           setForm(parsed);
-          return;
         }
       } catch (e) {
         console.log('⚠️ Failed to load Industry Vaastu draft:', e);
       }
-    };
+    }
+  };
 
-    loadDraft();
-  }, [commercialDetailsFromPrev]);
+  loadData();
+}, [params.editMode, params.propertyData, commercialDetailsFromPrev]);
 
   // ✅ Auto-save Vaastu draft
   useEffect(() => {
-    const saveDraft = async () => {
-      try {
-        await AsyncStorage.setItem('draft_industry_vaastu', JSON.stringify(form));
-        console.log('💾 Industry Vaastu draft auto-saved');
-      } catch (e) {
-        console.log('⚠️ Failed to save Industry Vaastu draft:', e);
-      }
-    };
+  if (params.editMode === 'true') return; // ✅ Don't save drafts in edit mode
+  
+  const saveDraft = async () => {
+    try {
+      await AsyncStorage.setItem('draft_industry_vaastu', JSON.stringify(form));
+      console.log('💾 Industry Vaastu draft auto-saved');
+    } catch (e) {
+      console.log('⚠️ Failed to save Industry Vaastu draft:', e);
+    }
+  };
 
-    const timer = setTimeout(saveDraft, 1000);
-    return () => clearTimeout(timer);
-  }, [form]);
+  const timer = setTimeout(saveDraft, 1000);
+  return () => clearTimeout(timer);
+}, [form, params.editMode]); // ✅ Add params.editMode dependency
 
   const handleNext = () => {
     if (!commercialDetailsFromPrev) return;
