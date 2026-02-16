@@ -464,26 +464,35 @@ const handleEdit = () => {
                       resizeMode="cover"
                     />
 
-                    {/* Status Badge */}
-                    <View
-                      className={`absolute top-3 left-3 px-3 py-1.5 rounded-full ${statusLabel === "Active"
-                          ? "bg-[#DBFCE7]"
-                          : statusLabel === "Pending Review"
-                            ? "bg-[#FEF9C2]"
-                            : "bg-red-100"
-                        }`}
-                    >
-                      <Text
-                        className={`text-xs font-bold ${statusLabel === "Active"
-                            ? "text-[#008236]"
-                            : statusLabel === "Pending Review"
-                              ? "text-yellow-700"
-                              : "text-red-700"
-                          }`}
-                      >
-                        {statusLabel}
-                      </Text>
-                    </View>
+                   {/* Status Badge */}
+<View
+  className={`absolute top-3 left-3 px-3 py-1.5 rounded-full ${statusLabel === "Active"
+      ? "bg-[#DBFCE7]"
+      : statusLabel === "Pending Review"
+        ? "bg-[#FEF9C2]"
+        : "bg-red-100"
+    }`}
+>
+  <Text
+    className={`text-xs font-bold ${statusLabel === "Active"
+        ? "text-[#008236]"
+        : statusLabel === "Pending Review"
+          ? "text-yellow-700"
+          : "text-red-700"
+      }`}
+  >
+    {statusLabel}
+  </Text>
+</View>
+
+{/* Show edit hint for rejected properties */}
+{property.status === "rejected" && (
+  <View className="absolute top-12 left-3 bg-orange-500 px-2 py-1 rounded">
+    <Text className="text-white text-xs">
+      Edit to resubmit
+    </Text>
+  </View>
+)}
 
                     {/* ✅ Status Badge + 3-Dot Menu */}
                     <View className="absolute top-3 right-3 flex-row items-start">
@@ -663,8 +672,7 @@ const handleEdit = () => {
             
             <Text className="text-lg font-semibold mb-4">Property Options</Text>
             
-            {/* Edit Option (Placeholder) */}
-            {/* Edit Option */}
+          {/* Edit Option */}
 <TouchableOpacity
   onPress={handleEdit}
   disabled={selectedProperty?.propertyStatus === 'Sold'}
@@ -675,15 +683,22 @@ const handleEdit = () => {
     size={22} 
     color={selectedProperty?.propertyStatus === 'Sold' ? "#D1D5DB" : "#6B7280"} 
   />
-  <Text 
-    className={`text-base ml-3 ${
-      selectedProperty?.propertyStatus === 'Sold' 
-        ? 'text-gray-400' 
-        : 'text-gray-700'
-    }`}
-  >
-    {selectedProperty?.propertyStatus === 'Sold' ? 'Cannot Edit (Sold)' : 'Edit Property'}
-  </Text>
+  <View className="flex-1 ml-3">
+    <Text 
+      className={`text-base ${
+        selectedProperty?.propertyStatus === 'Sold' 
+          ? 'text-gray-400' 
+          : 'text-gray-700'
+      }`}
+    >
+      {selectedProperty?.propertyStatus === 'Sold' ? 'Cannot Edit (Sold)' : 'Edit Property'}
+    </Text>
+    {selectedProperty?.status === 'rejected' && selectedProperty?.propertyStatus !== 'Sold' && (
+      <Text className="text-xs text-orange-600 mt-0.5">
+        Property will be resubmitted for review
+      </Text>
+    )}
+  </View>
 </TouchableOpacity>
             
             {/* Mark as Sold Option */}

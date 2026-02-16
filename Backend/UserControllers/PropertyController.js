@@ -959,6 +959,30 @@ if (req.files?.identityDocs) {
         });
       }
     }
+
+    // ✅ ADD THIS NEW CODE HERE - Extract expectedPrice to root level for Commercial properties
+    if (propertyData.propertyType === "Commercial" && finalData.commercialDetails) {
+      // Extract expectedPrice from the appropriate subType
+      if (finalData.commercialDetails.officeDetails?.expectedPrice) {
+        finalData.expectedPrice = Number(finalData.commercialDetails.officeDetails.expectedPrice);
+      } else if (finalData.commercialDetails.retailDetails?.expectedPrice) {
+        finalData.expectedPrice = Number(finalData.commercialDetails.retailDetails.expectedPrice);
+      } else if (finalData.commercialDetails.storageDetails?.expectedPrice) {
+        finalData.expectedPrice = Number(finalData.commercialDetails.storageDetails.expectedPrice);
+      } else if (finalData.commercialDetails.industryDetails?.pricing?.expectedPrice) {
+        finalData.expectedPrice = Number(finalData.commercialDetails.industryDetails.pricing.expectedPrice);
+      } else if (finalData.commercialDetails.hospitalityDetails?.expectedPrice) {
+        finalData.expectedPrice = Number(finalData.commercialDetails.hospitalityDetails.expectedPrice);
+      } else if (finalData.commercialDetails.plotDetails?.expectedPrice) {
+        finalData.expectedPrice = Number(finalData.commercialDetails.plotDetails.expectedPrice);
+      }
+      
+      console.log('✅ Root expectedPrice set to:', finalData.expectedPrice);
+    }
+
+
+
+ 
    
     if (images.length === 0) {
       return res.status(400).json({ success: false, message: 'At least one image is required' });
@@ -1527,21 +1551,24 @@ export const updateProperty = async (req, res) => {
     const propertyData = JSON.parse(req.body.propertyData);
     
     // ✅ Status management based on current status
-    const currentStatus = property.status;
-    let newStatus = currentStatus;
-    
-    if (currentStatus === 'approved') {
-      newStatus = 'pending'; // Approved → Pending
-      console.log('✅ Status changed from approved to pending');
-    } else if (currentStatus === 'pending') {
-      newStatus = 'pending'; // Pending → Pending (no change)
-      console.log('✅ Status remains pending');
-    } else if (currentStatus === 'rejected') {
-      newStatus = 'rejected'; // Rejected → Rejected (no change)
-      console.log('✅ Status remains rejected');
-    }
-    
-    propertyData.status = newStatus;
+    // ✅ Status management based on current status
+const currentStatus = property.status;
+let newStatus = currentStatus;
+
+if (currentStatus === 'approved') {
+  newStatus = 'pending'; // Approved → Pending
+  console.log('✅ Status changed from approved to pending');
+} else if (currentStatus === 'pending') {
+  newStatus = 'pending'; // Pending → Pending (no change)
+  console.log('✅ Status remains pending');
+} else if (currentStatus === 'rejected') {
+  newStatus = 'pending'; // Rejected → Pending (resubmit for review)
+  console.log('✅ Status changed from rejected to pending (resubmission)');
+  // Clear rejection reason since it's being resubmitted
+  propertyData.rejectionReason = undefined;
+}
+
+propertyData.status = newStatus;
     
     // ✅ Handle images
     let finalImages = [];

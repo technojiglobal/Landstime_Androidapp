@@ -153,44 +153,56 @@ export default function OwnerScreen() {
     }
   }, [commercialDetails?.subType]);
 
-  useEffect(() => {
-    const loadDraft = async () => {
-      try {
-        // ✅ FIRST: Load existing documents in edit mode
-        if (params.editMode === 'true') {
-          setIsEditMode(true);
-          console.log('📝 Edit mode detected - loading existing documents');
+ useEffect(() => {
+  const loadDraft = async () => {
+    try {
+      // ✅ FIRST: Load existing documents AND owner details in edit mode
+      if (params.editMode === 'true') {
+        setIsEditMode(true);
+        console.log('📝 Edit mode detected - loading existing data');
 
-          // Try to get documents from commercialDetails
-          let documents = null;
+        let propertyData = null;
 
-          if (commercialDetails?.documents) {
-            documents = commercialDetails.documents;
-          } else if (params.propertyData) {
-            try {
-              const propertyData = typeof params.propertyData === 'string'
-                ? JSON.parse(params.propertyData)
-                : params.propertyData;
-              documents = propertyData.documents;
-            } catch (e) {
-              console.log('⚠️ Could not parse propertyData for documents:', e);
-            }
+        // Try to get property data
+        if (params.propertyData) {
+          try {
+            propertyData = typeof params.propertyData === 'string'
+              ? JSON.parse(params.propertyData)
+              : params.propertyData;
+          } catch (e) {
+            console.log('⚠️ Could not parse propertyData:', e);
           }
+        }
 
-          if (documents) {
+        if (propertyData) {
+          // ✅ Load documents
+          if (propertyData.documents) {
             setExistingDocuments({
-              ownership: documents.ownership || [],
-              identity: documents.identity || []
+              ownership: propertyData.documents.ownership || [],
+              identity: propertyData.documents.identity || []
             });
             console.log('✅ Loaded existing documents:', {
-              ownership: documents.ownership?.length || 0,
-              identity: documents.identity?.length || 0
+              ownership: propertyData.documents.ownership?.length || 0,
+              identity: propertyData.documents.identity?.length || 0
             });
           }
 
-          // ✅ In edit mode, don't load draft - return early
-          return;
+          // ✅ Load owner details
+          if (propertyData.ownerDetails) {
+            setOwnerName(propertyData.ownerDetails.name || '');
+            setPhone(propertyData.ownerDetails.phone || '');
+            setEmail(propertyData.ownerDetails.email || '');
+            console.log('✅ Loaded owner details:', {
+              name: propertyData.ownerDetails.name,
+              phone: propertyData.ownerDetails.phone,
+              email: propertyData.ownerDetails.email
+            });
+          }
         }
+
+        // ✅ In edit mode, don't load draft - return early
+        return;
+      }
 
         // ✅ SECOND: Load draft (only in create mode)
         const draft = await AsyncStorage.getItem('draft_owner_screen');
