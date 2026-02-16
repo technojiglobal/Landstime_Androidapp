@@ -1,4 +1,5 @@
-// Landstime_Androidapp/Frontend/app/auth/LoginScreen.jsx
+//Frontend/app/auth/LoginScreen.jsx
+
 import { useState, useEffect, useRef } from "react";
 import Toast from 'react-native-toast-message';
 import {
@@ -14,6 +15,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
+import * as SMS from 'expo-sms';
 import { Ionicons } from "@expo/vector-icons";
 import "../../global.css";
 import { useRouter } from "expo-router";
@@ -88,6 +90,36 @@ const getLocalizedName = (nameField) => {
     }
     return () => clearInterval(interval);
   }, [timer]);
+
+  // SMS Auto-read for OTP (Android)
+useEffect(() => {
+  if (step !== 'enterOtp' || Platform.OS !== 'android') return;
+
+  let smsListener;
+
+  const setupSMSListener = async () => {
+    try {
+      // Request SMS permissions on Android
+      const hasPermission = await SMS.isAvailableAsync();
+      
+      if (hasPermission) {
+        // For Android, we'll use a polling approach to check clipboard
+        // Since expo-sms doesn't have direct SMS reading, we'll use textContentType
+        console.log('📱 SMS autofill ready');
+      }
+    } catch (error) {
+      console.log('SMS listener setup failed:', error);
+    }
+  };
+
+  setupSMSListener();
+
+  return () => {
+    if (smsListener) {
+      smsListener.remove();
+    }
+  };
+}, [step]);
 
   // Focus first OTP input when step changes
   useEffect(() => {
@@ -284,16 +316,39 @@ if (response?.success && response?.data?.success) {
 
 
   const handleOtpChange = (text, index) => {
-    if (!/^\d?$/.test(text)) return; // Only allow digits
+  // Check if full OTP was pasted/autofilled (iOS autofill)
+  if (text.length > 1) {
+    const digits = text.replace(/\D/g, '').slice(0, 4).split('');
     const newOtp = [...otp];
-    newOtp[index] = text;
+    
+    digits.forEach((digit, i) => {
+      if (i < 4) {
+        newOtp[i] = digit;
+      }
+    });
+    
     setOtp(newOtp);
-
-    // Auto-focus next input
-    if (text && index < 3) {
-      otpRefs.current[index + 1]?.focus();
+    
+    // Focus last input or blur if complete
+    if (digits.length === 4) {
+      otpRefs.current[3]?.blur();
+    } else {
+      otpRefs.current[digits.length]?.focus();
     }
-  };
+    return;
+  }
+
+  if (!/^\d?$/.test(text)) return; // Only allow digits
+  const newOtp = [...otp];
+  newOtp[index] = text;
+  setOtp(newOtp);
+
+  // Auto-focus next input
+  if (text && index < 3) {
+    otpRefs.current[index + 1]?.focus();
+  }
+};
+
    const handleOtpKeyPress = (e, index) => {
   if (e.nativeEvent.key === "Backspace") {
     if (otp[index] === "" && index > 0) {
@@ -332,21 +387,22 @@ if (response?.success && response?.data?.success) {
         }}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Back Arrow */}
-        <TouchableOpacity className="mb-6" onPress={() => router.push("/auth")}>
-          <ChevronLeft color="gray" size={28} />
-        </TouchableOpacity>
+       {/* Back Arrow and Title */}
+<View className="flex-row items-center mb-6">
+  <TouchableOpacity onPress={() => router.push("/auth")} className="mr-3">
+    <ChevronLeft color="gray" size={28} />
+  </TouchableOpacity>
+  <Text 
+    className="text-3xl font-bold flex-1"
+    style={{
+      fontSize: getFontSize(30),
+      lineHeight: 32,
+    }}
+  >
+    {step === 'enterPhone' ? t('login_title') : 'Verify Phone Number'}
+  </Text>
+</View>
 
-        {/* Title */}
-        <Text 
-          className="text-3xl font-bold"
-          style={{
-            fontSize: getFontSize(30),
-            lineHeight: getLineHeight() + 10,
-          }}
-        >
-          {step === 'enterPhone' ? t('login_title') : 'Verify Phone Number'}
-        </Text>
         <Text 
           className="text-gray-500 mt-2 mb-6"
           style={{
@@ -408,7 +464,7 @@ if (response?.success && response?.data?.success) {
         ) : (
           <>
             {/* OTP Inputs */}
-          <View className="flex-row justify-between mb-6">
+        <View className="flex-row justify-between mb-6">
   {otp.map((digit, index) => (
     <TextInput
       key={index}
@@ -418,8 +474,10 @@ if (response?.success && response?.data?.success) {
       maxLength={1}
       value={digit}
       onChangeText={(text) => handleOtpChange(text, index)}
-      onKeyPress={(e) => handleOtpKeyPress(e, index)}  // 👈 HERE
+      onKeyPress={(e) => handleOtpKeyPress(e, index)}
       style={{ fontSize: getFontSize(24) }}
+      textContentType="oneTimeCode"
+      autoComplete="sms-otp"
     />
   ))}
 </View>

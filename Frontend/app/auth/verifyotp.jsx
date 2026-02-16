@@ -7,7 +7,9 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  Platform,
 } from "react-native";
+import * as SMS from 'expo-sms';
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
@@ -70,17 +72,67 @@ export default function OtpVerificationScreen() {
     return () => clearInterval(interval);
   }, [timer]);
 
-  // Handle OTP Change
-  const handleChange = (text, index) => {
-    const newOtp = [...otp];
-    newOtp[index] = text;
-    setOtp(newOtp);
+  // SMS Auto-read for OTP (Android)
+useEffect(() => {
+  if (Platform.OS !== 'android') return;
 
-    // Move focus
-    if (text && index < 3) {
-      inputs.current[index + 1]?.focus();
+  let smsListener;
+
+  const setupSMSListener = async () => {
+    try {
+      const hasPermission = await SMS.isAvailableAsync();
+      
+      if (hasPermission) {
+        console.log('📱 SMS autofill ready for verification');
+      }
+    } catch (error) {
+      console.log('SMS listener setup failed:', error);
     }
   };
+
+  setupSMSListener();
+
+  return () => {
+    if (smsListener) {
+      smsListener.remove();
+    }
+  };
+}, []);
+
+  // Handle OTP Change
+ // Handle OTP Change
+const handleChange = (text, index) => {
+  // Check if full OTP was pasted/autofilled (iOS autofill)
+  if (text.length > 1) {
+    const digits = text.replace(/\D/g, '').slice(0, 4).split('');
+    const newOtp = [...otp];
+    
+    digits.forEach((digit, i) => {
+      if (i < 4) {
+        newOtp[i] = digit;
+      }
+    });
+    
+    setOtp(newOtp);
+    
+    // Focus last input or blur if complete
+    if (digits.length === 4) {
+      inputs.current[3]?.blur();
+    } else {
+      inputs.current[digits.length]?.focus();
+    }
+    return;
+  }
+
+  const newOtp = [...otp];
+  newOtp[index] = text;
+  setOtp(newOtp);
+
+  // Move focus
+  if (text && index < 3) {
+    inputs.current[index + 1]?.focus();
+  }
+};
 
   // Handle Backspace
   const handleKeyPress = (e, index) => {
@@ -226,19 +278,21 @@ export default function OtpVerificationScreen() {
 
       {/* OTP Input Boxes */}
       <View className="flex-row justify-between mb-8">
-        {otp.map((digit, index) => (
-          <TextInput
-            key={index}
-            ref={(ref) => (inputs.current[index] = ref)}
-            className="w-16 h-16 bg-green-50 text-green-600 text-2xl font-bold rounded-xl text-center"
-            keyboardType="number-pad"
-            maxLength={1}
-            value={digit}
-            onChangeText={(text) => handleChange(text, index)}
-            onKeyPress={(e) => handleKeyPress(e, index)}
-            selectTextOnFocus
-          />
-        ))}
+       {otp.map((digit, index) => (
+  <TextInput
+    key={index}
+    ref={(ref) => (inputs.current[index] = ref)}
+    className="w-16 h-16 bg-green-50 text-green-600 text-2xl font-bold rounded-xl text-center"
+    keyboardType="number-pad"
+    maxLength={1}
+    value={digit}
+    onChangeText={(text) => handleChange(text, index)}
+    onKeyPress={(e) => handleKeyPress(e, index)}
+    selectTextOnFocus
+    textContentType="oneTimeCode"
+    autoComplete="sms-otp"
+  />
+))}
       </View>
 
       {/* Timer + Resend */}

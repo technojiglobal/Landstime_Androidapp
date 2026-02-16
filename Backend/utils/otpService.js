@@ -25,7 +25,7 @@ export const sendOTPviaSMS = async (phone, otp, countryCode = '+91') => {
     }
 
     const cleanPhone = phone.replace(/^\+?\d{1,3}/, '');
-    const message = `Your OTP for LandsTime verification is: ${otp}. Valid for 10 minutes.`;
+    const message = `${otp} is your LandsTime verification code. Valid for 10 minutes. #${otp}`;
 
     const postData = JSON.stringify({
       route: 'v3',
