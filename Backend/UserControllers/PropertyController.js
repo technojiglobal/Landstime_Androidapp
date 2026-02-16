@@ -568,9 +568,50 @@ if (req.files?.identityDocs) {
         console.log('✅ Retail area set to:', finalData.area);
         
         finalData.commercialDetails.retailDetails = {
-          ...commercialDetails.retailDetails,
-          neighborhoodArea: neighborhoodArea,
-        };
+  retailKind: commercialDetails.retailDetails.retailKind,
+  location: commercialDetails.retailDetails.location,
+  locality: commercialDetails.retailDetails.locality,
+  neighborhoodArea: neighborhoodArea,
+  
+  locatedInside: commercialDetails.retailDetails.locatedInside,
+  zoneType: commercialDetails.retailDetails.zoneType,
+  
+  carpetArea: Number(commercialDetails.retailDetails.carpetArea) || 0,
+  carpetAreaUnit: commercialDetails.retailDetails.carpetAreaUnit || 'sqft',
+  
+  entranceWidth: Number(commercialDetails.retailDetails.entranceWidth) || 0,
+  ceilingHeight: Number(commercialDetails.retailDetails.ceilingHeight) || 0,
+  
+  washroom: commercialDetails.retailDetails.washroom,
+  floorDetails: commercialDetails.retailDetails.floorDetails,
+  locatedNear: commercialDetails.retailDetails.locatedNear || [],
+  parkingType: commercialDetails.retailDetails.parkingType,
+  
+  availability: commercialDetails.retailDetails.availability,
+  propertyAge: commercialDetails.retailDetails.propertyAge,
+  possessionBy: commercialDetails.retailDetails.possessionBy,
+  possessionMonth: commercialDetails.retailDetails.possessionMonth,
+  
+  suitableFor: commercialDetails.retailDetails.suitableFor || [],
+  
+  ownership: commercialDetails.retailDetails.ownership,
+  expectedPrice: Number(commercialDetails.retailDetails.expectedPrice) || 0,
+  priceDetails: commercialDetails.retailDetails.priceDetails || {},
+  
+  preLeased: commercialDetails.retailDetails.preLeased,
+  leaseDuration: commercialDetails.retailDetails.leaseDuration,
+  monthlyRent: Number(commercialDetails.retailDetails.monthlyRent) || 0,
+  
+  previouslyUsedFor: commercialDetails.retailDetails.previouslyUsedFor,
+  description: commercialDetails.retailDetails.description,
+  
+  amenities: commercialDetails.retailDetails.amenities || [],
+  locationAdvantages: commercialDetails.retailDetails.locationAdvantages || [],
+  
+  vaastuDetails: commercialDetails.retailDetails.vaastuDetails || {},
+};
+
+finalData.expectedPrice = Number(commercialDetails.retailDetails.expectedPrice) || 0;
         
         console.log('✅ Retail details stored:', {
           location: finalData.location,

@@ -627,11 +627,13 @@ export default function RetailNext() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          className="px-5 py-3 rounded-lg bg-green-500"
-          onPress={handleNext}
-        >
-          <Text className="text-white font-semibold">{t('button_next')}</Text>
-        </TouchableOpacity>
+  className="px-5 py-3 rounded-lg bg-green-500"
+  onPress={handleNext}
+>
+  <Text className="text-white font-semibold">
+    {isEditMode ? t('button_update') : t('button_next')}
+  </Text>
+</TouchableOpacity>
       </View>
 
       <MorePricingDetailsModal

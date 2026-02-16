@@ -690,8 +690,11 @@ export default function OwnerScreen() {
             disabled={isSubmitting}
           >
             <Text style={{ color: "white", fontWeight: "600", fontSize: 15 }}>
-              {isSubmitting ? "Uploading..." : "Upload Property"}
-            </Text>
+  {isSubmitting 
+    ? (params.editMode === 'true' ? "Updating..." : "Uploading...")
+    : (params.editMode === 'true' ? "Update Property" : "Upload Property")
+  }
+</Text>
           </TouchableOpacity>
         </View>
       </View>
