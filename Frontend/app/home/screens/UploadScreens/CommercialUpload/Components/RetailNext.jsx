@@ -113,6 +113,8 @@ export default function RetailNext() {
   const [focusedField, setFocusedField] = useState(null);
   const [isMorePricingModalVisible, setIsMorePricingModalVisible] = useState(false);
 
+  const [isEditMode, setIsEditMode] = useState(false);
+
   /* ---------- OPTIONS ---------- */
   const ownershipOptions = [
     t('retail_ownership_freehold'),
@@ -159,10 +161,11 @@ export default function RetailNext() {
   };
 
   // ✅ Load draft from AsyncStorage
- useEffect(() => {
+useEffect(() => {
   const loadData = async () => {
     // ✅ PRIORITY 1: Load data in edit mode
     if (params.editMode === 'true' && params.propertyData) {
+      setIsEditMode(true); // ✅ ADD THIS LINE
       try {
         const property = JSON.parse(params.propertyData);
         console.log('📝 Loading Retail pricing for edit:', property._id);
