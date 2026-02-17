@@ -1,4 +1,4 @@
-// src/components/notifications/NotificationHistory.jsx
+//admin// src/components/notifications/NotificationHistory.jsx
 
 import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";

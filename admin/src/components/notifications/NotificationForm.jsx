@@ -1,4 +1,4 @@
-// src/components/notifications/NotificationForm.jsx - FIXED VERSION
+// admin//src/components/notifications/NotificationForm.jsx - FIXED VERSION
 
 import React, { useState, useEffect } from "react";
 import { Users, ChevronDown, Calendar, Clock, Send, Info } from "lucide-react";
