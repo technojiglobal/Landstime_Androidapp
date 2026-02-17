@@ -1,3 +1,4 @@
+//admin/src/components/properties/sections/AvailabilityStatus.jsx
 import React from 'react';
 import CheckboxGroup from '../fields/CheckboxGroup';
 import SelectField from '../fields/SelectField';
@@ -27,7 +28,7 @@ const AvailabilityStatus = (props) => {
   // Determine the correct data object (nested for houseDetails or flat)
   const data = isUsingFormData ? (formData.houseDetails || formData) : props;
 
-  const value = propValue ?? data.availabilityStatus ?? '';
+ const value = propValue ?? data.availabilityStatus ?? '';
 
 // House uses array, Office uses string
 const isHouse = !!formData?.houseDetails;

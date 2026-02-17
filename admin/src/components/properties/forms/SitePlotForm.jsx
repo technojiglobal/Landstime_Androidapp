@@ -121,12 +121,12 @@ const SitePlotForm = ({ formData, updateField, images, setImages }) => {
       </div>
 
       <RadioButtons
-        label="Is there a boundary wall around the property?"
-        name="boundaryWall"
-        value={formData.siteDetails?.boundaryWall ? 'Yes' : 'No'}
-        onChange={(value) => updateSiteField('boundaryWall', value === 'Yes')}
-        options={['Yes', 'No']}
-      />
+  label="Is there a boundary wall around the property?"
+  name="boundaryWall"
+  value={formData.siteDetails?.boundaryWall ?? ''}
+  onChange={(value) => updateSiteField('boundaryWall', value)}
+  options={['Yes', 'No']}
+/>
 
       <NumberButtonGroup
         label="No. of open sides"
@@ -136,15 +136,15 @@ const SitePlotForm = ({ formData, updateField, images, setImages }) => {
         options={['1', '2', '3', '3+']}
       />
 
-      <RadioButtons
-        label="Any construction done on this property?"
-        name="construction"
-        value={formData.siteDetails?.constructionDone ? 'Yes' : 'No'}
-        onChange={(value) => updateSiteField('constructionDone', value === 'Yes')}
-        options={['Yes', 'No']}
-      />
+     <RadioButtons
+  label="Any construction done on this property?"
+  name="construction"
+  value={formData.siteDetails?.constructionDone ?? ''}
+  onChange={(value) => updateSiteField('constructionDone', value)}
+  options={['Yes', 'No']}
+/>
 
-      {formData.siteDetails?.constructionDone && (
+{formData.siteDetails?.constructionDone === 'Yes' && (
         <div className="border-t pt-6">
           <h3 className="text-base font-medium text-gray-600 text-left mb-4">
             What type of construction has been done ?

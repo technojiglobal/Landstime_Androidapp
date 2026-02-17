@@ -8,18 +8,16 @@ import {
 } from '../../../constants/propertyConstants';
 
 const DescriptionSection = ({ formData, updateField, setIsDescriptionValid }) => {
-  const getWordCount = (text = '') =>
-    text.trim().split(/\s+/).filter(Boolean).length;
+ const getCharCount = (text = '') => text.trim().length;
 
   const handleDescriptionChange = (value) => {
     updateField('description', value);
 
-    const count = getWordCount(value);
+    const count = getCharCount(value);
     setIsDescriptionValid(count >= 50);
   };
 
-  const wordCount = getWordCount(formData.description);
-
+  const wordCount = getCharCount(formData.description);
   return (
     <div className="space-y-6 border-t pt-6">
       <div>
@@ -32,13 +30,13 @@ const DescriptionSection = ({ formData, updateField, setIsDescriptionValid }) =>
           name="description"
           value={formData.description}
           onChange={handleDescriptionChange}
-          placeholder="Describe your property (min 50 words)"
+          placeholder="Describe your property (min 50 characters)"
           rows={4}
         />
 
         {formData.description && wordCount < 50 && (
           <p className="text-red-500 text-sm mt-1">
-            Description must contain at least 50 words. ({wordCount}/50)
+            Description must contain at least 50 characters. ({wordCount}/50)
           </p>
         )}
       </div>

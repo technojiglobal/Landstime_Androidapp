@@ -1,3 +1,4 @@
+//admin/src/components/properties/fields/TextAreaField.jsx
 import React from 'react';
 
 const TextAreaField = ({ label, name, value, onChange, placeholder, rows = 4, required = false }) => (
