@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import userRoutes from './UserRoutes/UserRoute.js';
-import propertyRoutes from './UserRoutes/PropertyRoutes.js';
+import propertyRoutes from './UserRoutes/propertyRoutes.js';
 import adminPropertyRoutes from './AdminRoutes/adminPropertyRoute.js';  
 
 import subscriptionRoutes from './UserRoutes/SubscriptionRoute.js';
