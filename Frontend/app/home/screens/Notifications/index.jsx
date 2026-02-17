@@ -259,8 +259,8 @@ export default function Notifications() {
             paddingHorizontal: 16,
           }}
         >
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={26} />
+          <TouchableOpacity onPress={() => router.push("/(tabs)/home")}>
+             <Ionicons name="chevron-back" size={26} />
           </TouchableOpacity>
           <Text style={{ fontSize: 20, fontWeight: "700", marginLeft: 10 }}>
             Notifications
@@ -319,9 +319,9 @@ export default function Notifications() {
             paddingHorizontal: 16,
           }}
         >
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={26} />
-          </TouchableOpacity>
+         <TouchableOpacity onPress={() => router.push("/(tabs)/home")}>
+  <Ionicons name="chevron-back" size={26} />
+</TouchableOpacity>
           <Text style={{ fontSize: 20, fontWeight: "700", marginLeft: 10 }}>
             Notifications
           </Text>
@@ -366,9 +366,9 @@ export default function Notifications() {
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={26} />
-          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/(tabs)/home")}>
+  <Ionicons name="chevron-back" size={26} />
+</TouchableOpacity>
 
           <Text style={{ fontSize: 20, fontWeight: "700", marginLeft: 10 }}>
             Notifications
