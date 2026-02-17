@@ -1,3 +1,5 @@
+//admin/src/components/properties/fields/TextField.jsx
+
 import React from 'react';
 
 const TextField = ({ label, name, value, onChange, placeholder, type = 'text', required = false }) => (

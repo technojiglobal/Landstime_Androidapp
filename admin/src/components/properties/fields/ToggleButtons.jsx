@@ -1,3 +1,4 @@
+//admin/src/components/properties/fields/ToggleButtons.jsx
 import React from 'react';
 
 const ToggleButtons = ({ label, name, value, onChange, options, required = false, compact = false }) => (

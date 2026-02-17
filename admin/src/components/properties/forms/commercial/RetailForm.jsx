@@ -190,15 +190,15 @@ const setRetail = (key, value) => {
           </button>
 
           <button
-            type="button"
-            onClick={() => setRetail('washroomTypes', [])}
-            className={`px-4 py-2 rounded-full border text-sm transition-colors ${(retail.washroomTypes || []).length === 0
-              ? 'bg-green-500 text-white border-green-500'
-              : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
-              }`}
-          >
-            Not Available
-          </button>
+  type="button"
+  onClick={() => setRetail('washroomTypes', ['Not Available'])}
+  className={`px-4 py-2 rounded-full border text-sm transition-colors ${(retail.washroomTypes || []).includes('Not Available')
+    ? 'bg-green-500 text-white border-green-500'
+    : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+    }`}
+>
+  Not Available
+</button>
         </div>
       </div>
 
@@ -308,15 +308,15 @@ const setRetail = (key, value) => {
           </button>
 
           <button
-            type="button"
-            onClick={() => setRetail('parkingType', [])}
-            className={`px-4 py-2 rounded-full border text-sm transition-colors ${(retail.parkingType || []).length === 0
-              ? 'bg-green-500 text-white border-green-500'
-              : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
-              }`}
-          >
-            Not Available
-          </button>
+  type="button"
+  onClick={() => setRetail('parkingType', ['Not Available'])}
+  className={`px-4 py-2 rounded-full border text-sm transition-colors ${(retail.parkingType || []).includes('Not Available')
+    ? 'bg-green-500 text-white border-green-500'
+    : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+    }`}
+>
+  Not Available
+</button>
         </div>
       </div>
 

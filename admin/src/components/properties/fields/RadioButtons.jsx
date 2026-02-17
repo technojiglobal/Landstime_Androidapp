@@ -1,3 +1,5 @@
+//admin/src/components/properties/fields/RadioButtons.jsx
+
 import React from 'react';
 
 const RadioButtons = ({ label, name, value, onChange, options, required = false }) => (

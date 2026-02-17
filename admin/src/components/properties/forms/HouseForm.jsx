@@ -195,7 +195,7 @@ const updateVaasthuField = (field, value) => {
       <RadioButtons
   label="Furnishing"
   name="furnishing"
-  value={formData.houseDetails?.furnishing || 'Unfurnished'}
+  value={formData.houseDetails?.furnishing || ''}
   onChange={handleFurnishingChange}
   options={FURNISHING_OPTIONS}
 />
