@@ -182,7 +182,7 @@ const handleChange = (text, index) => {
 
       if (response.success && response.data.success) {
         // Navigate to registration screen with verified phone
-        router.replace({
+        router.push({
           pathname: "/auth",
           params: {
             phone: phoneNumber,
