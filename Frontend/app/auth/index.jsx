@@ -89,7 +89,7 @@ useEffect(() => {
     setPhoneVerified(true);
     setAllowEdit(false);
   }
-}, [params]);
+}, [params.verified, params.allowEdit, params.fromEdit, params.phone, params.name, params.email, params.role, params.countryCode]);
 
 
   useEffect(() => {
@@ -434,12 +434,13 @@ const response = await registerUser({
           {phoneVerified ? (
             <View className="flex-row items-center">
               <Ionicons name="checkmark-circle" size={24} color="#16a34a" />
-              <TouchableOpacity
-                onPress={() => {
-                  setPhoneVerified(false);
-                }}
-                className="ml-2"
-              >
+             <TouchableOpacity
+  onPress={() => {
+    setPhoneVerified(false);
+    setAllowEdit(true);
+  }}
+  className="ml-2"
+>
                 <Text className="text-blue-500 text-sm">{t("change_button")}</Text>
               </TouchableOpacity>
             </View>
@@ -512,16 +513,18 @@ const response = await registerUser({
             color={email ? (isEmailValid ? "#16a34a" : "#ef4444") : "#9ca3af"}
           />
           <TextInput
-            className="flex-1 ml-3 h-12 text-base"
-            placeholder= {t("email_placeholder")}
-            keyboardType="email-address"
-            value={email}
-            onChangeText={setEmail}
-            placeholderTextColor="#9ca3af"
-            autoCapitalize="none"
-            onFocus={() => setIsEmailFocused(true)}
-            onBlur={() => setIsEmailFocused(false)}
-          />
+  className="flex-1 ml-3 h-12 text-base"
+  placeholder={t("email_placeholder")}
+  keyboardType="email-address"
+  value={email}
+  onChangeText={setEmail}
+  placeholderTextColor="#9ca3af"
+  autoCapitalize="none"
+  editable={true}
+  pointerEvents="auto"
+  onFocus={() => setIsEmailFocused(true)}
+  onBlur={() => setIsEmailFocused(false)}
+/>
         </View>
 
             {/* Role Selection */}
