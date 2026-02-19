@@ -58,15 +58,16 @@ export default function DirectionDetails({ data }) {
         <View className="flex-row flex-wrap gap-2">
           {data.idealPlacements.map((placementKey, index) => (
             <View
-              key={index}
-              className="px-3 py-[3px] rounded-full border"
-              style={{
-                borderColor: "#0000001A",
-                borderWidth: 1,
-              }}
-            >
-              <Text className="text-sm text-gray-700">{t(placementKey)}</Text>
-            </View>
+  key={index}
+  className="px-3 py-[3px] rounded-full"
+  style={{
+    backgroundColor: "#F3F4F6",
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+  }}
+>
+  <Text className="text-sm text-gray-700">{t(placementKey)}</Text>
+</View>
           ))}
         </View>
       </View>
@@ -82,16 +83,17 @@ export default function DirectionDetails({ data }) {
 
         <View className="flex-row flex-wrap gap-2">
           {data.avoid.map((avoidKey, index) => (
-            <View
-              key={index}
-              className="px-3 py-[3px] rounded-full border"
-              style={{
-                borderColor: "#0000001A",
-                borderWidth: 1,
-              }}
-            >
-              <Text className="text-sm text-gray-700">{t(avoidKey)}</Text>
-            </View>
+           <View
+  key={index}
+  className="px-3 py-[3px] rounded-full"
+  style={{
+    backgroundColor: "#F3F4F6",
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+  }}
+>
+  <Text className="text-sm text-gray-700">{t(avoidKey)}</Text>
+</View>
           ))}
         </View>
       </View>

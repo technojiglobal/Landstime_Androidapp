@@ -1128,7 +1128,13 @@ export default function PropertyListScreen() {
                           paddingTop: 2,
                         }}
                       >
-                        ₹{item.expectedPrice ? (item.expectedPrice / 100000).toFixed(0) + 'L' : 'N/A'}
+                       ₹{item.expectedPrice
+  ? item.expectedPrice < 100000
+    ? (item.expectedPrice / 1000).toFixed(0) + 'K'
+    : item.expectedPrice < 10000000
+    ? (item.expectedPrice / 100000).toFixed(1) + 'L'
+    : (item.expectedPrice / 10000000).toFixed(1) + 'Cr'
+  : 'N/A'}
                       </Text>
                     </View>
                   </View>
