@@ -26,7 +26,7 @@ export default function VastuDirections() {
   const [activeTab, setActiveTab] = useState("Directions");
   const [activeDirection, setActiveDirection] = useState("North");
 
-  const directions = Object.keys(directionsData);
+  const directions = ["North", "South", "East", "West", "Northeast", "Northwest", "Southeast", "Southwest"];
 
   // Tab configuration with translation keys
   const tabs = [
@@ -123,7 +123,10 @@ export default function VastuDirections() {
         <>
           {/* Compass + Arrow */}
           <View className="w-full flex justify-center items-center mt-6">
-            <View className="w-56 h-56 rounded-full border border-gray-300 justify-center items-center relative">
+           <View
+  style={{ width: SCREEN_WIDTH * 0.65, height: SCREEN_WIDTH * 0.65 }}
+  className="rounded-full border border-gray-300 justify-center items-center relative"
+>
 
               {/* 🔄 Rotating Arrow */}
               <View
@@ -157,24 +160,26 @@ export default function VastuDirections() {
           </View>
 
           {/* Direction Buttons */}
-          <View className="flex-row flex-wrap gap-4 ml-6 mt-8">
-            {directions.map((dir) => (
-              <TouchableOpacity
-                key={dir}
-                onPress={() => setActiveDirection(dir)}
-                className={`px-1 py-2 rounded-xl w-[42%] mb-4 border ${
-                  activeDirection === dir
-                    ? "border-green-600 bg-[#22C55E17]"
-                    : "border-gray-300 bg-white"
-                }`}
-              >
-                <Text
-                  className={`text-center text-base ${
-                    activeDirection === dir
-                      ? "text-green-700 font-bold"
-                      : "text-gray-600"
-                  }`}
-                >
+          <View className="flex-row flex-wrap justify-between mt-8 px-2">
+  {directions.map((dir) => (
+    <TouchableOpacity
+      key={dir}
+      onPress={() => setActiveDirection(dir)}
+      style={{ width: "47%", marginBottom: 14 }}
+      className={`py-4 rounded-2xl border ${
+        activeDirection === dir
+          ? "border-green-600 bg-[#22C55E17]"
+          : "border-gray-300 bg-white"
+      }`}
+    >
+               <Text
+  className={`text-center text-base font-medium ${
+    activeDirection === dir
+      ? "text-green-700 font-bold"
+      : "text-gray-600"
+  }`}
+  style={{ fontSize: 16 }}
+>
                   {directionLabels[dir]}
                 </Text>
               </TouchableOpacity>
