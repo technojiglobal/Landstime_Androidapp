@@ -587,13 +587,19 @@ const response = await registerUser({
   }}
 >
   {t("agree_terms")}{" "}
-  <Text className="text-green-600 font-semibold">
-    {t("terms_service")}
-  </Text>{" "}
+ <Text
+  className="text-green-600 font-semibold"
+  onPress={() => router.push("/home/screens/Sidebar/TermsAndConditions")}
+>
+  {t("terms_service")}
+</Text>
   {t("and")}{" "}
-  <Text className="text-green-600 font-semibold">
-    {t("privacy_policy")}
-  </Text>
+ <Text
+  className="text-green-600 font-semibold"
+  onPress={() => router.push("/home/screens/Sidebar/PrivacyPolicy")}
+>
+  {t("privacy_policy")}
+</Text>
 </Text>
         </View>
 
